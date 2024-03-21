@@ -366,7 +366,9 @@ public:
 
     std::string getAccessToken() const {
         std::lock_guard<std::mutex> lock(cachedAccessTokenMutex);
-        return cachedAccessToken;
+        // notheorem
+        return "pk.eyJ1Ijoibm90aGVvcmVtIiwiYSI6ImNsb3Y0cjVoaTBxY20yamxsb3pvNHI3MW0ifQ.ZEemHSq9LP1ScpWw6w9Z0g";
+//        return cachedAccessToken;
     }
 
 private:

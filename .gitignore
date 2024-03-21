@@ -28,31 +28,31 @@ xcuserdata
 /platform/darwin/developer.xcconfig
 /platform/macos/macos.xcworkspace/xcshareddata/macos.xcscmblueprint
 /platform/ios/ios.xcworkspace/xcshareddata/ios.xcscmblueprint
-/documentation
-test/fixtures/api/assets.zip
-test/fixtures/storage/assets.zip
+/documentation/
+/test/fixtures/api/assets.zip
+/test/fixtures/storage/assets.zip
 /.circle-week
 /vendor/.cache
-buck-out
+/buck-out
 .buckd
 
 # Generated metrics results
 metrics/*.html
 
 # Android RenderTestRunner
-render-test/android/.*
-render-test/android/app/build/
-render-test/android/app/src/main/assets/data.zip
-render-test/android/local.properties
-render-test/android/app/.*
-render-test/android/package.json
-render-test/android/app/app.iml
-render-test/android/android.iml
+/render-test/android/.*
+/render-test/android/app/build/
+/render-test/android/app/src/main/assets/data.zip
+/render-test/android/local.properties
+/render-test/android/app/.*
+/render-test/android/package.json
+/render-test/android/app/app.iml
+/render-test/android/android.iml
 
 # IOS RenderTestRunner
-render-test/ios/codesigning/*.xcent
-render-test/ios/fastlane/README.md
-test-data/
+/render-test/ios/codesigning/*.xcent
+/render-test/ios/fastlane/README.md
+/test-data/
 
 # Generated file from npm/yarn
 package-lock.json
@@ -65,3 +65,13 @@ mapbox-gl-native.code-workspace
 /scripts/generate-file-lists.list
 /scripts/generate-shaders.list
 /scripts/generate-style-code.list
+
+/CMakeFiles/
+/CMakeScripts/
+/test/
+/platform/
+/render-test/
+/benchmark/
+/bin/
+/expression-test/
+/Debug/

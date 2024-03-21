@@ -129,7 +129,14 @@ int main(int argc, char *argv[]) {
     if (!style.empty() && style.find("://") == std::string::npos) {
         style = std::string("file://") + style;
     }
-
+    
+    // #*#*# 设置默认地图位置为香港维多利亚港附近
+    settings.latitude = 22.2874;
+    settings.longitude = 114.157;
+    settings.bearing = 161;
+    settings.zoom = 16.8;
+    settings.pitch = 60;
+    
     map.jumpTo(mbgl::CameraOptions()
                    .withCenter(mbgl::LatLng {settings.latitude, settings.longitude})
                    .withZoom(settings.zoom)

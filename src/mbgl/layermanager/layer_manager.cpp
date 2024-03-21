@@ -9,11 +9,20 @@
 #include <mbgl/style/layer_impl.hpp>
 #include <mbgl/style/conversion_impl.hpp>
 
+#include "mbgl/nav/nav_mb_layer_filter.hpp"
+
 namespace mbgl {
 
 std::unique_ptr<style::Layer> LayerManager::createLayer(
     const std::string& type, const std::string& id,
     const style::conversion::Convertible& value, style::conversion::Error& error) noexcept {
+        
+        if (!nav::mb::layerTypeFilter(id)) {
+            return nullptr;
+        } else if (id == "water") {
+            
+        }
+        
     LayerFactory* factory = getFactory(type);
     if (factory) {
         auto layer = factory->createLayer(id, value);

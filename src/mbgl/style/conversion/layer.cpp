@@ -5,6 +5,8 @@
 
 #include <mbgl/layermanager/layer_manager.hpp>
 
+#include "mbgl/nav/nav_mb_style_displace.hpp"
+
 namespace mbgl {
 namespace style {
 namespace conversion {
@@ -91,6 +93,8 @@ optional<std::unique_ptr<Layer>> Converter<std::unique_ptr<Layer>>::operator()(c
         error = *error_;
         return nullopt;
     }
+    
+    nav::mb::displaceStyle(layer);
 
     return layer;
 }
