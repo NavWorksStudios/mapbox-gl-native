@@ -92,15 +92,26 @@ void addFillExtrusionLayer(mbgl::style::Style &style, bool visible) {
     extrusionLayer->setSourceLayer("building");
     extrusionLayer->setMinZoom(15.0f);
     extrusionLayer->setFilter(Filter(eq(get("extrude"), literal("true"))));
+//    extrusionLayer->setFillExtrusionColor(PropertyExpression<mbgl::Color>(interpolate(linear(),
+//                                                                                      number(get("height")),
+//                                                                                      0.f,
+//                                                                                      toColor(literal("#160e23")),
+//                                                                                      50.f,
+//                                                                                      toColor(literal("#00615f")),
+//                                                                                      100.f,
+//                                                                                      toColor(literal("#55e9ff")))));
+    // #*#*# 设置3d building的基准色值
     extrusionLayer->setFillExtrusionColor(PropertyExpression<mbgl::Color>(interpolate(linear(),
                                                                                       number(get("height")),
                                                                                       0.f,
-                                                                                      toColor(literal("#160e23")),
+                                                                                      toColor(literal("#ffffff")),
                                                                                       50.f,
-                                                                                      toColor(literal("#00615f")),
+                                                                                      toColor(literal("#ffffff")),
                                                                                       100.f,
-                                                                                      toColor(literal("#55e9ff")))));
-    extrusionLayer->setFillExtrusionOpacity(0.6f);
+                                                                                      toColor(literal("#ffffff")))));
+//    extrusionLayer->setFillExtrusionOpacity(0.6f);
+    // #*#*# 设置3d building的积压透明度为0.9
+    extrusionLayer->setFillExtrusionOpacity(0.9f);
     extrusionLayer->setFillExtrusionHeight(PropertyExpression<float>(get("height")));
     extrusionLayer->setFillExtrusionBase(PropertyExpression<float>(get("min_height")));
     style.addLayer(std::move(extrusionLayer));

@@ -127,7 +127,9 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
         if (parameters.debugOptions & MapDebugOptions::Overdraw) {
             color = Color::black();
         } else if (!backend.contextIsShared()) {
-            color = renderTreeParameters.backgroundColor;
+            // color = renderTreeParameters.backgroundColor;
+            // #*#*# 读取本项目默认背景色
+            color = Color::nav_bk_color();
         }
         parameters.renderPass = parameters.encoder->createRenderPass("main buffer", { parameters.backend.getDefaultRenderable(), color, 1, 0 });
     }

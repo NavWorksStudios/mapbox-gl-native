@@ -19,6 +19,8 @@
 #include <algorithm>
 #include <set>
 
+#include <mbgl/nav/nav_mb_style_displace.hpp>
+
 namespace mbgl {
 namespace style {
 
@@ -209,6 +211,7 @@ void Parser::parseLayers(const JSValue& value) {
         auto it = layersMap.find(id);
 
         if (it->second.second) {
+            nav::mb::displaceStyle(it->second.second);
             layers.emplace_back(std::move(it->second.second));
         }
     }
