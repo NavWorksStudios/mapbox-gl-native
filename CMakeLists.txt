@@ -823,6 +823,17 @@ add_library(
     ${PROJECT_SOURCE_DIR}/src/mbgl/util/version.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/util/version.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/util/work_request.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/clipper2/clipper.core.h
+    ${PROJECT_SOURCE_DIR}/src/mbgl/clipper2/clipper.engine.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/clipper2/clipper.engine.h
+    ${PROJECT_SOURCE_DIR}/src/mbgl/clipper2/clipper.export.h
+    ${PROJECT_SOURCE_DIR}/src/mbgl/clipper2/clipper.h
+    ${PROJECT_SOURCE_DIR}/src/mbgl/clipper2/clipper.minkowski.h
+    ${PROJECT_SOURCE_DIR}/src/mbgl/clipper2/clipper.offset.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/clipper2/clipper.offset.h
+    ${PROJECT_SOURCE_DIR}/src/mbgl/clipper2/clipper.rectclip.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/clipper2/clipper.rectclip.h
+    ${PROJECT_SOURCE_DIR}/src/mbgl/clipper2/clipper.version.h
 )
 
 if(MBGL_WITH_OPENGL)
