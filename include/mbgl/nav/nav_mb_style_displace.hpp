@@ -15,17 +15,17 @@ namespace nav {
 
 namespace mb {
 
-void displaceStyle(std::unique_ptr<::mbgl::style::Layer>& layer) {
+static void displaceStyle(std::unique_ptr<::mbgl::style::Layer>& layer) {
     const auto id = layer->getID();
     if (id == "land") {
         auto backgroundLayer = static_cast<::mbgl::style::BackgroundLayer*>(layer.get());
-        auto color = backgroundLayer->getBackgroundColor();
-        backgroundLayer->setBackgroundColor(color);
+        auto bk_color = backgroundLayer->getBackgroundColor();
+        backgroundLayer->setBackgroundColor(bk_color);
     } else if (id == "water") {
         auto fillLayer = static_cast<::mbgl::style::FillLayer*>(layer.get());
-        mbgl::style::PropertyValue<mbgl::Color> color = fillLayer->getFillColor();
-        mbgl::style::PropertyValue<mbgl::Color> c = mbgl::Color(1, 1, 1, 1);
-        fillLayer->setFillColor(c);
+//        mbgl::style::PropertyValue<mbgl::Color> color = fillLayer->getFillColor();
+        mbgl::style::PropertyValue<mbgl::Color> new_fill_color = mbgl::Color(0.203,0.325,0.396,1);
+        fillLayer->setFillColor(new_fill_color);
     }
 }
 
