@@ -20,8 +20,8 @@ bool layerFilterByType(const std::string& id) {
     static const std::unordered_map<std::string, std::string> layerIds = {
         // { id, source-layer, /* type */ }
         
-#if 0
-        {"land", "", /* background */ }, // 地球底色，灰黄色
+#if 1
+//        {"land", "", /* background */ },  地球底色，灰黄色
         {"landcover", "landcover", /* fill */ }, // 大洲绿色，低级别才显示
         {"national-park", "landuse_overlay", /* fill */ }, // 国家公园，绿地
         
@@ -35,21 +35,21 @@ bool layerFilterByType(const std::string& id) {
         {"water", "water", /* fill */ }, // 所有水系，江河湖海
         {layer::LAND_EXTRUSION_ID, layer::LAND_EXTRUSION_ID, /* fill */ }, // nav 提升陆地
         
-//        {"hillshade", "hillshade", /* fill */ }, // 山阴
+        {"hillshade", "hillshade", /* fill */ }, // 山阴
 #endif
         
-#if 0
+#if 1
         {"land-structure-polygon", "structure", /* fill */ },
         {"land-structure-line", "structure", /* line */ },
         
 //        {"aeroway-polygon", "aeroway", /* fill */ }, // 航路
 //        {"aeroway-line", "aeroway", /* line */ }, // 航路
         
-        {"building-outline", "building", /* line */ }, // 楼底座的沟边
+//        {"building-outline", "building", /* line */ }, // 楼底座的沟边
         {"building", "building", /* fill */ }, // 楼底座
 #endif
         
-#if 0
+#if 1
         {"tunnel-street-minor-low", "road", /* line */ },
         {"tunnel-street-minor-case", "road", /* line */ },
         {"tunnel-primary-secondary-tertiary-case", "road", /* line */ },
@@ -72,7 +72,7 @@ bool layerFilterByType(const std::string& id) {
         {"ferry-auto", "road", /* line */ }, // 摆渡，水上，实线
 #endif
         
-#if 0
+#if 1
         {"road-path-bg", "road", /* line */ }, // 固定宽度道路
         {"road-steps-bg", "road", /* line */ }, // 道路台阶
         {"turning-feature-outline", "road", /* symbol */ }, // 类似环岛的圆形，灰色，被turning-feature压盖
@@ -92,9 +92,9 @@ bool layerFilterByType(const std::string& id) {
         {"road-steps", "road", /* line */ }, // 道路台阶
 
         {"road-major-link", "road", /* line */ }, // 公路主干道
-        {"road-pedestrian", "road", /* line */ }, // 人行道
-        {"road-pedestrian-polygon-fill", "road", /* fill */ }, // 人行道多边形填充
-        {"road-pedestrian-polygon-pattern", "road", /* fill */ }, // 人行道多边形图案
+//        {"road-pedestrian", "road", /* line */ }, // 人行道
+//        {"road-pedestrian-polygon-fill", "road", /* fill */ }, // 人行道多边形填充
+//        {"road-pedestrian-polygon-pattern", "road", /* fill */ }, // 人行道多边形图案
         {"road-polygon", "road", /* fill */ }, // 道路多边形
         
 
@@ -148,7 +148,7 @@ bool layerFilterByType(const std::string& id) {
 //        {"aerialway", "road", /* line */ },
         
 
-#if 0
+#if 1
         {"admin-1-boundary-bg", "admin", /* line */ }, //省界
         {"admin-0-boundary-bg", "admin", /* line */ }, // 国界
         {"admin-1-boundary", "admin", /* line */ }, //省界

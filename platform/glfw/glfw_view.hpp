@@ -129,8 +129,8 @@ private:
     float frameTime = 0;
     double lastReported = 0;
 
-    int width = 1024;
-    int height = 768;
+    int width = 1280;
+    int height = 720;
     float pixelRatio;
 
     double lastX = 0, lastY = 0;
