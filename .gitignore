@@ -75,3 +75,6 @@ mapbox-gl-native.code-workspace
 /bin/
 /expression-test/
 /Debug/
+Mapbox GL Native.xcodeproj/project.pbxproj
+Mapbox GL Native.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
+Mapbox GL Native.xcodeproj/project.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings
