@@ -9,13 +9,15 @@
 #include <string>
 #include <unordered_map>
 
+#include "mbgl/nav/nav_mb_style_displace.hpp"
+
 namespace nav {
 
 namespace mb {
 
 
-bool layerTypeFilter(const std::string& id) {
-    static std::unordered_map<std::string, std::string> layerIds = {
+bool layerFilterByType(const std::string& id) {
+    static const std::unordered_map<std::string, std::string> layerIds = {
         // { id, source-layer, /* type */ }
         
 #if 0
@@ -31,6 +33,7 @@ bool layerTypeFilter(const std::string& id) {
 //        {"water-shadow", "water", /* fill */ }, // 水边阴影
 //        {"waterway", "waterway", /* line */ }, // 航道
         {"water", "water", /* fill */ }, // 所有水系，江河湖海
+        {layer::LAND_EXTRUSION_ID, layer::LAND_EXTRUSION_ID, /* fill */ }, // nav 提升陆地
         
 //        {"hillshade", "hillshade", /* fill */ }, // 山阴
 #endif

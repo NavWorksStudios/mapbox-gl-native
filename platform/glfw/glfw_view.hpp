@@ -122,7 +122,7 @@ private:
     bool tracking = false;
     bool rotating = false;
     bool pitching = false;
-    bool show3DExtrusions = true;
+    bool show3DExtrusions = false;
 
     // Frame timer
     int frames = 0;

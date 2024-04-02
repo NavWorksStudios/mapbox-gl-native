@@ -15,18 +15,23 @@ namespace nav {
 
 namespace mb {
 
-static void displaceStyle(std::unique_ptr<::mbgl::style::Layer>& layer) {
-    const auto id = layer->getID();
-    if (id == "land") {
-        auto backgroundLayer = static_cast<::mbgl::style::BackgroundLayer*>(layer.get());
-        auto bk_color = backgroundLayer->getBackgroundColor();
-        backgroundLayer->setBackgroundColor(bk_color);
-    } else if (id == "water") {
-        auto fillLayer = static_cast<::mbgl::style::FillLayer*>(layer.get());
+namespace layer {
+
+static const auto LAND_EXTRUSION_ID = "nav:3d-land";
+
+static void displaceStyle(const std::string& id, std::unique_ptr<::mbgl::style::Layer>& layer) {    
+    if (id == "water") {
+//        auto fillLayer = static_cast<::mbgl::style::FillLayer*>(layer.get());
 //        mbgl::style::PropertyValue<mbgl::Color> color = fillLayer->getFillColor();
-        mbgl::style::PropertyValue<mbgl::Color> new_fill_color = mbgl::Color(0.203,0.325,0.396,1);
+//        mbgl::style::PropertyValue<mbgl::Color> new_fill_color = mbgl::Color(0.203,0.325,0.396,1);
+//        fillLayer->setFillColor(new_fill_color);
+    } else if (id == LAND_EXTRUSION_ID) {
+        auto fillLayer = static_cast<::mbgl::style::FillLayer*>(layer.get());
+        mbgl::style::PropertyValue<mbgl::Color> new_fill_color = mbgl::Color(1,0,0,1);
         fillLayer->setFillColor(new_fill_color);
     }
+}
+
 }
 
 }
