@@ -6,6 +6,7 @@
 #include <mbgl/renderer/render_layer.hpp>
 #include <mbgl/style/expression/image.hpp>
 #include <mbgl/style/layer_properties.hpp>
+#include <mbgl/clipper2/clipper.h>
 
 namespace mbgl {
 
@@ -106,7 +107,10 @@ public:
             }
             layerPropertiesMap.emplace(layerId, layerProperties);
         }
-
+              
+        if(!sourceLayer)
+            return;
+              
         const size_t featureCount = sourceLayer->featureCount();
         for (size_t i = 0; i < featureCount; ++i) {
             auto feature = sourceLayer->getFeature(i);
@@ -169,17 +173,78 @@ public:
                       std::unordered_map<std::string, LayerRenderData>& renderData,
                       const bool /*firstLoad*/,
                       const bool /*showCollisionBoxes*/,
-                      const CanonicalTileID& canonical) override {
+                      const CanonicalTileID& canonical,
+                      const bool reversal) override {
         auto bucket = std::make_shared<BucketType>(layout, layerPropertiesMap, zoom, overscaling);
-        for (auto & patternFeature : features) {
-            const auto i = patternFeature.i;
-            std::unique_ptr<GeometryTileFeature> feature = std::move(patternFeature.feature);
-            const PatternLayerMap& patterns = patternFeature.patterns;
-            const GeometryCollection& geometries = feature->getGeometries();
+        if(features.size() > 0) {
+            for (auto & patternFeature : features) {
+                if(reversal) {
+                    const auto i = patternFeature.i;
+                    std::unique_ptr<GeometryTileFeature> feature = std::move(patternFeature.feature);
+                    const PatternLayerMap& patterns = patternFeature.patterns;
+                    const GeometryCollection& geometries = feature->getGeometries();
+                    
+                    // need add clipper->Difference logic
+                    // ========================================================================
+                    Clipper2Lib::Paths64 watersPath, tilesPath, landsPath, landsPath2;
+                    Clipper2Lib::Path64 waterPath, tilePath;
+                    Clipper2Lib::Path64 landPath, landPath2;
+                    tilePath = Clipper2Lib::MakePath({0, 0, 8192, 0, 8192, 8192, 0, 8192});
+                    tilesPath.push_back(tilePath);
 
-            bucket->addFeature(*feature, geometries, patternPositions, patterns, i, canonical);
-            featureIndex->insert(geometries, i, sourceLayerID, bucketLeaderID);
+                    std::string cooStr = "";
+                    for(const auto& geometry : geometries) {
+                        for(const auto& geometryCoordinate : geometry) {
+                            waterPath.push_back(Clipper2Lib::Point64(geometryCoordinate.x, geometryCoordinate.y));
+                            cooStr = cooStr + std::to_string(geometryCoordinate.x) + ", " + std::to_string(geometryCoordinate.y) + ", ";
+                        }
+                        watersPath.push_back(waterPath);
+                        waterPath.clear();
+                    }
+                    
+                    landsPath = Clipper2Lib::Intersect(tilesPath, watersPath, Clipper2Lib::FillRule::NonZero);
+                    landsPath2 = Clipper2Lib::Difference(tilesPath, landsPath, Clipper2Lib::FillRule::NonZero);
+                    
+                    if(landsPath2.size() > 0) { // 使用water切割tile后剩下的land路径
+                        //
+                    }
+                    else { // water均在tile外无需切割，landsPath即为tile路径
+                        landsPath2 = landsPath;
+                    }
+                    
+                    // 将landsPath2转换为geometries
+                    GeometryCollection geometries_tmp;
+                    for(const auto& landPath_t : landsPath2) {
+                        GeometryCoordinates points_tmp;
+                        for(const auto& point_t : landPath_t) {
+                            points_tmp.push_back(Point<int16_t>{static_cast<short>(point_t.x), static_cast<short>(point_t.y)});
+                        }
+                        geometries_tmp.push_back(points_tmp);
+                    }
+                    // ========================================================================
+
+                    bucket->addFeature(*feature, geometries_tmp, patternPositions, patterns, i, canonical);
+                    featureIndex->insert(geometries_tmp, i, sourceLayerID, bucketLeaderID);
+//                    bucket->addFeature(*feature, geometries, patternPositions, patterns, i, canonical);
+//                    featureIndex->insert(geometries, i, sourceLayerID, bucketLeaderID);
+                }
+                else {
+                    const auto i = patternFeature.i;
+                    std::unique_ptr<GeometryTileFeature> feature = std::move(patternFeature.feature);
+                    const PatternLayerMap& patterns = patternFeature.patterns;
+                    const GeometryCollection& geometries = feature->getGeometries();
+
+                    bucket->addFeature(*feature, geometries, patternPositions, patterns, i, canonical);
+                    featureIndex->insert(geometries, i, sourceLayerID, bucketLeaderID);
+                }
+            }
         }
+        else {
+            if(reversal) {
+                
+            }
+        }
+        
         if (bucket->hasData()) {
             for (const auto& pair : layerPropertiesMap) {
                 renderData.emplace(pair.first, LayerRenderData {bucket, pair.second});

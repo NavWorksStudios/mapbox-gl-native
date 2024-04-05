@@ -226,7 +226,14 @@ void Parser::parseLayers(const JSValue& value) {
         auto it = layersMap.find(id);
         if (it->second.second) {
             nav::mb::layer::displaceStyle(id, it->second.second);
-            layers.emplace_back(std::move(it->second.second));
+            if (id == nav::mb::layer::LAND_EXTRUSION_ID) {
+                // 将3d-land图层的渲染顺序调整为所有图层首位
+                layers.insert(layers.begin(), std::move(it->second.second));
+//                layers.emplace(layers.begin(), std::move(it->second.second));
+            }
+            else {
+                layers.emplace_back(std::move(it->second.second));
+            }
         }
     }
 }

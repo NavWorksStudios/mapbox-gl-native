@@ -55,7 +55,8 @@ public:
                       std::unordered_map<std::string, LayerRenderData>& renderData,
                       const bool,
                       const bool,
-                      const CanonicalTileID& canonical) override {
+                      const CanonicalTileID& canonical,
+                      const bool reversal) override {
         auto bucket = std::make_shared<CircleBucket>(layerPropertiesMap, mode, zoom);
 
         for (auto& circleFeature : features) {

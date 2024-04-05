@@ -41,7 +41,8 @@ public:
                       std::unordered_map<std::string, LayerRenderData>&,
                       bool firstLoad,
                       bool showCollisionBoxes,
-                      const CanonicalTileID& canonical) override;
+                      const CanonicalTileID& canonical,
+                      const bool reversal) override;
 
     bool hasSymbolInstances() const override;
     bool hasDependencies() const override;

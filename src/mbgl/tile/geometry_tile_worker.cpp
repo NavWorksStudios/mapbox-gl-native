@@ -23,6 +23,11 @@
 #include <unordered_set>
 #include <utility>
 
+#include <mbgl/programs/fill_program.hpp>
+#include <mbgl/renderer/buckets/fill_bucket.hpp>
+//#include <mbgl/nav/nav_mb_layer_filter.hpp>
+#include <iostream>
+
 namespace mbgl {
 
 using namespace style;
@@ -353,10 +358,16 @@ void GeometryTileWorker::parse() {
     // Create render layers and group by layout
     std::unordered_map<std::string, std::vector<Immutable<style::LayerProperties>>> groupMap;
     for (auto layer : *layers) {
-        groupMap[layoutKey(*layer->baseImpl)].push_back(std::move(layer));
+        std::string tmp_key = layoutKey(*layer->baseImpl);
+        if(layer.get()->baseImpl->id == "nav:3d-land" &&
+           layer.get()->baseImpl->sourceLayer == "water") {
+            tmp_key = tmp_key + "_nav:3d-land";
+        }
+        groupMap[tmp_key].push_back(std::move(layer));
     }
 
     for (auto& pair : groupMap) {
+        bool reversal = false;
         const auto& group = pair.second;
         if (obsolete) {
             return;
@@ -369,9 +380,19 @@ void GeometryTileWorker::parse() {
         const style::Layer::Impl& leaderImpl = *(group.at(0)->baseImpl);
         BucketParameters parameters { id, mode, pixelRatio, leaderImpl.getTypeInfo() };
 
+        if(leaderImpl.id == "nav:3d-land" &&
+           leaderImpl.sourceLayer == "water") {
+            reversal = true;
+        }
+        
         auto geometryLayer = (*data)->getLayer(leaderImpl.sourceLayer);
         if (!geometryLayer) {
-            continue;
+            // if reversal == true，证明是需要翻转水系创建nav:3d-land，逻辑待定
+            if(reversal) {
+
+            }
+            else
+                continue;
         }
 
         std::vector<std::string> layerIDs(group.size());
@@ -391,7 +412,7 @@ void GeometryTileWorker::parse() {
             if (layout->hasDependencies()) {
                 layouts.push_back(std::move(layout));
             } else {
-                layout->createBucket({}, featureIndex, renderData, firstLoad, showCollisionBoxes, id.canonical);
+                layout->createBucket({}, featureIndex, renderData, firstLoad, showCollisionBoxes, id.canonical, reversal);
             }
         } else {
             const Filter& filter = leaderImpl.filter;

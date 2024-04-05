@@ -34,7 +34,8 @@ bool layerFilterByType(const std::string& id) {
 //        {"waterway", "waterway", /* line */ }, // 航道
         {"water", "water", /* fill */ }, // 所有水系，江河湖海
         {layer::LAND_EXTRUSION_ID, layer::LAND_EXTRUSION_ID, /* fill */ }, // nav 提升陆地
-        
+#endif
+#if 1
         {"hillshade", "hillshade", /* fill */ }, // 山阴
 #endif
         
@@ -67,7 +68,7 @@ bool layerFilterByType(const std::string& id) {
         {"tunnel-oneway-arrow-white", "road", /* symbol */ },
 #endif
         
-#if 0
+#if 0   // 不开
         {"ferry", "road", /* line */ }, // 轮渡路线，水上，虚线
         {"ferry-auto", "road", /* line */ }, // 摆渡，水上，实线
 #endif
@@ -117,7 +118,7 @@ bool layerFilterByType(const std::string& id) {
 //        {"golf-hole-line", "road", /* line */ }, // 高尔夫球洞线
         
         
-#if 0
+#if 0   // 不开
         {"bridge-path-bg", "road", /* line */ },
         {"bridge-steps-bg", "road", /* line */ },
         {"bridge-pedestrian-case", "road", /* line */ },
@@ -156,7 +157,7 @@ bool layerFilterByType(const std::string& id) {
         {"admin-0-boundary-disputed", "admin", /* line */ }, // 争议国界
 #endif
         
-#if 0
+#if 0   // 不开
         {"building-number-label", "housenum_label", /* symbol */ },
         {"road-label", "road", /* symbol */ },
         {"road-number-shield", "road", /* symbol */ },

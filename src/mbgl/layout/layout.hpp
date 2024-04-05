@@ -22,7 +22,8 @@ public:
                               std::unordered_map<std::string, LayerRenderData>&,
                               bool,
                               bool,
-                              const CanonicalTileID&) = 0;
+                              const CanonicalTileID&,
+                              const bool reversal = false) = 0;
 
     virtual void prepareSymbols(const GlyphMap&, const GlyphPositions&, const ImageMap&, const ImagePositions&){};
 
