@@ -48,6 +48,8 @@ bool layerFilterByType(const std::string& id) {
 //        {"aeroway-line", "aeroway", /* line */ }, // 航路
         
 //        {"building-outline", "building", /* line */ }, // 楼底座的沟边
+#endif
+#if 1
         {"building", "building", /* fill */ }, // 楼底座
 #endif
         

@@ -75,7 +75,7 @@ public:
 
 namespace {
 
-void addFillExtrusionLayer(mbgl::style::Style &style, bool visible) {
+void addFillExtrusionLayer(mbgl::style::Style &style, bool visible) { return;
     using namespace mbgl::style;
     using namespace mbgl::style::expression::dsl;
 
@@ -136,7 +136,7 @@ void addLandFillExtrusionLayer(mbgl::style::Style &style, bool visible) {
     auto extrusionLayer = std::make_unique<FillExtrusionLayer>("nav:3d-land", "composite");
     extrusionLayer->setSourceLayer("water");
     extrusionLayer->setMinZoom(5.0f);
-    extrusionLayer->setFilter(Filter(eq(get("extrude"), literal("true"))));
+//    extrusionLayer->setFilter(Filter(eq(get("extrude"), literal("true"))));
 
     // #*#*# 设置3d building的基准色值
     extrusionLayer->setFillExtrusionColor(PropertyExpression<mbgl::Color>(interpolate(linear(),
