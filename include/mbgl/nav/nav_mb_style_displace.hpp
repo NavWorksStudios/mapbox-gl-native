@@ -16,6 +16,7 @@ namespace mb {
 namespace layer {
 
 const char* const ID_NAV_LAND = "nav:land";
+const char* const ID_NAV_3DLAND = "nav:3d-land";
 
 inline void displaceStyle(const std::string& id, std::unique_ptr<::mbgl::style::Layer>& layer) {
     if (id == "water") {

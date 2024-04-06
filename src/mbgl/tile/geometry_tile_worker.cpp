@@ -363,6 +363,10 @@ void GeometryTileWorker::parse() {
            layer.get()->baseImpl->sourceLayer == "water") {
             key += nav::mb::layer::ID_NAV_LAND;
         }
+        if(layer.get()->baseImpl->id == nav::mb::layer::ID_NAV_3DLAND &&
+           layer.get()->baseImpl->sourceLayer == "water") {
+            key += nav::mb::layer::ID_NAV_3DLAND;
+        }
         groupMap[key].push_back(std::move(layer));
     }
 
@@ -379,7 +383,7 @@ void GeometryTileWorker::parse() {
         const style::Layer::Impl& leaderImpl = *(group.at(0)->baseImpl);
         BucketParameters parameters { id, mode, pixelRatio, leaderImpl.getTypeInfo() };
 
-        const bool reversal = (leaderImpl.id == nav::mb::layer::ID_NAV_LAND && leaderImpl.sourceLayer == "water");
+        const bool reversal = ((leaderImpl.id == nav::mb::layer::ID_NAV_LAND || leaderImpl.id == nav::mb::layer::ID_NAV_3DLAND) && leaderImpl.sourceLayer == "water");
         
         auto geometryLayer = (*data)->getLayer(leaderImpl.sourceLayer);
         if (!geometryLayer) {
@@ -397,6 +401,10 @@ void GeometryTileWorker::parse() {
         }
 
         featureIndex->setBucketLayerIDs(leaderImpl.id, layerIDs);
+        
+        if(leaderImpl.id == nav::mb::layer::ID_NAV_3DLAND && leaderImpl.sourceLayer == "water") {
+            std::cout << "layer water && 3d-land begin!" << "\n";
+        }
 
         // Symbol layers and layers that support pattern properties have an extra step at layout time to figure out what images/glyphs
         // are needed to render the layer. They use the intermediate Layout data structure to accomplish this,
