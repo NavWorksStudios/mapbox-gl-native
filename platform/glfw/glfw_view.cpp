@@ -74,6 +74,7 @@ public:
 };
 
 namespace {
+
 void addFillExtrusionLayer(mbgl::style::Style &style, bool visible) {
     using namespace mbgl::style;
     using namespace mbgl::style::expression::dsl;
@@ -90,7 +91,8 @@ void addFillExtrusionLayer(mbgl::style::Style &style, bool visible) {
 
     auto extrusionLayer = std::make_unique<FillExtrusionLayer>("3d-buildings", "composite");
     extrusionLayer->setSourceLayer("building");
-    extrusionLayer->setMinZoom(15.0f);
+//    extrusionLayer->setMinZoom(15.0f);
+    extrusionLayer->setMinZoom(5.0f);
     extrusionLayer->setFilter(Filter(eq(get("extrude"), literal("true"))));
 //    extrusionLayer->setFillExtrusionColor(PropertyExpression<mbgl::Color>(interpolate(linear(),
 //                                                                                      number(get("height")),
@@ -111,11 +113,48 @@ void addFillExtrusionLayer(mbgl::style::Style &style, bool visible) {
                                                                                       toColor(literal("#ffffff")))));
 //    extrusionLayer->setFillExtrusionOpacity(0.6f);
     // #*#*# 设置3d building的积压透明度为0.9
-    extrusionLayer->setFillExtrusionOpacity(0.9f);
+    extrusionLayer->setFillExtrusionOpacity(1.f);
     extrusionLayer->setFillExtrusionHeight(PropertyExpression<float>(get("height")));
     extrusionLayer->setFillExtrusionBase(PropertyExpression<float>(get("min_height")));
     style.addLayer(std::move(extrusionLayer));
 }
+
+void addLandFillExtrusionLayer(mbgl::style::Style &style, bool visible) {return;
+    using namespace mbgl::style;
+    using namespace mbgl::style::expression::dsl;
+
+    // Satellite-only style does not contain building extrusions data.
+    if (!style.getSource("water")) {
+        return;
+    }
+
+    if (auto layer = style.getLayer("nav:3d-land")) {
+        layer->setVisibility(VisibilityType(!visible));
+        return;
+    }
+
+    auto extrusionLayer = std::make_unique<FillExtrusionLayer>("nav:3d-land", "water");
+    extrusionLayer->setSourceLayer("water");
+    extrusionLayer->setMinZoom(5.0f);
+    extrusionLayer->setFilter(Filter(eq(get("extrude"), literal("true"))));
+
+    // #*#*# 设置3d building的基准色值
+    extrusionLayer->setFillExtrusionColor(PropertyExpression<mbgl::Color>(interpolate(linear(),
+                                                                                      number(get("height")),
+                                                                                      0.f,
+                                                                                      toColor(literal("#ffffff")),
+                                                                                      50.f,
+                                                                                      toColor(literal("#ffffff")),
+                                                                                      100.f,
+                                                                                      toColor(literal("#ffffff")))));
+//    extrusionLayer->setFillExtrusionOpacity(0.6f);
+    // #*#*# 设置3d building的积压透明度为0.9
+    extrusionLayer->setFillExtrusionOpacity(1.f);
+    extrusionLayer->setFillExtrusionHeight(PropertyExpression<float>(get("height")));
+    extrusionLayer->setFillExtrusionBase(PropertyExpression<float>(get("min_height")));
+    style.addLayer(std::move(extrusionLayer));
+}
+
 } // namespace
 
 void glfwError(int error, const char *description) {
@@ -754,6 +793,7 @@ void GLFWView::makeSnapshot(bool withOverlay) {
     if (withOverlay) {
         snapshotterObserver->didFinishLoadingStyleCallback = [&] {
             addFillExtrusionLayer(snapshotter->getStyle(), withOverlay);
+            addLandFillExtrusionLayer(snapshotter->getStyle(), withOverlay);
             snapshot();
         };
     } else {
@@ -997,6 +1037,7 @@ void GLFWView::onDidFinishLoadingStyle() {
 void GLFWView::toggle3DExtrusions(bool visible) {
     show3DExtrusions = visible;
     addFillExtrusionLayer(map->getStyle(), show3DExtrusions);
+    addLandFillExtrusionLayer(map->getStyle(), show3DExtrusions);
 }
 
 void GLFWView::toggleCustomSource() {

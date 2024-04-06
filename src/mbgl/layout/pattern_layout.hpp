@@ -227,8 +227,7 @@ public:
                     featureIndex->insert(geometries_tmp, i, sourceLayerID, bucketLeaderID);
 //                    bucket->addFeature(*feature, geometries, patternPositions, patterns, i, canonical);
 //                    featureIndex->insert(geometries, i, sourceLayerID, bucketLeaderID);
-                }
-                else {
+                } else {
                     const auto i = patternFeature.i;
                     std::unique_ptr<GeometryTileFeature> feature = std::move(patternFeature.feature);
                     const PatternLayerMap& patterns = patternFeature.patterns;

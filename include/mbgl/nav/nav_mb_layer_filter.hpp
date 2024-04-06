@@ -21,25 +21,26 @@ bool layerFilterByType(const std::string& id) {
         // { id, source-layer, /* type */ }
         
 #if 1
+        {layer::ID_NAV_LAND, layer::ID_NAV_LAND, /* fill */ }, // nav 陆地底座
 //        {"land", "", /* background */ },  地球底色，灰黄色
-        {"landcover", "landcover", /* fill */ }, // 大洲绿色，低级别才显示
-        {"national-park", "landuse_overlay", /* fill */ }, // 国家公园，绿地
+//        {"landcover", "landcover", /* fill */ }, // 大洲绿色，低级别才显示
+//        {"national-park", "landuse_overlay", /* fill */ }, // 国家公园，绿地
         
-        {"landuse", "landuse", /* fill */ }, // 用地："park", "airport", "cemetery", "glacier", "hospital", "pitch", "sand", "school", 
-        {"pitch-outline", "landuse", /* line */ }, // 球场轮廓
+//        {"landuse", "landuse", /* fill */ }, // 用地："park", "airport", "cemetery", "glacier", "hospital", "pitch", "sand", "school", 
+//        {"pitch-outline", "landuse", /* line */ }, // 球场轮廓
 #endif
         
 #if 1
 //        {"water-shadow", "water", /* fill */ }, // 水边阴影
 //        {"waterway", "waterway", /* line */ }, // 航道
         {"water", "water", /* fill */ }, // 所有水系，江河湖海
-        {layer::LAND_EXTRUSION_ID, layer::LAND_EXTRUSION_ID, /* fill */ }, // nav 提升陆地
 #endif
-#if 1
+
+#if 0
         {"hillshade", "hillshade", /* fill */ }, // 山阴
 #endif
-        
-#if 1
+
+#if 0
         {"land-structure-polygon", "structure", /* fill */ },
         {"land-structure-line", "structure", /* line */ },
         
@@ -50,7 +51,7 @@ bool layerFilterByType(const std::string& id) {
         {"building", "building", /* fill */ }, // 楼底座
 #endif
         
-#if 1
+#if 0
         {"tunnel-street-minor-low", "road", /* line */ },
         {"tunnel-street-minor-case", "road", /* line */ },
         {"tunnel-primary-secondary-tertiary-case", "road", /* line */ },
@@ -73,7 +74,7 @@ bool layerFilterByType(const std::string& id) {
         {"ferry-auto", "road", /* line */ }, // 摆渡，水上，实线
 #endif
         
-#if 1
+#if 0
         {"road-path-bg", "road", /* line */ }, // 固定宽度道路
         {"road-steps-bg", "road", /* line */ }, // 道路台阶
         {"turning-feature-outline", "road", /* symbol */ }, // 类似环岛的圆形，灰色，被turning-feature压盖
@@ -149,7 +150,7 @@ bool layerFilterByType(const std::string& id) {
 //        {"aerialway", "road", /* line */ },
         
 
-#if 1
+#if 0
         {"admin-1-boundary-bg", "admin", /* line */ }, //省界
         {"admin-0-boundary-bg", "admin", /* line */ }, // 国界
         {"admin-1-boundary", "admin", /* line */ }, //省界

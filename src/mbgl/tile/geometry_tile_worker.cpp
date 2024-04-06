@@ -25,7 +25,7 @@
 
 #include <mbgl/programs/fill_program.hpp>
 #include <mbgl/renderer/buckets/fill_bucket.hpp>
-//#include <mbgl/nav/nav_mb_layer_filter.hpp>
+#include "mbgl/nav/nav_mb_style_displace.hpp"
 #include <iostream>
 
 namespace mbgl {
@@ -358,16 +358,15 @@ void GeometryTileWorker::parse() {
     // Create render layers and group by layout
     std::unordered_map<std::string, std::vector<Immutable<style::LayerProperties>>> groupMap;
     for (auto layer : *layers) {
-        std::string tmp_key = layoutKey(*layer->baseImpl);
-        if(layer.get()->baseImpl->id == "nav:3d-land" &&
+        std::string key = layoutKey(*layer->baseImpl);
+        if(layer.get()->baseImpl->id == nav::mb::layer::ID_NAV_LAND && 
            layer.get()->baseImpl->sourceLayer == "water") {
-            tmp_key = tmp_key + "_nav:3d-land";
+            key += nav::mb::layer::ID_NAV_LAND;
         }
-        groupMap[tmp_key].push_back(std::move(layer));
+        groupMap[key].push_back(std::move(layer));
     }
 
     for (auto& pair : groupMap) {
-        bool reversal = false;
         const auto& group = pair.second;
         if (obsolete) {
             return;
@@ -380,10 +379,7 @@ void GeometryTileWorker::parse() {
         const style::Layer::Impl& leaderImpl = *(group.at(0)->baseImpl);
         BucketParameters parameters { id, mode, pixelRatio, leaderImpl.getTypeInfo() };
 
-        if(leaderImpl.id == "nav:3d-land" &&
-           leaderImpl.sourceLayer == "water") {
-            reversal = true;
-        }
+        const bool reversal = (leaderImpl.id == nav::mb::layer::ID_NAV_LAND && leaderImpl.sourceLayer == "water");
         
         auto geometryLayer = (*data)->getLayer(leaderImpl.sourceLayer);
         if (!geometryLayer) {

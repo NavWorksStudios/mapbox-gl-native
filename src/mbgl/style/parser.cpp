@@ -199,8 +199,8 @@ void Parser::parseLayers(const JSValue& value) {
         ids.push_back(layerID);
         
         if (layerID == "water") {
-            layersMap.emplace(nav::mb::layer::LAND_EXTRUSION_ID, std::pair<const JSValue&, std::unique_ptr<Layer>> { layerValue, nullptr });
-            ids.push_back(nav::mb::layer::LAND_EXTRUSION_ID);
+            layersMap.emplace(nav::mb::layer::ID_NAV_LAND, std::pair<const JSValue&, std::unique_ptr<Layer>> { layerValue, nullptr });
+            ids.push_back(nav::mb::layer::ID_NAV_LAND);
         }
     }
 
@@ -211,7 +211,7 @@ void Parser::parseLayers(const JSValue& value) {
         
         auto it = layersMap.find(id);
 
-        if (id == nav::mb::layer::LAND_EXTRUSION_ID) {
+        if (id == nav::mb::layer::ID_NAV_LAND) {
             auto waterKV = layersMap.find("water");
             Layer* reference = waterKV->second.second.get();
             it->second.second = reference->cloneRef(id);
@@ -226,7 +226,7 @@ void Parser::parseLayers(const JSValue& value) {
         auto it = layersMap.find(id);
         if (it->second.second) {
             nav::mb::layer::displaceStyle(id, it->second.second);
-            if (id == nav::mb::layer::LAND_EXTRUSION_ID) {
+            if (id == nav::mb::layer::ID_NAV_LAND) {
                 // 将3d-land图层的渲染顺序调整为所有图层首位
                 layers.insert(layers.begin(), std::move(it->second.second));
 //                layers.emplace(layers.begin(), std::move(it->second.second));
