@@ -25,7 +25,7 @@
 
 #include <mbgl/programs/fill_program.hpp>
 #include <mbgl/renderer/buckets/fill_bucket.hpp>
-#include "mbgl/nav/nav_mb_style_displace.hpp"
+#include "mbgl/nav/nav_mb_layer.hpp"
 #include <iostream>
 
 namespace mbgl {
@@ -359,14 +359,15 @@ void GeometryTileWorker::parse() {
     std::unordered_map<std::string, std::vector<Immutable<style::LayerProperties>>> groupMap;
     for (auto layer : *layers) {
         std::string key = layoutKey(*layer->baseImpl);
-        if(layer.get()->baseImpl->id == nav::mb::layer::ID_NAV_LAND && 
-           layer.get()->baseImpl->sourceLayer == "water") {
-            key += nav::mb::layer::ID_NAV_LAND;
+        
+        if (layer.get()->baseImpl->sourceLayer == "water") {
+            if(layer.get()->baseImpl->id == nav::mb::ID_NAV_LAND) {
+                key += nav::mb::ID_NAV_LAND;
+            } else if(layer.get()->baseImpl->id == nav::mb::ID_NAV_3D_LAND) {
+                key += nav::mb::ID_NAV_3D_LAND;
+            }
         }
-        if(layer.get()->baseImpl->id == nav::mb::layer::ID_NAV_3DLAND &&
-           layer.get()->baseImpl->sourceLayer == "water") {
-            key += nav::mb::layer::ID_NAV_3DLAND;
-        }
+
         groupMap[key].push_back(std::move(layer));
     }
 
@@ -383,7 +384,8 @@ void GeometryTileWorker::parse() {
         const style::Layer::Impl& leaderImpl = *(group.at(0)->baseImpl);
         BucketParameters parameters { id, mode, pixelRatio, leaderImpl.getTypeInfo() };
 
-        const bool reversal = ((leaderImpl.id == nav::mb::layer::ID_NAV_LAND || leaderImpl.id == nav::mb::layer::ID_NAV_3DLAND) && leaderImpl.sourceLayer == "water");
+        const bool isLand = (leaderImpl.id == nav::mb::ID_NAV_LAND || leaderImpl.id == nav::mb::ID_NAV_3D_LAND);
+        const bool reversal = (isLand && leaderImpl.sourceLayer == "water");
         
         auto geometryLayer = (*data)->getLayer(leaderImpl.sourceLayer);
         if (!geometryLayer) {
@@ -402,7 +404,7 @@ void GeometryTileWorker::parse() {
 
         featureIndex->setBucketLayerIDs(leaderImpl.id, layerIDs);
         
-        if(leaderImpl.id == nav::mb::layer::ID_NAV_3DLAND && leaderImpl.sourceLayer == "water") {
+        if(leaderImpl.id == nav::mb::ID_NAV_3D_LAND && leaderImpl.sourceLayer == "water") {
             std::cout << "layer water && 3d-land begin!" << "\n";
         }
 

@@ -280,9 +280,11 @@ add_library(
     ${PROJECT_SOURCE_DIR}/include/mbgl/util/work_task.hpp
     ${PROJECT_SOURCE_DIR}/include/mbgl/util/work_task_impl.hpp
 
-    ${PROJECT_SOURCE_DIR}/include/mbgl/nav/nav_mb_json.hpp
-    ${PROJECT_SOURCE_DIR}/include/mbgl/nav/nav_mb_layer_filter.hpp
-    ${PROJECT_SOURCE_DIR}/include/mbgl/nav/nav_mb_style_displace.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav_mb_json.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav_mb_layer.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav_mb_layer.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav_mb_style.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav_mb_style.cpp
 
     ${PROJECT_SOURCE_DIR}/src/mbgl/actor/mailbox.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/actor/scheduler.cpp

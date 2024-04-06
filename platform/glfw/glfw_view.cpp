@@ -75,7 +75,7 @@ public:
 
 namespace {
 
-void addFillExtrusionLayer(mbgl::style::Style &style, bool visible) { return;
+void addFillExtrusionLayer(mbgl::style::Style &style, bool visible) {
     using namespace mbgl::style;
     using namespace mbgl::style::expression::dsl;
 
@@ -91,29 +91,18 @@ void addFillExtrusionLayer(mbgl::style::Style &style, bool visible) { return;
 
     auto extrusionLayer = std::make_unique<FillExtrusionLayer>("3d-buildings", "composite");
     extrusionLayer->setSourceLayer("building");
-//    extrusionLayer->setMinZoom(15.0f);
-    extrusionLayer->setMinZoom(5.0f);
+    extrusionLayer->setMinZoom(15.0f);
     extrusionLayer->setFilter(Filter(eq(get("extrude"), literal("true"))));
-//    extrusionLayer->setFillExtrusionColor(PropertyExpression<mbgl::Color>(interpolate(linear(),
-//                                                                                      number(get("height")),
-//                                                                                      0.f,
-//                                                                                      toColor(literal("#160e23")),
-//                                                                                      50.f,
-//                                                                                      toColor(literal("#00615f")),
-//                                                                                      100.f,
-//                                                                                      toColor(literal("#55e9ff")))));
-    // #*#*# 设置3d building的基准色值
     extrusionLayer->setFillExtrusionColor(PropertyExpression<mbgl::Color>(interpolate(linear(),
                                                                                       number(get("height")),
                                                                                       0.f,
-                                                                                      toColor(literal("#ffffff")),
+                                                                                      toColor(literal("#160e23")),
                                                                                       50.f,
-                                                                                      toColor(literal("#ffffff")),
+                                                                                      toColor(literal("#00615f")),
                                                                                       100.f,
-                                                                                      toColor(literal("#ffffff")))));
-//    extrusionLayer->setFillExtrusionOpacity(0.6f);
-    // #*#*# 设置3d building的积压透明度为0.9
-    extrusionLayer->setFillExtrusionOpacity(1.f);
+                                                                                      toColor(literal("#55e9ff")))));
+
+    extrusionLayer->setFillExtrusionOpacity(0.85f);
     extrusionLayer->setFillExtrusionHeight(PropertyExpression<float>(get("height")));
     extrusionLayer->setFillExtrusionBase(PropertyExpression<float>(get("min_height")));
     style.addLayer(std::move(extrusionLayer));
@@ -152,7 +141,7 @@ void addLandFillExtrusionLayer(mbgl::style::Style &style, bool visible) {
     extrusionLayer->setFillExtrusionOpacity(1.f);
     extrusionLayer->setFillExtrusionHeight(PropertyExpression<float>(get("height")));
     extrusionLayer->setFillExtrusionBase(PropertyExpression<float>(get("min_height")));
-    style.addLayer(std::move(extrusionLayer));
+    style.addLayer(std::move(extrusionLayer), mbgl::optional<std::string>("landcover"));
 }
 
 } // namespace

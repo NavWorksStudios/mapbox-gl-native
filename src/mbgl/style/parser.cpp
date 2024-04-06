@@ -19,7 +19,8 @@
 #include <algorithm>
 #include <set>
 
-#include "mbgl/nav/nav_mb_layer_filter.hpp"
+#include "mbgl/nav/nav_mb_layer.hpp"
+#include "mbgl/nav/nav_mb_style.hpp"
 
 namespace mbgl {
 namespace style {
@@ -199,19 +200,19 @@ void Parser::parseLayers(const JSValue& value) {
         ids.push_back(layerID);
         
         if (layerID == "water") {
-            layersMap.emplace(nav::mb::layer::ID_NAV_LAND, std::pair<const JSValue&, std::unique_ptr<Layer>> { layerValue, nullptr });
-            ids.push_back(nav::mb::layer::ID_NAV_LAND);
+            layersMap.emplace(nav::mb::ID_NAV_LAND, std::pair<const JSValue&, std::unique_ptr<Layer>> { layerValue, nullptr });
+            ids.push_back(nav::mb::ID_NAV_LAND);
         }
     }
 
     for (const auto& id : ids) {
-        if (!nav::mb::layerFilterByType(id)) {
+        if (!nav::mb::filterLayerByType(id)) {
             continue;
         }
         
         auto it = layersMap.find(id);
 
-        if (id == nav::mb::layer::ID_NAV_LAND) {
+        if (id == nav::mb::ID_NAV_LAND) {
             auto waterKV = layersMap.find("water");
             Layer* reference = waterKV->second.second.get();
             it->second.second = reference->cloneRef(id);
@@ -225,8 +226,8 @@ void Parser::parseLayers(const JSValue& value) {
     for (const auto& id : ids) {
         auto it = layersMap.find(id);
         if (it->second.second) {
-            nav::mb::layer::displaceStyle(id, it->second.second);
-            if (id == nav::mb::layer::ID_NAV_LAND) {
+            nav::mb::displaceStyle(id, it->second.second);
+            if (id == nav::mb::ID_NAV_LAND) {
                 // 将3d-land图层的渲染顺序调整为所有图层首位
                 layers.insert(layers.begin(), std::move(it->second.second));
 //                layers.emplace(layers.begin(), std::move(it->second.second));

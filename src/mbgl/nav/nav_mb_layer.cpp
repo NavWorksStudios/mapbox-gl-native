@@ -4,52 +4,45 @@
 //  Created by BernieZhao on 2023/11/21.
 //
 
-#pragma once
-
-#include <string>
+#include "mbgl/nav/nav_mb_layer.hpp"
 #include <unordered_map>
-
-#include "mbgl/nav/nav_mb_style_displace.hpp"
 
 namespace nav {
 
 namespace mb {
 
 
-bool layerFilterByType(const std::string& id) {
+bool filterLayerByType(const std::string& id) {
     static const std::unordered_map<std::string, std::string> layerIds = {
-        // { id, source-layer, /* type */ }
+        
+        // format : { id, source-layer, /* type */ }
         
 #if 1
-        {layer::ID_NAV_LAND, layer::ID_NAV_LAND, /* fill */ }, // nav 陆地底座
 //        {"land", "", /* background */ },  地球底色，灰黄色
-//        {"landcover", "landcover", /* fill */ }, // 大洲绿色，低级别才显示
-//        {"national-park", "landuse_overlay", /* fill */ }, // 国家公园，绿地
         
-//        {"landuse", "landuse", /* fill */ }, // 用地："park", "airport", "cemetery", "glacier", "hospital", "pitch", "sand", "school", 
+        {ID_NAV_LAND, ID_NAV_LAND, /* fill */ }, // nav 陆地底座
+
+        {"landcover", "landcover", /* fill */ }, // 大洲绿色，低级别才显示
+        {"national-park", "landuse_overlay", /* fill */ }, // 国家公园，绿地
+        
+        {"landuse", "landuse", /* fill */ }, // 用地："park", "airport", "cemetery", "glacier", "hospital", "pitch", "sand", "school", 
 //        {"pitch-outline", "landuse", /* line */ }, // 球场轮廓
-#endif
-        
-#if 1
+
 //        {"water-shadow", "water", /* fill */ }, // 水边阴影
 //        {"waterway", "waterway", /* line */ }, // 航道
         {"water", "water", /* fill */ }, // 所有水系，江河湖海
+
+//        {"hillshade", "hillshade", /* fill */ }, // 山阴
 #endif
 
-#if 0
-        {"hillshade", "hillshade", /* fill */ }, // 山阴
-#endif
-
-#if 0
-        {"land-structure-polygon", "structure", /* fill */ },
-        {"land-structure-line", "structure", /* line */ },
+#if 1
+//        {"land-structure-polygon", "structure", /* fill */ },
+//        {"land-structure-line", "structure", /* line */ },
         
 //        {"aeroway-polygon", "aeroway", /* fill */ }, // 航路
 //        {"aeroway-line", "aeroway", /* line */ }, // 航路
         
 //        {"building-outline", "building", /* line */ }, // 楼底座的沟边
-#endif
-#if 1
         {"building", "building", /* fill */ }, // 楼底座
 #endif
         
@@ -160,17 +153,17 @@ bool layerFilterByType(const std::string& id) {
         {"admin-0-boundary-disputed", "admin", /* line */ }, // 争议国界
 #endif
         
-#if 0   // 不开
+#if 1
         {"building-number-label", "housenum_label", /* symbol */ },
-        {"road-label", "road", /* symbol */ },
-        {"road-number-shield", "road", /* symbol */ },
-        {"road-exit-shield", "motorway_junction", /* symbol */ },
-        {"golf-hole-label", "road", /* symbol */ },
-        {"waterway-label", "natural_label", /* symbol */ },
-        {"natural-line-label", "natural_label", /* symbol */ },
-        {"natural-point-label", "natural_label", /* symbol */ },
-        {"water-line-label", "natural_label", /* symbol */ },
-        {"water-point-label", "natural_label", /* symbol */ },
+//        {"road-label", "road", /* symbol */ },
+//        {"road-number-shield", "road", /* symbol */ },
+//        {"road-exit-shield", "motorway_junction", /* symbol */ },
+//        {"golf-hole-label", "road", /* symbol */ },
+//        {"waterway-label", "natural_label", /* symbol */ },
+//        {"natural-line-label", "natural_label", /* symbol */ },
+//        {"natural-point-label", "natural_label", /* symbol */ },
+//        {"water-line-label", "natural_label", /* symbol */ },
+//        {"water-point-label", "natural_label", /* symbol */ },
         {"poi-label", "poi_label", /* symbol */ },
         {"transit-label", "transit_stop_label", /* symbol */ },
         {"airport-label", "airport_label", /* symbol */ },
