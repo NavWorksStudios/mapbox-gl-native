@@ -119,12 +119,12 @@ void addFillExtrusionLayer(mbgl::style::Style &style, bool visible) {
     style.addLayer(std::move(extrusionLayer));
 }
 
-void addLandFillExtrusionLayer(mbgl::style::Style &style, bool visible) {return;
+void addLandFillExtrusionLayer(mbgl::style::Style &style, bool visible) {
     using namespace mbgl::style;
     using namespace mbgl::style::expression::dsl;
 
     // Satellite-only style does not contain building extrusions data.
-    if (!style.getSource("water")) {
+    if (!style.getSource("composite")) {
         return;
     }
 
@@ -133,7 +133,7 @@ void addLandFillExtrusionLayer(mbgl::style::Style &style, bool visible) {return;
         return;
     }
 
-    auto extrusionLayer = std::make_unique<FillExtrusionLayer>("nav:3d-land", "water");
+    auto extrusionLayer = std::make_unique<FillExtrusionLayer>("nav:3d-land", "composite");
     extrusionLayer->setSourceLayer("water");
     extrusionLayer->setMinZoom(5.0f);
     extrusionLayer->setFilter(Filter(eq(get("extrude"), literal("true"))));
