@@ -20,6 +20,8 @@ bool filterLayerByType(const std::string& id) {
 #if 1
 //        {"land", "", /* background */ },  地球底色，灰黄色
         
+        {"water", "water", /* fill */ }, // 所有水系，江河湖海
+        
         {ID_NAV_LAND, ID_NAV_LAND, /* fill */ }, // nav 陆地底座
 
         {"landcover", "landcover", /* fill */ }, // 大洲绿色，低级别才显示
@@ -30,12 +32,12 @@ bool filterLayerByType(const std::string& id) {
 
 //        {"water-shadow", "water", /* fill */ }, // 水边阴影
 //        {"waterway", "waterway", /* line */ }, // 航道
-        {"water", "water", /* fill */ }, // 所有水系，江河湖海
+        
 
 //        {"hillshade", "hillshade", /* fill */ }, // 山阴
 #endif
 
-#if 1
+#if 0
 //        {"land-structure-polygon", "structure", /* fill */ },
 //        {"land-structure-line", "structure", /* line */ },
         
@@ -153,7 +155,7 @@ bool filterLayerByType(const std::string& id) {
         {"admin-0-boundary-disputed", "admin", /* line */ }, // 争议国界
 #endif
         
-#if 1
+#if 0
         {"building-number-label", "housenum_label", /* symbol */ },
 //        {"road-label", "road", /* symbol */ },
 //        {"road-number-shield", "road", /* symbol */ },
