@@ -49,6 +49,31 @@ public:
                   context.createShader(ShaderType::Vertex, vertexSource),
                   context.createShader(ShaderType::Fragment, fragmentSource),
                   attributeLocations.getFirstAttribName())) {
+                      
+//            {
+//                std::string vertex;
+//                for (auto s : vertexSource) {
+//                  vertex += s;
+//                  vertex += "\n";
+//                }
+//
+//                std::string fragment;
+//                for (auto s : fragmentSource) {
+//                  fragment += s;
+//                  fragment += "\n";
+//                }
+//
+//                std::cout
+//                << "*************************************\n"
+//                << "Vertex Shader For \n\n"
+//                << vertex
+//                << "\n\n\n\n"
+//                << "Fragment Shader For \n\n"
+//                << fragment
+//                << "\n\n\n\n"
+//                << "*************************************\n";
+//            }
+                      
             attributeLocations.queryLocations(program);
             uniformStates.queryLocations(program);
             // Texture units are specified via uniforms as well, so we need query their locations
@@ -59,6 +84,8 @@ public:
         createInstance(gl::Context& context,
                        const ProgramParameters& programParameters,
                        const std::string& additionalDefines) {
+            
+#if 0
             // Compile the shader
             const std::initializer_list<const char*> vertexSource = {
                 programParameters.getDefines().c_str(),
@@ -66,12 +93,36 @@ public:
                 (programs::gl::shaderSource() + programs::gl::vertexPreludeOffset),
                 (programs::gl::shaderSource() + vertexOffset)
             };
+            
             const std::initializer_list<const char*> fragmentSource = {
                 programParameters.getDefines().c_str(),
                 additionalDefines.c_str(),
                 (programs::gl::shaderSource() + programs::gl::fragmentPreludeOffset),
                 (programs::gl::shaderSource() + fragmentOffset)
             };
+#else
+            const std::initializer_list<const char*> vertexSource = {
+                programParameters.getDefines().c_str(),
+                additionalDefines.c_str(),
+                programs::gl::ShaderSource<Name>::navVertex(programs::gl::shaderSource(), programs::gl::vertexPreludeOffset),
+                programs::gl::ShaderSource<Name>::navVertex(programs::gl::shaderSource())
+            };
+            
+            const std::initializer_list<const char*> fragmentSource = {
+                programParameters.getDefines().c_str(),
+                additionalDefines.c_str(),
+                programs::gl::ShaderSource<Name>::navFragment(programs::gl::shaderSource(), programs::gl::fragmentPreludeOffset),
+                programs::gl::ShaderSource<Name>::navFragment(programs::gl::shaderSource())
+            };
+#endif
+
+            auto vit = vertexSource.begin(); vit++; vit++;
+            printf("***nav\n%s\n\n\n\n", *vit); vit++;
+            printf("***nav\n%s\n\n\n\n", *vit);
+            auto fit = fragmentSource.begin(); fit++; fit++;
+            printf("***nav\n%s\n\n\n\n", *fit); fit++;
+            printf("***nav\n%s\n\n\n\n", *fit);
+
             return std::make_unique<Instance>(context, vertexSource, fragmentSource);
         }
 

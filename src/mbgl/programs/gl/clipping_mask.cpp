@@ -18,6 +18,11 @@ struct ShaderSource<ClippingMaskProgram> {
     static constexpr const uint8_t hash[8] = {0x3e, 0x17, 0xc2, 0x3a, 0x1f, 0xf0, 0xa8, 0xa3};
     static constexpr const auto vertexOffset = 7891;
     static constexpr const auto fragmentOffset = 7987;
+    
+    static const char* navVertex(const char* shaderSource, size_t preludeOffset) { return shaderSource + preludeOffset; }
+    static const char* navVertex(const char* shaderSource) { return shaderSource + vertexOffset; }
+    static const char* navFragment(const char* shaderSource, size_t preludeOffset) { return shaderSource + preludeOffset; }
+    static const char* navFragment(const char* shaderSource) { return shaderSource + fragmentOffset; }
 };
 
 constexpr const char* ShaderSource<ClippingMaskProgram>::name;

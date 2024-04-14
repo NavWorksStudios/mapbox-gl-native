@@ -18,6 +18,11 @@ struct ShaderSource<HillshadeProgram> {
     static constexpr const uint8_t hash[8] = {0x8a, 0x11, 0x29, 0x18, 0x52, 0x7f, 0x3b, 0xbb};
     static constexpr const auto vertexOffset = 29333;
     static constexpr const auto fragmentOffset = 29504;
+    
+    static const char* navVertex(const char* shaderSource, size_t preludeOffset) { return shaderSource + preludeOffset; }
+    static const char* navVertex(const char* shaderSource) { return shaderSource + vertexOffset; }
+    static const char* navFragment(const char* shaderSource, size_t preludeOffset) { return shaderSource + preludeOffset; }
+    static const char* navFragment(const char* shaderSource) { return shaderSource + fragmentOffset; }
 };
 
 constexpr const char* ShaderSource<HillshadeProgram>::name;

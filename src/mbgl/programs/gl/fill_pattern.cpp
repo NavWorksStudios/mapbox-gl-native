@@ -18,6 +18,11 @@ struct ShaderSource<FillPatternProgram> {
     static constexpr const uint8_t hash[8] = {0x74, 0xa9, 0x97, 0x01, 0x96, 0xbd, 0x87, 0x36};
     static constexpr const auto vertexOffset = 18512;
     static constexpr const auto fragmentOffset = 20291;
+    
+    static const char* navVertex(const char* shaderSource, size_t preludeOffset) { return shaderSource + preludeOffset; }
+    static const char* navVertex(const char* shaderSource) { return shaderSource + vertexOffset; }
+    static const char* navFragment(const char* shaderSource, size_t preludeOffset) { return shaderSource + preludeOffset; }
+    static const char* navFragment(const char* shaderSource) { return shaderSource + fragmentOffset; }
 };
 
 constexpr const char* ShaderSource<FillPatternProgram>::name;

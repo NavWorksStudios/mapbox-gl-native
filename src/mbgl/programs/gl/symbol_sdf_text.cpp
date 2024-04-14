@@ -18,6 +18,11 @@ struct ShaderSource<SymbolSDFTextProgram> {
     static constexpr const uint8_t hash[8] = {0x46, 0xe9, 0x60, 0xde, 0x1e, 0x85, 0x36, 0x54};
     static constexpr const auto vertexOffset = 53609;
     static constexpr const auto fragmentOffset = 57649;
+    
+    static const char* navVertex(const char* shaderSource, size_t preludeOffset) { return shaderSource + preludeOffset; }
+    static const char* navVertex(const char* shaderSource) { return shaderSource + vertexOffset; }
+    static const char* navFragment(const char* shaderSource, size_t preludeOffset) { return shaderSource + preludeOffset; }
+    static const char* navFragment(const char* shaderSource) { return shaderSource + fragmentOffset; }
 };
 
 constexpr const char* ShaderSource<SymbolSDFTextProgram>::name;

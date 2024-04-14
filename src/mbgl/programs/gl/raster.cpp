@@ -18,6 +18,11 @@ struct ShaderSource<RasterProgram> {
     static constexpr const uint8_t hash[8] = {0x40, 0x3d, 0x6c, 0xf4, 0xd0, 0x41, 0x51, 0x0e};
     static constexpr const auto vertexOffset = 49047;
     static constexpr const auto fragmentOffset = 49396;
+    
+    static const char* navVertex(const char* shaderSource, size_t preludeOffset) { return shaderSource + preludeOffset; }
+    static const char* navVertex(const char* shaderSource) { return shaderSource + vertexOffset; }
+    static const char* navFragment(const char* shaderSource, size_t preludeOffset) { return shaderSource + preludeOffset; }
+    static const char* navFragment(const char* shaderSource) { return shaderSource + fragmentOffset; }
 };
 
 constexpr const char* ShaderSource<RasterProgram>::name;

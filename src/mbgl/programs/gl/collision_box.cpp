@@ -18,6 +18,11 @@ struct ShaderSource<CollisionBoxProgram> {
     static constexpr const uint8_t hash[8] = {0xcb, 0x6a, 0x9b, 0xd1, 0x1f, 0x31, 0xf8, 0x5b};
     static constexpr const auto vertexOffset = 10000;
     static constexpr const auto fragmentOffset = 10679;
+    
+    static const char* navVertex(const char* shaderSource, size_t preludeOffset) { return shaderSource + preludeOffset; }
+    static const char* navVertex(const char* shaderSource) { return shaderSource + vertexOffset; }
+    static const char* navFragment(const char* shaderSource, size_t preludeOffset) { return shaderSource + preludeOffset; }
+    static const char* navFragment(const char* shaderSource) { return shaderSource + fragmentOffset; }
 };
 
 constexpr const char* ShaderSource<CollisionBoxProgram>::name;
