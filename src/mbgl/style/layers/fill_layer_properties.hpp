@@ -25,7 +25,10 @@ struct FillAntialias : PaintProperty<bool> {
     static bool defaultValue() { return true; }
 };
 
-struct FillBase : PaintProperty<float> {
+//struct FillBase : PaintProperty<float> {
+//    static float defaultValue() { return -20; }
+//};
+struct FillBase : DataDrivenPaintProperty<float, attributes::base, uniforms::base> {
     static float defaultValue() { return 0; }
 };
 

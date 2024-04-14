@@ -104,7 +104,7 @@ void main() {
     lowp float opacity=u_opacity;
 #endif
 
-    gl_Position=u_matrix*vec4(a_pos,-3,1);
+    gl_Position=u_matrix*vec4(a_pos,u_base,1);
 }
 
 )"; }
