@@ -196,8 +196,11 @@ void Parser::parseLayers(const JSValue& value) {
             continue;
         }
 
-        layersMap.emplace(layerID, std::pair<const JSValue&, std::unique_ptr<Layer>> { layerValue, nullptr });
-        ids.push_back(layerID);
+        layersMap.emplace_hint(layersMap.begin(), layerID, std::pair<const JSValue&, std::unique_ptr<Layer>> { layerValue, nullptr });
+        ids.insert(ids.begin(), layerID);
+        
+//        layersMap.emplace(layerID, std::pair<const JSValue&, std::unique_ptr<Layer>> { layerValue, nullptr });
+//        ids.push_back(layerID);
         
         if (layerID == "water") {
             layersMap.emplace(nav::mb::ID_NAV_LAND, std::pair<const JSValue&, std::unique_ptr<Layer>> { layerValue, nullptr });
@@ -228,8 +231,8 @@ void Parser::parseLayers(const JSValue& value) {
         if (it->second.second) {
             nav::mb::displaceStyle(id, it->second.second);
             if (id == nav::mb::ID_NAV_LAND) {
-                // 将3d-land图层的渲染顺序调整为所有图层首位
-                layers.insert(layers.begin(), std::move(it->second.second));
+                // 将2d-land图层的渲染顺序调整为所有图层首位
+                layers.insert(++layers.begin(), std::move(it->second.second));
 //                layers.emplace(layers.begin(), std::move(it->second.second));
             }
             else {
