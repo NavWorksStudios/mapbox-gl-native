@@ -5,11 +5,11 @@
 // Pointers to OpenGL ES 2.0 functions. They must be
 // initialized by the platform at linking time.
 
-#ifndef NDEBUG
-#define MBGL_CHECK_ERROR(cmd) ([&]() { struct __MBGL_CHECK_ERROR { ~__MBGL_CHECK_ERROR() noexcept(false) { mbgl::platform::glCheckError(#cmd, __FILE__, __LINE__); } } __MBGL_CHECK_ERROR; return cmd; }())
-#else
+//#ifndef NDEBUG
+//#define MBGL_CHECK_ERROR(cmd) ([&]() { struct __MBGL_CHECK_ERROR { ~__MBGL_CHECK_ERROR() noexcept(false) { mbgl::platform::glCheckError(#cmd, __FILE__, __LINE__); } } __MBGL_CHECK_ERROR; return cmd; }())
+//#else
 #define MBGL_CHECK_ERROR(cmd) (cmd)
-#endif
+//#endif
 
 namespace mbgl {
 namespace platform {
