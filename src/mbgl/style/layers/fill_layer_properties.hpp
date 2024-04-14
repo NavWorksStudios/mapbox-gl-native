@@ -25,6 +25,10 @@ struct FillAntialias : PaintProperty<bool> {
     static bool defaultValue() { return true; }
 };
 
+struct FillBase : PaintProperty<float> {
+    static float defaultValue() { return 0; }
+};
+
 struct FillColor : DataDrivenPaintProperty<Color, attributes::color, uniforms::color> {
     static Color defaultValue() { return Color::black(); }
 };
@@ -54,6 +58,7 @@ class FillLayoutProperties : public Properties<
 > {};
 
 class FillPaintProperties : public Properties<
+    FillBase,
     FillAntialias,
     FillColor,
     FillOpacity,

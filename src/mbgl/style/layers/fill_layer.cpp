@@ -81,8 +81,31 @@ void FillLayer::setFillSortKey(const PropertyValue<float>& value) {
 
 // Paint properties
 
-PropertyValue<bool> FillLayer::getDefaultFillAntialias() {
-    return {true};
+PropertyValue<float> FillLayer::getDefaultFillBase() {
+    return {0};
+}
+
+const PropertyValue<float>& FillLayer::getFillBase() const {
+    return impl().paint.template get<FillBase>().value;
+}
+
+void FillLayer::setFillBase(const PropertyValue<float>& value) {
+    if (value == getFillBase())
+        return;
+    auto impl_ = mutableImpl();
+    impl_->paint.template get<FillBase>().value = value;
+    baseImpl = std::move(impl_);
+    observer->onLayerChanged(*this);
+}
+
+void FillLayer::setFillBaseTransition(const TransitionOptions& options) {
+    auto impl_ = mutableImpl();
+    impl_->paint.template get<FillBase>().options = options;
+    baseImpl = std::move(impl_);
+}
+
+TransitionOptions FillLayer::getFillBaseTransition() const {
+    return impl().paint.template get<FillBase>().options;
 }
 
 const PropertyValue<bool>& FillLayer::getFillAntialias() const {

@@ -27,6 +27,12 @@ public:
 
     // Paint properties
 
+    static PropertyValue<float> getDefaultFillBase();
+    const PropertyValue<float>& getFillBase() const;
+    void setFillBase(const PropertyValue<float>&);
+    void setFillBaseTransition(const TransitionOptions&);
+    TransitionOptions getFillBaseTransition() const;
+    
     static PropertyValue<bool> getDefaultFillAntialias();
     const PropertyValue<bool>& getFillAntialias() const;
     void setFillAntialias(const PropertyValue<bool>&);

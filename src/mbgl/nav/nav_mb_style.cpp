@@ -18,6 +18,7 @@ void displaceStyle(const std::string& id, std::unique_ptr<::mbgl::style::Layer>&
     if (id == "water") {
         auto fillLayer = static_cast<::mbgl::style::FillLayer*>(layer.get());
         fillLayer->setFillColor(mbgl::Color(0.203,0.325,0.396,1));
+        fillLayer->setFillBase(-500);
     } else if (id == ID_NAV_LAND) {
         auto fillLayer = static_cast<::mbgl::style::FillLayer*>(layer.get());
         mbgl::style::PropertyValue<mbgl::Color> color = mbgl::Color(1,1,1,1);
