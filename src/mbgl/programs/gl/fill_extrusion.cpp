@@ -114,7 +114,8 @@ highp vec4 color=unpack_mix_color(a_color,u_color_t);
 highp vec4 color=u_color;
 #endif
 vec3 normal=a_normal_ed.xyz;
-
+//base=max(0.0,base);
+height=max(0.0,height);
 float t=mod(normal.x,2.0);
 gl_Position=u_matrix*vec4(a_pos,t > 0.0 ? height : base,1);
 float colorvalue=color.r*0.2126+color.g*0.7152+color.b*0.0722;
