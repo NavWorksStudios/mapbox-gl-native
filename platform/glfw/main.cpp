@@ -137,6 +137,18 @@ int main(int argc, char *argv[]) {
     settings.zoom = 16.8;
     settings.pitch = 60;
     
+    settings.debug = mbgl::EnumType(
+#if 1
+        mbgl::MapDebugOptions::TileBorders |
+        mbgl::MapDebugOptions::ParseStatus |
+        mbgl::MapDebugOptions::Timestamps |
+        mbgl::MapDebugOptions::Collision |
+//        mbgl::MapDebugOptions::Overdraw |
+//        mbgl::MapDebugOptions::StencilClip |
+//        mbgl::MapDebugOptions::DepthBuffer |
+#endif
+        mbgl::MapDebugOptions::NoDebug);
+    
     map.jumpTo(mbgl::CameraOptions()
                    .withCenter(mbgl::LatLng {settings.latitude, settings.longitude})
                    .withZoom(settings.zoom)
