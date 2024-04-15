@@ -143,8 +143,8 @@ void addLandFillExtrusionLayer(mbgl::style::Style &style, bool visible) { // ret
     extrusionLayer->setFillExtrusionOpacity(1.0f);
 //    extrusionLayer->setFillExtrusionHeight(PropertyExpression<float>(get("height")));
 //    extrusionLayer->setFillExtrusionBase(PropertyExpression<float>(get("min_height")));
-    extrusionLayer->setFillExtrusionHeight(3);
-    extrusionLayer->setFillExtrusionBase(-3.1);
+    extrusionLayer->setFillExtrusionHeight(0);
+    extrusionLayer->setFillExtrusionBase(-3);
 //    style.addLayer(std::move(extrusionLayer), mbgl::optional<std::string>("landcover"));
     style.addLayer(std::move(extrusionLayer), mbgl::optional<std::string>("nav:land"));
 }
