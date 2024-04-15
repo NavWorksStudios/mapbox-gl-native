@@ -189,7 +189,8 @@ public:
                     Clipper2Lib::Paths64 watersPath, tilesPath, landsPath, landsPath2;
                     Clipper2Lib::Path64 waterPath, tilePath;
                     Clipper2Lib::Path64 landPath, landPath2;
-                    tilePath = Clipper2Lib::MakePath({0, 0, 8192, 0, 8192, 8192, 0, 8192});
+                    // tilePath = Clipper2Lib::MakePath({0, 0, 8192, 0, 8192, 8192, 0, 8192});
+                    tilePath = Clipper2Lib::MakePath({8192, 8192, 0, 8192, 0, 0, 8192, 0});
                     tilesPath.push_back(tilePath);
 
                     std::string cooStr = "";
@@ -203,10 +204,12 @@ public:
                     }
                     
                     landsPath = Clipper2Lib::Intersect(tilesPath, watersPath, Clipper2Lib::FillRule::NonZero);
-                    landsPath2 = Clipper2Lib::Difference(tilesPath, landsPath, Clipper2Lib::FillRule::NonZero);
-                    
-                    if(landsPath2.size() == 0) { // 使用water切割tile后剩下的land路径
-                        return;
+                    if(landsPath == tilesPath) {
+                        std::cout << "landsPath == tilesPath" << "\n";
+                        std::cout << "landsPath2 = {}" << "\n";
+                    }
+                    else {
+                        landsPath2 = Clipper2Lib::Difference(tilesPath, landsPath, Clipper2Lib::FillRule::NonZero);
                     }
                     
                     // 将landsPath2转换为geometries
