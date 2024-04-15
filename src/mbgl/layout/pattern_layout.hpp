@@ -205,11 +205,8 @@ public:
                     landsPath = Clipper2Lib::Intersect(tilesPath, watersPath, Clipper2Lib::FillRule::NonZero);
                     landsPath2 = Clipper2Lib::Difference(tilesPath, landsPath, Clipper2Lib::FillRule::NonZero);
                     
-                    if(landsPath2.size() > 0) { // 使用water切割tile后剩下的land路径
-                        //
-                    }
-                    else { // water均在tile外无需切割，landsPath即为tile路径
-                        landsPath2 = landsPath;
+                    if(landsPath2.size() == 0) { // 使用water切割tile后剩下的land路径
+                        return;
                     }
                     
                     // 将landsPath2转换为geometries
