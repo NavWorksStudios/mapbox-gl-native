@@ -186,12 +186,11 @@ public:
                     
                     // need add clipper->Difference logic
                     // ========================================================================
-                    Clipper2Lib::Paths64 watersPath, tilesPath;
-
-                    // Clipper2Lib::MakePath({0, 0, 8192, 0, 8192, 8192, 0, 8192});
-                    tilesPath.push_back(Clipper2Lib::MakePath({8192, 8192, 0, 8192, 0, 0, 8192, 0}));
+                    const Clipper2Lib::Paths64 tilePath = { Clipper2Lib::MakePath({8192, 8192, 0, 8192, 0, 0, 8192, 0}) };
 
 //                    std::string cooStr = "";
+                    
+                    Clipper2Lib::Paths64 watersPath;
                     for(const auto& geometry : geometries) {
                         Clipper2Lib::Path64 waterPath;
                         for(const auto& geometryCoordinate : geometry) {
@@ -201,29 +200,30 @@ public:
                         watersPath.push_back(waterPath);
                     }
                     
-                    Clipper2Lib::Paths64 landsPath = Clipper2Lib::Intersect(tilesPath, watersPath, Clipper2Lib::FillRule::NonZero);
-                    if(landsPath == tilesPath) {
-//                        std::cout << "landsPath == tilesPath" << "\n";
-//                        std::cout << "landsPath2 = {}" << "\n";
-                    }
-                    else {
-                        landsPath = Clipper2Lib::Difference(tilesPath, landsPath, Clipper2Lib::FillRule::NonZero);
+                    Clipper2Lib::Paths64 landPath = Clipper2Lib::Intersect(tilePath, watersPath, Clipper2Lib::FillRule::NonZero);
+                    if(landPath == tilePath) {
+                        landPath.clear();
+                    } else {
+                        landPath = Clipper2Lib::Difference(tilePath, landPath, Clipper2Lib::FillRule::NonZero);
                     }
                     
                     // 将landsPath转换为geometries
-                    GeometryCollection geometries_tmp;
-                    for(const auto& landPath_t : landsPath) {
-                        GeometryCoordinates points_tmp;
-                        for(const auto& point_t : landPath_t) {
-                            points_tmp.push_back(Point<int16_t>{static_cast<short>(point_t.x), static_cast<short>(point_t.y)});
+                    GeometryCollection geometry;
+                    for(const auto& path : landPath) {
+                        GeometryCoordinates points;
+                        for(const auto& point : path) {
+                            points.push_back(Point<int16_t>{static_cast<int16_t>(point.x), static_cast<int16_t>(point.y)});
                         }
-                        points_tmp.push_back(Point<int16_t>{static_cast<short>(landPath_t[0].x), static_cast<short>(landPath_t[0].y)});
-                        geometries_tmp.push_back(points_tmp);
+                        if (path.size() > 2) {
+                            points.push_back(Point<int16_t>{static_cast<int16_t>(path[0].x), static_cast<int16_t>(path[0].y)});
+                        }
+                        
+                        geometry.push_back(points);
                     }
                     // ========================================================================
 
-                    bucket->addFeature(*feature, geometries_tmp, patternPositions, patterns, i, canonical);
-                    featureIndex->insert(geometries_tmp, i, sourceLayerID, bucketLeaderID);
+                    bucket->addFeature(*feature, geometry, patternPositions, patterns, i, canonical);
+                    featureIndex->insert(geometry, i, sourceLayerID, bucketLeaderID);
 //                    bucket->addFeature(*feature, geometries, patternPositions, patterns, i, canonical);
 //                    featureIndex->insert(geometries, i, sourceLayerID, bucketLeaderID);
                 } else {
