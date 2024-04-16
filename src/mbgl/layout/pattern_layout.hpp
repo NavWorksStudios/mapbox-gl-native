@@ -186,39 +186,38 @@ public:
                     
                     // need add clipper->Difference logic
                     // ========================================================================
-                    Clipper2Lib::Paths64 watersPath, tilesPath, landsPath, landsPath2;
-                    Clipper2Lib::Path64 waterPath, tilePath;
-                    Clipper2Lib::Path64 landPath, landPath2;
-                    // tilePath = Clipper2Lib::MakePath({0, 0, 8192, 0, 8192, 8192, 0, 8192});
-                    tilePath = Clipper2Lib::MakePath({8192, 8192, 0, 8192, 0, 0, 8192, 0});
-                    tilesPath.push_back(tilePath);
+                    Clipper2Lib::Paths64 watersPath, tilesPath;
 
-                    std::string cooStr = "";
+                    // Clipper2Lib::MakePath({0, 0, 8192, 0, 8192, 8192, 0, 8192});
+                    tilesPath.push_back(Clipper2Lib::MakePath({8192, 8192, 0, 8192, 0, 0, 8192, 0}));
+
+//                    std::string cooStr = "";
                     for(const auto& geometry : geometries) {
+                        Clipper2Lib::Path64 waterPath;
                         for(const auto& geometryCoordinate : geometry) {
+//                            cooStr = cooStr + std::to_string(geometryCoordinate.x) + ", " + std::to_string(geometryCoordinate.y) + ", ";
                             waterPath.push_back(Clipper2Lib::Point64(geometryCoordinate.x, geometryCoordinate.y));
-                            cooStr = cooStr + std::to_string(geometryCoordinate.x) + ", " + std::to_string(geometryCoordinate.y) + ", ";
                         }
                         watersPath.push_back(waterPath);
-                        waterPath.clear();
                     }
                     
-                    landsPath = Clipper2Lib::Intersect(tilesPath, watersPath, Clipper2Lib::FillRule::NonZero);
+                    Clipper2Lib::Paths64 landsPath = Clipper2Lib::Intersect(tilesPath, watersPath, Clipper2Lib::FillRule::NonZero);
                     if(landsPath == tilesPath) {
-                        std::cout << "landsPath == tilesPath" << "\n";
-                        std::cout << "landsPath2 = {}" << "\n";
+//                        std::cout << "landsPath == tilesPath" << "\n";
+//                        std::cout << "landsPath2 = {}" << "\n";
                     }
                     else {
-                        landsPath2 = Clipper2Lib::Difference(tilesPath, landsPath, Clipper2Lib::FillRule::NonZero);
+                        landsPath = Clipper2Lib::Difference(tilesPath, landsPath, Clipper2Lib::FillRule::NonZero);
                     }
                     
-                    // 将landsPath2转换为geometries
+                    // 将landsPath转换为geometries
                     GeometryCollection geometries_tmp;
-                    for(const auto& landPath_t : landsPath2) {
+                    for(const auto& landPath_t : landsPath) {
                         GeometryCoordinates points_tmp;
                         for(const auto& point_t : landPath_t) {
                             points_tmp.push_back(Point<int16_t>{static_cast<short>(point_t.x), static_cast<short>(point_t.y)});
                         }
+                        points_tmp.push_back(Point<int16_t>{static_cast<short>(landPath_t[0].x), static_cast<short>(landPath_t[0].y)});
                         geometries_tmp.push_back(points_tmp);
                     }
                     // ========================================================================

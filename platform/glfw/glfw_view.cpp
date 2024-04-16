@@ -127,27 +127,10 @@ void addLandFillExtrusionLayer(mbgl::style::Style &style, bool visible) { // ret
     auto extrusionLayer = std::make_unique<FillExtrusionLayer>("nav:3d-land", "composite");
     extrusionLayer->setSourceLayer("water");
     extrusionLayer->setMinZoom(5.0f);
-//    extrusionLayer->setFilter(Filter(eq(get("extrude"), literal("true"))));
-
-    // #*#*# 设置3d building的基准色值
-//    extrusionLayer->setFillExtrusionColor(PropertyExpression<mbgl::Color>(interpolate(linear(),
-//                                                                                      number(get("height")),
-//                                                                                      0.f,
-//                                                                                      toColor(literal("#333333")),
-//                                                                                      50.f,
-//                                                                                      toColor(literal("#333333")),
-//                                                                                      100.f,
-//                                                                                      toColor(literal("#333333")))));
     extrusionLayer->setFillExtrusionColor(nav::mb::land_color());
-    
-//    extrusionLayer->setFillExtrusionOpacity(0.6f);
-    // #*#*# 设置3d building的积压透明度为0.9
     extrusionLayer->setFillExtrusionOpacity(1.0f);
-//    extrusionLayer->setFillExtrusionHeight(PropertyExpression<float>(get("height")));
-//    extrusionLayer->setFillExtrusionBase(PropertyExpression<float>(get("min_height")));
     extrusionLayer->setFillExtrusionHeight(-0.01);
-    extrusionLayer->setFillExtrusionBase(-3);
-//    style.addLayer(std::move(extrusionLayer), mbgl::optional<std::string>("landcover"));
+    extrusionLayer->setFillExtrusionBase(-20);
     style.addLayer(std::move(extrusionLayer), mbgl::optional<std::string>("nav:land"));
 }
 

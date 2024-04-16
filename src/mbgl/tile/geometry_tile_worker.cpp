@@ -405,7 +405,7 @@ void GeometryTileWorker::parse() {
         featureIndex->setBucketLayerIDs(leaderImpl.id, layerIDs);
         
         if(leaderImpl.id == nav::mb::ID_NAV_3D_LAND && leaderImpl.sourceLayer == "water") {
-            std::cout << "layer water && 3d-land begin!" << "\n";
+//            std::cout << "layer water && 3d-land begin!" << "\n";
         }
 
         // Symbol layers and layers that support pattern properties have an extra step at layout time to figure out what images/glyphs
