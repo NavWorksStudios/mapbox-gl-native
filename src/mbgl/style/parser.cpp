@@ -195,12 +195,9 @@ void Parser::parseLayers(const JSValue& value) {
             Log::Warning(Event::ParseStyle, "duplicate layer id %s", layerID.c_str());
             continue;
         }
-
-        layersMap.emplace_hint(layersMap.begin(), layerID, std::pair<const JSValue&, std::unique_ptr<Layer>> { layerValue, nullptr });
-        ids.insert(ids.begin(), layerID);
         
-//        layersMap.emplace(layerID, std::pair<const JSValue&, std::unique_ptr<Layer>> { layerValue, nullptr });
-//        ids.push_back(layerID);
+        layersMap.emplace(layerID, std::pair<const JSValue&, std::unique_ptr<Layer>> { layerValue, nullptr });
+        ids.push_back(layerID);
         
         if (layerID == "water") {
             layersMap.emplace(nav::mb::ID_NAV_LAND, std::pair<const JSValue&, std::unique_ptr<Layer>> { layerValue, nullptr });
