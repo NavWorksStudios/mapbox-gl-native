@@ -46,6 +46,8 @@
 #if defined(MBGL_RENDER_BACKEND_OPENGL) && !defined(MBGL_LAYER_LOCATION_INDICATOR_DISABLE_ALL)
 #include <mbgl/style/layers/location_indicator_layer.hpp>
 
+#include "mbgl/nav/nav_mb_style.hpp"
+
 namespace {
 const std::string mbglPuckAssetsPath{MAPBOX_PUCK_ASSETS_PATH};
 
@@ -93,16 +95,16 @@ void addFillExtrusionLayer(mbgl::style::Style &style, bool visible) {
     extrusionLayer->setSourceLayer("building");
     extrusionLayer->setMinZoom(15.0f);
     extrusionLayer->setFilter(Filter(eq(get("extrude"), literal("true"))));
-    extrusionLayer->setFillExtrusionColor(PropertyExpression<mbgl::Color>(interpolate(linear(),
-                                                                                      number(get("height")),
-                                                                                      0.f,
-                                                                                      toColor(literal("#160e23")),
-                                                                                      50.f,
-                                                                                      toColor(literal("#00615f")),
-                                                                                      100.f,
-                                                                                      toColor(literal("#55e9ff")))));
-
-    extrusionLayer->setFillExtrusionOpacity(1.0f);
+    
+    auto e = interpolate(
+                linear(),
+                number(get("height")),
+                0.f, toColor(literal("#EEEEEE")),
+                100.f, toColor(literal("#FFFFFF")));
+                
+    extrusionLayer->setFillExtrusionColor(PropertyExpression<mbgl::Color>(std::move(e)));
+    
+    extrusionLayer->setFillExtrusionOpacity(.95f);
     extrusionLayer->setFillExtrusionHeight(PropertyExpression<float>(get("height")));
     extrusionLayer->setFillExtrusionBase(PropertyExpression<float>(get("min_height")));
     style.addLayer(std::move(extrusionLayer));
@@ -136,7 +138,7 @@ void addLandFillExtrusionLayer(mbgl::style::Style &style, bool visible) { // ret
 //                                                                                      toColor(literal("#333333")),
 //                                                                                      100.f,
 //                                                                                      toColor(literal("#333333")))));
-    extrusionLayer->setFillExtrusionColor(mbgl::Color(1,1,1,1));
+    extrusionLayer->setFillExtrusionColor(nav::mb::land_color());
     
 //    extrusionLayer->setFillExtrusionOpacity(0.6f);
     // #*#*# 设置3d building的积压透明度为0.9

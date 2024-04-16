@@ -36,8 +36,6 @@ public:
     static Color red()   { return { 1.0f, 0.0f, 0.0f, 1.0f }; };
     static Color green() { return { 0.0f, 1.0f, 0.0f, 1.0f }; };
     static Color blue()  { return { 0.0f, 0.0f, 1.0f, 1.0f }; };
-    // #*#*# 项目默认背景色
-    static Color nav_bk_color() { return { 1.0f, 1.0f, 1.0f, 1.0f }; };
 
     static optional<Color> parse(const std::string&);
     std::string stringify() const;

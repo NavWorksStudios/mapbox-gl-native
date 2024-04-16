@@ -6,10 +6,13 @@
 
 #pragma once
 
+#include <mbgl/util/color.hpp>
 #include <mbgl/style/layer.hpp>
 
 namespace nav {
 namespace mb {
+
+mbgl::Color land_color();
 
 void displaceStyle(const std::string& id, std::unique_ptr<::mbgl::style::Layer>& layer);
 
