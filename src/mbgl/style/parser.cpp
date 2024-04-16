@@ -199,10 +199,10 @@ void Parser::parseLayers(const JSValue& value) {
         layersMap.emplace(layerID, std::pair<const JSValue&, std::unique_ptr<Layer>> { layerValue, nullptr });
         ids.push_back(layerID);
         
-        if (layerID == "water") {
-            layersMap.emplace(nav::mb::ID_NAV_LAND, std::pair<const JSValue&, std::unique_ptr<Layer>> { layerValue, nullptr });
-            ids.push_back(nav::mb::ID_NAV_LAND);
-        }
+//        if (layerID == "water") {
+//            layersMap.emplace(nav::mb::ID_NAV_LAND, std::pair<const JSValue&, std::unique_ptr<Layer>> { layerValue, nullptr });
+//            ids.push_back(nav::mb::ID_NAV_LAND);
+//        }
     }
 
     for (const auto& id : ids) {
@@ -212,29 +212,29 @@ void Parser::parseLayers(const JSValue& value) {
         
         auto it = layersMap.find(id);
 
-        if (id == nav::mb::ID_NAV_LAND) {
-            auto waterKV = layersMap.find("water");
-            Layer* reference = waterKV->second.second.get();
-            it->second.second = reference->cloneRef(id);
-        } else {
-            parseLayer(it->first,
-                       it->second.first,
-                       it->second.second);
-        }
+//        if (id == nav::mb::ID_NAV_LAND) {
+//            auto waterKV = layersMap.find("water");
+//            Layer* reference = waterKV->second.second.get();
+//            it->second.second = reference->cloneRef(id);
+//            continue;
+//        }
+        
+        parseLayer(it->first,
+                   it->second.first,
+                   it->second.second);
     }
 
     for (const auto& id : ids) {
         auto it = layersMap.find(id);
         if (it->second.second) {
             nav::mb::displaceStyle(id, it->second.second);
-            if (id == nav::mb::ID_NAV_LAND) {
-                // 将2d-land图层的渲染顺序调整为所有图层首位
-                layers.insert(++layers.begin(), std::move(it->second.second));
+            
+//            if (id == nav::mb::ID_NAV_LAND) {
 //                layers.emplace(layers.begin(), std::move(it->second.second));
-            }
-            else {
-                layers.emplace_back(std::move(it->second.second));
-            }
+//                continue;
+//            }
+            
+            layers.emplace_back(std::move(it->second.second));
         }
     }
 }
