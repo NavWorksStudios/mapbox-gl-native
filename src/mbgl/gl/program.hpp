@@ -117,9 +117,9 @@ public:
 #endif
 
             
-#if 1
+#if 0
             // shader glsl writer
-            printf("******* %s - begin *******\n\n", programs::gl::ShaderSource<Name>::name);
+            printf("\n\n******* %s - begin *******\n\n", programs::gl::ShaderSource<Name>::name);
             
             auto vit = vertexSource.begin(); vit++; vit++;
             printf("static const char* navVertex(const char* , size_t ) { return R\"(\n\n%s\n)\"; } \n\n\n", *vit); vit++;
@@ -129,7 +129,7 @@ public:
             printf("static const char* navFragment(const char* , size_t ) { return R\"(\n\n%s\n)\"; } \n\n\n", *fit); fit++;
             printf("static const char* navFragment(const char* ) { return R\"(\n\n%s\n)\"; } \n\n\n", *fit);
             
-            printf("\n\n******* %s - end *******", programs::gl::ShaderSource<Name>::name);
+            printf("\n\n******* %s - end *******\n\n", programs::gl::ShaderSource<Name>::name);
 #endif
 
             return std::make_unique<Instance>(context, vertexSource, fragmentSource);
