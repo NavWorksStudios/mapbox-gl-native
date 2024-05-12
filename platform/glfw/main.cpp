@@ -36,16 +36,22 @@ void quit_handler(int) {
     }
 }
 
-int main(int argc, char *argv[]) {
+MBGL_EXPORT
+
+//#ifdef __cplusplus
+//extern "C" {
+//#endif
+
+void nav_launch() {
     args::ArgumentParser argumentParser("Mapbox GL GLFW example");
     args::HelpFlag helpFlag(argumentParser, "help", "Display this help menu", {'h', "help"});
-
+    
     args::Flag fullscreenFlag(argumentParser, "fullscreen", "Toggle fullscreen", {'f', "fullscreen"});
     args::Flag benchmarkFlag(argumentParser, "benchmark", "Toggle benchmark", {'b', "benchmark"});
     args::Flag offlineFlag(argumentParser, "offline", "Toggle offline", {'o', "offline"});
-
+    
     args::ValueFlag<std::string> testDirValue(
-        argumentParser, "directory", "Root directory for test generation", {"testDir"});
+                                              argumentParser, "directory", "Root directory for test generation", {"testDir"});
     args::ValueFlag<std::string> backendValue(argumentParser, "backend", "Rendering backend", {"backend"});
     args::ValueFlag<std::string> styleValue(argumentParser, "URL", "Map stylesheet", {'s', "style"});
     args::ValueFlag<std::string> cacheDBValue(argumentParser, "file", "Cache database file name", {'c', "cache"});
@@ -54,6 +60,173 @@ int main(int argc, char *argv[]) {
     args::ValueFlag<double> zoomValue(argumentParser, "number", "Zoom level", {'z', "zoom"});
     args::ValueFlag<double> bearingValue(argumentParser, "degrees", "Bearing", {'b', "bearing"});
     args::ValueFlag<double> pitchValue(argumentParser, "degrees", "Pitch", {'p', "pitch"});
+    
+    // Load settings
+    mbgl::Settings_JSON settings;
+    settings.online = !offlineFlag;
+    if (lonValue) settings.longitude = args::get(lonValue);
+    if (latValue) settings.latitude = args::get(latValue);
+    if (zoomValue) settings.zoom = args::get(zoomValue);
+    if (bearingValue) settings.bearing = args::get(bearingValue);
+    if (pitchValue) settings.pitch = args::get(pitchValue);
+    
+    const bool fullscreen = fullscreenFlag ? args::get(fullscreenFlag) : false;
+    const bool benchmark = benchmarkFlag ? args::get(benchmarkFlag) : false;
+    std::string style = styleValue ? args::get(styleValue) : "";
+    const std::string cacheDB = cacheDBValue ? args::get(cacheDBValue) : "/tmp/mbgl-cache.db";
+    
+    // sigint handling
+    struct sigaction sigIntHandler;
+    sigIntHandler.sa_handler = quit_handler;
+    sigemptyset(&sigIntHandler.sa_mask);
+    sigIntHandler.sa_flags = 0;
+    sigaction(SIGINT, &sigIntHandler, nullptr);
+    
+    if (benchmark) {
+        mbgl::Log::Info(mbgl::Event::General, "BENCHMARK MODE: Some optimizations are disabled.");
+    }
+    
+    // Set access token if present
+    std::string token(getenv("MAPBOX_ACCESS_TOKEN") ?: "");
+    if (token.empty()) {
+        mbgl::Log::Warning(mbgl::Event::Setup, "no access token set. mapbox.com tiles won't work.");
+    }
+    
+    mbgl::ResourceOptions resourceOptions;
+    resourceOptions.withCachePath(cacheDB).withAccessToken(token);
+    
+    GLFWView backend(fullscreen, benchmark, resourceOptions);
+    view = &backend;
+    
+    std::shared_ptr<mbgl::FileSource> onlineFileSource =
+    mbgl::FileSourceManager::get()->getFileSource(mbgl::FileSourceType::Network, resourceOptions);
+    if (!settings.online) {
+        if (onlineFileSource) {
+            onlineFileSource->setProperty("online-status", false);
+            mbgl::Log::Warning(mbgl::Event::Setup, "Application is offline. Press `O` to toggle online status.");
+        } else {
+            mbgl::Log::Warning(mbgl::Event::Setup,
+                               "Network resource provider is not available, only local requests are supported.");
+        }
+    }
+    
+    GLFWRendererFrontend rendererFrontend { std::make_unique<mbgl::Renderer>(view->getRendererBackend(), view->getPixelRatio()), *view };
+    
+    mbgl::Map map(rendererFrontend, *view,
+                  mbgl::MapOptions().withSize(view->getSize()).withPixelRatio(view->getPixelRatio()), resourceOptions);
+    
+    backend.setMap(&map);
+    
+    if (!style.empty() && style.find("://") == std::string::npos) {
+        style = std::string("file://") + style;
+    }
+    
+    // #*#*# 设置默认地图位置为香港维多利亚港附近
+    settings.latitude = 22.2874;
+    settings.longitude = 114.157;
+    settings.bearing = 161;
+    settings.zoom = 16.8;
+    settings.pitch = 60;
+    
+    settings.debug = mbgl::EnumType(mbgl::MapDebugOptions::NoDebug);
+    
+    map.jumpTo(mbgl::CameraOptions()
+               .withCenter(mbgl::LatLng {settings.latitude, settings.longitude})
+               .withZoom(settings.zoom)
+               .withBearing(settings.bearing)
+               .withPitch(settings.pitch));
+    map.setDebug(mbgl::MapDebugOptions(settings.debug));
+    
+    if (testDirValue) view->setTestDirectory(args::get(testDirValue));
+    
+    view->setOnlineStatusCallback([&settings, onlineFileSource]() {
+        if (!onlineFileSource) {
+            mbgl::Log::Warning(mbgl::Event::Setup,
+                               "Cannot change online status. Network resource provider is not available.");
+            return;
+        }
+        settings.online = !settings.online;
+        onlineFileSource->setProperty("online-status", settings.online);
+        mbgl::Log::Info(mbgl::Event::Setup, "Application is %s. Press `O` to toggle online status.", settings.online ? "online" : "offline");
+    });
+    
+    view->setChangeStyleCallback([&map] () {
+        static uint8_t currentStyleIndex;
+        
+        if (++currentStyleIndex == mbgl::util::default_styles::numOrderedStyles) {
+            currentStyleIndex = 0;
+        }
+        
+        mbgl::util::default_styles::DefaultStyle newStyle = mbgl::util::default_styles::orderedStyles[currentStyleIndex];
+        map.getStyle().loadURL(newStyle.url);
+        view->setWindowTitle(newStyle.name);
+        
+        mbgl::Log::Info(mbgl::Event::Setup, "Changed style to: %s", newStyle.name);
+    });
+    
+    // Resource loader controls top-level request processing and can resume / pause all managed sources simultaneously.
+    std::shared_ptr<mbgl::FileSource> resourceLoader =
+    mbgl::FileSourceManager::get()->getFileSource(mbgl::FileSourceType::ResourceLoader, resourceOptions);
+    view->setPauseResumeCallback([resourceLoader]() {
+        static bool isPaused = false;
+        
+        if (isPaused) {
+            resourceLoader->resume();
+        } else {
+            resourceLoader->pause();
+        }
+        
+        isPaused = !isPaused;
+    });
+    
+    // Database file source.
+    auto databaseFileSource = std::static_pointer_cast<mbgl::DatabaseFileSource>(std::shared_ptr<mbgl::FileSource>(
+                                                                                                                   mbgl::FileSourceManager::get()->getFileSource(mbgl::FileSourceType::Database, resourceOptions)));
+    view->setResetCacheCallback([databaseFileSource]() {
+        databaseFileSource->resetDatabase([](const std::exception_ptr& ex) {
+            if (ex) {
+                mbgl::Log::Error(mbgl::Event::Database, "Failed to reset cache:: %s", mbgl::util::toString(ex).c_str());
+            }
+        });
+    });
+    
+    // Load style
+    if (style.empty()) {
+        const char *url = getenv("MAPBOX_STYLE_URL");
+        if (url == nullptr) {
+            mbgl::util::default_styles::DefaultStyle newStyle = mbgl::util::default_styles::orderedStyles[0];
+            style = newStyle.url;
+            view->setWindowTitle(newStyle.name);
+        } else {
+            style = url;
+            view->setWindowTitle(url);
+        }
+    }
+    
+    map.getStyle().loadURL(style);
+    
+    view->run();
+    
+    // Save settings
+    mbgl::CameraOptions camera = map.getCameraOptions();
+    settings.latitude = camera.center->latitude();
+    settings.longitude = camera.center->longitude();
+    settings.zoom = *camera.zoom;
+    settings.bearing = *camera.bearing;
+    settings.pitch = *camera.pitch;
+    settings.debug = mbgl::EnumType(map.getDebug());
+    settings.save();
+    mbgl::Log::Info(mbgl::Event::General,
+                    R"(Exit location: --lat="%f" --lon="%f" --zoom="%f" --bearing "%f")",
+                    settings.latitude, settings.longitude, settings.zoom, settings.bearing);
+}
+    
+//#ifdef __cplusplus
+//}
+//#endif
+    
+int main(int argc, char *argv[]) {
+    args::ArgumentParser argumentParser("Mapbox GL GLFW example");
 
     try {
         argumentParser.ParseCLI(argc, argv);
@@ -69,166 +242,9 @@ int main(int argc, char *argv[]) {
         std::cerr << argumentParser;
         exit(2);
     }
-
-    // Load settings
-    mbgl::Settings_JSON settings;
-    settings.online = !offlineFlag;
-    if (lonValue) settings.longitude = args::get(lonValue);
-    if (latValue) settings.latitude = args::get(latValue);
-    if (zoomValue) settings.zoom = args::get(zoomValue);
-    if (bearingValue) settings.bearing = args::get(bearingValue);
-    if (pitchValue) settings.pitch = args::get(pitchValue);
-
-    const bool fullscreen = fullscreenFlag ? args::get(fullscreenFlag) : false;
-    const bool benchmark = benchmarkFlag ? args::get(benchmarkFlag) : false;
-    std::string style = styleValue ? args::get(styleValue) : "";
-    const std::string cacheDB = cacheDBValue ? args::get(cacheDBValue) : "/tmp/mbgl-cache.db";
-
-    // sigint handling
-    struct sigaction sigIntHandler;
-    sigIntHandler.sa_handler = quit_handler;
-    sigemptyset(&sigIntHandler.sa_mask);
-    sigIntHandler.sa_flags = 0;
-    sigaction(SIGINT, &sigIntHandler, nullptr);
-
-    if (benchmark) {
-        mbgl::Log::Info(mbgl::Event::General, "BENCHMARK MODE: Some optimizations are disabled.");
-    }
-
-    // Set access token if present
-    std::string token(getenv("MAPBOX_ACCESS_TOKEN") ?: "");
-    if (token.empty()) {
-        mbgl::Log::Warning(mbgl::Event::Setup, "no access token set. mapbox.com tiles won't work.");
-    }
-
-    mbgl::ResourceOptions resourceOptions;
-    resourceOptions.withCachePath(cacheDB).withAccessToken(token);
-
-    GLFWView backend(fullscreen, benchmark, resourceOptions);
-    view = &backend;
-
-    std::shared_ptr<mbgl::FileSource> onlineFileSource =
-        mbgl::FileSourceManager::get()->getFileSource(mbgl::FileSourceType::Network, resourceOptions);
-    if (!settings.online) {
-        if (onlineFileSource) {
-            onlineFileSource->setProperty("online-status", false);
-            mbgl::Log::Warning(mbgl::Event::Setup, "Application is offline. Press `O` to toggle online status.");
-        } else {
-            mbgl::Log::Warning(mbgl::Event::Setup,
-                               "Network resource provider is not available, only local requests are supported.");
-        }
-    }
-
-    GLFWRendererFrontend rendererFrontend { std::make_unique<mbgl::Renderer>(view->getRendererBackend(), view->getPixelRatio()), *view };
-
-    mbgl::Map map(rendererFrontend, *view,
-                  mbgl::MapOptions().withSize(view->getSize()).withPixelRatio(view->getPixelRatio()), resourceOptions);
-
-    backend.setMap(&map);
-
-    if (!style.empty() && style.find("://") == std::string::npos) {
-        style = std::string("file://") + style;
-    }
     
-    // #*#*# 设置默认地图位置为香港维多利亚港附近
-    settings.latitude = 22.2874;
-    settings.longitude = 114.157;
-    settings.bearing = 161;
-    settings.zoom = 16.8;
-    settings.pitch = 60;
+    nav_launch();
     
-    settings.debug = mbgl::EnumType(mbgl::MapDebugOptions::NoDebug);
-    
-    map.jumpTo(mbgl::CameraOptions()
-                   .withCenter(mbgl::LatLng {settings.latitude, settings.longitude})
-                   .withZoom(settings.zoom)
-                   .withBearing(settings.bearing)
-                   .withPitch(settings.pitch));
-    map.setDebug(mbgl::MapDebugOptions(settings.debug));
-
-    if (testDirValue) view->setTestDirectory(args::get(testDirValue));
-
-    view->setOnlineStatusCallback([&settings, onlineFileSource]() {
-        if (!onlineFileSource) {
-            mbgl::Log::Warning(mbgl::Event::Setup,
-                               "Cannot change online status. Network resource provider is not available.");
-            return;
-        }
-        settings.online = !settings.online;
-        onlineFileSource->setProperty("online-status", settings.online);
-        mbgl::Log::Info(mbgl::Event::Setup, "Application is %s. Press `O` to toggle online status.", settings.online ? "online" : "offline");
-    });
-
-    view->setChangeStyleCallback([&map] () {
-        static uint8_t currentStyleIndex;
-
-        if (++currentStyleIndex == mbgl::util::default_styles::numOrderedStyles) {
-            currentStyleIndex = 0;
-        }
-
-        mbgl::util::default_styles::DefaultStyle newStyle = mbgl::util::default_styles::orderedStyles[currentStyleIndex];
-        map.getStyle().loadURL(newStyle.url);
-        view->setWindowTitle(newStyle.name);
-
-        mbgl::Log::Info(mbgl::Event::Setup, "Changed style to: %s", newStyle.name);
-    });
-
-    // Resource loader controls top-level request processing and can resume / pause all managed sources simultaneously.
-    std::shared_ptr<mbgl::FileSource> resourceLoader =
-        mbgl::FileSourceManager::get()->getFileSource(mbgl::FileSourceType::ResourceLoader, resourceOptions);
-    view->setPauseResumeCallback([resourceLoader]() {
-        static bool isPaused = false;
-
-        if (isPaused) {
-            resourceLoader->resume();
-        } else {
-            resourceLoader->pause();
-        }
-
-        isPaused = !isPaused;
-    });
-
-    // Database file source.
-    auto databaseFileSource = std::static_pointer_cast<mbgl::DatabaseFileSource>(std::shared_ptr<mbgl::FileSource>(
-        mbgl::FileSourceManager::get()->getFileSource(mbgl::FileSourceType::Database, resourceOptions)));
-    view->setResetCacheCallback([databaseFileSource]() {
-        databaseFileSource->resetDatabase([](const std::exception_ptr& ex) {
-            if (ex) {
-                mbgl::Log::Error(mbgl::Event::Database, "Failed to reset cache:: %s", mbgl::util::toString(ex).c_str());
-            }
-        });
-    });
-
-    // Load style
-    if (style.empty()) {
-        const char *url = getenv("MAPBOX_STYLE_URL");
-        if (url == nullptr) {
-            mbgl::util::default_styles::DefaultStyle newStyle = mbgl::util::default_styles::orderedStyles[0];
-            style = newStyle.url;
-            view->setWindowTitle(newStyle.name);
-        } else {
-            style = url;
-            view->setWindowTitle(url);
-        }
-    }
-
-    map.getStyle().loadURL(style);
-
-    view->run();
-
-    // Save settings
-    mbgl::CameraOptions camera = map.getCameraOptions();
-    settings.latitude = camera.center->latitude();
-    settings.longitude = camera.center->longitude();
-    settings.zoom = *camera.zoom;
-    settings.bearing = *camera.bearing;
-    settings.pitch = *camera.pitch;
-    settings.debug = mbgl::EnumType(map.getDebug());
-    settings.save();
-    mbgl::Log::Info(mbgl::Event::General,
-                    R"(Exit location: --lat="%f" --lon="%f" --zoom="%f" --bearing "%f")",
-                    settings.latitude, settings.longitude, settings.zoom, settings.bearing);
-
     view = nullptr;
 
     return 0;
