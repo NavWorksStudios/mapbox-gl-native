@@ -36,11 +36,11 @@ void quit_handler(int) {
     }
 }
 
-MBGL_EXPORT
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-//#ifdef __cplusplus
-//extern "C" {
-//#endif
+__attribute__((visibility ("default")))
 
 void nav_launch() {
     args::ArgumentParser argumentParser("Mapbox GL GLFW example");
@@ -221,9 +221,9 @@ void nav_launch() {
                     settings.latitude, settings.longitude, settings.zoom, settings.bearing);
 }
     
-//#ifdef __cplusplus
-//}
-//#endif
+#ifdef __cplusplus
+}
+#endif
     
 int main(int argc, char *argv[]) {
     args::ArgumentParser argumentParser("Mapbox GL GLFW example");
