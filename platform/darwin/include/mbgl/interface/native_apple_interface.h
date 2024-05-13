@@ -28,7 +28,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @end
 
-#define MGL_APPLE_EXPORT __attribute__((visibility ("default")))
+#define MGL_APPLE_EXPORT
+//#define MGL_APPLE_EXPORT __attribute__((visibility ("default")))
 
 @interface MGLNativeNetworkManager: NSObject
 
