@@ -298,8 +298,8 @@ set(all_files
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav_mb_layer.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav_mb_style.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav_mb_style.cpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav_ext_render_notifier.hpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav_ext_render_notifier.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav_unity_bridge.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav_unity_bridge.cpp
 
     ${PROJECT_SOURCE_DIR}/src/mbgl/actor/mailbox.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/actor/scheduler.cpp
