@@ -923,8 +923,10 @@ void GLFWView::onWindowFocus(GLFWwindow *window, int focused) {
 }
 
 void GLFWView::run() {
+    sholdStopRunLoop = false;
+    
     auto callback = [&] {
-        if (glfwWindowShouldClose(window)) {
+        if (glfwWindowShouldClose(window) || sholdStopRunLoop) {
             runLoop.stop();
             return;
         }
@@ -961,6 +963,10 @@ void GLFWView::run() {
 #else
     runLoop.run();
 #endif
+}
+
+void GLFWView::stopRunLoop() {
+    sholdStopRunLoop = true;
 }
 
 float GLFWView::getPixelRatio() const {

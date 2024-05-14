@@ -9,6 +9,8 @@
 
 #include <cassert>
 
+#include "mbgl/nav/nav_unity_bridge.hpp"
+
 namespace mapbox {
 namespace util {
 template <> struct nth<0, mbgl::GeometryCoordinate> {
@@ -90,6 +92,8 @@ void FillBucket::addFeature(const GeometryTileFeature& feature,
         }
 
         std::vector<uint32_t> indices = mapbox::earcut(polygon);
+        
+        nav::unity::onFillBucketAddFeature(canonical, indices.data(), 10);
 
         std::size_t nIndicies = indices.size();
         assert(nIndicies % 3 == 0);
