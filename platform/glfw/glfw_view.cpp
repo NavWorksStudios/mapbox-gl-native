@@ -5,6 +5,7 @@
 #include "test_writer.hpp"
 
 #include <mbgl/annotation/annotation.hpp>
+#include <mbgl/gl/headless_backend.hpp>
 #include <mbgl/gfx/backend.hpp>
 #include <mbgl/gfx/backend_scope.hpp>
 #include <mbgl/map/camera.hpp>
@@ -142,7 +143,7 @@ void glfwError(int error, const char *description) {
     assert(false);
 }
 
-GLFWView::GLFWView(bool fullscreen_, bool benchmark_, const mbgl::ResourceOptions &options)
+GLFWView::GLFWView(bool fullscreen_, bool benchmark_, const mbgl::ResourceOptions &options, bool headless)
     : fullscreen(fullscreen_),
       benchmark(benchmark_),
       snapshotterObserver(std::make_unique<SnapshotObserver>()),
@@ -193,27 +194,30 @@ GLFWView::GLFWView(bool fullscreen_, bool benchmark_, const mbgl::ResourceOption
     glfwWindowHint(GLFW_STENCIL_BITS, 8);
     glfwWindowHint(GLFW_DEPTH_BITS, 16);
 
-    window = glfwCreateWindow(width, height, "Mapbox GL", monitor, nullptr);
-    if (!window) {
-        glfwTerminate();
-        mbgl::Log::Error(mbgl::Event::OpenGL, "failed to initialize window");
-        exit(1);
+    if (!headless) {
+        nullableWindow = glfwCreateWindow(width, height, "Mapbox GL", monitor, nullptr);
+        
+        if (!nullableWindow) {
+            glfwTerminate();
+            mbgl::Log::Error(mbgl::Event::OpenGL, "failed to initialize window");
+            exit(1);
+        }
+        
+        glfwSetWindowUserPointer(nullableWindow, this);
+        glfwSetCursorPosCallback(nullableWindow, onMouseMove);
+        glfwSetMouseButtonCallback(nullableWindow, onMouseClick);
+        glfwSetWindowSizeCallback(nullableWindow, onWindowResize);
+        glfwSetFramebufferSizeCallback(nullableWindow, onFramebufferResize);
+        glfwSetScrollCallback(nullableWindow, onScroll);
+        glfwSetKeyCallback(nullableWindow, onKey);
+        glfwSetWindowFocusCallback(nullableWindow, onWindowFocus);
+
+        glfwGetWindowSize(nullableWindow, &width, &height);
+
+        nullableBackend = GLFWBackend::Create(nullableWindow, benchmark);
+
+        if (nullableBackend) pixelRatio = static_cast<float>(nullableBackend->getSize().width) / width;
     }
-
-    glfwSetWindowUserPointer(window, this);
-    glfwSetCursorPosCallback(window, onMouseMove);
-    glfwSetMouseButtonCallback(window, onMouseClick);
-    glfwSetWindowSizeCallback(window, onWindowResize);
-    glfwSetFramebufferSizeCallback(window, onFramebufferResize);
-    glfwSetScrollCallback(window, onScroll);
-    glfwSetKeyCallback(window, onKey);
-    glfwSetWindowFocusCallback(window, onWindowFocus);
-
-    glfwGetWindowSize(window, &width, &height);
-
-    backend = GLFWBackend::Create(window, benchmark);
-
-    pixelRatio = static_cast<float>(backend->getSize().width) / width;
 
     glfwMakeContextCurrent(nullptr);
 
@@ -261,7 +265,7 @@ GLFWView::GLFWView(bool fullscreen_, bool benchmark_, const mbgl::ResourceOption
 }
 
 GLFWView::~GLFWView() {
-    glfwDestroyWindow(window);
+    if (nullableWindow) glfwDestroyWindow(nullableWindow);
     glfwTerminate();
 }
 
@@ -275,7 +279,12 @@ void GLFWView::setRenderFrontend(GLFWRendererFrontend* rendererFrontend_) {
 }
 
 mbgl::gfx::RendererBackend &GLFWView::getRendererBackend() {
-    return backend->getRendererBackend();
+    if (nullableBackend) {
+        return nullableBackend->getRendererBackend();
+    } else {
+        static mbgl::gl::HeadlessBackend renderable;
+        return renderable;
+    }
 }
 
 void GLFWView::onKey(GLFWwindow *window, int key, int /*scancode*/, int action, int mods) {
@@ -818,7 +827,9 @@ void GLFWView::onWindowResize(GLFWwindow *window, int width, int height) {
 
 void GLFWView::onFramebufferResize(GLFWwindow *window, int width, int height) {
     auto *view = reinterpret_cast<GLFWView *>(glfwGetWindowUserPointer(window));
-    view->backend->setSize({ static_cast<uint32_t>(width), static_cast<uint32_t>(height) });
+    
+    if (view->nullableBackend)
+    view->nullableBackend->setSize({ static_cast<uint32_t>(width), static_cast<uint32_t>(height) });
 
     // This is only triggered when the framebuffer is resized, but not the window. It can
     // happen when you move the window between screens with a different pixel ratio.
@@ -924,7 +935,7 @@ void GLFWView::onWindowFocus(GLFWwindow *window, int focused) {
 
 void GLFWView::run() {
     auto callback = [&] {
-        if (glfwWindowShouldClose(window)) {
+        if (nullableWindow && glfwWindowShouldClose(nullableWindow)) {
             runLoop.stop();
             return;
         }
@@ -934,7 +945,7 @@ void GLFWView::run() {
 
     frameTick.start(mbgl::Duration::zero(), mbgl::Milliseconds(1000 / 60), callback);
 #if defined(__APPLE__)
-    while (!glfwWindowShouldClose(window)) runLoop.run();
+    while (nullableWindow && !glfwWindowShouldClose(nullableWindow)) runLoop.run();
 #else
     runLoop.run();
 #endif
@@ -952,7 +963,7 @@ void GLFWView::runOnce() {
 
         updateAnimatedAnnotations();
 
-        mbgl::gfx::BackendScope scope { backend->getRendererBackend() };
+        mbgl::gfx::BackendScope scope { getRendererBackend() };
 
         rendererFrontend->render();
 
@@ -1000,12 +1011,12 @@ void GLFWView::setChangeStyleCallback(std::function<void()> callback) {
 }
 
 void GLFWView::setShouldClose() {
-    glfwSetWindowShouldClose(window, true);
+    if (nullableWindow) glfwSetWindowShouldClose(nullableWindow, true);
     glfwPostEmptyEvent();
 }
 
 void GLFWView::setWindowTitle(const std::string& title) {
-    glfwSetWindowTitle(window, (std::string { "Mapbox GL: " } + title).c_str());
+    if (nullableWindow) glfwSetWindowTitle(nullableWindow, (std::string { "Mapbox GL: " } + title).c_str());
 }
 
 void GLFWView::onDidFinishLoadingStyle() {

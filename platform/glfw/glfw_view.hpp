@@ -25,7 +25,7 @@ class RendererBackend;
 
 class GLFWView : public mbgl::MapObserver {
 public:
-    GLFWView(bool fullscreen, bool benchmark, const mbgl::ResourceOptions &options);
+    GLFWView(bool fullscreen, bool benchmark, const mbgl::ResourceOptions &options, bool headless);
     ~GLFWView() override;
 
     float getPixelRatio() const;
@@ -113,7 +113,7 @@ private:
 
     mbgl::Map* map = nullptr;
     GLFWRendererFrontend* rendererFrontend = nullptr;
-    std::unique_ptr<GLFWBackend> backend;
+    std::unique_ptr<GLFWBackend> nullableBackend;
 
     std::string testDirectory = ".";
 
@@ -148,7 +148,7 @@ private:
     mbgl::util::RunLoop runLoop;
     mbgl::util::Timer frameTick;
 
-    GLFWwindow *window = nullptr;
+    GLFWwindow *nullableWindow = nullptr;
     bool dirty = false;
     mbgl::optional<std::string> featureID;
     std::unique_ptr<mbgl::MapSnapshotter> snapshotter;
