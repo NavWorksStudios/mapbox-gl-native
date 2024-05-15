@@ -54,7 +54,7 @@ public:
 
     void run();
     
-    void stopRunLoop();
+    void runOnce();
     
     void invalidate();
 
@@ -159,6 +159,4 @@ private:
     bool puckFollowsCameraCenter = false;
     mbgl::style::LocationIndicatorLayer *puck = nullptr;
 #endif
-    
-    bool sholdStopRunLoop;
 };

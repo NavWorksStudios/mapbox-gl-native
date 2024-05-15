@@ -269,13 +269,12 @@ void nav_init() {
 }
 
 __attribute__((visibility ("default")))
-void nav_start() {
-    view->run();
+void nav_update() {
+    view->runOnce();
 }
 
 __attribute__((visibility ("default")))
-void nav_stop() {
-    view->stopRunLoop();
+void nav_destroy() {
     settings.save();
 }
 

@@ -923,38 +923,13 @@ void GLFWView::onWindowFocus(GLFWwindow *window, int focused) {
 }
 
 void GLFWView::run() {
-    sholdStopRunLoop = false;
-    
     auto callback = [&] {
-        if (glfwWindowShouldClose(window) || sholdStopRunLoop) {
+        if (glfwWindowShouldClose(window)) {
             runLoop.stop();
             return;
         }
 
-        glfwPollEvents();
-
-        if (dirty && rendererFrontend) {
-            dirty = false;
-            const double started = glfwGetTime();
-
-            if (animateRouteCallback)
-                animateRouteCallback(map);
-
-            updateAnimatedAnnotations();
-
-            mbgl::gfx::BackendScope scope { backend->getRendererBackend() };
-
-            rendererFrontend->render();
-
-            if (freeCameraDemoPhase >= 0.0) {
-                updateFreeCameraDemo();
-            }
-
-            report(1000 * (glfwGetTime() - started));
-            if (benchmark) {
-                invalidate();
-            }
-        }
+        runOnce();
     };
 
     frameTick.start(mbgl::Duration::zero(), mbgl::Milliseconds(1000 / 60), callback);
@@ -965,8 +940,31 @@ void GLFWView::run() {
 #endif
 }
 
-void GLFWView::stopRunLoop() {
-    sholdStopRunLoop = true;
+void GLFWView::runOnce() {
+    glfwPollEvents();
+
+    if (dirty && rendererFrontend) {
+        dirty = false;
+        const double started = glfwGetTime();
+
+        if (animateRouteCallback)
+            animateRouteCallback(map);
+
+        updateAnimatedAnnotations();
+
+        mbgl::gfx::BackendScope scope { backend->getRendererBackend() };
+
+        rendererFrontend->render();
+
+        if (freeCameraDemoPhase >= 0.0) {
+            updateFreeCameraDemo();
+        }
+
+        report(1000 * (glfwGetTime() - started));
+        if (benchmark) {
+            invalidate();
+        }
+    }
 }
 
 float GLFWView::getPixelRatio() const {
