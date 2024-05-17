@@ -209,6 +209,15 @@ void init(bool createWindow) {
     });
 }
 
+void destroy() {
+    settings.save();
+    
+    // keep the delete order
+    map = nullptr;
+    rendererFrontend = nullptr;
+    view = nullptr;
+}
+
 void quit_handler(int) {
     if (view) {
         mbgl::Log::Info(mbgl::Event::Setup, "waiting for quit...");
@@ -249,12 +258,7 @@ int main(int argc, char *argv[]) {
 
     view->run();
     
-    settings.save();
-
-    // keep the delete order
-    map = nullptr;
-    rendererFrontend = nullptr;
-    view = nullptr;
+    destroy();
 
     return 0;
 }
