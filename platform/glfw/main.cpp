@@ -108,11 +108,11 @@ struct Settings : mbgl::Settings_JSON {
 
 } settings;
 
-void init(bool createWindow) {
+void init(bool headless) {
     mbgl::ResourceOptions resourceOptions;
     resourceOptions.withCachePath(settings.cacheDB).withAccessToken(settings.token);
     
-    view = std::make_shared<GLFWView>(settings.fullscreen, settings.benchmark, resourceOptions, createWindow);
+    view = std::make_shared<GLFWView>(settings.fullscreen, settings.benchmark, resourceOptions, headless);
     if (!settings.testDir.empty()) view->setTestDirectory(settings.testDir);
     
     // Resource loader controls top-level request processing and can resume / pause all managed sources simultaneously.
@@ -212,6 +212,8 @@ void init(bool createWindow) {
 void destroy() {
     settings.save();
     
+    view->setShouldClose();
+    
     // keep the delete order
     map = nullptr;
     rendererFrontend = nullptr;
@@ -279,7 +281,7 @@ void nav_update() {
 
 __attribute__((visibility ("default")))
 void nav_destroy() {
-    settings.save();
+    destroy();
 }
 
 __attribute__((visibility ("default")))
