@@ -13,6 +13,7 @@
 namespace nav {
 namespace unity {
 
+// Fill Bucket data
 typedef void *(*FillBucketObserver)(int x, int y, int z, const char* layerId, const char* sourceLayer,
                                     const int16_t* vertices, int verticesCount,
                                     const uint16_t* lines, int linesCount,
@@ -28,7 +29,7 @@ void onFillBucketAddFeature(const mbgl::CanonicalTileID& canonical, const char* 
                             const uint16_t* triangleSegments, int triangleSegmentsCount);
 
 
-
+// Line Bucket data
 typedef void *(*LineBucketObserver)(int x, int y, int z, const char* layerId, const char* sourceLayer,
                                     const int16_t* vertices, int verticesCount,
                                     const uint16_t* triangles, int trianglesCount,
@@ -40,19 +41,19 @@ void onLineBucketAddFeature(const mbgl::CanonicalTileID& canonical, const char* 
                             const uint16_t* segments, int segmentsCount);
 
 
-
+// Cycle Bucket data
 typedef void *(*CycleBucketObserver)(int x, int y, int z, const char* layerId, const char* sourceLayer);
 void setCycleBucketObserver(CycleBucketObserver observer);
 void onCycleBucketAddFeature(const mbgl::CanonicalTileID& canonical, const char* layerId, const char* sourceLayer);
 
 
-
+// Symbol Bucket data
 typedef void *(*SymbolBucketObserver)(int x, int y, int z, const char* layerId, const char* sourceLayer);
 void setSymbolBucketObserver(SymbolBucketObserver observer);
 void onSymbolBucketAddFeature(const mbgl::CanonicalTileID& canonical, const char* layerId, const char* sourceLayer);
 
 
-
+// Extrusion Bucket data
 typedef void *(*ExtrusionBucketObserver)(int x, int y, int z, const char* layerId, const char* sourceLayer,
                                          const int16_t* vertices, int verticesCount,
                                          const uint16_t* triangles, int trianglesCount,

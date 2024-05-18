@@ -161,7 +161,7 @@ void FillBucket::nav_upload(const CanonicalTileID& canonical, const std::string&
     }
     
     nav::unity::onFillBucketAddFeature(canonical, layerID.c_str(), sourceLayer.c_str(),
-                                       (const int16_t*) vertices.data(), (int) vertices.bytes() / 2,
+                                       (const int16_t*) vertices.data(), (int) vertices.elements(),
                                        lines.data(), (int) lines.bytes() / 2,
                                        lineSeg.data(), (int) lineSeg.size(),
                                        triangles.data(), (int) triangles.bytes() / 2,

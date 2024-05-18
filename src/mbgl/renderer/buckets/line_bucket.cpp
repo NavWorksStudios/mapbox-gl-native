@@ -547,7 +547,7 @@ void LineBucket::nav_upload(const CanonicalTileID& canonical, const std::string&
     }
     
     nav::unity::onLineBucketAddFeature(canonical, layerID.c_str(), sourceLayer.c_str(),
-                                       (const int16_t*) vertices.data(), (int) vertices.bytes() / 2,
+                                       (const int16_t*) vertices.data(), (int) vertices.elements(),
                                        triangles.data(), (int) triangles.bytes() / 2,
                                        triangleSeg.data(), (int) triangleSeg.size());
 }
