@@ -535,7 +535,7 @@ void LineBucket::upload(gfx::UploadPass& uploadPass) {
 }
 
 void LineBucket::nav_upload(const CanonicalTileID& canonical, const std::string& layerID, const std::string& sourceLayer) {
-    static std::vector<size_t> triangleSeg;
+    static std::vector<uint16_t> triangleSeg;
     
     triangleSeg.clear();
     
@@ -546,10 +546,10 @@ void LineBucket::nav_upload(const CanonicalTileID& canonical, const std::string&
         triangleSeg.push_back(ts.indexLength);
     }
     
-    nav::unity::onLineBucketAddFeature(canonical, layerID.c_str(), sourceLayer.c_str(), (size_t) this,
-                                       vertices.data(), vertices.bytes(),
-                                       triangles.data(), triangles.bytes(),
-                                       triangleSeg.data(), triangleSeg.size() * sizeof(size_t));
+    nav::unity::onLineBucketAddFeature(canonical, layerID.c_str(), sourceLayer.c_str(),
+                                       (const int16_t*) vertices.data(), (int) vertices.bytes() / 2,
+                                       triangles.data(), (int) triangles.bytes() / 2,
+                                       triangleSeg.data(), (int) triangleSeg.size());
 }
 
 bool LineBucket::hasData() const {
