@@ -224,8 +224,6 @@ public:
 
                     bucket->addFeature(*feature, geometry, patternPositions, patterns, i, canonical);
                     featureIndex->insert(geometry, i, sourceLayerID, bucketLeaderID);
-//                    bucket->addFeature(*feature, geometries, patternPositions, patterns, i, canonical);
-//                    featureIndex->insert(geometries, i, sourceLayerID, bucketLeaderID);
                 } else {
                     const auto i = patternFeature.i;
                     std::unique_ptr<GeometryTileFeature> feature = std::move(patternFeature.feature);
@@ -247,6 +245,8 @@ public:
             for (const auto& pair : layerPropertiesMap) {
                 renderData.emplace(pair.first, LayerRenderData {bucket, pair.second});
             }
+
+            bucket->nav_upload(canonical, bucketLeaderID, sourceLayerID);
         }
     };
 

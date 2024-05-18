@@ -294,6 +294,16 @@ void nav_set_line_bucket_observer(nav::unity::LineBucketObserver observer) {
     nav::unity::setLineBucketObserver(observer);
 }
 
+__attribute__((visibility ("default")))
+void nav_set_symbol_bucket_observer(nav::unity::SymbolBucketObserver observer) {
+    nav::unity::setSymbolBucketObserver(observer);
+}
+
+__attribute__((visibility ("default")))
+void nav_set_extrusion_bucket_observer(nav::unity::ExtrusionBucketObserver observer) {
+    nav::unity::setExtrusionBucketObserver(observer);
+}
+
 }
 
 

@@ -82,6 +82,7 @@ public:
     ~SymbolBucket() override;
 
     void upload(gfx::UploadPass&) override;
+    void nav_upload(const CanonicalTileID& canonical, const std::string& layerID, const std::string& sourceLayer) override;
     bool hasData() const override;
     std::pair<uint32_t, bool> registerAtCrossTileIndex(CrossTileSymbolLayerIndex&, const RenderTile&) override;
     void place(Placement&, const BucketPlacementData&, std::set<uint32_t>&) override;

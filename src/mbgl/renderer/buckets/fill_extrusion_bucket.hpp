@@ -34,6 +34,8 @@ public:
     bool hasData() const override;
 
     void upload(gfx::UploadPass&) override;
+    
+    void nav_upload(const CanonicalTileID& canonical, const std::string& layerID, const std::string& sourceLayer) override;
 
     float getQueryRadius(const RenderLayer&) const override;
 

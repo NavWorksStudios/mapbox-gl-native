@@ -4,6 +4,7 @@
 #include <mbgl/style/image_impl.hpp>
 #include <mbgl/renderer/image_atlas.hpp>
 #include <mbgl/style/layer_impl.hpp>
+#include <mbgl/tile/tile_id.hpp>
 #include <atomic>
 
 namespace mbgl {
@@ -44,6 +45,8 @@ public:
     // As long as this bucket has a Prepare render pass, this function is getting called. Typically,
     // this only happens once when the bucket is being rendered for the first time.
     virtual void upload(gfx::UploadPass&) = 0;
+    
+    virtual void nav_upload(const CanonicalTileID& canonical, const std::string& layerID, const std::string& sourceLayer) = 0;
 
     virtual bool hasData() const = 0;
 

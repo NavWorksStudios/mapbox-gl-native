@@ -10,6 +10,8 @@
 
 #include <cassert>
 
+#include "mbgl/nav/nav_unity_bridge.hpp"
+
 namespace mapbox {
 namespace util {
 template <>
@@ -179,6 +181,24 @@ void FillExtrusionBucket::upload(gfx::UploadPass& uploadPass) {
     }
 
     uploaded = true;
+}
+
+void FillExtrusionBucket::nav_upload(const CanonicalTileID& canonical, const std::string& layerID, const std::string& sourceLayer) {
+    static std::vector<size_t> triangleSeg;
+    
+    triangleSeg.clear();
+    
+    for (const auto& ts : triangleSegments) {
+        triangleSeg.push_back(ts.vertexOffset);
+        triangleSeg.push_back(ts.vertexLength);
+        triangleSeg.push_back(ts.indexOffset);
+        triangleSeg.push_back(ts.indexLength);
+    }
+    
+    nav::unity::onExtrusionBucketAddFeature(canonical, layerID.c_str(), sourceLayer.c_str(), (size_t) this,
+                                            vertices.data(), vertices.bytes(),
+                                            triangles.data(), triangles.bytes(),
+                                            triangleSeg.data(), triangleSeg.size() * sizeof(size_t));
 }
 
 bool FillExtrusionBucket::hasData() const {

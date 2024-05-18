@@ -92,9 +92,6 @@ void FillBucket::addFeature(const GeometryTileFeature& feature,
         }
 
         std::vector<uint32_t> indices = mapbox::earcut(polygon);
-        
-        nav::unity::onFillBucketAddFeature(canonical, indices.data(), 10);
-
         std::size_t nIndicies = indices.size();
         assert(nIndicies % 3 == 0);
 
@@ -140,6 +137,35 @@ void FillBucket::upload(gfx::UploadPass& uploadPass) {
     }
 
     uploaded = true;
+}
+
+void FillBucket::nav_upload(const CanonicalTileID& canonical, const std::string& layerID, const std::string& sourceLayer) {
+    static std::vector<size_t> lineSeg;
+    static std::vector<size_t> triangleSeg;
+    
+    lineSeg.clear();
+    triangleSeg.clear();
+    
+    for (const auto& ls : lineSegments) {
+        lineSeg.push_back(ls.vertexOffset);
+        lineSeg.push_back(ls.vertexLength);
+        lineSeg.push_back(ls.indexOffset);
+        lineSeg.push_back(ls.indexLength);
+    }
+    
+    for (const auto& ts : triangleSegments) {
+        triangleSeg.push_back(ts.vertexOffset);
+        triangleSeg.push_back(ts.vertexLength);
+        triangleSeg.push_back(ts.indexOffset);
+        triangleSeg.push_back(ts.indexLength);
+    }
+    
+    nav::unity::onFillBucketAddFeature(canonical, layerID.c_str(), sourceLayer.c_str(), (size_t) this,
+                                       vertices.data(), vertices.bytes(),
+                                       lines.data(), lines.bytes(),
+                                       lineSeg.data(), lineSeg.size() * sizeof(size_t),
+                                       triangles.data(), triangles.bytes(),
+                                       triangleSeg.data(), triangleSeg.size() * sizeof(size_t));
 }
 
 bool FillBucket::hasData() const {

@@ -173,6 +173,10 @@ void SymbolBucket::upload(gfx::UploadPass& uploadPass) {
     sortUploaded = true;
 }
 
+void SymbolBucket::nav_upload(const CanonicalTileID& canonical, const std::string& layerID, const std::string& sourceLayer) {
+    
+}
+
 bool SymbolBucket::hasData() const {
     return hasTextData() || hasIconData() || hasSdfIconData() || hasIconCollisionBoxData() ||
            hasTextCollisionBoxData() || hasIconCollisionCircleData() || hasTextCollisionCircleData();
