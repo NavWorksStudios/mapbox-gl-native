@@ -30,9 +30,9 @@ struct TileLayer {
     int x;
     int y;
     int z;
-    int layerIndex;
     const char* layerId;
     const char* sourceLayer;
+    int layerRenderIndex;
 };
 
 struct Array16 {

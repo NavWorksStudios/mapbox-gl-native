@@ -51,7 +51,8 @@ void onFillBucketAddFeature(const mbgl::CanonicalTileID& canonical,
                             const uint16_t* triangleSegments, int triangleSegmentsCount) {
     if (fillBucketObserver) {
         const FillBucketObserverParam param = {
-            { (int) canonical.x, (int) canonical.y, (int) canonical.z, nav::mb::layerIndex(layerId), layerId.c_str(), sourceLayer.c_str(), },
+            { (int) canonical.x, (int) canonical.y, (int) canonical.z, 
+                layerId.c_str(), sourceLayer.c_str(), nav::mb::layerRenderIndex(layerId), },
             { vertices, verticesCount },
             { lines, linesCount },
             { lineSegments, lineSegmentsCount },
@@ -75,7 +76,8 @@ void onLineBucketAddFeature(const mbgl::CanonicalTileID& canonical,
                             const uint16_t* segments, int segmentsCount) {
     if (lineBucketObserver) {
         const LineBucketObserverParam param = {
-            { (int) canonical.x, (int) canonical.y, (int) canonical.z, nav::mb::layerIndex(layerId), layerId.c_str(), sourceLayer.c_str(), },
+            { (int) canonical.x, (int) canonical.y, (int) canonical.z, 
+                layerId.c_str(), sourceLayer.c_str(), nav::mb::layerRenderIndex(layerId), },
             { vertices, verticesCount },
             { triangles, trianglesCount },
             { segments, segmentsCount }
@@ -119,7 +121,8 @@ void onExtrusionBucketAddFeature(const mbgl::CanonicalTileID& canonical,
                                  const uint16_t* segments, int segmentsCount) {
     if (extrusionBucketObserver) {
         const ExtrusionBucketObserverParam param = {
-            { (int) canonical.x, (int) canonical.y, (int) canonical.z, nav::mb::layerIndex(layerId), layerId.c_str(), sourceLayer.c_str(), },
+            { (int) canonical.x, (int) canonical.y, (int) canonical.z, 
+                layerId.c_str(), sourceLayer.c_str(), nav::mb::layerRenderIndex(layerId), },
             { vertices, verticesCount },
             { triangles, trianglesCount },
             { segments, segmentsCount }

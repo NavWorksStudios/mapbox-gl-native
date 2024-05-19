@@ -179,17 +179,17 @@ bool filterLayerByType(const std::string& id) {
     return layerIds.find(id) != layerIds.end();
 }
 
-static std::map<std::string, int> layerIndexs;
+static std::map<std::string, int> layerRenderIndexs;
 
-int layerIndex(const std::string& id) {
-    if (layerIndexs.empty()) {
+int layerRenderIndex(const std::string& id) {
+    if (layerRenderIndexs.empty()) {
         int i = 0;
         for (auto it = layerIds.begin(); it != layerIds.end(); it++) {
-            layerIndexs[id] = i++;
+            layerRenderIndexs[id] = i++;
         }
     }
     
-    return layerIndexs.at(id);
+    return layerRenderIndexs.at(id);
 }
 
 }

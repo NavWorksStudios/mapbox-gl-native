@@ -17,7 +17,7 @@ const std::string ID_NAV_3D_LAND = "nav:3d-land";
 
 bool filterLayerByType(const std::string& id);
 
-int layerIndex(const std::string& id);
+int layerRenderIndex(const std::string& id);
 
 }
 
