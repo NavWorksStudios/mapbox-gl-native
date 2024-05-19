@@ -13,6 +13,20 @@
 namespace nav {
 namespace unity {
 
+// Projection Matrix
+typedef void *(*ProjectionMatrixObserver)(const double* matrix); // double[16]
+void setProjectionMatrixObserver(ProjectionMatrixObserver observer);
+void onProjectionMatrix(const double* matrix);
+
+
+
+// Tile Matrix
+typedef void *(*TileModelMatrixObserver)(int x, int y, int z, const double* matrix); // double[16]
+void setTileModelMatrixObserver(TileModelMatrixObserver observer);
+void onTileModelMatrix(const mbgl::CanonicalTileID& canonical, const double* matrix);
+
+
+
 // Fill Bucket data
 typedef void *(*FillBucketObserver)(int x, int y, int z, const char* layerId, const char* sourceLayer,
                                     const int16_t* vertices, int verticesCount,

@@ -285,6 +285,16 @@ void nav_destroy() {
 }
 
 __attribute__((visibility ("default")))
+void nav_set_projection_matrix_observer(nav::unity::ProjectionMatrixObserver observer) {
+    nav::unity::setProjectionMatrixObserver(observer);
+}
+
+__attribute__((visibility ("default")))
+void nav_set_tile_model_matrix_observer(nav::unity::TileModelMatrixObserver observer) {
+    nav::unity::setTileModelMatrixObserver(observer);
+}
+
+__attribute__((visibility ("default")))
 void nav_set_fill_bucket_observer(nav::unity::FillBucketObserver observer) {
     nav::unity::setFillBucketObserver(observer);
 }

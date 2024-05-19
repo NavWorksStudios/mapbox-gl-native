@@ -16,6 +16,7 @@
 #include <mbgl/util/logging.hpp>
 
 #include "mbgl/nav/nav_mb_style.hpp"
+#include "mbgl/nav/nav_unity_bridge.hpp"
 
 namespace mbgl {
 
@@ -47,6 +48,8 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
 
     observer->onWillStartRenderingFrame();
     const auto& renderTreeParameters = renderTree.getParameters();
+
+    nav::unity::onProjectionMatrix(renderTreeParameters.transformParams.projMatrix.data());
 
     if (!staticData) {
         staticData = std::make_unique<RenderStaticData>(backend.getContext(), pixelRatio);

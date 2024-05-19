@@ -11,6 +11,30 @@
 namespace nav {
 namespace unity {
 
+ProjectionMatrixObserver projectionMatrixObserver = nullptr;
+
+void setProjectionMatrixObserver(ProjectionMatrixObserver observer) {
+    projectionMatrixObserver = observer;
+}
+
+void onProjectionMatrix(const double* matrix) {
+    if (projectionMatrixObserver) projectionMatrixObserver(matrix);
+}
+
+
+
+TileModelMatrixObserver tileModelMatrixObserver = nullptr;
+
+void setTileModelMatrixObserver(TileModelMatrixObserver observer) {
+    tileModelMatrixObserver = observer;
+}
+
+void onTileModelMatrix(const mbgl::CanonicalTileID& canonical, const double* matrix) {
+    if (tileModelMatrixObserver) tileModelMatrixObserver(canonical.x, canonical.y, canonical.z, matrix);
+}
+
+
+
 FillBucketObserver fillBucketObserver = nullptr;
 
 void setFillBucketObserver(FillBucketObserver observer) {

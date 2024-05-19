@@ -12,6 +12,8 @@
 #include <mbgl/tile/geometry_tile.hpp>
 #include <mbgl/util/math.hpp>
 
+#include "mbgl/nav/nav_unity_bridge.hpp"
+
 namespace mbgl {
 
 using namespace style;
@@ -52,7 +54,9 @@ mat4 RenderTile::translateVtxMatrix(const mat4& tileMatrix,
 mat4 RenderTile::translatedMatrix(const std::array<float, 2>& translation,
                                   TranslateAnchorType anchor,
                                   const TransformState& state) const {
-    return translateVtxMatrix(matrix, translation, anchor, state, false);
+    mat4 translated = translateVtxMatrix(matrix, translation, anchor, state, false);
+    nav::unity::onTileModelMatrix(id.canonical, translated.data());
+    return translated;
 }
 
 mat4 RenderTile::translatedClipMatrix(const std::array<float, 2>& translation,
