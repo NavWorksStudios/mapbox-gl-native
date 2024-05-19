@@ -54,9 +54,7 @@ mat4 RenderTile::translateVtxMatrix(const mat4& tileMatrix,
 mat4 RenderTile::translatedMatrix(const std::array<float, 2>& translation,
                                   TranslateAnchorType anchor,
                                   const TransformState& state) const {
-    mat4 translated = translateVtxMatrix(matrix, translation, anchor, state, false);
-    nav::unity::onTileModelMatrix(id.canonical, translated.data());
-    return translated;
+    return translateVtxMatrix(matrix, translation, anchor, state, false);
 }
 
 mat4 RenderTile::translatedClipMatrix(const std::array<float, 2>& translation,
@@ -129,6 +127,8 @@ void RenderTile::prepare(const SourcePrepareParameters& parameters) {
     transform.state.matrixFor(nearClippedMatrix, id);
     matrix::multiply(matrix, transform.projMatrix, matrix);
     matrix::multiply(nearClippedMatrix, transform.nearClippedProjMatrix, nearClippedMatrix);
+    
+    nav::unity::onTileModelMatrix(id.canonical, matrix.data());
 }
 
 void RenderTile::finishRender(PaintParameters& parameters) const {
