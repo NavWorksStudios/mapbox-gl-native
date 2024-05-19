@@ -195,7 +195,7 @@ void FillExtrusionBucket::nav_upload(const CanonicalTileID& canonical, const std
         triangleSeg.push_back(ts.indexLength);
     }
     
-    nav::unity::onExtrusionBucketAddFeature(canonical, layerID.c_str(), sourceLayer.c_str(),
+    nav::unity::onExtrusionBucketAddFeature(canonical, layerID, sourceLayer,
                                             (const int16_t*) vertices.data(), (int) vertices.elements(),
                                             triangles.data(), (int) triangles.bytes() / 2,
                                             triangleSeg.data(), (int) triangleSeg.size());

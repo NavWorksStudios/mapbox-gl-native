@@ -160,7 +160,7 @@ void FillBucket::nav_upload(const CanonicalTileID& canonical, const std::string&
         triangleSeg.push_back(ts.indexLength);
     }
     
-    nav::unity::onFillBucketAddFeature(canonical, layerID.c_str(), sourceLayer.c_str(),
+    nav::unity::onFillBucketAddFeature(canonical, layerID, sourceLayer,
                                        (const int16_t*) vertices.data(), (int) vertices.elements(),
                                        lines.data(), (int) lines.bytes() / 2,
                                        lineSeg.data(), (int) lineSeg.size(),

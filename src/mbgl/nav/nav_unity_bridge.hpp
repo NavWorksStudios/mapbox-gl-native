@@ -28,14 +28,17 @@ void onTileModelMatrix(const mbgl::CanonicalTileID& canonical, const double* mat
 
 
 // Fill Bucket data
-typedef void *(*FillBucketObserver)(int x, int y, int z, const char* layerId, const char* sourceLayer,
+typedef void *(*FillBucketObserver)(int x, int y, int z, 
+                                    const char* layerId, const char* sourceLayer, int layerIndex,
                                     const int16_t* vertices, int verticesCount,
                                     const uint16_t* lines, int linesCount,
                                     const uint16_t* lineSegments, int lineSegmentsCount,
                                     const uint16_t* triangles, int trianglesCount,
                                     const uint16_t* triangleSegments, int triangleSegmentsCount);
 void setFillBucketObserver(FillBucketObserver observer);
-void onFillBucketAddFeature(const mbgl::CanonicalTileID& canonical, const char* layerId, const char* sourceLayer,
+
+void onFillBucketAddFeature(const mbgl::CanonicalTileID& canonical,
+                            const std::string& layerId, const std::string& sourceLayer,
                             const int16_t* vertices, int verticesCount,
                             const uint16_t* lines, int linesCount,
                             const uint16_t* lineSegments, int lineSegmentsCount,
@@ -44,36 +47,48 @@ void onFillBucketAddFeature(const mbgl::CanonicalTileID& canonical, const char* 
 
 
 // Line Bucket data
-typedef void *(*LineBucketObserver)(int x, int y, int z, const char* layerId, const char* sourceLayer,
+typedef void *(*LineBucketObserver)(int x, int y, int z, 
+                                    const char* layerId, const char* sourceLayer, int layerIndex,
                                     const int16_t* vertices, int verticesCount,
                                     const uint16_t* triangles, int trianglesCount,
                                     const uint16_t* segments, int segmentsCount);
 void setLineBucketObserver(LineBucketObserver observer);
-void onLineBucketAddFeature(const mbgl::CanonicalTileID& canonical, const char* layerId, const char* sourceLayer,
+
+void onLineBucketAddFeature(const mbgl::CanonicalTileID& canonical,
+                            const std::string& layerId, const std::string& sourceLayer,
                             const int16_t* vertices, int verticesCount,
                             const uint16_t* triangles, int trianglesCount,
                             const uint16_t* segments, int segmentsCount);
 
 
 // Cycle Bucket data
-typedef void *(*CycleBucketObserver)(int x, int y, int z, const char* layerId, const char* sourceLayer);
+typedef void *(*CycleBucketObserver)(int x, int y, int z, 
+                                     const char* layerId, const char* sourceLayer, int layerIndex);
 void setCycleBucketObserver(CycleBucketObserver observer);
-void onCycleBucketAddFeature(const mbgl::CanonicalTileID& canonical, const char* layerId, const char* sourceLayer);
+
+void onCycleBucketAddFeature(const mbgl::CanonicalTileID& canonical,
+                             const std::string& layerId, const std::string& sourceLayer);
 
 
 // Symbol Bucket data
-typedef void *(*SymbolBucketObserver)(int x, int y, int z, const char* layerId, const char* sourceLayer);
+typedef void *(*SymbolBucketObserver)(int x, int y, int z, 
+                                      const std::string& layerId, const std::string& sourceLayer, int layerIndex);
 void setSymbolBucketObserver(SymbolBucketObserver observer);
-void onSymbolBucketAddFeature(const mbgl::CanonicalTileID& canonical, const char* layerId, const char* sourceLayer);
+
+void onSymbolBucketAddFeature(const mbgl::CanonicalTileID& canonical,
+                              const std::string& layerId, const std::string& sourceLayer);
 
 
 // Extrusion Bucket data
-typedef void *(*ExtrusionBucketObserver)(int x, int y, int z, const char* layerId, const char* sourceLayer,
+typedef void *(*ExtrusionBucketObserver)(int x, int y, int z, 
+                                         const char* layerId, const char* sourceLayer, int layerIndex,
                                          const int16_t* vertices, int verticesCount,
                                          const uint16_t* triangles, int trianglesCount,
                                          const uint16_t* segments, int segmentsCount);
 void setExtrusionBucketObserver(ExtrusionBucketObserver observer);
-void onExtrusionBucketAddFeature(const mbgl::CanonicalTileID& canonical, const char* layerId, const char* sourceLayer, 
+
+void onExtrusionBucketAddFeature(const mbgl::CanonicalTileID& canonical,
+                                 const std::string& layerId, const std::string& sourceLayer,
                                  const int16_t* vertices, int verticesCount,
                                  const uint16_t* triangles, int trianglesCount,
                                  const uint16_t* segments, int segmentsCount);
