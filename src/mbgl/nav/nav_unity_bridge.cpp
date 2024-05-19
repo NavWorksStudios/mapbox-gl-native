@@ -44,17 +44,22 @@ void setFillBucketObserver(FillBucketObserver observer) {
 
 void onFillBucketAddFeature(const mbgl::CanonicalTileID& canonical,
                             const std::string& layerId, const std::string& sourceLayer,
-                            const int16_t* vertices, int verticesCount,
+                            const uint16_t* vertices, int verticesCount,
                             const uint16_t* lines, int linesCount,
                             const uint16_t* lineSegments, int lineSegmentsCount,
                             const uint16_t* triangles, int trianglesCount,
                             const uint16_t* triangleSegments, int triangleSegmentsCount) {
-    if (fillBucketObserver)
-        fillBucketObserver(canonical.x, canonical.y, canonical.z, 
-                           layerId.c_str(), sourceLayer.c_str(), nav::mb::layerIndex(layerId),
-                           vertices, verticesCount,
-                           lines, linesCount, lineSegments, lineSegmentsCount,
-                           triangles, trianglesCount, triangleSegments, triangleSegmentsCount);
+    if (fillBucketObserver) {
+        const FillBucketObserverParam param = {
+            { (int) canonical.x, (int) canonical.y, (int) canonical.z, nav::mb::layerIndex(layerId), layerId.c_str(), sourceLayer.c_str(), },
+            { vertices, verticesCount },
+            { lines, linesCount },
+            { lineSegments, lineSegmentsCount },
+            { triangles, trianglesCount},
+            { triangleSegments, triangleSegmentsCount }
+        };
+        fillBucketObserver(&param);
+    }
 }
 
 LineBucketObserver lineBucketObserver = nullptr;
@@ -65,15 +70,18 @@ void setLineBucketObserver(LineBucketObserver observer) {
 
 void onLineBucketAddFeature(const mbgl::CanonicalTileID& canonical, 
                             const std::string& layerId, const std::string& sourceLayer,
-                            const int16_t* vertices, int verticesCount,
+                            const uint16_t* vertices, int verticesCount,
                             const uint16_t* triangles, int trianglesCount,
                             const uint16_t* segments, int segmentsCount) {
-    if (lineBucketObserver)
-        lineBucketObserver(canonical.x, canonical.y, canonical.z, 
-                           layerId.c_str(), sourceLayer.c_str(), nav::mb::layerIndex(layerId),
-                           vertices, verticesCount,
-                           triangles, trianglesCount,
-                           segments, segmentsCount);
+    if (lineBucketObserver) {
+        const LineBucketObserverParam param = {
+            { (int) canonical.x, (int) canonical.y, (int) canonical.z, nav::mb::layerIndex(layerId), layerId.c_str(), sourceLayer.c_str(), },
+            { vertices, verticesCount },
+            { triangles, trianglesCount },
+            { segments, segmentsCount }
+        };
+        lineBucketObserver(&param);
+    }
 }
 
 CycleBucketObserver cycleBucketObserver = nullptr;
@@ -106,16 +114,18 @@ void setExtrusionBucketObserver(ExtrusionBucketObserver observer) {
 
 void onExtrusionBucketAddFeature(const mbgl::CanonicalTileID& canonical, 
                                  const std::string& layerId, const std::string& sourceLayer,
-                                 const int16_t* vertices, int verticesCount,
+                                 const uint16_t* vertices, int verticesCount,
                                  const uint16_t* triangles, int trianglesCount,
                                  const uint16_t* segments, int segmentsCount) {
-    if (extrusionBucketObserver)
-        extrusionBucketObserver(canonical.x, canonical.y, canonical.z, 
-                                layerId.c_str(), sourceLayer.c_str(), nav::mb::layerIndex(layerId),
-                                vertices, verticesCount,
-                                triangles, trianglesCount,
-                                segments, segmentsCount);
-    
+    if (extrusionBucketObserver) {
+        const ExtrusionBucketObserverParam param = {
+            { (int) canonical.x, (int) canonical.y, (int) canonical.z, nav::mb::layerIndex(layerId), layerId.c_str(), sourceLayer.c_str(), },
+            { vertices, verticesCount },
+            { triangles, trianglesCount },
+            { segments, segmentsCount }
+        };
+        extrusionBucketObserver(&param);
+    }
 }
 
 

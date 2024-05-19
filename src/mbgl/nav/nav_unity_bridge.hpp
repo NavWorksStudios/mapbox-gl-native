@@ -26,20 +26,35 @@ void setTileModelMatrixObserver(TileModelMatrixObserver observer);
 void onTileModelMatrix(const mbgl::CanonicalTileID& canonical, const double* matrix);
 
 
+struct TileLayer {
+    int x;
+    int y;
+    int z;
+    int layerIndex;
+    const char* layerId;
+    const char* sourceLayer;
+};
+
+struct Array16 {
+    const uint16_t* data;
+    int count;
+};
+
 
 // Fill Bucket data
-typedef void *(*FillBucketObserver)(int x, int y, int z, 
-                                    const char* layerId, const char* sourceLayer, int layerIndex,
-                                    const int16_t* vertices, int verticesCount,
-                                    const uint16_t* lines, int linesCount,
-                                    const uint16_t* lineSegments, int lineSegmentsCount,
-                                    const uint16_t* triangles, int trianglesCount,
-                                    const uint16_t* triangleSegments, int triangleSegmentsCount);
+struct FillBucketObserverParam {
+    const TileLayer tileLayer;
+    const Array16 vertices;
+    const Array16 lines;
+    const Array16 lineSegments;
+    const Array16 triangles;
+    const Array16 triangleSegments;
+};
+typedef void *(*FillBucketObserver)(const FillBucketObserverParam* param);
 void setFillBucketObserver(FillBucketObserver observer);
-
 void onFillBucketAddFeature(const mbgl::CanonicalTileID& canonical,
                             const std::string& layerId, const std::string& sourceLayer,
-                            const int16_t* vertices, int verticesCount,
+                            const uint16_t* vertices, int verticesCount,
                             const uint16_t* lines, int linesCount,
                             const uint16_t* lineSegments, int lineSegmentsCount,
                             const uint16_t* triangles, int trianglesCount,
@@ -47,49 +62,53 @@ void onFillBucketAddFeature(const mbgl::CanonicalTileID& canonical,
 
 
 // Line Bucket data
-typedef void *(*LineBucketObserver)(int x, int y, int z, 
-                                    const char* layerId, const char* sourceLayer, int layerIndex,
-                                    const int16_t* vertices, int verticesCount,
-                                    const uint16_t* triangles, int trianglesCount,
-                                    const uint16_t* segments, int segmentsCount);
+struct LineBucketObserverParam {
+    const TileLayer tileLayer;
+    const Array16 vertices;
+    const Array16 triangles;
+    const Array16 triangleSegments;
+};
+typedef void *(*LineBucketObserver)(const LineBucketObserverParam* param);
 void setLineBucketObserver(LineBucketObserver observer);
-
 void onLineBucketAddFeature(const mbgl::CanonicalTileID& canonical,
                             const std::string& layerId, const std::string& sourceLayer,
-                            const int16_t* vertices, int verticesCount,
+                            const uint16_t* vertices, int verticesCount,
                             const uint16_t* triangles, int trianglesCount,
                             const uint16_t* segments, int segmentsCount);
 
 
 // Cycle Bucket data
-typedef void *(*CycleBucketObserver)(int x, int y, int z, 
-                                     const char* layerId, const char* sourceLayer, int layerIndex);
+struct CycleBucketObserverParam {
+    const TileLayer tileLayer;
+};
+typedef void *(*CycleBucketObserver)(const CycleBucketObserverParam* param);
 void setCycleBucketObserver(CycleBucketObserver observer);
-
 void onCycleBucketAddFeature(const mbgl::CanonicalTileID& canonical,
                              const std::string& layerId, const std::string& sourceLayer);
 
 
 // Symbol Bucket data
-typedef void *(*SymbolBucketObserver)(int x, int y, int z, 
-                                      const std::string& layerId, const std::string& sourceLayer, int layerIndex);
+struct SymbolBucketObserverParam {
+    const TileLayer tileLayer;
+};
+typedef void *(*SymbolBucketObserver)(const SymbolBucketObserverParam* param);
 void setSymbolBucketObserver(SymbolBucketObserver observer);
-
 void onSymbolBucketAddFeature(const mbgl::CanonicalTileID& canonical,
                               const std::string& layerId, const std::string& sourceLayer);
 
 
 // Extrusion Bucket data
-typedef void *(*ExtrusionBucketObserver)(int x, int y, int z, 
-                                         const char* layerId, const char* sourceLayer, int layerIndex,
-                                         const int16_t* vertices, int verticesCount,
-                                         const uint16_t* triangles, int trianglesCount,
-                                         const uint16_t* segments, int segmentsCount);
+struct ExtrusionBucketObserverParam {
+    const TileLayer tileLayer;
+    const Array16 vertices;
+    const Array16 triangles;
+    const Array16 triangleSegments;
+};
+typedef void *(*ExtrusionBucketObserver)(const ExtrusionBucketObserverParam* param);
 void setExtrusionBucketObserver(ExtrusionBucketObserver observer);
-
 void onExtrusionBucketAddFeature(const mbgl::CanonicalTileID& canonical,
                                  const std::string& layerId, const std::string& sourceLayer,
-                                 const int16_t* vertices, int verticesCount,
+                                 const uint16_t* vertices, int verticesCount,
                                  const uint16_t* triangles, int trianglesCount,
                                  const uint16_t* segments, int segmentsCount);
 

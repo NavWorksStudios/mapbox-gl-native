@@ -5,7 +5,7 @@
 //
 
 #include "mbgl/nav/nav_mb_layer.hpp"
-#include <unordered_map>
+#include <map>
 
 namespace nav {
 
