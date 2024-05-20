@@ -241,12 +241,12 @@ public:
             }
         }
         
+        bucket->nav_upload(canonical, bucketLeaderID, sourceLayerID);
+        
         if (bucket->hasData()) {
             for (const auto& pair : layerPropertiesMap) {
                 renderData.emplace(pair.first, LayerRenderData {bucket, pair.second});
             }
-
-            bucket->nav_upload(canonical, bucketLeaderID, sourceLayerID);
         }
     };
 
