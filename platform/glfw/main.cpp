@@ -27,6 +27,8 @@ std::shared_ptr<GLFWView> view;
 std::shared_ptr<mbgl::Map> map;
 std::shared_ptr<GLFWRendererFrontend> rendererFrontend;
 
+mbgl::Size size = { 1280, 720 };
+
 struct Settings : mbgl::Settings_JSON {
     bool fullscreen = false;
     bool benchmark = false;
@@ -164,9 +166,13 @@ void init(bool headless) {
 
     rendererFrontend = std::make_shared<GLFWRendererFrontend>(std::make_unique<mbgl::Renderer>(view->getRendererBackend(), view->getPixelRatio()), *view);
     
+    if (!headless) {
+        size = view->getSize();
+    }
+    
     map = std::make_shared<mbgl::Map>(*rendererFrontend,
                                       *view,
-                                      mbgl::MapOptions().withSize(view->getSize()).withPixelRatio(view->getPixelRatio()),
+                                      mbgl::MapOptions().withSize(size).withPixelRatio(view->getPixelRatio()),
                                       resourceOptions);
     
     view->setMap(map.get());
@@ -269,7 +275,10 @@ int main(int argc, char *argv[]) {
 extern "C" {
 
 __attribute__((visibility ("default")))
-void nav_init() {
+void nav_init(int width, int height) {
+    size.width = width;
+    size.height = height;
+    
     settings.load();
     init(true);
 }
