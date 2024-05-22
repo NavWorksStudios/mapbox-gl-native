@@ -124,7 +124,7 @@ void onExtrusionBucketAddFeature(const mbgl::CanonicalTileID& canonical,
     if (extrusionBucketObserver) {
         const ExtrusionBucketObserverParam param = {
             { (int) canonical.x, (int) canonical.y, (int) canonical.z, 0, // nav::mb::layerRenderIndex(layerId),
-                layerId.c_str(), sourceLayer.c_str()},
+                layerId.c_str(), sourceLayer.c_str() },
             { vertices, verticesCount },
             { triangles, trianglesCount },
             { segments, segmentsCount }
