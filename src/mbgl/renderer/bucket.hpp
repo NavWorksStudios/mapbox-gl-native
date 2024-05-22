@@ -7,6 +7,8 @@
 #include <mbgl/tile/tile_id.hpp>
 #include <atomic>
 
+#include "mbgl/nav/nav_mb_log.hpp"
+
 namespace mbgl {
 
 namespace gfx {
@@ -28,7 +30,14 @@ public:
     Bucket(const Bucket&) = delete;
     Bucket& operator=(const Bucket&) = delete;
 
-    virtual ~Bucket() = default;
+    std::string key;
+    
+    virtual ~Bucket() {
+        nav::mb::log("delete Bucket %p \n", this);
+        
+        assert(nav::mb::bucketMap()[key] > 0);
+        nav::mb::bucketMap()[key]--;
+    }
 
     // Feature geometries are also used to populate the feature index.
     // Obtaining these is a costly operation, so we do it only once, and
@@ -72,7 +81,9 @@ public:
         const Placement&, bool /*updateOpacities*/, const TransformState&, const RenderTile&, std::set<uint32_t>&) {}
 
 protected:
-    Bucket() = default;
+    Bucket() {
+        nav::mb::log("new Bucket %p \n", this);
+    }
     std::atomic<bool> uploaded { false };
 };
 

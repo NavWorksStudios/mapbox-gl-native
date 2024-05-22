@@ -12,7 +12,7 @@ namespace nav {
 namespace mb {
 
 std::string tileId(const mbgl::CanonicalTileID& canonical, const std::string& layerId, const std::string& sourceId) {
-    static char tileid[32];
+    char tileid[32];
     sprintf(tileid, "(%d,%d,%d)", canonical.x, canonical.y, (int)canonical.z);
     
     std::string tile;
@@ -43,6 +43,11 @@ void log(const char* format, ...) {
     va_start(args, format);
     vprintf(format, args);
     va_end(args);
+}
+
+std::map<std::string, int>& bucketMap() {
+    static std::map<std::string, int> map;
+    return map;
 }
 
 }

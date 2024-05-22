@@ -243,18 +243,16 @@ public:
             }
         }
 
-        static char tileid[32];
-        sprintf(tileid, "(%d,%d,%d)", canonical.x, canonical.y, (int)canonical.z);
-        
-        std::string tileInfo;
-        tileInfo += tileid; while (tileInfo.length() < 20) tileInfo += " ";
-        tileInfo += bucketLeaderID; while (tileInfo.length() < 40) tileInfo += " ";
-        tileInfo += sourceLayerID; while (tileInfo.length() < 60) tileInfo += " ";
+        const std::string tile = nav::mb::tileId(canonical, bucketLeaderID, sourceLayerID);
         
         static std::map<std::string, int> counter;
-        int count = ++counter[tileInfo];
+        int count = ++counter[tile];
 
-        nav::mb::log("load : %s (%d) \n", tileInfo.c_str(), count);
+        nav::mb::log("load : %s (%d) Bucket:%p \n", tile.c_str(), count, bucket.get());
+        
+        assert(nav::mb::bucketMap()[tile] == 0);
+        nav::mb::bucketMap()[tile]++;
+        bucket->key = tile;
         
         bucket->nav_upload(canonical, bucketLeaderID, sourceLayerID);
         
