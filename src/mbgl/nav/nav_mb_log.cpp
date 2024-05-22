@@ -23,26 +23,28 @@ std::string tileId(const mbgl::CanonicalTileID& canonical, const std::string& la
 }
 
 void log(const char* format, ...) {
-    std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
-    std::time_t now_time_t = std::chrono::system_clock::to_time_t(now);
-    std::tm* now_tm = std::localtime(&now_time_t);
+    const std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+    const std::time_t now_time_t = std::chrono::system_clock::to_time_t(now);
+    const std::tm* now_tm = std::localtime(&now_time_t);
+    const std::chrono::milliseconds ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
     
-    char buffer[128];
-    strftime(buffer, sizeof(buffer), "%F %T", now_tm);
-    std::chrono::milliseconds ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
+    // time
+    char buffer[512];
+    buffer[0] = '[';
+    strftime(buffer + 1, 100, "%F %T", now_tm);
+    sprintf(buffer + 20, ":%lld]", ms.count());
+    const size_t len = strlen(buffer);
+    char* buf = buffer + len;
+    memset(buf, ' ', 26 - len);
     
-    static char timeStr[64];
-    sprintf(timeStr, "[%s:%lld]", buffer, ms.count());
-    const size_t len = strlen(timeStr);
-    memset(timeStr + len, ' ', 26 - len);
-    timeStr[26] = 0;
-    
-    printf("%s", timeStr);
-
+    // va
     va_list args;
     va_start(args, format);
-    vprintf(format, args);
+    vsprintf(buffer + 26, format, args);
     va_end(args);
+    
+    // print
+    printf("%s", buffer);
 }
 
 std::map<std::string, int>& bucketMap() {
