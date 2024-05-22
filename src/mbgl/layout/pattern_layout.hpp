@@ -8,6 +8,8 @@
 #include <mbgl/style/layer_properties.hpp>
 #include <mbgl/clipper2/clipper.h>
 
+#include "mbgl/nav/nav_mb_log.hpp"
+
 namespace mbgl {
 
 class PatternDependency {
@@ -240,6 +242,19 @@ public:
                 
             }
         }
+
+        static char tileid[32];
+        sprintf(tileid, "(%d,%d,%d)", canonical.x, canonical.y, (int)canonical.z);
+        
+        std::string tileInfo;
+        tileInfo += tileid; while (tileInfo.length() < 20) tileInfo += " ";
+        tileInfo += bucketLeaderID; while (tileInfo.length() < 40) tileInfo += " ";
+        tileInfo += sourceLayerID; while (tileInfo.length() < 60) tileInfo += " ";
+        
+        static std::map<std::string, int> counter;
+        int count = ++counter[tileInfo];
+
+        nav::mb::log("load : %s (%d) \n", tileInfo.c_str(), count);
         
         bucket->nav_upload(canonical, bucketLeaderID, sourceLayerID);
         
