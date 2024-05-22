@@ -49,7 +49,7 @@ struct FillBucketObserverParam {
 };
 typedef void *(*FillBucketObserver)(const FillBucketObserverParam* param);
 void setFillBucketObserver(FillBucketObserver observer);
-void onFillBucketAddFeature(const mbgl::CanonicalTileID& canonical,
+void onFillBucketAddFeature(const mbgl::CanonicalTileID& canonical, 
                             const std::string& layerId, const std::string& sourceLayer,
                             const uint16_t* vertices, int verticesCount,
                             const uint16_t* lines, int linesCount,

@@ -51,7 +51,7 @@ void onFillBucketAddFeature(const mbgl::CanonicalTileID& canonical,
                             const uint16_t* triangleSegments, int triangleSegmentsCount) {
     if (fillBucketObserver) {
         const FillBucketObserverParam param = {
-            { (int) canonical.x, (int) canonical.y, (int) canonical.z, 0, // nav::mb::layerRenderIndex(layerId),
+            { (int) canonical.x, (int) canonical.y, (int) canonical.z, nav::mb::layerRenderIndex(layerId),
                 layerId.c_str(), sourceLayer.c_str() },
             { vertices, verticesCount },
             { lines, linesCount },
@@ -70,14 +70,14 @@ void setLineBucketObserver(LineBucketObserver observer) {
     lineBucketObserver = observer;
 }
 
-void onLineBucketAddFeature(const mbgl::CanonicalTileID& canonical, 
+void onLineBucketAddFeature(const mbgl::CanonicalTileID& canonical,
                             const std::string& layerId, const std::string& sourceLayer,
                             const uint16_t* vertices, int verticesCount,
                             const uint16_t* triangles, int trianglesCount,
                             const uint16_t* segments, int segmentsCount) {
     if (lineBucketObserver) {
         const LineBucketObserverParam param = {
-            { (int) canonical.x, (int) canonical.y, (int) canonical.z, 0, // nav::mb::layerRenderIndex(layerId),
+            { (int) canonical.x, (int) canonical.y, (int) canonical.z, nav::mb::layerRenderIndex(layerId),
                 layerId.c_str(), sourceLayer.c_str() },
             { vertices, verticesCount },
             { triangles, trianglesCount },
@@ -94,7 +94,7 @@ void setCycleBucketObserver(CycleBucketObserver observer) {
     cycleBucketObserver = observer;
 }
 
-void onCycleBucketAddFeature(const mbgl::CanonicalTileID& canonical, 
+void onCycleBucketAddFeature(const mbgl::CanonicalTileID& canonical,
                              const std::string& layerId, const std::string& sourceLayer) {
     
 }
@@ -105,7 +105,7 @@ void setSymbolBucketObserver(SymbolBucketObserver observer) {
     symbolBucketObserver = observer;
 }
 
-void onSymbolBucketAddFeature(const mbgl::CanonicalTileID& canonical, 
+void onSymbolBucketAddFeature(const mbgl::CanonicalTileID& canonical,
                               const std::string& layerId, const std::string& sourceLayer) {
     
 }
@@ -116,14 +116,14 @@ void setExtrusionBucketObserver(ExtrusionBucketObserver observer) {
     extrusionBucketObserver = observer;
 }
 
-void onExtrusionBucketAddFeature(const mbgl::CanonicalTileID& canonical, 
+void onExtrusionBucketAddFeature(const mbgl::CanonicalTileID& canonical,
                                  const std::string& layerId, const std::string& sourceLayer,
                                  const uint16_t* vertices, int verticesCount,
                                  const uint16_t* triangles, int trianglesCount,
                                  const uint16_t* segments, int segmentsCount) {
     if (extrusionBucketObserver) {
         const ExtrusionBucketObserverParam param = {
-            { (int) canonical.x, (int) canonical.y, (int) canonical.z, 0, // nav::mb::layerRenderIndex(layerId),
+            { (int) canonical.x, (int) canonical.y, (int) canonical.z, nav::mb::layerRenderIndex(layerId),
                 layerId.c_str(), sourceLayer.c_str() },
             { vertices, verticesCount },
             { triangles, trianglesCount },

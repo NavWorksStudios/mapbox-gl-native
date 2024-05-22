@@ -180,16 +180,20 @@ bool filterLayerByType(const std::string& id) {
 }
 
 static std::map<std::string, int> layerRenderIndexs;
+static std::mutex l;
 
 int layerRenderIndex(const std::string& id) {
     if (layerRenderIndexs.empty()) {
-        int i = 0;
-        for (auto it = layerIds.begin(); it != layerIds.end(); it++) {
-            layerRenderIndexs[id] = i++;
+        std::lock_guard<std::mutex> lock(l);
+        if (layerRenderIndexs.empty()) {
+            int i = 0;
+            for (auto it = layerIds.begin(); it != layerIds.end(); it++) {
+                layerRenderIndexs[id] = i++;
+            }
         }
     }
     
-    return layerRenderIndexs.at(id);
+    return layerRenderIndexs[id];
 }
 
 }
