@@ -9,10 +9,16 @@
 #define nav_mb_log_hpp
 
 #include <stdio.h>
+#include <string>
+#include <mbgl/tile/tile_id.hpp>
 
 namespace nav {
 namespace mb {
+
+std::string tileId(const mbgl::CanonicalTileID& canonical, const std::string& layerId, const std::string& sourceId);
 void log(const char* format, ...);
+
+
 }
 }
 

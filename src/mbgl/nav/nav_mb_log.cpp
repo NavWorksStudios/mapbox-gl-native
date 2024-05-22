@@ -11,6 +11,17 @@
 namespace nav {
 namespace mb {
 
+std::string tileId(const mbgl::CanonicalTileID& canonical, const std::string& layerId, const std::string& sourceId) {
+    static char tileid[32];
+    sprintf(tileid, "(%d,%d,%d)", canonical.x, canonical.y, (int)canonical.z);
+    
+    std::string tile;
+    tile += tileid; while (tile.length() < 20) tile += " ";
+    tile += layerId; while (tile.length() < 40) tile += " ";
+    tile += sourceId; while (tile.length() < 60) tile += " ";
+    return tile;
+}
+
 void log(const char* format, ...) {
     std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
     std::time_t now_time_t = std::chrono::system_clock::to_time_t(now);
