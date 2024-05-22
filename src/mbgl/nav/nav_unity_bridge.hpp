@@ -25,6 +25,12 @@ typedef void *(*TileModelMatrixObserver)(int x, int y, int z, const double* matr
 void setTileModelMatrixObserver(TileModelMatrixObserver observer);
 void onTileModelMatrix(const mbgl::CanonicalTileID& canonical, const double* matrix);
 
+struct TileDataKey {
+    int x, y, z, layerRenderIndex;
+    const char* layerId;
+    const char* sourceLayer;
+};
+
 struct Array16 {
     const uint16_t* data;
     int count;
@@ -33,9 +39,7 @@ struct Array16 {
 
 // Fill Bucket data
 struct FillBucketObserverParam {
-    int x, y, z, layerRenderIndex;
-    const char* layerId;
-    const char* sourceLayer;
+    TileDataKey key;
     const Array16 vertices;
     const Array16 lines;
     const Array16 lineSegments;
@@ -56,9 +60,7 @@ void onFillBucketAddFeature(const mbgl::CanonicalTileID& canonical,
 
 // Line Bucket data
 struct LineBucketObserverParam {
-    int x, y, z, layerRenderIndex;
-    const char* layerId;
-    const char* sourceLayer;
+    TileDataKey key;
     const Array16 vertices;
     const Array16 triangles;
     const Array16 triangleSegments;
@@ -75,9 +77,7 @@ void onLineBucketAddFeature(const mbgl::CanonicalTileID& canonical,
 
 // Cycle Bucket data
 struct CycleBucketObserverParam {
-    int x, y, z, layerRenderIndex;
-    const char* layerId;
-    const char* sourceLayer;
+    TileDataKey key;
 };
 typedef void *(*CycleBucketObserver)(const CycleBucketObserverParam* param);
 void setCycleBucketObserver(CycleBucketObserver observer);
@@ -87,9 +87,7 @@ void onCycleBucketAddFeature(const mbgl::CanonicalTileID& canonical,
 
 // Symbol Bucket data
 struct SymbolBucketObserverParam {
-    int x, y, z, layerRenderIndex;
-    const char* layerId;
-    const char* sourceLayer;
+    TileDataKey key;
 };
 typedef void *(*SymbolBucketObserver)(const SymbolBucketObserverParam* param);
 void setSymbolBucketObserver(SymbolBucketObserver observer);
@@ -99,9 +97,7 @@ void onSymbolBucketAddFeature(const mbgl::CanonicalTileID& canonical,
 
 // Extrusion Bucket data
 struct ExtrusionBucketObserverParam {
-    int x, y, z, layerRenderIndex;
-    const char* layerId;
-    const char* sourceLayer;
+    TileDataKey key;
     const Array16 vertices;
     const Array16 triangles;
     const Array16 triangleSegments;

@@ -51,9 +51,8 @@ void onFillBucketAddFeature(const mbgl::CanonicalTileID& canonical,
                             const uint16_t* triangleSegments, int triangleSegmentsCount) {
     if (fillBucketObserver) {
         const FillBucketObserverParam param = {
-            (int) canonical.x, (int) canonical.y, (int) canonical.z,
-            0, // nav::mb::layerRenderIndex(layerId),
-            layerId.c_str(), sourceLayer.c_str(),
+            { (int) canonical.x, (int) canonical.y, (int) canonical.z, 0, // nav::mb::layerRenderIndex(layerId),
+                layerId.c_str(), sourceLayer.c_str() },
             { vertices, verticesCount },
             { lines, linesCount },
             { lineSegments, lineSegmentsCount },
@@ -78,9 +77,8 @@ void onLineBucketAddFeature(const mbgl::CanonicalTileID& canonical,
                             const uint16_t* segments, int segmentsCount) {
     if (lineBucketObserver) {
         const LineBucketObserverParam param = {
-            (int) canonical.x, (int) canonical.y, (int) canonical.z,
-            0, // nav::mb::layerRenderIndex(layerId),
-            layerId.c_str(), sourceLayer.c_str(),
+            { (int) canonical.x, (int) canonical.y, (int) canonical.z, 0, // nav::mb::layerRenderIndex(layerId),
+                layerId.c_str(), sourceLayer.c_str() },
             { vertices, verticesCount },
             { triangles, trianglesCount },
             { segments, segmentsCount }
@@ -125,9 +123,8 @@ void onExtrusionBucketAddFeature(const mbgl::CanonicalTileID& canonical,
                                  const uint16_t* segments, int segmentsCount) {
     if (extrusionBucketObserver) {
         const ExtrusionBucketObserverParam param = {
-            (int) canonical.x, (int) canonical.y, (int) canonical.z,
-            0, // nav::mb::layerRenderIndex(layerId),
-            layerId.c_str(), sourceLayer.c_str(),
+            { (int) canonical.x, (int) canonical.y, (int) canonical.z, 0, // nav::mb::layerRenderIndex(layerId),
+                layerId.c_str(), sourceLayer.c_str()},
             { vertices, verticesCount },
             { triangles, trianglesCount },
             { segments, segmentsCount }
