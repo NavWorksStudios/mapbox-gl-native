@@ -7,7 +7,9 @@
 
 #include <stdlib.h>
 #include "mbgl/nav/nav_unity_bridge.hpp"
-#include "nav_mb_layer.hpp"
+
+#include "mbgl/nav/nav_mb_log.hpp"
+#include "mbgl/nav/nav_mb_layer.hpp"
 
 namespace nav {
 namespace unity {
@@ -19,7 +21,15 @@ void setProjectionMatrixObserver(ProjectionMatrixObserver observer) {
 }
 
 void onProjectionMatrix(const double* matrix) {
-    if (projectionMatrixObserver) projectionMatrixObserver(matrix);
+    if (projectionMatrixObserver) {
+        projectionMatrixObserver(matrix);
+        nav::mb::log("Projection : [%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf]\n",
+                     matrix[0], matrix[1], matrix[2], matrix[3],
+                     matrix[4], matrix[5], matrix[6], matrix[7],
+                     matrix[8], matrix[9], matrix[10], matrix[11],
+                     matrix[12], matrix[13], matrix[14], matrix[15]
+                     );
+    }
 }
 
 
@@ -31,7 +41,16 @@ void setTileModelMatrixObserver(TileModelMatrixObserver observer) {
 }
 
 void onTileModelMatrix(const mbgl::CanonicalTileID& canonical, const double* matrix) {
-    if (tileModelMatrixObserver) tileModelMatrixObserver(canonical.x, canonical.y, canonical.z, matrix);
+    if (tileModelMatrixObserver) {
+        tileModelMatrixObserver(canonical.x, canonical.y, canonical.z, matrix);
+        nav::mb::log("Model : (%d,%d,%d) [%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf]\n",
+                     canonical.x, canonical.y, (int) canonical.z,
+                     matrix[0], matrix[1], matrix[2], matrix[3],
+                     matrix[4], matrix[5], matrix[6], matrix[7],
+                     matrix[8], matrix[9], matrix[10], matrix[11],
+                     matrix[12], matrix[13], matrix[14], matrix[15]
+                     );
+    }
 }
 
 
