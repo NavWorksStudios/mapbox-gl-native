@@ -5,7 +5,9 @@
 //
 
 #include "mbgl/nav/nav_mb_layer.hpp"
+
 #include <map>
+#include <mutex>
 
 namespace nav {
 
