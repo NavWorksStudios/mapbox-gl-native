@@ -7,7 +7,7 @@
 #include <mbgl/tile/tile_id.hpp>
 #include <atomic>
 
-#include "mbgl/nav/nav_mb_log.hpp"
+#include "mbgl/nav/nav_log.hpp"
 
 namespace mbgl {
 
@@ -33,10 +33,10 @@ public:
     std::string key;
     
     virtual ~Bucket() {
-        nav::mb::log("delete Bucket %p \n", this);
+        nav::log::i("Bucket", "delete Bucket %p \n", this);
         
-        assert(nav::mb::bucketMap()[key] > 0);
-        nav::mb::bucketMap()[key]--;
+        assert(nav::log::bucketMap()[key] > 0);
+        nav::log::bucketMap()[key]--;
     }
 
     // Feature geometries are also used to populate the feature index.
@@ -82,7 +82,7 @@ public:
 
 protected:
     Bucket() {
-        nav::mb::log("new Bucket %p \n", this);
+        nav::log::i("Bucket", "new Bucket %p \n", this);
     }
     std::atomic<bool> uploaded { false };
 };

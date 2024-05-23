@@ -323,6 +323,11 @@ void nav_set_extrusion_bucket_observer(nav::unity::ExtrusionBucketObserver obser
     nav::unity::setExtrusionBucketObserver(observer);
 }
 
+__attribute__((visibility ("default")))
+void nav_set_bucket_destroy_observer(nav::unity::BucketDestroyObserver observer) {
+    nav::unity::setBucketDestroyObserver(observer);
+}
+
 }
 
 

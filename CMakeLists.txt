@@ -293,8 +293,8 @@ set(all_files
     ${PROJECT_SOURCE_DIR}/include/mbgl/util/work_task.hpp
     ${PROJECT_SOURCE_DIR}/include/mbgl/util/work_task_impl.hpp
 
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav_mb_log.hpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav_mb_log.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav_log.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav_log.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav_mb_json.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav_mb_layer.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav_mb_layer.cpp

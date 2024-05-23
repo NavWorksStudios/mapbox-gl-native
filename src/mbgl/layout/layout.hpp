@@ -5,7 +5,7 @@
 #include <mbgl/tile/geometry_tile_data.hpp>
 #include <memory>
 
-#include "mbgl/nav/nav_mb_log.hpp"
+#include "mbgl/nav/nav_log.hpp"
 
 namespace mbgl {
 
@@ -18,7 +18,7 @@ class LayerRenderData;
 class Layout {
 public:
     virtual ~Layout() {
-        nav::mb::log("delete layout %ld \n", this);
+        nav::log::i("Layout", "delete layout %ld \n", this);
     }
 
     virtual void createBucket(const ImagePositions&,

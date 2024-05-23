@@ -9,6 +9,8 @@
 #include <mbgl/util/thread.hpp>
 #include <mbgl/util/url.hpp>
 
+#include "mbgl/nav/nav_log.hpp"
+
 namespace {
 bool acceptsURL(const std::string& url) {
     return 0 == url.rfind(mbgl::util::FILE_PROTOCOL, 0);
@@ -43,6 +45,7 @@ LocalFileSource::LocalFileSource()
 LocalFileSource::~LocalFileSource() = default;
 
 std::unique_ptr<AsyncRequest> LocalFileSource::request(const Resource& resource, Callback callback) {
+    nav::log::i("LocalFileSource", "request : %s \n", resource.url.c_str());
     auto req = std::make_unique<FileSourceRequest>(std::move(callback));
 
     impl->actor().invoke(&Impl::request, resource.url, req->actor());

@@ -25,6 +25,7 @@
 #include <list>
 #include <map>
 #include <utility>
+#include "mbgl/nav/nav_log.hpp"
 
 namespace mbgl {
 
@@ -567,6 +568,7 @@ OnlineFileSource::OnlineFileSource() : impl(std::make_unique<Impl>()) {}
 OnlineFileSource::~OnlineFileSource() = default;
 
 std::unique_ptr<AsyncRequest> OnlineFileSource::request(const Resource& resource, Callback callback) {
+    nav::log::i("OnlineFileSource", "request : %s \n", resource.url.c_str());
     Resource res = resource;
 
     switch (resource.kind) {

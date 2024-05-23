@@ -111,6 +111,15 @@ void onExtrusionBucketAddFeature(const mbgl::CanonicalTileID& canonical,
                                  const uint16_t* triangles, int trianglesCount,
                                  const uint16_t* segments, int segmentsCount);
 
+// Bucket Destroy
+struct BucketDestroyObserverParam {
+    TileDataKey key;
+};
+typedef void *(*BucketDestroyObserver)(const BucketDestroyObserverParam* param);
+void setBucketDestroyObserver(BucketDestroyObserver observer);
+void onBucketDestroy(const mbgl::CanonicalTileID& canonical,
+                    const std::string& layerId, const std::string& sourceLayer);
+
 }
 }
 

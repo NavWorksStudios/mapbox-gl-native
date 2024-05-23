@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include "mbgl/nav/nav_unity_bridge.hpp"
 
-#include "mbgl/nav/nav_mb_log.hpp"
+#include "mbgl/nav/nav_log.hpp"
 #include "mbgl/nav/nav_mb_layer.hpp"
 
 namespace nav {
@@ -23,12 +23,13 @@ void setProjectionMatrixObserver(ProjectionMatrixObserver observer) {
 void onProjectionMatrix(const double* matrix) {
     if (projectionMatrixObserver) {
         projectionMatrixObserver(matrix);
-        nav::mb::log("Projection : [%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf]\n",
-                     matrix[0], matrix[1], matrix[2], matrix[3],
-                     matrix[4], matrix[5], matrix[6], matrix[7],
-                     matrix[8], matrix[9], matrix[10], matrix[11],
-                     matrix[12], matrix[13], matrix[14], matrix[15]
-                     );
+        
+        nav::log::i("Bridge",
+                    "Projection : [%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf]\n",
+                    matrix[0], matrix[1], matrix[2], matrix[3],
+                    matrix[4], matrix[5], matrix[6], matrix[7],
+                    matrix[8], matrix[9], matrix[10], matrix[11],
+                    matrix[12], matrix[13], matrix[14], matrix[15]);
     }
 }
 
@@ -43,13 +44,14 @@ void setTileModelMatrixObserver(TileModelMatrixObserver observer) {
 void onTileModelMatrix(const mbgl::CanonicalTileID& canonical, const double* matrix) {
     if (tileModelMatrixObserver) {
         tileModelMatrixObserver(canonical.x, canonical.y, canonical.z, matrix);
-        nav::mb::log("Model : (%d,%d,%d) [%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf]\n",
-                     canonical.x, canonical.y, (int) canonical.z,
-                     matrix[0], matrix[1], matrix[2], matrix[3],
-                     matrix[4], matrix[5], matrix[6], matrix[7],
-                     matrix[8], matrix[9], matrix[10], matrix[11],
-                     matrix[12], matrix[13], matrix[14], matrix[15]
-                     );
+        
+        nav::log::i("Bridge", 
+                    "Model : (%d,%d,%d) [%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf]\n",
+                    canonical.x, canonical.y, (int) canonical.z,
+                    matrix[0], matrix[1], matrix[2], matrix[3],
+                    matrix[4], matrix[5], matrix[6], matrix[7],
+                    matrix[8], matrix[9], matrix[10], matrix[11],
+                    matrix[12], matrix[13], matrix[14], matrix[15]);
     }
 }
 
@@ -76,9 +78,7 @@ void onFillBucketAddFeature(const mbgl::CanonicalTileID& canonical,
             { lines, linesCount },
             { lineSegments, lineSegmentsCount },
             { triangles, trianglesCount},
-            { triangleSegments, triangleSegmentsCount }
-
-        };
+            { triangleSegments, triangleSegmentsCount } };
         fillBucketObserver(&param);
     }
 }
@@ -100,9 +100,7 @@ void onLineBucketAddFeature(const mbgl::CanonicalTileID& canonical,
                 layerId.c_str(), sourceLayer.c_str() },
             { vertices, verticesCount },
             { triangles, trianglesCount },
-            { segments, segmentsCount }
-
-        };
+            { segments, segmentsCount } };
         lineBucketObserver(&param);
     }
 }
@@ -146,10 +144,24 @@ void onExtrusionBucketAddFeature(const mbgl::CanonicalTileID& canonical,
                 layerId.c_str(), sourceLayer.c_str() },
             { vertices, verticesCount },
             { triangles, trianglesCount },
-            { segments, segmentsCount }
-
-        };
+            { segments, segmentsCount } };
         extrusionBucketObserver(&param);
+    }
+}
+
+BucketDestroyObserver bucketDestroyObserver = nullptr;
+
+void setBucketDestroyObserver(BucketDestroyObserver observer) {
+    bucketDestroyObserver = observer;
+}
+
+void onBucketDestroy(const mbgl::CanonicalTileID& canonical,
+                     const std::string& layerId, const std::string& sourceLayer) {
+    if (bucketDestroyObserver) {
+        const BucketDestroyObserverParam param = {
+            { (int) canonical.x, (int) canonical.y, (int) canonical.z, nav::mb::layerRenderIndex(layerId),
+                layerId.c_str(), sourceLayer.c_str() } };
+        bucketDestroyObserver(&param);
     }
 }
 

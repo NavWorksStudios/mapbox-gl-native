@@ -8,7 +8,7 @@
 #include <mbgl/style/layer_properties.hpp>
 #include <mbgl/clipper2/clipper.h>
 
-#include "mbgl/nav/nav_mb_log.hpp"
+#include "mbgl/nav/nav_log.hpp"
 
 namespace mbgl {
 
@@ -243,15 +243,15 @@ public:
             }
         }
 
-        const std::string tile = nav::mb::tileId(canonical, bucketLeaderID, sourceLayerID);
+        const std::string tile = nav::log::tileId(canonical, bucketLeaderID, sourceLayerID);
         
         static std::map<std::string, int> counter;
         int count = ++counter[tile];
 
-        nav::mb::log("load : %s (%d) Bucket:%p \n", tile.c_str(), count, bucket.get());
+        nav::log::i("PatternLayout", "%s (%d) Bucket:%p \n", tile.c_str(), count, bucket.get());
         
-        assert(nav::mb::bucketMap()[tile] == 0);
-        nav::mb::bucketMap()[tile]++;
+//        assert(nav::mb::bucketMap()[tile] == 0);
+        nav::log::bucketMap()[tile]++;
         bucket->key = tile;
         
         bucket->nav_upload(canonical, bucketLeaderID, sourceLayerID);

@@ -13,6 +13,7 @@
 
 #include <mutex>
 #include <chrono>
+#include "mbgl/nav/nav_log.hpp"
 
 @interface MBGLBundleCanary : NSObject
 @end
@@ -223,6 +224,8 @@ NSURL *resourceURL(const Resource& resource) {
 }
     
 std::unique_ptr<AsyncRequest> HTTPFileSource::request(const Resource& resource, Callback callback) {
+    nav::log::i("HTTPFileSource", "request : %s \n", resource.url.c_str());
+    
     auto request = std::make_unique<HTTPRequest>(callback);
     auto shared = request->shared; // Explicit copy so that it also gets copied into the completion handler block below.
 

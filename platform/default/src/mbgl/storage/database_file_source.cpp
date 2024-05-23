@@ -13,6 +13,7 @@
 
 #include <map>
 #include <utility>
+#include "mbgl/nav/nav_log.hpp"
 
 namespace mbgl {
 class DatabaseFileSourceThread {
@@ -174,6 +175,7 @@ DatabaseFileSource::DatabaseFileSource(const ResourceOptions& options)
 DatabaseFileSource::~DatabaseFileSource() = default;
 
 std::unique_ptr<AsyncRequest> DatabaseFileSource::request(const Resource& resource, Callback callback) {
+    nav::log::i("DatabaseFileSource", "request : %s \n", resource.url.c_str());
     auto req = std::make_unique<FileSourceRequest>(std::move(callback));
     impl->actor().invoke(&DatabaseFileSourceThread::request, resource, req->actor());
     return req;
