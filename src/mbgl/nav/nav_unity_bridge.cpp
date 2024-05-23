@@ -12,159 +12,95 @@
 #include "mbgl/nav/nav_mb_layer.hpp"
 
 namespace nav {
-namespace unity {
+
+namespace matrix {
 
 ProjectionMatrixObserver projectionMatrixObserver = nullptr;
+void setProjectionMatrixObserver(ProjectionMatrixObserver observer) { projectionMatrixObserver = observer; }
 
-void setProjectionMatrixObserver(ProjectionMatrixObserver observer) {
-    projectionMatrixObserver = observer;
-}
+ProjectionTransformObserver projectionTransformObserver = nullptr;
+void setProjectionTransformObserver(ProjectionTransformObserver observer) { projectionTransformObserver = observer; }
 
 void onProjectionMatrix(const double* matrix) {
-    if (projectionMatrixObserver) {
-        projectionMatrixObserver(matrix);
+    nav::log::i("Bridge",
+                "Projection : (%d,%d,%d) [%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf]\n",
+                0, 0, 0,
+                matrix[0], matrix[1], matrix[2], matrix[3],
+                matrix[4], matrix[5], matrix[6], matrix[7],
+                matrix[8], matrix[9], matrix[10], matrix[11],
+                matrix[12], matrix[13], matrix[14], matrix[15]);
+    
+    if (projectionMatrixObserver) projectionMatrixObserver(matrix);
+    
+    if (projectionTransformObserver) {
+        const Transform transform = {
+            {0, 0, 0},
+            {0, 0, 0},
+            {0, 0, 0}
+        };
         
-        nav::log::i("Bridge",
-                    "Projection : [%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf]\n",
-                    matrix[0], matrix[1], matrix[2], matrix[3],
-                    matrix[4], matrix[5], matrix[6], matrix[7],
-                    matrix[8], matrix[9], matrix[10], matrix[11],
-                    matrix[12], matrix[13], matrix[14], matrix[15]);
+        projectionTransformObserver(&transform);
     }
 }
 
 
 
 TileModelMatrixObserver tileModelMatrixObserver = nullptr;
+void setTileModelMatrixObserver(TileModelMatrixObserver observer) { tileModelMatrixObserver = observer; }
 
-void setTileModelMatrixObserver(TileModelMatrixObserver observer) {
-    tileModelMatrixObserver = observer;
-}
+TileModelTransformObserver tileModelTransformObserver = nullptr;
+void setTileModelTransformObserver(TileModelTransformObserver observer) { tileModelTransformObserver = observer; }
 
-void onTileModelMatrix(const mbgl::CanonicalTileID& canonical, const double* matrix) {
-    if (tileModelMatrixObserver) {
-        tileModelMatrixObserver(canonical.x, canonical.y, canonical.z, matrix);
+void onTileModelMatrix(const TileId* tileId, const double* matrix) {
+    nav::log::i("Bridge",
+                "Model : (%d,%d,%d) [%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf]\n",
+                tileId->x, tileId->y, tileId->z,
+                matrix[0], matrix[1], matrix[2], matrix[3],
+                matrix[4], matrix[5], matrix[6], matrix[7],
+                matrix[8], matrix[9], matrix[10], matrix[11],
+                matrix[12], matrix[13], matrix[14], matrix[15]);
+    
+    if (tileModelMatrixObserver) tileModelMatrixObserver(tileId, matrix);
+    
+    if (tileModelTransformObserver) {
+        const Transform transform = {
+            {0, 0, 0},
+            {0, 0, 0},
+            {0, 0, 0}
+        };
         
-        nav::log::i("Bridge", 
-                    "Model : (%d,%d,%d) [%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf]\n",
-                    canonical.x, canonical.y, (int) canonical.z,
-                    matrix[0], matrix[1], matrix[2], matrix[3],
-                    matrix[4], matrix[5], matrix[6], matrix[7],
-                    matrix[8], matrix[9], matrix[10], matrix[11],
-                    matrix[12], matrix[13], matrix[14], matrix[15]);
+        tileModelTransformObserver(tileId, &transform);
     }
 }
 
+}
 
+namespace layer {
 
 FillBucketObserver fillBucketObserver = nullptr;
-
-void setFillBucketObserver(FillBucketObserver observer) {
-    fillBucketObserver = observer;
-}
-
-void onFillBucketAddFeature(const mbgl::CanonicalTileID& canonical,
-                            const std::string& layerId, const std::string& sourceLayer,
-                            const uint16_t* vertices, int verticesCount,
-                            const uint16_t* lines, int linesCount,
-                            const uint16_t* lineSegments, int lineSegmentsCount,
-                            const uint16_t* triangles, int trianglesCount,
-                            const uint16_t* triangleSegments, int triangleSegmentsCount) {
-    if (fillBucketObserver) {
-        const FillBucketObserverParam param = {
-            { (int) canonical.x, (int) canonical.y, (int) canonical.z, nav::mb::layerRenderIndex(layerId),
-                layerId.c_str(), sourceLayer.c_str() },
-            { vertices, verticesCount },
-            { lines, linesCount },
-            { lineSegments, lineSegmentsCount },
-            { triangles, trianglesCount},
-            { triangleSegments, triangleSegmentsCount } };
-        fillBucketObserver(&param);
-    }
-}
+void setFillBucketObserver(FillBucketObserver observer) { fillBucketObserver = observer; }
+void onAddFillBucket(const FillBucket* param) { if (fillBucketObserver) fillBucketObserver(param); }
 
 LineBucketObserver lineBucketObserver = nullptr;
-
-void setLineBucketObserver(LineBucketObserver observer) {
-    lineBucketObserver = observer;
-}
-
-void onLineBucketAddFeature(const mbgl::CanonicalTileID& canonical,
-                            const std::string& layerId, const std::string& sourceLayer,
-                            const uint16_t* vertices, int verticesCount,
-                            const uint16_t* triangles, int trianglesCount,
-                            const uint16_t* segments, int segmentsCount) {
-    if (lineBucketObserver) {
-        const LineBucketObserverParam param = {
-            { (int) canonical.x, (int) canonical.y, (int) canonical.z, nav::mb::layerRenderIndex(layerId),
-                layerId.c_str(), sourceLayer.c_str() },
-            { vertices, verticesCount },
-            { triangles, trianglesCount },
-            { segments, segmentsCount } };
-        lineBucketObserver(&param);
-    }
-}
+void setLineBucketObserver(LineBucketObserver observer) { lineBucketObserver = observer; }
+void onAddLineBucket(const LineBucket* param) { if (lineBucketObserver) lineBucketObserver(param); }
 
 CycleBucketObserver cycleBucketObserver = nullptr;
-
-void setCycleBucketObserver(CycleBucketObserver observer) {
-    cycleBucketObserver = observer;
-}
-
-void onCycleBucketAddFeature(const mbgl::CanonicalTileID& canonical,
-                             const std::string& layerId, const std::string& sourceLayer) {
-    
-}
+void setCycleBucketObserver(CycleBucketObserver observer) { cycleBucketObserver = observer; }
+void onAddCycleBucket(const CycleBucket* param) { if (cycleBucketObserver) cycleBucketObserver(param); }
 
 SymbolBucketObserver symbolBucketObserver = nullptr;
-
-void setSymbolBucketObserver(SymbolBucketObserver observer) {
-    symbolBucketObserver = observer;
-}
-
-void onSymbolBucketAddFeature(const mbgl::CanonicalTileID& canonical,
-                              const std::string& layerId, const std::string& sourceLayer) {
-    
-}
+void setSymbolBucketObserver(SymbolBucketObserver observer) { symbolBucketObserver = observer; }
+void onAddSymbolBucket(const SymbolBucket* param) { if (symbolBucketObserver) symbolBucketObserver(param); }
 
 ExtrusionBucketObserver extrusionBucketObserver = nullptr;
-
-void setExtrusionBucketObserver(ExtrusionBucketObserver observer) {
-    extrusionBucketObserver = observer;
-}
-
-void onExtrusionBucketAddFeature(const mbgl::CanonicalTileID& canonical,
-                                 const std::string& layerId, const std::string& sourceLayer,
-                                 const uint16_t* vertices, int verticesCount,
-                                 const uint16_t* triangles, int trianglesCount,
-                                 const uint16_t* segments, int segmentsCount) {
-    if (extrusionBucketObserver) {
-        const ExtrusionBucketObserverParam param = {
-            { (int) canonical.x, (int) canonical.y, (int) canonical.z, nav::mb::layerRenderIndex(layerId),
-                layerId.c_str(), sourceLayer.c_str() },
-            { vertices, verticesCount },
-            { triangles, trianglesCount },
-            { segments, segmentsCount } };
-        extrusionBucketObserver(&param);
-    }
-}
+void setExtrusionBucketObserver(ExtrusionBucketObserver observer) { extrusionBucketObserver = observer; } 
+void onAddExtrusionBucket(const ExtrusionBucket* param) { if (extrusionBucketObserver) extrusionBucketObserver(param); }
 
 BucketDestroyObserver bucketDestroyObserver = nullptr;
-
-void setBucketDestroyObserver(BucketDestroyObserver observer) {
-    bucketDestroyObserver = observer;
-}
-
-void onBucketDestroy(const mbgl::CanonicalTileID& canonical,
-                     const std::string& layerId, const std::string& sourceLayer) {
-    if (bucketDestroyObserver) {
-        const BucketDestroyObserverParam param = {
-            { (int) canonical.x, (int) canonical.y, (int) canonical.z, nav::mb::layerRenderIndex(layerId),
-                layerId.c_str(), sourceLayer.c_str() } };
-        bucketDestroyObserver(&param);
-    }
-}
-
+void setBucketDestroyObserver(BucketDestroyObserver observer) { bucketDestroyObserver = observer; }
+void onBucketDestroy(const Feature* param) { if (bucketDestroyObserver) bucketDestroyObserver(param); }
 
 }
+
 }

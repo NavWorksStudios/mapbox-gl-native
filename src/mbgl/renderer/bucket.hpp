@@ -55,7 +55,7 @@ public:
     // this only happens once when the bucket is being rendered for the first time.
     virtual void upload(gfx::UploadPass&) = 0;
     
-    virtual void nav_upload(const CanonicalTileID& canonical, const std::string& layerID, const std::string& sourceLayer) = 0;
+    virtual void nav_upload(const CanonicalTileID& canonical, const std::string& layerId, const std::string& sourceLayer) = 0;
 
     virtual bool hasData() const = 0;
 

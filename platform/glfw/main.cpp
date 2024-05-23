@@ -294,38 +294,38 @@ void nav_destroy() {
 }
 
 __attribute__((visibility ("default")))
-void nav_set_projection_matrix_observer(nav::unity::ProjectionMatrixObserver observer) {
-    nav::unity::setProjectionMatrixObserver(observer);
+void nav_set_projection_matrix_observer(nav::matrix::ProjectionMatrixObserver observer) {
+    nav::matrix::setProjectionMatrixObserver(observer);
 }
 
 __attribute__((visibility ("default")))
-void nav_set_tile_model_matrix_observer(nav::unity::TileModelMatrixObserver observer) {
-    nav::unity::setTileModelMatrixObserver(observer);
+void nav_set_tile_model_matrix_observer(nav::matrix::TileModelMatrixObserver observer) {
+    nav::matrix::setTileModelMatrixObserver(observer);
 }
 
 __attribute__((visibility ("default")))
-void nav_set_fill_bucket_observer(nav::unity::FillBucketObserver observer) {
-    nav::unity::setFillBucketObserver(observer);
+void nav_set_fill_bucket_observer(nav::layer::FillBucketObserver observer) {
+    nav::layer::setFillBucketObserver(observer);
 }
 
 __attribute__((visibility ("default")))
-void nav_set_line_bucket_observer(nav::unity::LineBucketObserver observer) {
-    nav::unity::setLineBucketObserver(observer);
+void nav_set_line_bucket_observer(nav::layer::LineBucketObserver observer) {
+    nav::layer::setLineBucketObserver(observer);
 }
 
 __attribute__((visibility ("default")))
-void nav_set_symbol_bucket_observer(nav::unity::SymbolBucketObserver observer) {
-    nav::unity::setSymbolBucketObserver(observer);
+void nav_set_symbol_bucket_observer(nav::layer::SymbolBucketObserver observer) {
+    nav::layer::setSymbolBucketObserver(observer);
 }
 
 __attribute__((visibility ("default")))
-void nav_set_extrusion_bucket_observer(nav::unity::ExtrusionBucketObserver observer) {
-    nav::unity::setExtrusionBucketObserver(observer);
+void nav_set_extrusion_bucket_observer(nav::layer::ExtrusionBucketObserver observer) {
+    nav::layer::setExtrusionBucketObserver(observer);
 }
 
 __attribute__((visibility ("default")))
-void nav_set_bucket_destroy_observer(nav::unity::BucketDestroyObserver observer) {
-    nav::unity::setBucketDestroyObserver(observer);
+void nav_set_bucket_destroy_observer(nav::layer::BucketDestroyObserver observer) {
+    nav::layer::setBucketDestroyObserver(observer);
 }
 
 }

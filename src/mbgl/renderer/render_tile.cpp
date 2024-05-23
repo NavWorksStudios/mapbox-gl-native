@@ -128,7 +128,8 @@ void RenderTile::prepare(const SourcePrepareParameters& parameters) {
     matrix::multiply(matrix, transform.projMatrix, matrix);
     matrix::multiply(nearClippedMatrix, transform.nearClippedProjMatrix, nearClippedMatrix);
     
-    nav::unity::onTileModelMatrix(id.canonical, matrix.data());
+    const nav::TileId tileId = { id.canonical.x, id.canonical.y, id.canonical.z };
+    nav::matrix::onTileModelMatrix(&tileId, matrix.data());
 }
 
 void RenderTile::finishRender(PaintParameters& parameters) const {
