@@ -83,3 +83,6 @@ CMakeCache.txt
 CTestTestfile.cmake
 DartConfiguration.tcl
 mbgl-core.license
+Release/libmbgl-vendor-csscolorparser.a
+Release/libmbgl-vendor-icu.a
+Release/libmbgl-vendor-parsedate.a
