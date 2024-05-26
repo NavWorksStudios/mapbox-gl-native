@@ -160,15 +160,17 @@ void FillBucket::nav_upload(const CanonicalTileID& canonical, const std::string&
         triangleSeg.push_back(ts.indexLength);
     }
     
-    const nav::layer::FillBucket param = {
-        {{canonical.x, canonical.y, canonical.z}, nav::mb::layerRenderIndex(layerId), layerId.c_str(), sourceLayer.c_str() },
-        {(const uint16_t*) vertices.data(), (int) vertices.elements()},
-        {lines.data(), (int) lines.bytes() / 2},
-        {lineSeg.data(), (int) lineSeg.size()},
-        {triangles.data(), (int) triangles.bytes() / 2},
-        {triangleSeg.data(), (int) triangleSeg.size()}
-    };
-    nav::layer::onAddFillBucket(&param);
+    if (vertices.elements() > 0) {
+        const nav::layer::FillBucket param = {
+            {{canonical.x, canonical.y, canonical.z}, nav::mb::layerRenderIndex(layerId), layerId.c_str(), sourceLayer.c_str() },
+            {(const uint16_t*) vertices.data(), (int) vertices.elements()},
+            {lines.data(), (int) lines.bytes() / 2},
+            {lineSeg.data(), (int) lineSeg.size()},
+            {triangles.data(), (int) triangles.bytes() / 2},
+            {triangleSeg.data(), (int) triangleSeg.size()}
+        };
+        nav::layer::onAddFillBucket(&param);
+    }
 }
 
 bool FillBucket::hasData() const {

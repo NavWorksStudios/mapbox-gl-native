@@ -12,7 +12,7 @@ namespace nav {
 namespace log {
 
 void i(const char* tag, const char* format, ...) {
-    char buf[512];
+    char buffer[512];
     size_t offset = 0;
     
     // time
@@ -22,43 +22,43 @@ void i(const char* tag, const char* format, ...) {
         const std::tm* now_tm = std::localtime(&now_time_t);
         const std::chrono::milliseconds ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
         
-        buf[0] = '[';
-        strftime(buf + 1, 100, "%F %T", now_tm);
-        sprintf(buf + 20, ":%lld]", ms.count());
+        buffer[0] = '[';
+        strftime(buffer + 1, 100, "%F %T", now_tm);
+        sprintf(buffer + 20, ":%lld]", ms.count());
         
-        const size_t len = strlen(buf);
+        const size_t len = strlen(buffer);
         offset += len;
         
         if (offset < 25) {
-            memset(buf + offset, ' ', 25 - offset);
+            memset(buffer + offset, ' ', 25 - offset);
             offset = 25;
         }
     }
     
     // tag
     {
-        buf[offset++] = ' ';
-        buf[offset++] = '<';
+        buffer[offset++] = ' ';
+        buffer[offset++] = '<';
         
         const size_t len = strlen(tag);
-        memcpy(buf + offset, tag, len);
+        memcpy(buffer + offset, tag, len);
         offset += len;
         
-        buf[offset++] = '>';
-        buf[offset++] = ' ';
+        buffer[offset++] = '>';
+        buffer[offset++] = ' ';
     }
     
     // va
     {
         va_list args;
         va_start(args, format);
-        vsprintf(buf + offset, format, args);
+        vsprintf(buffer + offset, format, args);
         va_end(args);
     }
 
     
     // print
-    printf("%s", buf);
+    printf("%s", buffer);
 }
 
 std::string tileId(const mbgl::CanonicalTileID& canonical, const std::string& layerId, const std::string& sourceId) {

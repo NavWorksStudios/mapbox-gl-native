@@ -60,6 +60,7 @@ namespace nav {
             int layerRenderIndex;
             const char* layerId;
             const char* sourceLayer;
+            std::string toString() const;
         };
 
         // Fill Bucket data
