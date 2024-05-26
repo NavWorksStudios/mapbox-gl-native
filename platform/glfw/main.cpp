@@ -299,8 +299,18 @@ void nav_set_projection_matrix_observer(nav::matrix::ProjectionMatrixObserver ob
 }
 
 __attribute__((visibility ("default")))
+void nav_set_projection_transform_observer(nav::matrix::ProjectionTransformObserver observer) {
+    nav::matrix::setProjectionTransformObserver(observer);
+}
+
+__attribute__((visibility ("default")))
 void nav_set_tile_model_matrix_observer(nav::matrix::TileModelMatrixObserver observer) {
     nav::matrix::setTileModelMatrixObserver(observer);
+}
+
+__attribute__((visibility ("default")))
+void nav_set_tile_model_transform_observer(nav::matrix::TileModelTransformObserver observer) {
+    nav::matrix::setTileModelTransformObserver(observer);
 }
 
 __attribute__((visibility ("default")))
