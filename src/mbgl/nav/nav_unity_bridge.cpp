@@ -17,59 +17,50 @@ namespace matrix {
 
 ProjectionMatrixObserver projectionMatrixObserver = nullptr;
 void setProjectionMatrixObserver(ProjectionMatrixObserver observer) { projectionMatrixObserver = observer; }
+void onProjectionMatrix(const double* matrix) {
+//    nav::log::i("Bridge",
+//                "Projection : (%d,%d,%d) [%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf]\n",
+//                0, 0, 0,
+//                matrix[0], matrix[1], matrix[2], matrix[3],
+//                matrix[4], matrix[5], matrix[6], matrix[7],
+//                matrix[8], matrix[9], matrix[10], matrix[11],
+//                matrix[12], matrix[13], matrix[14], matrix[15]);
+    
+    if (projectionMatrixObserver) projectionMatrixObserver(matrix);
+}
 
 ProjectionTransformObserver projectionTransformObserver = nullptr;
 void setProjectionTransformObserver(ProjectionTransformObserver observer) { projectionTransformObserver = observer; }
-
-void onProjectionMatrix(const double* matrix) {
-    nav::log::i("Bridge",
-                "Projection : (%d,%d,%d) [%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf]\n",
-                0, 0, 0,
-                matrix[0], matrix[1], matrix[2], matrix[3],
-                matrix[4], matrix[5], matrix[6], matrix[7],
-                matrix[8], matrix[9], matrix[10], matrix[11],
-                matrix[12], matrix[13], matrix[14], matrix[15]);
-    
-    if (projectionMatrixObserver) projectionMatrixObserver(matrix);
-    
-    if (projectionTransformObserver) {
-        const Transform transform = {
-            {0, 0, 0},
-            {0, 0, 0},
-            {0, 0, 0}
-        };
-        
-        projectionTransformObserver(&transform);
-    }
+void onProjectionTransform(const double* position, const double* scale, const double* rotation) {
+    if (projectionTransformObserver) projectionTransformObserver(position, scale, rotation);
 }
-
-
 
 TileModelMatrixObserver tileModelMatrixObserver = nullptr;
 void setTileModelMatrixObserver(TileModelMatrixObserver observer) { tileModelMatrixObserver = observer; }
+void onTileModelMatrix(const TileId* tileId, const double* matrix) {
+//    nav::log::i("Bridge",
+//                "Model : (%d,%d,%d) [%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf]\n",
+//                tileId->x, tileId->y, tileId->z,
+//                matrix[0], matrix[1], matrix[2], matrix[3],
+//                matrix[4], matrix[5], matrix[6], matrix[7],
+//                matrix[8], matrix[9], matrix[10], matrix[11],
+//                matrix[12], matrix[13], matrix[14], matrix[15]);
+    
+    if (tileModelMatrixObserver) tileModelMatrixObserver(tileId, matrix);
+}
+
 
 TileModelTransformObserver tileModelTransformObserver = nullptr;
 void setTileModelTransformObserver(TileModelTransformObserver observer) { tileModelTransformObserver = observer; }
-
-void onTileModelMatrix(const TileId* tileId, const double* matrix) {
-    nav::log::i("Bridge",
-                "Model : (%d,%d,%d) [%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf]\n",
-                tileId->x, tileId->y, tileId->z,
-                matrix[0], matrix[1], matrix[2], matrix[3],
-                matrix[4], matrix[5], matrix[6], matrix[7],
-                matrix[8], matrix[9], matrix[10], matrix[11],
-                matrix[12], matrix[13], matrix[14], matrix[15]);
-    
-    if (tileModelMatrixObserver) tileModelMatrixObserver(tileId, matrix);
-    
+void onTileModelTransform(const TileId* tileId, const double* position, const double* scale) {
     if (tileModelTransformObserver) {
-        const Transform transform = {
-            {0, 0, 0},
-            {0, 0, 0},
-            {0, 0, 0}
-        };
-        
-        tileModelTransformObserver(tileId, &transform);
+        tileModelTransformObserver(tileId, position, scale);
+    } else {
+        nav::log::i("Bridge",
+                    "Model : (%d,%d,%d) T[%lf,%lf,%lf] S[%lf,%lf,%lf]\n",
+                    tileId->x, tileId->y, tileId->z,
+                    position[0], position[1], position[2],
+                    scale[0], scale[1], scale[2]);
     }
 }
 

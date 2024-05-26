@@ -20,32 +20,26 @@ namespace nav {
     };
 
     namespace matrix {
-
-        struct Transform {
-            struct Position { double x, y, z; } position;
-            struct Rotation { double x, y, z; } rotation;
-            struct Scale { double x, y, z; } scale;
-        };
-
     
         // Projection Matrix
         typedef void *(*ProjectionMatrixObserver)(const double* matrix); // double[16]
         void setProjectionMatrixObserver(ProjectionMatrixObserver observer);
-        // Projection Transform
-        typedef void *(*ProjectionTransformObserver)(const Transform* transform);
-        void setProjectionTransformObserver(ProjectionTransformObserver observer);
-        // notify
         void onProjectionMatrix(const double* matrix);
-
+    
+        // Projection Transform
+        typedef void *(*ProjectionTransformObserver)(const double* position, const double* rotation, const double* scale);
+        void setProjectionTransformObserver(ProjectionTransformObserver observer);
+        void onProjectionTransform(const double* position, const double* scale, const double* rotation);
 
         // Model Matrix
         typedef void *(*TileModelMatrixObserver)(const TileId* tileId, const double* matrix); // double[16]
         void setTileModelMatrixObserver(TileModelMatrixObserver observer);
-        // Model Transform
-        typedef void *(*TileModelTransformObserver)(const TileId* tileId, const Transform* transform);
-        void setTileModelTransformObserver(TileModelTransformObserver observer);
-        // notify
         void onTileModelMatrix(const TileId* tileId, const double* matrix);
+    
+        // Model Transform
+        typedef void *(*TileModelTransformObserver)(const TileId* tileId, const double* position, const double* scale);
+        void setTileModelTransformObserver(TileModelTransformObserver observer);
+        void onTileModelTransform(const TileId* tileId, const double* position, const double* scale);
 
     }
 
