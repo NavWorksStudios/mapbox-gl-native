@@ -45,7 +45,7 @@ static const std::map<std::string, std::string> layerIds = {
 //        {"building", "building", /* fill */ }, // 楼底座
 #endif
     
-#if 0
+#if 1
 //        {"tunnel-street-minor-low", "road", /* line */ },
 //        {"tunnel-street-minor-case", "road", /* line */ },
 //        {"tunnel-primary-secondary-tertiary-case", "road", /* line */ },
@@ -68,7 +68,7 @@ static const std::map<std::string, std::string> layerIds = {
     {"ferry-auto", "road", /* line */ }, // 摆渡，水上，实线
 #endif
     
-#if 0
+#if 1
 //        {"road-path-bg", "road", /* line */ }, // 固定宽度道路
 //        {"road-steps-bg", "road", /* line */ }, // 道路台阶
 //        {"turning-feature-outline", "road", /* symbol */ }, // 类似环岛的圆形，灰色，被turning-feature压盖
@@ -114,7 +114,7 @@ static const std::map<std::string, std::string> layerIds = {
 //        {"golf-hole-line", "road", /* line */ }, // 高尔夫球洞线
     
     
-#if 0
+#if 1
 //        {"bridge-path-bg", "road", /* line */ },
 //        {"bridge-steps-bg", "road", /* line */ },
 //        {"bridge-pedestrian-case", "road", /* line */ },
@@ -146,7 +146,7 @@ static const std::map<std::string, std::string> layerIds = {
 //        {"aerialway", "road", /* line */ },
     
 
-#if 0
+#if 1
     {"admin-1-boundary-bg", "admin", /* line */ }, //省界
     {"admin-0-boundary-bg", "admin", /* line */ }, // 国界
     {"admin-1-boundary", "admin", /* line */ }, //省界
@@ -154,7 +154,7 @@ static const std::map<std::string, std::string> layerIds = {
     {"admin-0-boundary-disputed", "admin", /* line */ }, // 争议国界
 #endif
     
-#if 0
+#if 1
     {"building-number-label", "housenum_label", /* symbol */ },
     {"road-label", "road", /* symbol */ },
     {"road-number-shield", "road", /* symbol */ },

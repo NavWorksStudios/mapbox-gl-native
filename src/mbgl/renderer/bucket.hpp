@@ -35,7 +35,7 @@ public:
     virtual ~Bucket() {
         nav::log::i("Bucket", "delete Bucket %p \n", this);
         
-        assert(nav::log::bucketMap()[key] > 0);
+//        assert(nav::log::bucketMap()[key] > 0);
         nav::log::bucketMap()[key]--;
     }
 

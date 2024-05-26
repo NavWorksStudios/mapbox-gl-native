@@ -78,10 +78,10 @@ struct Settings : mbgl::Settings_JSON {
         }
         
         // #*#*# 设置默认地图位置为香港维多利亚港附近
-        latitude = 22.2874;
-        longitude = 114.157;
+        latitude = 22.291923137288844;
+        longitude = 114.15912584919271;
         bearing = 161;
-        zoom = 16.8;
+        zoom = 14.8;
         pitch = 60;
         
         debug = mbgl::EnumType(mbgl::MapDebugOptions::NoDebug);
