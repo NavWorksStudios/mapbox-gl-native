@@ -18,37 +18,47 @@ namespace matrix {
 ProjectionMatrixObserver projectionMatrixObserver = nullptr;
 void setProjectionMatrixObserver(ProjectionMatrixObserver observer) { projectionMatrixObserver = observer; }
 void onProjectionMatrix(const double* matrix) {
-//    nav::log::i("Bridge",
-//                "Projection : (%d,%d,%d) [%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf]\n",
-//                0, 0, 0,
-//                matrix[0], matrix[1], matrix[2], matrix[3],
-//                matrix[4], matrix[5], matrix[6], matrix[7],
-//                matrix[8], matrix[9], matrix[10], matrix[11],
-//                matrix[12], matrix[13], matrix[14], matrix[15]);
-    
-    if (projectionMatrixObserver) projectionMatrixObserver(matrix);
+    if (projectionMatrixObserver) {
+        projectionMatrixObserver(matrix);
+    } else {
+        nav::log::i("Bridge",
+                    "Projection : [%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf]\n",
+                    matrix[0], matrix[1], matrix[2], matrix[3],
+                    matrix[4], matrix[5], matrix[6], matrix[7],
+                    matrix[8], matrix[9], matrix[10], matrix[11],
+                    matrix[12], matrix[13], matrix[14], matrix[15]);
+    }
 }
 
 ProjectionTransformObserver projectionTransformObserver = nullptr;
 void setProjectionTransformObserver(ProjectionTransformObserver observer) { projectionTransformObserver = observer; }
 void onProjectionTransform(const double* position, const double* scale, const double* rotation) {
-    if (projectionTransformObserver) projectionTransformObserver(position, scale, rotation);
+    if (projectionTransformObserver) {
+        projectionTransformObserver(position, scale, rotation);
+    } else {
+        nav::log::i("Bridge",
+                    "Projection : T[%lf,%lf,%lf] S[%lf,%lf,%lf] R[%lf,%lf,%lf]\n",
+                    position[0], position[1], position[2],
+                    scale[0], scale[1], scale[2],
+                    rotation[0], rotation[1], rotation[2]);
+    }
 }
 
 TileModelMatrixObserver tileModelMatrixObserver = nullptr;
 void setTileModelMatrixObserver(TileModelMatrixObserver observer) { tileModelMatrixObserver = observer; }
 void onTileModelMatrix(const TileId* tileId, const double* matrix) {
-//    nav::log::i("Bridge",
-//                "Model : (%d,%d,%d) [%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf]\n",
-//                tileId->x, tileId->y, tileId->z,
-//                matrix[0], matrix[1], matrix[2], matrix[3],
-//                matrix[4], matrix[5], matrix[6], matrix[7],
-//                matrix[8], matrix[9], matrix[10], matrix[11],
-//                matrix[12], matrix[13], matrix[14], matrix[15]);
-    
-    if (tileModelMatrixObserver) tileModelMatrixObserver(tileId, matrix);
+    if (tileModelMatrixObserver) {
+        tileModelMatrixObserver(tileId, matrix);
+    } else {
+        nav::log::i("Bridge",
+                    "Model : (%d,%d,%d) [%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf]\n",
+                    tileId->x, tileId->y, tileId->z,
+                    matrix[0], matrix[1], matrix[2], matrix[3],
+                    matrix[4], matrix[5], matrix[6], matrix[7],
+                    matrix[8], matrix[9], matrix[10], matrix[11],
+                    matrix[12], matrix[13], matrix[14], matrix[15]);
+    }
 }
-
 
 TileModelTransformObserver tileModelTransformObserver = nullptr;
 void setTileModelTransformObserver(TileModelTransformObserver observer) { tileModelTransformObserver = observer; }

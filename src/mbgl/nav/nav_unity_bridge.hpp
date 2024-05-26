@@ -31,12 +31,12 @@ namespace nav {
         void setProjectionTransformObserver(ProjectionTransformObserver observer);
         void onProjectionTransform(const double* position, const double* scale, const double* rotation);
 
-        // Model Matrix
+        // Tile Model Matrix
         typedef void *(*TileModelMatrixObserver)(const TileId* tileId, const double* matrix); // double[16]
         void setTileModelMatrixObserver(TileModelMatrixObserver observer);
         void onTileModelMatrix(const TileId* tileId, const double* matrix);
     
-        // Model Transform
+        // Tile Model Transform
         typedef void *(*TileModelTransformObserver)(const TileId* tileId, const double* position, const double* scale);
         void setTileModelTransformObserver(TileModelTransformObserver observer);
         void onTileModelTransform(const TileId* tileId, const double* position, const double* scale);
@@ -57,7 +57,6 @@ namespace nav {
             const char* sourceLayer;
         };
 
-
         // Fill Bucket data
         struct FillBucket {
             const Feature feature;
@@ -69,7 +68,6 @@ namespace nav {
         void setFillBucketObserver(FillBucketObserver observer);
         void onAddFillBucket(const FillBucket* param);
 
-
         // Line Bucket data
         struct LineBucket {
             const Feature feature;
@@ -80,7 +78,6 @@ namespace nav {
         void setLineBucketObserver(LineBucketObserver observer);
         void onAddLineBucket(const LineBucket* param);
 
-
         // Cycle Bucket data
         struct CycleBucket {
             const Feature feature;
@@ -89,7 +86,6 @@ namespace nav {
         void setCycleBucketObserver(CycleBucketObserver observer);
         void onAddCycleBucket(const CycleBucket* param);
 
-
         // Symbol Bucket data
         struct SymbolBucket {
             const Feature feature;
@@ -97,7 +93,6 @@ namespace nav {
         typedef void *(*SymbolBucketObserver)(const SymbolBucket* param);
         void setSymbolBucketObserver(SymbolBucketObserver observer);
         void onAddSymbolBucket(const SymbolBucket* param);
-
 
         // Extrusion Bucket data
         struct ExtrusionBucket {
