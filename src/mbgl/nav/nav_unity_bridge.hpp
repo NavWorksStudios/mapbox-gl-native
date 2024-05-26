@@ -27,17 +27,22 @@ namespace nav {
         void onProjectionMatrix(const double* matrix);
     
         // Projection Transform
-        typedef void *(*ProjectionTransformObserver)(const double* position, const double* rotation, const double* scale);
+        typedef void *(*ProjectionTransformObserver)(const double* position, // double[3]
+                                                     const double* rotation, // double[3]
+                                                     const double* scale); // double[3]
         void setProjectionTransformObserver(ProjectionTransformObserver observer);
         void onProjectionTransform(const double* position, const double* scale, const double* rotation);
 
         // Tile Model Matrix
-        typedef void *(*TileModelMatrixObserver)(const TileId* tileId, const double* matrix); // double[16]
+        typedef void *(*TileModelMatrixObserver)(const TileId* tileId, 
+                                                 const double* matrix); // double[16]
         void setTileModelMatrixObserver(TileModelMatrixObserver observer);
         void onTileModelMatrix(const TileId* tileId, const double* matrix);
     
         // Tile Model Transform
-        typedef void *(*TileModelTransformObserver)(const TileId* tileId, const double* position, const double* scale);
+        typedef void *(*TileModelTransformObserver)(const TileId* tileId, 
+                                                    const double* position, // double[3]
+                                                    const double* scale); // double[3]
         void setTileModelTransformObserver(TileModelTransformObserver observer);
         void onTileModelTransform(const TileId* tileId, const double* position, const double* scale);
 
