@@ -159,6 +159,10 @@ protected:
 
 
     TileObserver* observer = nullptr;
+
+public:
+    double matrixDigest = 0;
+
 };
 
 } // namespace mbgl

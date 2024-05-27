@@ -162,7 +162,7 @@ void FillBucket::nav_upload(const CanonicalTileID& canonical, const std::string&
     
     if (vertices.elements() > 0) {
         const nav::layer::FillBucket param = {
-            {{canonical.x, canonical.y, canonical.z}, nav::mb::layerRenderIndex(layerId), layerId.c_str(), sourceLayer.c_str() },
+            {&canonical, nav::mb::layerRenderIndex(layerId), layerId.c_str(), sourceLayer.c_str()},
             {(const uint16_t*) vertices.data(), (int) vertices.elements()},
             {lines.data(), (int) lines.bytes() / 2},
             {lineSeg.data(), (int) lineSeg.size()},

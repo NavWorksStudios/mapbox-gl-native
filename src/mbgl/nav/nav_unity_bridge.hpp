@@ -10,14 +10,11 @@
 
 #include <mbgl/tile/tile_id.hpp>
 #include "mbgl/nav/nav_mb_layer.hpp"
+#include "mbgl/nav/nav_log.hpp"
 
 namespace nav {
 
-    struct TileId {
-        uint32_t x;
-        uint32_t y;
-        uint8_t z;
-    };
+    using TileId = mbgl::CanonicalTileID;
 
     namespace matrix {
     
@@ -40,7 +37,7 @@ namespace nav {
         void onTileModelMatrix(const TileId* tileId, const double* matrix);
     
         // Tile Model Transform
-        typedef void *(*TileModelTransformObserver)(const TileId* tileId, 
+        typedef void *(*TileModelTransformObserver)(const TileId* tileId,
                                                     const double* position, // double[3]
                                                     const double* scale); // double[3]
         void setTileModelTransformObserver(TileModelTransformObserver observer);
@@ -56,7 +53,7 @@ namespace nav {
         };
     
         struct Feature {
-            TileId tileId;
+            const TileId* tileId;
             int layerRenderIndex;
             const char* layerId;
             const char* sourceLayer;

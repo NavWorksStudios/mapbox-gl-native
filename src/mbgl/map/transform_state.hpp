@@ -112,6 +112,7 @@ public:
 
     // Matrix
     void matrixFor(mat4&, const UnwrappedTileID&) const;
+    void matrixFor(mat4&, const UnwrappedTileID&, double* ps) const;
     void getProjMatrix(mat4& matrix, uint16_t nearZ = 1, bool aligned = false) const;
 
     // Dimensions

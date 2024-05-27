@@ -123,13 +123,29 @@ void RenderTile::prepare(const SourcePrepareParameters& parameters) {
     // Calculate two matrices for this tile: matrix is the standard tile matrix; nearClippedMatrix
     // has near plane moved further, to enhance depth buffer precision
     const auto& transform = parameters.transform;
-    transform.state.matrixFor(matrix, id);
+    double ps[6];
+    transform.state.matrixFor(matrix, id, ps);
     transform.state.matrixFor(nearClippedMatrix, id);
     matrix::multiply(matrix, transform.projMatrix, matrix);
     matrix::multiply(nearClippedMatrix, transform.nearClippedProjMatrix, nearClippedMatrix);
-    
-    const nav::TileId tileId = { id.canonical.x, id.canonical.y, id.canonical.z };
-    nav::matrix::onTileModelMatrix(&tileId, matrix.data());
+
+    const double digest = ps[0] + ps[1] + ps[3];
+    if (tile.matrixDigest != digest) {
+        nav::log::i("RenderTile", "obj %p (%d,%d,%d) - (%lf | %lf) [%lf,%lf,%lf] \n",
+                    this, id.canonical.x, id.canonical.y, (int)id.canonical.z,
+                    tile.matrixDigest, digest, ps[0], ps[1], ps[3]);
+        
+        tile.matrixDigest = digest;
+        
+        nav::matrix::onTileModelMatrix(&id.canonical, matrix.data());
+
+        // { ps[0], ps[1], 0 } { ps[3], ps[3], 1 }
+        ps[2] = 0;
+        ps[4] = ps[3];
+        ps[5] = 1;
+        nav::matrix::onTileModelTransform(&id.canonical, ps, ps+3);
+    }
+
 }
 
 void RenderTile::finishRender(PaintParameters& parameters) const {

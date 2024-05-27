@@ -63,11 +63,11 @@ void onTileModelMatrix(const TileId* tileId, const double* matrix) {
 TileModelTransformObserver tileModelTransformObserver = nullptr;
 void setTileModelTransformObserver(TileModelTransformObserver observer) { tileModelTransformObserver = observer; }
 void onTileModelTransform(const TileId* tileId, const double* position, const double* scale) {
-//    nav::log::i("Bridge",
-//                "Model : (%d,%d,%d) T[%lf,%lf,%lf] S[%lf,%lf,%lf]\n",
-//                tileId->x, tileId->y, tileId->z,
-//                position[0], position[1], position[2],
-//                scale[0], scale[1], scale[2]);
+    nav::log::i("Bridge",
+                "Model : (%d,%d,%d) T[%lf,%lf,%lf] S[%lf,%lf,%lf]\n",
+                tileId->x, tileId->y, tileId->z,
+                position[0], position[1], position[2],
+                scale[0], scale[1], scale[2]);
     
     if (tileModelTransformObserver) {
         tileModelTransformObserver(tileId, position, scale);
@@ -80,7 +80,7 @@ namespace layer {
 
 std::string Feature::toString() const {
     char tileid[32];
-    sprintf(tileid, "(%d,%d,%d)", tileId.x, tileId.y, (int)tileId.z);
+    sprintf(tileid, "(%d,%d,%d)", tileId->x, tileId->y, (int)tileId->z);
     
     std::string tile;
     tile += tileid; while (tile.length() < 20) tile += " ";

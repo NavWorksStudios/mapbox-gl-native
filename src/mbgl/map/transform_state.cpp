@@ -80,17 +80,26 @@ void TransformState::matrixFor(mat4& matrix, const UnwrappedTileID& tileID) cons
     const uint64_t tileScale = 1ull << tileID.canonical.z;
     const double s = Projection::worldSize(scale) / tileScale;
 
-    const double tilex = int64_t(tileID.canonical.x + tileID.wrap * static_cast<int64_t>(tileScale)) * s;
-    const double tiley = int64_t(tileID.canonical.y) * s;
     matrix::identity(matrix);
-    matrix::translate(matrix, matrix, tilex, tiley, 0);
-    const double tilescale = s / util::EXTENT;
-    matrix::scale(matrix, matrix, tilescale, tilescale, 1);
+    matrix::translate(matrix,
+                      matrix,
+                      int64_t(tileID.canonical.x + tileID.wrap * static_cast<int64_t>(tileScale)) * s,
+                      int64_t(tileID.canonical.y) * s,
+                      0);
+    matrix::scale(matrix, matrix, s / util::EXTENT, s / util::EXTENT, 1);
+}
 
-    const nav::TileId id = { tileID.canonical.x, tileID.canonical.y, tileID.canonical.z };
-    const double pos[] = { tilex, tiley, 0 };
-    const double sca[] = { tilescale, tilescale, 1 };
-    nav::matrix::onTileModelTransform(&id, pos, sca);
+void TransformState::matrixFor(mat4& matrix, const UnwrappedTileID& tileID, double* ps) const {
+    const uint64_t tileScale = 1ull << tileID.canonical.z;
+    const double s = Projection::worldSize(scale) / tileScale;
+    
+    ps[0] = int64_t(tileID.canonical.x + tileID.wrap * static_cast<int64_t>(tileScale)) * s;
+    ps[1] = int64_t(tileID.canonical.y) * s;
+    ps[3] = s / util::EXTENT;
+
+    matrix::identity(matrix);
+    matrix::translate(matrix, matrix, ps[0], ps[1], 0);
+    matrix::scale(matrix, matrix, ps[3], ps[3], 1);
 }
 
 void TransformState::getProjMatrix(mat4& projMatrix, uint16_t nearZ, bool aligned) const {

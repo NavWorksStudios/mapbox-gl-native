@@ -194,7 +194,7 @@ void FillExtrusionBucket::nav_upload(const CanonicalTileID& canonical, const std
     
     if (vertices.elements() > 0) {
         const nav::layer::ExtrusionBucket param = {
-            {{canonical.x, canonical.y, canonical.z}, nav::mb::layerRenderIndex(layerId), layerId.c_str(), sourceLayer.c_str() },
+            {&canonical, nav::mb::layerRenderIndex(layerId), layerId.c_str(), sourceLayer.c_str()},
             {(const uint16_t*) vertices.data(), (int) vertices.elements()},
             {triangles.data(), (int) triangles.bytes() / 2},
             {triangleSegs.data(), (int) triangleSegs.size()}
