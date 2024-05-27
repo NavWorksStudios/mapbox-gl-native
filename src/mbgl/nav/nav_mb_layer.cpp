@@ -45,7 +45,7 @@ static const std::map<std::string, std::string> layerIds = {
 //        {"building", "building", /* fill */ }, // 楼底座
 #endif
     
-#if 1
+#if 0
 //        {"tunnel-street-minor-low", "road", /* line */ },
 //        {"tunnel-street-minor-case", "road", /* line */ },
 //        {"tunnel-primary-secondary-tertiary-case", "road", /* line */ },
@@ -154,7 +154,7 @@ static const std::map<std::string, std::string> layerIds = {
     {"admin-0-boundary-disputed", "admin", /* line */ }, // 争议国界
 #endif
     
-#if 1
+#if 0
     {"building-number-label", "housenum_label", /* symbol */ },
     {"road-label", "road", /* symbol */ },
     {"road-number-shield", "road", /* symbol */ },

@@ -13,40 +13,45 @@
 
 namespace nav {
 
-namespace matrix {
+namespace projection {
 
-ProjectionMatrixObserver projectionMatrixObserver = nullptr;
-void setProjectionMatrixObserver(ProjectionMatrixObserver observer) { projectionMatrixObserver = observer; }
-void onProjectionMatrix(const double* matrix) {
-//    nav::log::i("Bridge",
-//                "Projection : [%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf]\n",
-//                matrix[0], matrix[1], matrix[2], matrix[3],
-//                matrix[4], matrix[5], matrix[6], matrix[7],
-//                matrix[8], matrix[9], matrix[10], matrix[11],
-//                matrix[12], matrix[13], matrix[14], matrix[15]);
+MatrixObserver matrixObserver = nullptr;
+void setMatrixObserver(MatrixObserver observer) { matrixObserver = observer; }
+void onMatrix(const double* matrix) {
+    //    nav::log::i("Bridge",
+    //                "Projection : [%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf]\n",
+    //                matrix[0], matrix[1], matrix[2], matrix[3],
+    //                matrix[4], matrix[5], matrix[6], matrix[7],
+    //                matrix[8], matrix[9], matrix[10], matrix[11],
+    //                matrix[12], matrix[13], matrix[14], matrix[15]);
     
-    if (projectionMatrixObserver) {
-        projectionMatrixObserver(matrix);
+    if (matrixObserver) {
+        matrixObserver(matrix);
     }
 }
 
-ProjectionTransformObserver projectionTransformObserver = nullptr;
-void setProjectionTransformObserver(ProjectionTransformObserver observer) { projectionTransformObserver = observer; }
-void onProjectionTransform(const double* position, const double* scale, const double* rotation) {
-//    nav::log::i("Bridge",
-//                "Projection : T[%lf,%lf,%lf] S[%lf,%lf,%lf] R[%lf,%lf,%lf]\n",
-//                position[0], position[1], position[2],
-//                scale[0], scale[1], scale[2],
-//                rotation[0], rotation[1], rotation[2]);
+TransformObserver transformObserver = nullptr;
+void setTransformObserver(TransformObserver observer) { transformObserver = observer; }
+void onTransform(const double* position, const double* scale, const double* rotation) {
+    //    nav::log::i("Bridge",
+    //                "Projection : T[%lf,%lf,%lf] S[%lf,%lf,%lf] R[%lf,%lf,%lf]\n",
+    //                position[0], position[1], position[2],
+    //                scale[0], scale[1], scale[2],
+    //                rotation[0], rotation[1], rotation[2]);
     
-    if (projectionTransformObserver) {
-        projectionTransformObserver(position, scale, rotation);
+    if (transformObserver) {
+        transformObserver(position, scale, rotation);
     }
 }
 
-TileModelMatrixObserver tileModelMatrixObserver = nullptr;
-void setTileModelMatrixObserver(TileModelMatrixObserver observer) { tileModelMatrixObserver = observer; }
-void onTileModelMatrix(const TileId* tileId, const double* matrix) {
+}
+
+
+namespace model {
+
+TileMatrixObserver tileMatrixObserver = nullptr;
+void setTileMatrixObserver(TileMatrixObserver observer) { tileMatrixObserver = observer; }
+void onTileMatrix(const TileId* tileId, const double* matrix) {
 //    nav::log::i("Bridge",
 //                "Model : (%d,%d,%d) [%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf]\n",
 //                tileId->x, tileId->y, tileId->z,
@@ -55,22 +60,22 @@ void onTileModelMatrix(const TileId* tileId, const double* matrix) {
 //                matrix[8], matrix[9], matrix[10], matrix[11],
 //                matrix[12], matrix[13], matrix[14], matrix[15]);
     
-    if (tileModelMatrixObserver) {
-        tileModelMatrixObserver(tileId, matrix);
+    if (tileMatrixObserver) {
+        tileMatrixObserver(tileId, matrix);
     }
 }
 
-TileModelTransformObserver tileModelTransformObserver = nullptr;
-void setTileModelTransformObserver(TileModelTransformObserver observer) { tileModelTransformObserver = observer; }
-void onTileModelTransform(const TileId* tileId, const double* position, const double* scale) {
+TileTransformObserver tileTransformObserver = nullptr;
+void setTileTransformObserver(TileTransformObserver observer) { tileTransformObserver = observer; }
+void onTileTransform(const TileId* tileId, const double* position, const double* scale) {
     nav::log::i("Bridge",
                 "Model : (%d,%d,%d) T[%lf,%lf,%lf] S[%lf,%lf,%lf]\n",
                 tileId->x, tileId->y, tileId->z,
                 position[0], position[1], position[2],
                 scale[0], scale[1], scale[2]);
     
-    if (tileModelTransformObserver) {
-        tileModelTransformObserver(tileId, position, scale);
+    if (tileTransformObserver) {
+        tileTransformObserver(tileId, position, scale);
     }
 }
 

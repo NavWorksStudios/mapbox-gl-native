@@ -294,23 +294,23 @@ void nav_destroy() {
 }
 
 __attribute__((visibility ("default")))
-void nav_set_projection_matrix_observer(nav::matrix::ProjectionMatrixObserver observer) {
-    nav::matrix::setProjectionMatrixObserver(observer);
+void nav_set_projection_matrix_observer(nav::projection::MatrixObserver observer) {
+    nav::projection::setMatrixObserver(observer);
 }
 
 __attribute__((visibility ("default")))
-void nav_set_projection_transform_observer(nav::matrix::ProjectionTransformObserver observer) {
-    nav::matrix::setProjectionTransformObserver(observer);
+void nav_set_projection_transform_observer(nav::projection::TransformObserver observer) {
+    nav::projection::setTransformObserver(observer);
 }
 
 __attribute__((visibility ("default")))
-void nav_set_tile_model_matrix_observer(nav::matrix::TileModelMatrixObserver observer) {
-    nav::matrix::setTileModelMatrixObserver(observer);
+void nav_set_tile_model_matrix_observer(nav::model::TileMatrixObserver observer) {
+    nav::model::setTileMatrixObserver(observer);
 }
 
 __attribute__((visibility ("default")))
-void nav_set_tile_model_transform_observer(nav::matrix::TileModelTransformObserver observer) {
-    nav::matrix::setTileModelTransformObserver(observer);
+void nav_set_tile_model_transform_observer(nav::model::TileTransformObserver observer) {
+    nav::model::setTileTransformObserver(observer);
 }
 
 __attribute__((visibility ("default")))

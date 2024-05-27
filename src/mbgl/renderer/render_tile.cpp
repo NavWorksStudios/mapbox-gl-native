@@ -131,19 +131,18 @@ void RenderTile::prepare(const SourcePrepareParameters& parameters) {
 
     const double digest = ps[0] + ps[1] + ps[3];
     if (tile.matrixDigest != digest) {
-        nav::log::i("RenderTile", "obj %p (%d,%d,%d) - (%lf | %lf) [%lf,%lf,%lf] \n",
-                    this, id.canonical.x, id.canonical.y, (int)id.canonical.z,
-                    tile.matrixDigest, digest, ps[0], ps[1], ps[3]);
+//        nav::log::i("RenderTile", "obj %p (%d,%d,%d) - (%lf | %lf) [%lf,%lf,%lf] \n",
+//                    this, id.canonical.x, id.canonical.y, (int)id.canonical.z,
+//                    tile.matrixDigest, digest, ps[0], ps[1], ps[3]);
         
         tile.matrixDigest = digest;
-        
-        nav::matrix::onTileModelMatrix(&id.canonical, matrix.data());
+        nav::model::onTileMatrix(&id.canonical, matrix.data());
 
         // { ps[0], ps[1], 0 } { ps[3], ps[3], 1 }
         ps[2] = 0;
         ps[4] = ps[3];
         ps[5] = 1;
-        nav::matrix::onTileModelTransform(&id.canonical, ps, ps+3);
+        nav::model::onTileTransform(&id.canonical, ps, ps+3);
     }
 
 }

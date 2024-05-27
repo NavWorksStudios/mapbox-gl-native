@@ -16,42 +16,27 @@ namespace nav {
 
     using TileId = mbgl::CanonicalTileID;
 
-    namespace matrix {
-    
-        // Projection Matrix
-        typedef void *(*ProjectionMatrixObserver)(const double* matrix); // double[16]
-        void setProjectionMatrixObserver(ProjectionMatrixObserver observer);
-        void onProjectionMatrix(const double* matrix);
-    
-        // Projection Transform
-        typedef void *(*ProjectionTransformObserver)(const double* position, // double[3]
-                                                     const double* rotation, // double[3]
-                                                     const double* scale); // double[3]
-        void setProjectionTransformObserver(ProjectionTransformObserver observer);
-        void onProjectionTransform(const double* position, const double* scale, const double* rotation);
+    namespace projection {
+        typedef void *(*MatrixObserver)(const double* matrix /*[16]*/);
+        void setMatrixObserver(MatrixObserver observer);
+        void onMatrix(const double* matrix);
 
-        // Tile Model Matrix
-        typedef void *(*TileModelMatrixObserver)(const TileId* tileId, 
-                                                 const double* matrix); // double[16]
-        void setTileModelMatrixObserver(TileModelMatrixObserver observer);
-        void onTileModelMatrix(const TileId* tileId, const double* matrix);
-    
-        // Tile Model Transform
-        typedef void *(*TileModelTransformObserver)(const TileId* tileId,
-                                                    const double* position, // double[3]
-                                                    const double* scale); // double[3]
-        void setTileModelTransformObserver(TileModelTransformObserver observer);
-        void onTileModelTransform(const TileId* tileId, const double* position, const double* scale);
+        typedef void *(*TransformObserver)(const double* position /*[3]*/, const double* rotation /*[3]*/, const double* scale /*[3]*/);
+        void setTransformObserver(TransformObserver observer);
+        void onTransform(const double* position, const double* scale, const double* rotation);
+    }
 
+    namespace model {
+        typedef void *(*TileMatrixObserver)(const TileId* tileId, const double* matrix /*[16]*/);
+        void setTileMatrixObserver(TileMatrixObserver observer);
+        void onTileMatrix(const TileId* tileId, const double* matrix);
+
+        typedef void *(*TileTransformObserver)(const TileId* tileId, const double* position /*[3]*/, const double* scale /*[3]*/);
+        void setTileTransformObserver(TileTransformObserver observer);
+        void onTileTransform(const TileId* tileId, const double* position, const double* scale);
     }
 
     namespace layer {
-
-        template <typename T> struct Buffer {
-            const T* ptr;
-            int count;
-        };
-    
         struct Feature {
             const TileId* tileId;
             int layerRenderIndex;
@@ -59,7 +44,13 @@ namespace nav {
             const char* sourceLayer;
             std::string toString() const;
         };
+    
+        template <typename T> struct Buffer {
+            const T* ptr;
+            int count;
+        };
 
+    
         // Fill Bucket data
         struct FillBucket {
             const Feature feature;
@@ -71,6 +62,7 @@ namespace nav {
         void setFillBucketObserver(FillBucketObserver observer);
         void onAddFillBucket(const FillBucket* param);
 
+    
         // Line Bucket data
         struct LineBucket {
             const Feature feature;
@@ -81,6 +73,7 @@ namespace nav {
         void setLineBucketObserver(LineBucketObserver observer);
         void onAddLineBucket(const LineBucket* param);
 
+    
         // Cycle Bucket data
         struct CycleBucket {
             const Feature feature;
@@ -89,6 +82,7 @@ namespace nav {
         void setCycleBucketObserver(CycleBucketObserver observer);
         void onAddCycleBucket(const CycleBucket* param);
 
+    
         // Symbol Bucket data
         struct SymbolBucket {
             const Feature feature;
@@ -97,6 +91,7 @@ namespace nav {
         void setSymbolBucketObserver(SymbolBucketObserver observer);
         void onAddSymbolBucket(const SymbolBucket* param);
 
+    
         // Extrusion Bucket data
         struct ExtrusionBucket {
             const Feature feature;
@@ -111,7 +106,6 @@ namespace nav {
         typedef void *(*BucketDestroyObserver)(const Feature* param);
         void setBucketDestroyObserver(BucketDestroyObserver observer);
         void onBucketDestroy(const Feature* param);
-
     }
 }
 
