@@ -140,34 +140,12 @@ void FillBucket::upload(gfx::UploadPass& uploadPass) {
 }
 
 void FillBucket::nav_upload(const CanonicalTileID& canonical, const std::string& layerId, const std::string& sourceLayer) {
-    static std::vector<uint16_t> lineSeg;
-    static std::vector<uint16_t> triangleSeg;
-    
-    lineSeg.clear();
-    triangleSeg.clear();
-    
-    for (const auto& ls : lineSegments) {
-        lineSeg.push_back(ls.vertexOffset);
-        lineSeg.push_back(ls.vertexLength);
-        lineSeg.push_back(ls.indexOffset);
-        lineSeg.push_back(ls.indexLength);
-    }
-    
-    for (const auto& ts : triangleSegments) {
-        triangleSeg.push_back(ts.vertexOffset);
-        triangleSeg.push_back(ts.vertexLength);
-        triangleSeg.push_back(ts.indexOffset);
-        triangleSeg.push_back(ts.indexLength);
-    }
-    
-    if (vertices.elements() > 0) {
+    if (hasData()) {
         const nav::layer::FillBucket param = {
             {&canonical, nav::mb::layerRenderIndex(layerId), layerId.c_str(), sourceLayer.c_str()},
             {(const uint16_t*) vertices.data(), (int) vertices.elements()},
             {lines.data(), (int) lines.bytes() / 2},
-            {lineSeg.data(), (int) lineSeg.size()},
-            {triangles.data(), (int) triangles.bytes() / 2},
-            {triangleSeg.data(), (int) triangleSeg.size()}
+            {triangles.data(), (int) triangles.bytes() / 2}
         };
         nav::layer::onAddFillBucket(&param);
     }

@@ -535,26 +535,15 @@ void LineBucket::upload(gfx::UploadPass& uploadPass) {
 }
 
 void LineBucket::nav_upload(const CanonicalTileID& canonical, const std::string& layerId, const std::string& sourceLayer) {
-    std::vector<uint16_t> triangleSegs;
-    
-    for (const auto& ts : segments) {
-        triangleSegs.push_back(ts.vertexOffset);
-        triangleSegs.push_back(ts.vertexLength);
-        triangleSegs.push_back(ts.indexOffset);
-        triangleSegs.push_back(ts.indexLength);
-    }
-    
-    if (vertices.elements() > 0) {
+    if (hasData()) {
         const nav::layer::LineBucket param = {
             {&canonical, nav::mb::layerRenderIndex(layerId), layerId.c_str(), sourceLayer.c_str() },
             {(const uint16_t*) vertices.data(), (int) vertices.elements()},
-            {triangles.data(), (int) triangles.bytes() / 2},
-            {triangleSegs.data(), (int) triangleSegs.size()}
+            {triangles.data(), (int) triangles.bytes() / 2}
         };
         
         nav::layer::onAddLineBucket(&param);
     }
-
 }
 
 bool LineBucket::hasData() const {
