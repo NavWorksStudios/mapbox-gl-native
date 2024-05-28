@@ -69,28 +69,28 @@ static const std::map<std::string, std::string> layerIds = {
 #endif
     
 #if 1
-//        {"road-path-bg", "road", /* line */ }, // 固定宽度道路
-//        {"road-steps-bg", "road", /* line */ }, // 道路台阶
-//        {"turning-feature-outline", "road", /* symbol */ }, // 类似环岛的圆形，灰色，被turning-feature压盖
-//        {"road-pedestrian-case", "road", /* line */ }, // 人行道-case
-//        {"road-minor-low", "road", /* line */ }, // 次要道路-low
+//    {"road-path-bg", "road", /* line */ }, // 固定宽度道路
+//    {"road-steps-bg", "road", /* line */ }, // 道路台阶
+//    {"turning-feature-outline", "road", /* symbol */ }, // 类似环岛的圆形，灰色，被turning-feature压盖
+//    {"road-pedestrian-case", "road", /* line */ }, // 人行道-case
+//    {"road-minor-low", "road", /* line */ }, // 次要道路-low
 //
-//        {"road-street-low", "road", /* line */ }, // 公路街道-low
-//        {"road-minor-case", "road", /* line */ }, // 次要道路-case
-//        {"road-street-case", "road", /* line */ }, // 公路街道-case
-//        {"road-secondary-tertiary-case", "road", /* line */ }, // 公路二级-三级-case
-//        {"road-primary-case", "road", /* line */ }, // 主要公路-case
+//    {"road-street-low", "road", /* line */ }, // 公路街道-low
+//    {"road-minor-case", "road", /* line */ }, // 次要道路-case
+//    {"road-street-case", "road", /* line */ }, // 公路街道-case
+//    {"road-secondary-tertiary-case", "road", /* line */ }, // 公路二级-三级-case
+//    {"road-primary-case", "road", /* line */ }, // 主要公路-case
 //
-//        {"road-major-link-case", "road", /* line */ }, // 公路主干道-case
-//        {"road-motorway-trunk-case", "road", /* line */ }, // 公路机动车道干线-case
-//        {"road-construction", "road", /* line */ }, // 在建道路
+//    {"road-major-link-case", "road", /* line */ }, // 公路主干道-case
+//    {"road-motorway-trunk-case", "road", /* line */ }, // 公路机动车道干线-case
+//    {"road-construction", "road", /* line */ }, // 在建道路
     
-    {"road-path", "road", /* line */ }, // 道路
-    {"road-steps", "road", /* line */ }, // 道路台阶
+//    {"road-path", "road", /* line */ }, // 小路（灰色虚线）
+//    {"road-steps", "road", /* line */ }, // 道路台阶（灰色细虚线）
 
     {"road-major-link", "road", /* line */ }, // 公路主干道
-    {"road-pedestrian", "road", /* line */ }, // 人行道
-    {"road-pedestrian-polygon-fill", "road", /* fill */ }, // 人行道多边形填充
+//    {"road-pedestrian", "road", /* line */ }, // 人行道（灰色虚线）
+    {"road-pedestrian-polygon-fill", "road", /* fill */ }, // 人行道多边形填充（白块）
     {"road-pedestrian-polygon-pattern", "road", /* fill */ }, // 人行道多边形图案
     {"road-polygon", "road", /* fill */ }, // 道路多边形
     
@@ -114,7 +114,7 @@ static const std::map<std::string, std::string> layerIds = {
 //        {"golf-hole-line", "road", /* line */ }, // 高尔夫球洞线
     
     
-#if 1
+#if 0
 //        {"bridge-path-bg", "road", /* line */ },
 //        {"bridge-steps-bg", "road", /* line */ },
 //        {"bridge-pedestrian-case", "road", /* line */ },
@@ -146,7 +146,7 @@ static const std::map<std::string, std::string> layerIds = {
 //        {"aerialway", "road", /* line */ },
     
 
-#if 1
+#if 0
     {"admin-1-boundary-bg", "admin", /* line */ }, //省界
     {"admin-0-boundary-bg", "admin", /* line */ }, // 国界
     {"admin-1-boundary", "admin", /* line */ }, //省界
