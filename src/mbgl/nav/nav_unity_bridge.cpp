@@ -18,12 +18,12 @@ namespace projection {
 MatrixObserver matrixObserver = nullptr;
 void setMatrixObserver(MatrixObserver observer) { matrixObserver = observer; }
 void onMatrix(const double* matrix) {
-    //    nav::log::i("Bridge",
-    //                "Projection : [%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf]\n",
-    //                matrix[0], matrix[1], matrix[2], matrix[3],
-    //                matrix[4], matrix[5], matrix[6], matrix[7],
-    //                matrix[8], matrix[9], matrix[10], matrix[11],
-    //                matrix[12], matrix[13], matrix[14], matrix[15]);
+//    nav::log::i("Bridge",
+//                "Projection : [%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf]\n",
+//                matrix[0], matrix[1], matrix[2], matrix[3],
+//                matrix[4], matrix[5], matrix[6], matrix[7],
+//                matrix[8], matrix[9], matrix[10], matrix[11],
+//                matrix[12], matrix[13], matrix[14], matrix[15]);
     
     if (matrixObserver) {
         matrixObserver(matrix);
@@ -33,11 +33,11 @@ void onMatrix(const double* matrix) {
 TransformObserver transformObserver = nullptr;
 void setTransformObserver(TransformObserver observer) { transformObserver = observer; }
 void onTransform(const double* position, const double* scale, const double* rotation) {
-    //    nav::log::i("Bridge",
-    //                "Projection : T[%lf,%lf,%lf] S[%lf,%lf,%lf] R[%lf,%lf,%lf]\n",
-    //                position[0], position[1], position[2],
-    //                scale[0], scale[1], scale[2],
-    //                rotation[0], rotation[1], rotation[2]);
+//    nav::log::i("Bridge",
+//                "Projection : T[%lf,%lf,%lf] S[%lf,%lf,%lf] R[%lf,%lf,%lf]\n",
+//                position[0], position[1], position[2],
+//                scale[0], scale[1], scale[2],
+//                rotation[0], rotation[1], rotation[2]);
     
     if (transformObserver) {
         transformObserver(position, scale, rotation);

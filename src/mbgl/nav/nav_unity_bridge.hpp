@@ -55,8 +55,8 @@ namespace nav {
         struct FillBucket {
             const Feature feature;
             const Buffer<uint16_t> vertices;
-            const Buffer<uint16_t> lines, lineSegments;
-            const Buffer<uint16_t> triangles, triangleSegments;
+            const Buffer<uint16_t> lines;
+            const Buffer<uint16_t> triangles;
         };
         typedef void *(*FillBucketObserver)(const FillBucket* param);
         void setFillBucketObserver(FillBucketObserver observer);
@@ -67,7 +67,7 @@ namespace nav {
         struct LineBucket {
             const Feature feature;
             const Buffer<uint16_t> vertices;
-            const Buffer<uint16_t> triangles, triangleSegments;
+            const Buffer<uint16_t> triangles;
         };
         typedef void *(*LineBucketObserver)(const LineBucket* param);
         void setLineBucketObserver(LineBucketObserver observer);
@@ -96,7 +96,7 @@ namespace nav {
         struct ExtrusionBucket {
             const Feature feature;
             const Buffer<uint16_t> vertices;
-            const Buffer<uint16_t> triangles, triangleSegments;
+            const Buffer<uint16_t> triangles;
         };
         typedef void *(*ExtrusionBucketObserver)(const ExtrusionBucket* param);
         void setExtrusionBucketObserver(ExtrusionBucketObserver observer);
