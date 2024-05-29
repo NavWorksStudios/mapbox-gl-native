@@ -114,7 +114,7 @@ static const std::map<std::string, std::string> layerIds = {
 //        {"golf-hole-line", "road", /* line */ }, // 高尔夫球洞线
     
     
-#if 0
+#if 1
 //        {"bridge-path-bg", "road", /* line */ },
 //        {"bridge-steps-bg", "road", /* line */ },
 //        {"bridge-pedestrian-case", "road", /* line */ },
@@ -146,7 +146,7 @@ static const std::map<std::string, std::string> layerIds = {
 //        {"aerialway", "road", /* line */ },
     
 
-#if 0
+#if 1
     {"admin-1-boundary-bg", "admin", /* line */ }, //省界
     {"admin-0-boundary-bg", "admin", /* line */ }, // 国界
     {"admin-1-boundary", "admin", /* line */ }, //省界

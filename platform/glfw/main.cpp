@@ -345,6 +345,26 @@ void nav_set_bucket_destroy_observer(nav::layer::BucketDestroyObserver observer)
     nav::layer::setBucketDestroyObserver(observer);
 }
 
+__attribute__((visibility ("default")))
+void nav_on_key(int key, int action, int mods) {
+    view->onKey(key, action, mods);
+}
+
+__attribute__((visibility ("default")))
+void nav_on_scroll(double yoffset) {
+    view->onScroll(yoffset);
+}
+
+__attribute__((visibility ("default")))
+void nav_on_mouse_click(int button, int action, int modifiers) {
+    view->onMouseClick(button, action, modifiers);
+}
+
+__attribute__((visibility ("default")))
+void nav_on_mouse_move(double x, double y) {
+    view->onMouseMove(x, y);
+}
+
 }
 
 

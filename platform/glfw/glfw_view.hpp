@@ -66,7 +66,13 @@ public:
 
 protected:
     // mbgl::Backend implementation
-
+    
+public:
+    void onKey(int key, int action, int mods);
+    void onScroll(double yoffset);
+    void onMouseClick(int button, int action, int modifiers);
+    void onMouseMove(double x, double y);
+    
 private:
     // Window callbacks
     static void onKey(GLFWwindow *window, int key, int scancode, int action, int mods);

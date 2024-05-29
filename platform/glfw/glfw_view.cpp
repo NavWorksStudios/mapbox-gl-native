@@ -289,13 +289,17 @@ mbgl::gfx::RendererBackend &GLFWView::getRendererBackend() {
 
 void GLFWView::onKey(GLFWwindow *window, int key, int /*scancode*/, int action, int mods) {
     auto *view = reinterpret_cast<GLFWView *>(glfwGetWindowUserPointer(window));
+    view->onKey(key, action, mods);
+}
 
+void GLFWView::onKey(int key, int action, int mods) {
+    auto *view = this;
     if (action == GLFW_RELEASE) {
         if (key != GLFW_KEY_R || key != GLFW_KEY_S) view->animateRouteCallback = nullptr;
 
         switch (key) {
             case GLFW_KEY_ESCAPE:
-                glfwSetWindowShouldClose(window, true);
+                if (this->nullableWindow) glfwSetWindowShouldClose(nullableWindow, true);
                 break;
             case GLFW_KEY_TAB:
                 view->cycleDebugOptions();
@@ -792,6 +796,11 @@ void GLFWView::makeSnapshot(bool withOverlay) {
 
 void GLFWView::onScroll(GLFWwindow *window, double /*xOffset*/, double yOffset) {
     auto *view = reinterpret_cast<GLFWView *>(glfwGetWindowUserPointer(window));
+    view->onScroll(yOffset);
+}
+
+void GLFWView::onScroll(double yOffset) {
+    auto *view = this;
     double delta = yOffset * 40;
 
     bool isWheel = delta != 0 && std::fmod(delta, 4.000244140625) == 0;
@@ -840,7 +849,11 @@ void GLFWView::onFramebufferResize(GLFWwindow *window, int width, int height) {
 
 void GLFWView::onMouseClick(GLFWwindow *window, int button, int action, int modifiers) {
     auto *view = reinterpret_cast<GLFWView *>(glfwGetWindowUserPointer(window));
+    view->onMouseClick(button, action, modifiers);
+}
 
+void GLFWView::onMouseClick(int button, int action, int modifiers) {
+    auto *view = this;
     if (button == GLFW_MOUSE_BUTTON_RIGHT ||
         (button == GLFW_MOUSE_BUTTON_LEFT && modifiers & GLFW_MOD_CONTROL)) {
         view->rotating = action == GLFW_PRESS;
@@ -868,6 +881,11 @@ void GLFWView::onMouseClick(GLFWwindow *window, int button, int action, int modi
 
 void GLFWView::onMouseMove(GLFWwindow *window, double x, double y) {
     auto *view = reinterpret_cast<GLFWView *>(glfwGetWindowUserPointer(window));
+    view->onMouseMove(x, y);
+}
+
+void GLFWView::onMouseMove(double x, double y) {
+    auto *view = this;
     if (view->tracking) {
         const double dx = x - view->lastX;
         const double dy = y - view->lastY;
