@@ -353,20 +353,20 @@ void nav_set_bucket_destroy_observer(nav::layer::BucketDestroyObserver observer)
 
 
 
-namespace button {
-    const int GLFW_MOUSE_BUTTON_LEFT = 0;
-    const int GLFW_MOUSE_BUTTON_RIGHT = 1;
+enum button {
+    GLFW_MOUSE_BUTTON_LEFT = 0,
+    GLFW_MOUSE_BUTTON_RIGHT = 1,
 };
 
-namespace action {
-    const int GLFW_RELEASE = 0;
-    const int GLFW_PRESS = 1;
-    const int GLFW_REPEAT = 2;
+enum action {
+    GLFW_RELEASE = 0,
+    GLFW_PRESS = 1,
+    GLFW_REPEAT = 2,
 };
 
-namespace modifiers {
-    const int GLFW_MOD_CONTROL = 0x0002;
-    const int GLFW_MOD_SHIFT = 0x0001;
+enum modifiers {
+    GLFW_MOD_SHIFT = 0x0001,
+    GLFW_MOD_CONTROL = 0x0002,
 };
 
 
