@@ -526,7 +526,7 @@ void TransformState::setMaxPitch(const double pitch_) {
 }
 
 double TransformState::getMaxPitch() const {
-    return maxPitch;
+    return maxPitch * 8;
 }
 
 #pragma mark - Scale

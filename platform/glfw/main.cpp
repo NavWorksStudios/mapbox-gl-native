@@ -77,19 +77,19 @@ struct Settings : mbgl::Settings_JSON {
             style = std::string("file://") + style;
         }
         
-//        // #*#*# 香港维多利亚港附近
-//        latitude = 22.291923137288844;
-//        longitude = 114.15912584919271;
-//        bearing = 161;
-//        zoom = 14.8;
-//        pitch = 60;
-        
-        // #*#*# 西单
-        latitude = 39.905755502875508;
-        longitude = 116.36792889240701;
-        bearing = -5.3674255908200372;
-        zoom = 17.040101376780214;
+        // #*#*# 香港维多利亚港附近
+        latitude = 22.291923137288844;
+        longitude = 114.15912584919271;
+        bearing = 161;
+        zoom = 14.8;
         pitch = 60;
+        
+//        // #*#*# 西单
+//        latitude = 39.905755502875508;
+//        longitude = 116.36792889240701;
+//        bearing = -5.3674255908200372;
+//        zoom = 17.040101376780214;
+//        pitch = 60;
         
         debug = mbgl::EnumType(mbgl::MapDebugOptions::NoDebug);
         

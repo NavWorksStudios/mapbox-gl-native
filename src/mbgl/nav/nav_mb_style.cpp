@@ -41,8 +41,13 @@ void displaceStyle(const std::string& id, std::unique_ptr<::mbgl::style::Layer>&
             }
             
             else if (id.find("tunnel") == 0) {
-                lineLayer->setLineColor(mbgl::Color(157/255.,100/255.,172/255.,1));
+                lineLayer->setLineColor(mbgl::Color(40/255.,47/255.,255/255.,1));
                 lineLayer->setLineOpacity(0.3);
+            }
+            
+            else if (id.find("bridge") == 0) {
+                lineLayer->setLineColor(mbgl::Color(255/255.,47/255.,71/255.,1));
+                lineLayer->setLineOpacity(0.8);
             }
         }
     }
