@@ -279,6 +279,9 @@ int main(int argc, char *argv[]) {
 }
 
 
+
+// API exported
+
 extern "C" {
 
 __attribute__((visibility ("default")))
@@ -345,9 +348,21 @@ void nav_set_bucket_destroy_observer(nav::layer::BucketDestroyObserver observer)
     nav::layer::setBucketDestroyObserver(observer);
 }
 
+
+/* key: 
+ function { GLFW_KEY_ESCAPE: GLFW_KEY_TAB: GLFW_KEY_X: GLFW_KEY_O: GLFW_KEY_S: GLFW_KEY_N:
+            GLFW_KEY_Z: GLFW_KEY_Q: GLFW_KEY_P: GLFW_KEY_C: GLFW_KEY_I: GLFW_KEY_K: GLFW_KEY_L: GLFW_KEY_A:
+            GLFW_KEY_R: GLFW_KEY_E: GLFW_KEY_D: GLFW_KEY_T: GLFW_KEY_F: GLFW_KEY_F1: GLFW_KEY_U: GLFW_KEY_H: GLFW_KEY_J: GLFW_KEY_G: GLFW_KEY_Y: }
+ addRandomPointAnnotations { GLFW_KEY_W: GLFW_KEY_1: GLFW_KEY_2: GLFW_KEY_3: GLFW_KEY_4: GLFW_KEY_5: GLFW_KEY_6: GLFW_KEY_7: GLFW_KEY_8: GLFW_KEY_9: GLFW_KEY_0: GLFW_KEY_M: }
+ */
+
+/* action
+ function { GLFW_RELEASE }
+ addRandomPointAnnotations { GLFW_RELEASE, GLFW_REPEAT } */
+
 __attribute__((visibility ("default")))
-void nav_on_key(int key, int action, int mods) {
-    view->onKey(key, action, mods);
+void nav_on_key(int key, int action) {
+    view->onKey(key, action, 0);
 }
 
 __attribute__((visibility ("default")))
@@ -355,6 +370,9 @@ void nav_on_scroll(double yoffset) {
     view->onScroll(yoffset);
 }
 
+/* button { GLFW_MOUSE_BUTTON_RIGHT, GLFW_MOUSE_BUTTON_LEFT } */
+/* action { GLFW_PRESS, GLFW_RELEASE } */
+/* modifiers { GLFW_MOD_CONTROL, GLFW_MOD_SHIFT } */
 __attribute__((visibility ("default")))
 void nav_on_mouse_click(int button, int action, int modifiers) {
     view->onMouseClick(button, action, modifiers);
