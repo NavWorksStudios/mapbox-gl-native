@@ -877,6 +877,10 @@ void GLFWView::onMouseClick(int button, int action, int modifiers) {
             view->lastClick = now;
         }
     }
+    
+    if (action == GLFW_RELEASE) {
+        view->rotating = view->pitching = view->tracking = false;
+    }
 }
 
 void GLFWView::onMouseMove(GLFWwindow *window, double x, double y) {
