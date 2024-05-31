@@ -25,7 +25,7 @@ public:
 
     const Quaternion& getOrientation() const { return orientation; }
     void getOrientation(double& pitch, double& bearing) const;
-    void setOrientation(double pitch, double bearing);
+    const vec4& setOrientation(double pitch, double bearing);
     void setOrientation(const Quaternion& orientation_);
     void setPosition(const vec3& position);
 

@@ -198,19 +198,25 @@ void TransformState::updateCameraState() const {
     const double dy = 0.5 * worldSize - y;
 
     // Set camera orientation and move it to a proper distance from the map
-    camera.setOrientation(getPitch(), getBearing());
+    _cameraQuaternion = camera.setOrientation(getPitch(), getBearing());
 
     const vec3 forward = camera.forward();
     const vec3 orbitPosition = {{-forward[0] * cameraToCenterDistance,
                                  -forward[1] * cameraToCenterDistance,
                                  -forward[2] * cameraToCenterDistance}};
-    vec3 cameraPosition = {{dx + orbitPosition[0], dy + orbitPosition[1], orbitPosition[2]}};
+    vec3 cameraPosition = _cameraPosition = {{dx + orbitPosition[0], dy + orbitPosition[1], orbitPosition[2]}};
 
     cameraPosition[0] /= worldSize;
     cameraPosition[1] /= worldSize;
     cameraPosition[2] /= worldSize;
 
     camera.setPosition(cameraPosition);
+}
+
+void TransformState::notifyProjectionTransform() const {
+    if (_cameraPosition[2]) {
+        nav::projection::onTransform(_cameraPosition.data(), _cameraQuaternion.data());
+    }
 }
 
 void TransformState::updateStateFromCamera() {

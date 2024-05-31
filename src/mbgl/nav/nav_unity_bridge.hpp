@@ -19,11 +19,11 @@ namespace nav {
     namespace projection {
         typedef void *(*MatrixObserver)(const double* matrix /*[16]*/);
         void setMatrixObserver(MatrixObserver observer);
-    
-        typedef void *(*TransformObserver)(const double* position /*[3]*/, const double* rotation /*[3]*/, const double* scale /*[3]*/);
-        void setTransformObserver(TransformObserver observer);
-    
         void onMatrix(const double* matrix);
+    
+        typedef void *(*TransformObserver)(const double* position /*[3]*/, const double* quaternion /*[4]*/);
+        void setTransformObserver(TransformObserver observer);
+        void onTransform(const double* position, const double* quaternion);
     }
 
     namespace model {

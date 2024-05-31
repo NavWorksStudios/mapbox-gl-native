@@ -169,9 +169,10 @@ void Camera::getOrientation(double& pitch, double& bearing) const {
     pitch = std::atan2(std::sqrt(f[0] * f[0] + f[1] * f[1]), -f[2]);
 }
 
-void Camera::setOrientation(double pitch, double bearing) {
+const vec4& Camera::setOrientation(double pitch, double bearing) {
     orientation = orientationFromPitchBearing(pitch, bearing);
     updateTransform(transform, orientation);
+    return orientation.m;
 }
 
 void Camera::setOrientation(const Quaternion& orientation_) {

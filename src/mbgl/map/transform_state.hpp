@@ -297,6 +297,13 @@ private:
     mutable mat4 invProjectionMatrix;
     mutable mat4 coordMatrix;
     mutable mat4 invertedMatrix;
+
+    mutable vec4 _cameraQuaternion;
+    mutable vec3 _cameraPosition;
+    
+public:
+    void notifyProjectionTransform() const;
+    
 };
 
 } // namespace mbgl

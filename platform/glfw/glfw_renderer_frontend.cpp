@@ -2,6 +2,7 @@
 
 #include <mbgl/renderer/renderer.hpp>
 #include <mbgl/gfx/backend_scope.hpp>
+#include <mbgl/renderer/update_parameters.hpp>
 
 GLFWRendererFrontend::GLFWRendererFrontend(std::unique_ptr<mbgl::Renderer> renderer_, GLFWView& glfwView_)
     : glfwView(glfwView_)
@@ -39,6 +40,8 @@ void GLFWRendererFrontend::render() {
     // still using them.
     auto updateParameters_ = updateParameters;
     renderer->render(updateParameters_);
+    
+    updateParameters->transformState.notifyProjectionTransform();
 }
 
 mbgl::Renderer* GLFWRendererFrontend::getRenderer() {
