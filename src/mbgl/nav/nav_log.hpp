@@ -16,13 +16,15 @@
 namespace nav {
 namespace log {
 
+enum LogLevel : uint8_t { Verbose, Infomation, Debug, Warning, Error };
+const LogLevel LEVEL = LogLevel::Debug;
+
 void v(const char* tag, const char* format, ...);
 void i(const char* tag, const char* format, ...);
 void d(const char* tag, const char* format, ...);
 void i(const char* tag, const char* format, ...);
 void w(const char* tag, const char* format, ...);
 void e(const char* tag, const char* format, ...);
-
 
 std::string tileId(const mbgl::CanonicalTileID& canonical, const std::string& layerId, const std::string& sourceId);
 std::map<std::string, int>& bucketMap();

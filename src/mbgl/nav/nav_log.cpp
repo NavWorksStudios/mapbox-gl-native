@@ -8,57 +8,130 @@
 #include "nav_log.hpp"
 #include <chrono>
 
+
+char* print_timestamp(char* buf) {
+    const std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+    const std::time_t now_time_t = std::chrono::system_clock::to_time_t(now);
+    const std::tm* now_tm = std::localtime(&now_time_t);
+    const std::chrono::milliseconds ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
+    
+    buf[0] = '[';
+    strftime(buf + 1, 100, "%F %T", now_tm);
+    sprintf(buf + 20, ":%lld]", ms.count());
+    
+    const size_t len = strlen(buf);
+
+    if (len < 26) {
+        memset(buf + len, ' ', 26 - len);
+    }
+    
+    return buf + 26;
+}
+
+char* print_tag(char* buf, const char* tag) {
+    *buf++ = ' ';
+    *buf++ = '<';
+    
+    const size_t len = strlen(tag);
+    memcpy(buf, tag, len);
+    buf += len;
+    
+    *buf++ = '>';
+    *buf++ = ' ';
+    return buf;
+}
+
 namespace nav {
 namespace log {
 
-void i(const char* tag, const char* format, ...) {
-    char buffer[512];
-    size_t offset = 0;
-    
-    // time
-    {
-        const std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
-        const std::time_t now_time_t = std::chrono::system_clock::to_time_t(now);
-        const std::tm* now_tm = std::localtime(&now_time_t);
-        const std::chrono::milliseconds ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
+void v(const char* tag, const char* format, ...) {
+    if (LEVEL <= LogLevel::Verbose) {
+        char buf[512];
+        char* p = buf;
         
-        buffer[0] = '[';
-        strftime(buffer + 1, 100, "%F %T", now_tm);
-        sprintf(buffer + 20, ":%lld]", ms.count());
+        p = print_timestamp(p);
+        *p++ = 'V';
+        p = print_tag(p, tag);
         
-        const size_t len = strlen(buffer);
-        offset += len;
-        
-        if (offset < 25) {
-            memset(buffer + offset, ' ', 25 - offset);
-            offset = 25;
-        }
-    }
-    
-    // tag
-    {
-        buffer[offset++] = ' ';
-        buffer[offset++] = '<';
-        
-        const size_t len = strlen(tag);
-        memcpy(buffer + offset, tag, len);
-        offset += len;
-        
-        buffer[offset++] = '>';
-        buffer[offset++] = ' ';
-    }
-    
-    // va
-    {
         va_list args;
         va_start(args, format);
-        vsprintf(buffer + offset, format, args);
+        vsprintf(p, format, args);
         va_end(args);
-    }
 
-    
-    // print
-    printf("%s", buffer);
+        printf("%s", buf);
+    }
+}
+
+void i(const char* tag, const char* format, ...) {
+    if (LEVEL <= LogLevel::Infomation) {
+        char buf[512];
+        char* p = buf;
+        
+        p = print_timestamp(p);
+        *p++ = 'I';
+        p = print_tag(p, tag);
+        
+        va_list args;
+        va_start(args, format);
+        vsprintf(p, format, args);
+        va_end(args);
+
+        printf("%s", buf);
+    }
+}
+
+void d(const char* tag, const char* format, ...) {
+    if (LEVEL <= LogLevel::Debug) {
+        char buf[512];
+        char* p = buf;
+        
+        p = print_timestamp(p);
+        *p++ = 'D';
+        p = print_tag(p, tag);
+        
+        va_list args;
+        va_start(args, format);
+        vsprintf(p, format, args);
+        va_end(args);
+
+        printf("%s", buf);
+    }
+}
+
+void w(const char* tag, const char* format, ...) {
+    if (LEVEL <= LogLevel::Warning) {
+        char buf[512];
+        char* p = buf;
+        
+        p = print_timestamp(p);
+        *p++ = 'W';
+        p = print_tag(p, tag);
+        
+        va_list args;
+        va_start(args, format);
+        vsprintf(p, format, args);
+        va_end(args);
+
+        printf("%s", buf);
+    }
+}
+
+void e(const char* tag, const char* format, ...) {
+    if (LEVEL <= LogLevel::Error) {
+        char buf[512];
+        char* p = buf;
+        
+        p = print_timestamp(p);
+        *p++ = 'E';
+        p = print_tag(p, tag);
+        
+        va_list args;
+        va_start(args, format);
+        vsprintf(p, format, args);
+        va_end(args);
+
+        printf("%s", buf);
+    }
 }
 
 std::string tileId(const mbgl::CanonicalTileID& canonical, const std::string& layerId, const std::string& sourceId) {
