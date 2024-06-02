@@ -12,11 +12,8 @@ namespace nav {
 
 namespace mb {
 
-//const std::string ID_NAV_LAND = "nav:land";
-//const std::string ID_NAV_3D_LAND = "nav:3d-land";
-
+void printLayerTable(const char* id, const char* sourceLayer, const char* sourceId, const char* type);
 bool filterLayerByType(const std::string& id);
-
 int layerRenderIndex(const std::string& id);
 
 }

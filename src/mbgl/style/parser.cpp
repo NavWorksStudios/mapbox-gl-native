@@ -273,6 +273,8 @@ void Parser::parseLayer(const std::string& id, const JSValue& value, std::unique
         }
         layer = std::move(*converted);
     }
+    
+    nav::mb::printLayerTable(layer->getID().c_str(), layer->getTypeInfo()->type, layer->getSourceID().c_str(), layer->getSourceLayer().c_str());
 }
 
 std::set<FontStack> Parser::fontStacks() const {
