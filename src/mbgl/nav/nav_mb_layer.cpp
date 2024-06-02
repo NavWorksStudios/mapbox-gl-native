@@ -15,7 +15,7 @@ namespace nav {
 namespace mb {
 
 void printLayerTable(const char* id, const char* type, const char* source, const char* sourceLayer) {
-    nav::printf("{ \"%s\", { \"%s\", \"%s\", \"%s\", } },  \n", id, type, source, sourceLayer);
+    nav::log::printf("{ \"%s\", { \"%s\", \"%s\", \"%s\", } },  \n", id, type, source, sourceLayer);
 }
 
 struct Source {
