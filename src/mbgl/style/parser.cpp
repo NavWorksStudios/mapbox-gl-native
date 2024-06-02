@@ -269,6 +269,7 @@ void Parser::parseLayer(const std::string& id, const JSONValue& value, std::uniq
         optional<std::unique_ptr<Layer>> converted = conversion::convert<std::unique_ptr<Layer>>(value, error);
         if (!converted) {
             Log::Warning(Event::ParseStyle, error.message);
+            nav::mb::printLayerTable(id.c_str(), "error", "null", "null");
             return;
         }
         layer = std::move(*converted);
