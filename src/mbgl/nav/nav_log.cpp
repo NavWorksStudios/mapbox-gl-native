@@ -9,6 +9,14 @@
 #include <chrono>
 
 
+template <size_t T> struct PrintBuf {
+    char* buf = nullptr;
+    PrintBuf() { buf = (char*) malloc(T); }
+    ~PrintBuf() { free(buf); }
+    inline operator char* () const { return buf; }
+    inline void print() const { printf("%s", buf); }
+};
+
 char* print_timestamp(char* buf) {
     const std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
     const std::time_t now_time_t = std::chrono::system_clock::to_time_t(now);
@@ -44,9 +52,11 @@ char* print_tag(char* buf, const char* tag) {
 namespace nav {
 namespace log {
 
+const LogLevel LEVEL = LogLevel::Debug;
+
 void v(const char* tag, const char* format, ...) {
     if (LEVEL <= LogLevel::Verbose) {
-        char buf[512];
+        PrintBuf<51200> buf;
         char* p = buf;
         
         p = print_timestamp(p);
@@ -58,13 +68,13 @@ void v(const char* tag, const char* format, ...) {
         vsprintf(p, format, args);
         va_end(args);
 
-        printf("%s", buf);
+        buf.print();
     }
 }
 
 void i(const char* tag, const char* format, ...) {
     if (LEVEL <= LogLevel::Infomation) {
-        char buf[512];
+        PrintBuf<51200> buf;
         char* p = buf;
         
         p = print_timestamp(p);
@@ -76,13 +86,13 @@ void i(const char* tag, const char* format, ...) {
         vsprintf(p, format, args);
         va_end(args);
 
-        printf("%s", buf);
+        buf.print();
     }
 }
 
 void d(const char* tag, const char* format, ...) {
     if (LEVEL <= LogLevel::Debug) {
-        char buf[512];
+        PrintBuf<51200> buf;
         char* p = buf;
         
         p = print_timestamp(p);
@@ -94,13 +104,13 @@ void d(const char* tag, const char* format, ...) {
         vsprintf(p, format, args);
         va_end(args);
 
-        printf("%s", buf);
+        buf.print();
     }
 }
 
 void w(const char* tag, const char* format, ...) {
     if (LEVEL <= LogLevel::Warning) {
-        char buf[512];
+        PrintBuf<51200> buf;
         char* p = buf;
         
         p = print_timestamp(p);
@@ -112,13 +122,13 @@ void w(const char* tag, const char* format, ...) {
         vsprintf(p, format, args);
         va_end(args);
 
-        printf("%s", buf);
+        buf.print();
     }
 }
 
 void e(const char* tag, const char* format, ...) {
     if (LEVEL <= LogLevel::Error) {
-        char buf[512];
+        PrintBuf<51200> buf;
         char* p = buf;
         
         p = print_timestamp(p);
@@ -130,7 +140,7 @@ void e(const char* tag, const char* format, ...) {
         vsprintf(p, format, args);
         va_end(args);
 
-        printf("%s", buf);
+        buf.print();
     }
 }
 

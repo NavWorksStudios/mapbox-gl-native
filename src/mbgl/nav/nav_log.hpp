@@ -16,8 +16,13 @@
 namespace nav {
 namespace log {
 
-enum LogLevel : uint8_t { Verbose, Infomation, Debug, Warning, Error };
-const LogLevel LEVEL = LogLevel::Debug;
+enum LogLevel : uint8_t {
+    Verbose,
+    Infomation,
+    Debug,
+    Warning,
+    Error,
+};
 
 void v(const char* tag, const char* format, ...);
 void i(const char* tag, const char* format, ...);
