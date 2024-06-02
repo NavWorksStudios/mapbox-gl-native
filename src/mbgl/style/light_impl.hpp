@@ -39,13 +39,14 @@ struct LightPosition : LightProperty<Position> {
 
 struct LightColor : LightProperty<Color> {
     static Color defaultValue() {
-        return Color::white();
+        // return Color::white();
+        return { 175./256.f, 143./256.f, 250./256.f, 1.0f };
     }
 };
 
 struct LightIntensity : LightProperty<float> {
     static float defaultValue() {
-        return 0.5;
+        return 0.6;
     }
 };
 
