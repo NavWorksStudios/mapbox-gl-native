@@ -19,7 +19,14 @@ void Style::loadJSON(const std::string& json) {
 }
 
 void Style::loadURL(const std::string& url) {
-    impl->loadURL(url);
+    
+// standard tamplate
+//    impl->loadURL("mapbox://styles/notheorem/clwufpcwi019v01pn3rsd10p8");
+    
+// monochrome
+    impl->loadURL("mapbox://styles/notheorem/clwvwdd2r01d301nyayhc6p6g");
+
+//    impl->loadURL(url);
 }
 
 std::string Style::getJSON() const {
