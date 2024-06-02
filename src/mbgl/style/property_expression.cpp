@@ -4,15 +4,19 @@ namespace mbgl {
 namespace style {
 
 PropertyExpressionBase::PropertyExpressionBase(std::unique_ptr<expression::Expression> expression_)
-    : expression(std::move(expression_)),
-      zoomCurve(expression::findZoomCurveChecked(expression.get())) {
+    : expression(std::move(expression_)), zoomCurve(expression::findZoomCurveChecked(expression.get())) {
     isZoomConstant_ = expression::isZoomConstant(*expression);
+    isPitchConstant_ = expression::isPitchConstant(*expression);
     isFeatureConstant_ = expression::isFeatureConstant(*expression);
     isRuntimeConstant_ = expression::isRuntimeConstant(*expression);
 }
 
 bool PropertyExpressionBase::isZoomConstant() const noexcept {
     return isZoomConstant_;
+}
+
+bool PropertyExpressionBase::isPitchConstant() const noexcept {
+    return isPitchConstant_;
 }
 
 bool PropertyExpressionBase::isFeatureConstant() const noexcept {

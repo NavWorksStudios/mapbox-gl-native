@@ -33,12 +33,12 @@ public:
                 returnExpression.useIntegerZoom = true;
                 return ResultType(returnExpression);
             }
-            return ResultType(expression.evaluate(std::floor(parameters.z)));
+            return ResultType(expression.evaluateZoom(std::floor(parameters.z)));
         } else {
             if (!expression.isFeatureConstant() || !expression.isRuntimeConstant()) {
                 return ResultType(expression);
             }
-            return ResultType(expression.evaluate(parameters.z));
+            return ResultType(expression.evaluateZoom(parameters.z));
         }
     }
 
@@ -68,7 +68,7 @@ public:
         if (!expression.isFeatureConstant() || !expression.isRuntimeConstant()) {
             return ResultType(expression);
         } else {
-            const T evaluated = expression.evaluate(std::floor(parameters.z));
+            const T evaluated = expression.evaluateZoom(std::floor(parameters.z));
             return ResultType(calculate(evaluated, evaluated, evaluated));
         }
     }

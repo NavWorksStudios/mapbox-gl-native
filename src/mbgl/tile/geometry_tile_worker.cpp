@@ -407,8 +407,9 @@ void GeometryTileWorker::parse() {
             for (std::size_t i = 0; !obsolete && i < geometryLayer->featureCount(); i++) {
                 std::unique_ptr<GeometryTileFeature> feature = geometryLayer->getFeature(i);
 
-                if (!filter(expression::EvaluationContext(static_cast<float>(this->id.overscaledZ), feature.get())
-                                .withCanonicalTileID(&id.canonical)))
+                const auto& e = style::expression::EvaluationContext().
+                withZoom(this->id.overscaledZ).withGeometryTileFeature(feature.get()).withCanonicalTileID(&id.canonical);
+                if (!filter(expression::EvaluationContext(e)))
                     continue;
 
                 const GeometryCollection& geometries = feature->getGeometries();

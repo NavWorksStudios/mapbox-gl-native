@@ -325,6 +325,18 @@ const auto& zoomCompoundExpression() {
     return signature;
 }
 
+const auto& pitchCompoundExpression() {
+    static auto signature = detail::makeSignature("pitch", [](const EvaluationContext& params) -> Result<double> {
+        if (!params.pitch) {
+            return EvaluationError {
+                "The 'pitch' expression is unavailable in the current evaluation context."
+            };
+        }
+        return *(params.pitch);
+    });
+    return signature;
+}
+
 const auto& heatmapDensityCompoundExpression() {
     static auto signature = detail::makeSignature("heatmap-density", [](const EvaluationContext& params) -> Result<double> {
         if (!params.colorRampParameter) {
@@ -898,6 +910,7 @@ MAPBOX_ETERNAL_CONSTEXPR const auto compoundExpressionRegistry =
         {"rgba", rgbaCompoundExpression},
         {"rgb", rgbCompoundExpression},
         {"zoom", zoomCompoundExpression},
+        {"pitch", pitchCompoundExpression},
         {"heatmap-density", heatmapDensityCompoundExpression},
         {"line-progress", lineProgressCompoundExpression},
         {"accumulated", accumulatedCompoundExpression},

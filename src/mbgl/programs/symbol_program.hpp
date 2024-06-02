@@ -101,12 +101,12 @@ public:
       : layoutSize(defaultValue) {}
 
     ConstantSymbolSizeBinder(const float tileZoom, const style::PropertyExpression<float>& expression_, const float /*defaultValue*/)
-      : layoutSize(expression_.evaluate(tileZoom + 1)),
+      : layoutSize(expression_.evaluateZoom(tileZoom + 1)),
         expression(expression_) {
         const Range<float> zoomLevels = expression_.getCoveringStops(tileZoom, tileZoom + 1);
         coveringRanges = std::make_tuple(
             zoomLevels,
-            Range<float> { expression_.evaluate(zoomLevels.min), expression_.evaluate(zoomLevels.max) }
+            Range<float> { expression_.evaluateZoom(zoomLevels.min), expression_.evaluateZoom(zoomLevels.max) }
         );
     }
 
@@ -129,7 +129,7 @@ public:
             );
             size = sizeLevels.min + t * (sizeLevels.max - sizeLevels.min);
         } else if (expression) {
-            size = expression->evaluate(currentZoom);
+            size = expression->evaluateZoom(currentZoom);
         }
 
         const float unused = 0.0f;

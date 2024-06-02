@@ -57,6 +57,10 @@ bool isZoomConstant(const Expression& e) {
     return isGlobalPropertyConstant(e, std::array<std::string, 1>{{"zoom"}});
 }
 
+bool isPitchConstant(const Expression& e) {
+    return isGlobalPropertyConstant(e, std::array<std::string, 1>{{"pitch"}});
+}
+
 bool isRuntimeConstant(const Expression& expression) {
     if (expression.getKind() == Kind::ImageExpression) {
         return false;

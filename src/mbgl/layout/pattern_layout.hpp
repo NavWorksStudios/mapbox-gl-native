@@ -116,9 +116,9 @@ public:
         const size_t featureCount = sourceLayer->featureCount();
         for (size_t i = 0; i < featureCount; ++i) {
             auto feature = sourceLayer->getFeature(i);
-            if (!leaderLayerProperties->layerImpl().filter(
-                    style::expression::EvaluationContext(this->zoom, feature.get())
-                        .withCanonicalTileID(&parameters.tileID.canonical)))
+            const auto& e = style::expression::EvaluationContext().
+            withZoom(this->zoom).withGeometryTileFeature(feature.get()).withCanonicalTileID(&parameters.tileID.canonical);
+            if (!leaderLayerProperties->layerImpl().filter(e))
                 continue;
 
             PatternLayerMap patternDependencyMap;

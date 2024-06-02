@@ -226,9 +226,10 @@ public:
                               const CanonicalTileID& canonical,
                               const style::expression::Value& formattedSection) override {
         using style::expression::EvaluationContext;
-        auto evaluated = expression.evaluate(
-            EvaluationContext(&feature).withFormattedSection(&formattedSection).withCanonicalTileID(&canonical),
-            defaultValue);
+        
+        const auto& e = EvaluationContext().
+        withGeometryTileFeature(&feature).withFormattedSection(&formattedSection).withCanonicalTileID(&canonical);
+        auto evaluated = expression.evaluate(e, defaultValue);
         this->statistics.add(evaluated);
         auto value = attributeValue(evaluated);
         auto elements = vertexVector.elements();
@@ -262,7 +263,8 @@ public:
                             const FeatureState& state) override {
         using style::expression::EvaluationContext;
 
-        auto evaluated = expression.evaluate(EvaluationContext(&feature).withFeatureState(&state), defaultValue);
+        const auto& e = EvaluationContext().withGeometryTileFeature(&feature).withFeatureState(&state);
+        auto evaluated = expression.evaluate(e, defaultValue);
         this->statistics.add(evaluated);
         auto value = attributeValue(evaluated);
         for (std::size_t i = start; i < end; ++i) {
@@ -328,13 +330,17 @@ public:
                               const style::expression::Value& formattedSection) override {
         using style::expression::EvaluationContext;
         Range<T> range = {
-            expression.evaluate(EvaluationContext(zoomRange.min, &feature)
-                                    .withFormattedSection(&formattedSection)
-                                    .withCanonicalTileID(&canonical),
+            expression.evaluate(EvaluationContext().
+                                withZoom(zoomRange.min).
+                                withGeometryTileFeature(&feature).
+                                withFormattedSection(&formattedSection).
+                                withCanonicalTileID(&canonical),
                                 defaultValue),
-            expression.evaluate(EvaluationContext(zoomRange.max, &feature)
-                                    .withFormattedSection(&formattedSection)
-                                    .withCanonicalTileID(&canonical),
+            expression.evaluate(EvaluationContext().
+                                withZoom(zoomRange.max).
+                                withGeometryTileFeature(&feature).
+                                withFormattedSection(&formattedSection).
+                                withCanonicalTileID(&canonical),
                                 defaultValue),
         };
         this->statistics.add(range.min);
@@ -373,8 +379,11 @@ public:
                             const FeatureState& state) override {
         using style::expression::EvaluationContext;
         Range<T> range = {
-            expression.evaluate(EvaluationContext(zoomRange.min, &feature, &state), defaultValue),
-            expression.evaluate(EvaluationContext(zoomRange.max, &feature, &state), defaultValue),
+            expression.evaluate(EvaluationContext().withZoom(zoomRange.min).withGeometryTileFeature(&feature).withFeatureState(&state),
+                                defaultValue),
+            
+            expression.evaluate(EvaluationContext().withZoom(zoomRange.max).withGeometryTileFeature(&feature).withFeatureState(&state),
+                                defaultValue),
         };
         this->statistics.add(range.min);
         this->statistics.add(range.max);

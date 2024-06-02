@@ -15,6 +15,7 @@ public:
     explicit PropertyExpressionBase(std::unique_ptr<expression::Expression>);
 
     bool isZoomConstant() const noexcept;
+    bool isPitchConstant() const noexcept;
     bool isFeatureConstant() const noexcept;
     bool isRuntimeConstant() const noexcept;
     float interpolationFactor(const Range<float>&, float) const noexcept;
@@ -32,6 +33,7 @@ protected:
     std::shared_ptr<const expression::Expression> expression;
     variant<std::nullptr_t, const expression::Interpolate*, const expression::Step*> zoomCurve;
     bool isZoomConstant_;
+    bool isPitchConstant_;
     bool isFeatureConstant_;
     bool isRuntimeConstant_;
 };
@@ -41,8 +43,7 @@ class PropertyExpression final : public PropertyExpressionBase {
 public:
     // Second parameter to be used only for conversions from legacy functions.
     PropertyExpression(std::unique_ptr<expression::Expression> expression_, optional<T> defaultValue_ = nullopt)
-        : PropertyExpressionBase(std::move(expression_)),
-          defaultValue(std::move(defaultValue_)) {
+        : PropertyExpressionBase(std::move(expression_)), defaultValue(std::move(defaultValue_)) {
     }
 
     T evaluate(const expression::EvaluationContext& context, T finalDefaultValue = T()) const {
@@ -54,81 +55,84 @@ public:
         return defaultValue ? *defaultValue : finalDefaultValue;
     }
 
-    T evaluate(float zoom) const {
+    T evaluateZoom(float zoom) const {
         assert(!isZoomConstant());
         assert(isFeatureConstant());
-        return evaluate(expression::EvaluationContext(zoom));
+        const auto& e = expression::EvaluationContext().withZoom(zoom);
+        return evaluate(e);
+    }
+    
+    T evaluatePitch(float pitch) const {
+        assert(!isZoomConstant());
+        assert(isFeatureConstant());
+        const auto& e = expression::EvaluationContext().withPitch(pitch);
+        return evaluate(e);
     }
 
     T evaluate(const GeometryTileFeature& feature, T finalDefaultValue) const {
         assert(isZoomConstant());
         assert(!isFeatureConstant());
-        return evaluate(expression::EvaluationContext(&feature), finalDefaultValue);
+        const auto& e = expression::EvaluationContext().
+        withGeometryTileFeature(&feature);
+        return evaluate(e, finalDefaultValue);
     }
 
-    T evaluate(const GeometryTileFeature& feature,
-               const std::set<std::string>& availableImages,
-               T finalDefaultValue) const {
-        return evaluate(expression::EvaluationContext(&feature).withAvailableImages(&availableImages),
-                        finalDefaultValue);
+    T evaluate(const GeometryTileFeature& feature, const std::set<std::string>& availableImages, T finalDefaultValue) const {
+        const auto& e = expression::EvaluationContext().
+        withGeometryTileFeature(&feature).withAvailableImages(&availableImages);
+        return evaluate(e, finalDefaultValue);
     }
 
     T evaluate(const GeometryTileFeature& feature, const CanonicalTileID& canonical, T finalDefaultValue) const {
-        return evaluate(expression::EvaluationContext(&feature).withCanonicalTileID(&canonical), finalDefaultValue);
+        const auto& e = expression::EvaluationContext().
+        withGeometryTileFeature(&feature).withCanonicalTileID(&canonical);
+        return evaluate(e, finalDefaultValue);
     }
 
-    T evaluate(const GeometryTileFeature& feature,
-               const std::set<std::string>& availableImages,
-               const CanonicalTileID& canonical,
-               T finalDefaultValue) const {
-        return evaluate(expression::EvaluationContext(&feature)
-                            .withAvailableImages(&availableImages)
-                            .withCanonicalTileID(&canonical),
-                        finalDefaultValue);
+    T evaluate(const GeometryTileFeature& feature, const std::set<std::string>& availableImages,
+               const CanonicalTileID& canonical, T finalDefaultValue) const {
+        const auto& e = expression::EvaluationContext().
+        withGeometryTileFeature(&feature).withAvailableImages(&availableImages).withCanonicalTileID(&canonical);
+        return evaluate(e, finalDefaultValue);
     }
 
     T evaluate(float zoom, const GeometryTileFeature& feature, T finalDefaultValue) const {
-        return evaluate(expression::EvaluationContext(zoom, &feature), finalDefaultValue);
+        const auto& e = expression::EvaluationContext().
+        withZoom(zoom).withGeometryTileFeature(&feature);
+        return evaluate(e, finalDefaultValue);
     }
 
-    T evaluate(float zoom,
-               const GeometryTileFeature& feature,
-               const std::set<std::string>& availableImages,
-               T finalDefaultValue) const {
-        return evaluate(expression::EvaluationContext(zoom, &feature).withAvailableImages(&availableImages),
-                        finalDefaultValue);
+    T evaluate(float zoom, const GeometryTileFeature& feature, const std::set<std::string>& availableImages, T finalDefaultValue) const {
+        const auto& e = expression::EvaluationContext().
+        withZoom(zoom).withGeometryTileFeature(&feature).withAvailableImages(&availableImages);
+        return evaluate(e, finalDefaultValue);
     }
 
-    T evaluate(float zoom,
-               const GeometryTileFeature& feature,
-               const std::set<std::string>& availableImages,
-               const CanonicalTileID& canonical,
-               T finalDefaultValue) const {
-        return evaluate(expression::EvaluationContext(zoom, &feature)
-                            .withAvailableImages(&availableImages)
-                            .withCanonicalTileID(&canonical),
-                        finalDefaultValue);
+    T evaluate(float zoom, const GeometryTileFeature& feature, const std::set<std::string>& availableImages,
+               const CanonicalTileID& canonical, T finalDefaultValue) const {
+        const auto& e = expression::EvaluationContext().
+        withZoom(zoom).withGeometryTileFeature(&feature).withAvailableImages(&availableImages).withCanonicalTileID(&canonical);
+        return evaluate(e, finalDefaultValue);
     }
 
-    T evaluate(float zoom,
-               const GeometryTileFeature& feature,
-               const CanonicalTileID& canonical,
-               T finalDefaultValue) const {
-        return evaluate(expression::EvaluationContext(zoom, &feature).withCanonicalTileID(&canonical),
-                        finalDefaultValue);
+    T evaluate(float zoom, const GeometryTileFeature& feature, const CanonicalTileID& canonical, T finalDefaultValue) const {
+        const auto& e = expression::EvaluationContext().
+        withZoom(zoom).withGeometryTileFeature(&feature).withCanonicalTileID(&canonical);
+        return evaluate(e, finalDefaultValue);
     }
 
     T evaluate(float zoom, const GeometryTileFeature& feature, const FeatureState& state, T finalDefaultValue) const {
         assert(!isFeatureConstant());
-        return evaluate(expression::EvaluationContext(zoom, &feature, &state), finalDefaultValue);
+        const auto& e = expression::EvaluationContext().
+        withZoom(zoom).withGeometryTileFeature(&feature).withFeatureState(&state);
+        return evaluate(e, finalDefaultValue);
     }
 
     std::vector<optional<T>> possibleOutputs() const {
         return expression::fromExpressionValues<T>(expression->possibleOutputs());
     }
 
-    friend bool operator==(const PropertyExpression& lhs,
-                           const PropertyExpression& rhs) {
+    friend bool operator==(const PropertyExpression& lhs, const PropertyExpression& rhs) {
         return *lhs.expression == *rhs.expression;
     }
 

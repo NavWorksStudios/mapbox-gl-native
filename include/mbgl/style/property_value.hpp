@@ -63,6 +63,14 @@ public:
             [] (const PropertyExpression<T>& fn) { return fn.isZoomConstant(); }
         );
     }
+    
+    bool isPitchConstant() const {
+        return value.match(
+            [] (const Undefined&)                { return true; },
+            [] (const T&)                        { return true; },
+            [] (const PropertyExpression<T>& fn) { return fn.isPitchConstant(); }
+        );
+    }
 
     const T& asConstant() const {
         return value.template get<T>();

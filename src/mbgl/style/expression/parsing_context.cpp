@@ -220,7 +220,7 @@ ParseResult ParsingContext::parse(const Convertible& value,
     // parsed/compiled result. Expressions that expect an image should
     // not be resolved here so we can later get the available images.
     if ((*parsed)->getKind() != Kind::Literal && (*parsed)->getType() != type::Image && isConstant(**parsed)) {
-        EvaluationContext params(nullptr);
+        EvaluationContext params;
         EvaluationResult evaluated((*parsed)->evaluate(params));
         if (!evaluated) {
             error(evaluated.error().message);

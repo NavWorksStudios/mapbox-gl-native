@@ -27,18 +27,32 @@ public:
 class EvaluationContext {
 public:
     EvaluationContext() = default;
-    explicit EvaluationContext(float zoom_) : zoom(zoom_) {}
-    explicit EvaluationContext(GeometryTileFeature const * feature_) : feature(feature_) {}
-    EvaluationContext(float zoom_, GeometryTileFeature const* feature_) : zoom(zoom_), feature(feature_) {}
-    EvaluationContext(optional<mbgl::Value> accumulated_, GeometryTileFeature const * feature_) :
-        accumulated(std::move(accumulated_)), feature(feature_)
-    {}
-    EvaluationContext(float zoom_, GeometryTileFeature const* feature_, const FeatureState* state_)
-        : zoom(zoom_), feature(feature_), featureState(state_) {}
-    EvaluationContext(optional<float> zoom_, GeometryTileFeature const * feature_, optional<double> colorRampParameter_) :
-        zoom(std::move(zoom_)), feature(feature_), colorRampParameter(std::move(colorRampParameter_))
-    {}
 
+    EvaluationContext& withZoom(optional<float> zoom_) noexcept {
+        zoom = zoom_;
+        return *this;
+    };
+    
+    EvaluationContext& withPitch(optional<float> pitch_) noexcept {
+        pitch = pitch_;
+        return *this;
+    };
+    
+    EvaluationContext& withGeometryTileFeature(GeometryTileFeature const* feature_) noexcept {
+        feature = feature_;
+        return *this;
+    };
+    
+    EvaluationContext& withAccumulated(optional<mbgl::Value> accumulated_) noexcept {
+        accumulated = accumulated_;
+        return *this;
+    };
+    
+    EvaluationContext& withColorRampParameter(optional<double> colorRampParameter_) noexcept {
+        colorRampParameter = colorRampParameter_;
+        return *this;
+    };
+    
     EvaluationContext& withFormattedSection(const Value* formattedSection_) noexcept {
         formattedSection = formattedSection_;
         return *this;
@@ -59,7 +73,9 @@ public:
         return *this;
     };
 
+public:
     optional<float> zoom;
+    optional<float> pitch;
     optional<mbgl::Value> accumulated;
     GeometryTileFeature const* feature = nullptr;
     optional<double> colorRampParameter;
@@ -189,15 +205,10 @@ public:
     type::Type getType() const { return type; };
 
     EvaluationResult evaluate(optional<float> zoom, const Feature& feature, optional<double> colorRampParameter) const;
-    EvaluationResult evaluate(optional<float> zoom,
-                              const Feature& feature,
-                              optional<double> colorRampParameter,
+    EvaluationResult evaluate(optional<float> zoom, const Feature& feature, optional<double> colorRampParameter, 
                               const std::set<std::string>& availableImages) const;
-    EvaluationResult evaluate(optional<float> zoom,
-                              const Feature& feature,
-                              optional<double> colorRampParameter,
-                              const std::set<std::string>& availableImages,
-                              const CanonicalTileID& canonical) const;
+    EvaluationResult evaluate(optional<float> zoom, const Feature& feature, optional<double> colorRampParameter,
+                              const std::set<std::string>& availableImages, const CanonicalTileID& canonical) const;
     EvaluationResult evaluate(optional<mbgl::Value> accumulated, const Feature& feature) const;
 
     /**
