@@ -21,6 +21,7 @@
 
 #include "mbgl/nav/nav_mb_layer.hpp"
 #include "mbgl/nav/nav_mb_style.hpp"
+#include "mbgl/nav/nav_log.hpp"
 
 namespace mbgl {
 namespace style {
@@ -28,6 +29,8 @@ namespace style {
 Parser::~Parser() = default;
 
 StyleParseResult Parser::parse(const std::string& json) {
+    nav::log::v("Style Json", "%s \n", json.c_str());
+    
     rapidjson::GenericDocument<rapidjson::UTF8<>, rapidjson::CrtAllocator> document;
     document.Parse<0>(json.c_str());
 
@@ -214,14 +217,6 @@ void Parser::parseLayers(const JSValue& value) {
         }
         
         auto it = layersMap.find(id);
-
-//        if (id == nav::mb::ID_NAV_LAND) {
-//            auto waterKV = layersMap.find("water");
-//            Layer* reference = waterKV->second.second.get();
-//            it->second.second = reference->cloneRef(id);
-//            continue;
-//        }
-        
         parseLayer(it->first,
                    it->second.first,
                    it->second.second);
@@ -231,12 +226,6 @@ void Parser::parseLayers(const JSValue& value) {
         auto it = layersMap.find(id);
         if (it->second.second) {
             nav::mb::displaceStyle(id, it->second.second);
-            
-//            if (id == nav::mb::ID_NAV_LAND) {
-//                layers.emplace(layers.begin(), std::move(it->second.second));
-//                continue;
-//            }
-            
             layers.emplace_back(std::move(it->second.second));
         }
     }
