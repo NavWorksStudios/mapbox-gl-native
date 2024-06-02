@@ -200,15 +200,7 @@ void Parser::parseLayers(const JSValue& value) {
         }
         
         layersMap.emplace(layerID, std::pair<const JSValue&, std::unique_ptr<Layer>> { layerValue, nullptr });
-        
-        
-        if (layerID == "water") {
-//            layersMap.emplace(nav::mb::ID_NAV_LAND, std::pair<const JSValue&, std::unique_ptr<Layer>> { layerValue, nullptr });
-//            ids.push_back(nav::mb::ID_NAV_LAND);
-            ids.insert(ids.begin(), layerID);
-        } else {
-            ids.push_back(layerID);
-        }
+        ids.push_back(layerID);
     }
 
     for (const auto& id : ids) {

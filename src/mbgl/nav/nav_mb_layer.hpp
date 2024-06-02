@@ -12,8 +12,8 @@ namespace nav {
 
 namespace mb {
 
-const std::string ID_NAV_LAND = "nav:land";
-const std::string ID_NAV_3D_LAND = "nav:3d-land";
+//const std::string ID_NAV_LAND = "nav:land";
+//const std::string ID_NAV_3D_LAND = "nav:3d-land";
 
 bool filterLayerByType(const std::string& id);
 

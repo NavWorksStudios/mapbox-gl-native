@@ -361,15 +361,6 @@ void GeometryTileWorker::parse() {
     std::unordered_map<std::string, std::vector<Immutable<style::LayerProperties>>> groupMap;
     for (auto layer : *layers) {
         std::string key = layoutKey(*layer->baseImpl);
-        
-        if (layer.get()->baseImpl->sourceLayer == "water") {
-            if(layer.get()->baseImpl->id == nav::mb::ID_NAV_LAND) {
-                key += nav::mb::ID_NAV_LAND;
-            } else if(layer.get()->baseImpl->id == nav::mb::ID_NAV_3D_LAND) {
-                key += nav::mb::ID_NAV_3D_LAND;
-            }
-        }
-
         groupMap[key].push_back(std::move(layer));
     }
 
@@ -385,30 +376,15 @@ void GeometryTileWorker::parse() {
 
         const style::Layer::Impl& leaderImpl = *(group.at(0)->baseImpl);
         BucketParameters parameters { id, mode, pixelRatio, leaderImpl.getTypeInfo() };
-
-        const bool isLand = (leaderImpl.id == nav::mb::ID_NAV_LAND || leaderImpl.id == nav::mb::ID_NAV_3D_LAND);
-        const bool reversal = (isLand && leaderImpl.sourceLayer == "water");
         
         auto geometryLayer = (*data)->getLayer(leaderImpl.sourceLayer);
-        if (!geometryLayer) {
-            // if reversal == true，证明是需要翻转水系创建nav:3d-land，逻辑待定
-            if(reversal) {
-
-            }
-            else
-                continue;
-        }
-
+        
         std::vector<std::string> layerIDs(group.size());
         for (const auto& layer : group) {
             layerIDs.push_back(layer->baseImpl->id);
         }
 
         featureIndex->setBucketLayerIDs(leaderImpl.id, layerIDs);
-        
-        if(leaderImpl.id == nav::mb::ID_NAV_3D_LAND && leaderImpl.sourceLayer == "water") {
-//            std::cout << "layer water && 3d-land begin!" << "\n";
-        }
 
         // Symbol layers and layers that support pattern properties have an extra step at layout time to figure out what images/glyphs
         // are needed to render the layer. They use the intermediate Layout data structure to accomplish this,
@@ -421,7 +397,7 @@ void GeometryTileWorker::parse() {
             if (layout->hasDependencies()) {
                 layouts.push_back(std::move(layout));
             } else {
-                layout->createBucket({}, featureIndex, renderData, firstLoad, showCollisionBoxes, id.canonical, reversal);
+                layout->createBucket({}, featureIndex, renderData, firstLoad, showCollisionBoxes, id.canonical, false);
             }
         } else {
             const Filter& filter = leaderImpl.filter;
