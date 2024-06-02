@@ -144,6 +144,18 @@ void e(const char* tag, const char* format, ...) {
     }
 }
 
+void printf(const char* format, ...) {
+    PrintBuf<51200> buf;
+    char* p = buf;
+    
+    va_list args;
+    va_start(args, format);
+    vsprintf(p, format, args);
+    va_end(args);
+
+    buf.print();
+}
+
 std::string tileId(const mbgl::CanonicalTileID& canonical, const std::string& layerId, const std::string& sourceId) {
     char tileid[32];
     sprintf(tileid, "(%d,%d,%d)", canonical.x, canonical.y, (int)canonical.z);

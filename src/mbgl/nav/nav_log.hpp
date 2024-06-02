@@ -31,6 +31,8 @@ void i(const char* tag, const char* format, ...);
 void w(const char* tag, const char* format, ...);
 void e(const char* tag, const char* format, ...);
 
+void printf(const char* format, ...);
+
 std::string tileId(const mbgl::CanonicalTileID& canonical, const std::string& layerId, const std::string& sourceId);
 std::map<std::string, int>& bucketMap();
 
