@@ -111,31 +111,6 @@ void addFillExtrusionLayer(mbgl::style::Style &style, bool visible) {
     style.addLayer(std::move(extrusionLayer));
 }
 
-void addLandFillExtrusionLayer(mbgl::style::Style &style, bool visible) { // return;
-    using namespace mbgl::style;
-    using namespace mbgl::style::expression::dsl;
-
-    // Satellite-only style does not contain building extrusions data.
-    if (!style.getSource("composite")) {
-        return;
-    }
-
-    if (auto layer = style.getLayer("nav:3d-land")) {
-        layer->setVisibility(VisibilityType(!visible));
-        return;
-    }
-
-    auto extrusionLayer = std::make_unique<FillExtrusionLayer>("nav:3d-land", "composite");
-    extrusionLayer->setSourceLayer("water");
-    extrusionLayer->setMinZoom(5.0f);
-    extrusionLayer->setFillExtrusionColor(nav::mb::land_color());
-    extrusionLayer->setFillExtrusionOpacity(1.0f);
-    extrusionLayer->setFillExtrusionHeight(-0.01);
-    extrusionLayer->setFillExtrusionBase(-3);
-
-    style.addLayer(std::move(extrusionLayer), mbgl::optional<std::string>("landcover"));
-}
-
 } // namespace
 
 void glfwError(int error, const char *description) {
@@ -786,7 +761,6 @@ void GLFWView::makeSnapshot(bool withOverlay) {
     if (withOverlay) {
         snapshotterObserver->didFinishLoadingStyleCallback = [&] {
             addFillExtrusionLayer(snapshotter->getStyle(), withOverlay);
-            addLandFillExtrusionLayer(snapshotter->getStyle(), withOverlay);
             snapshot();
         };
     } else {
