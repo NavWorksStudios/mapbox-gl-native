@@ -46,13 +46,13 @@ public:
     std::set<FontStack> fontStacks() const;
 
 private:
-    void parseTransition(const JSValue&);
-    void parseLight(const JSValue&);
-    void parseSources(const JSValue&);
-    void parseLayers(const JSValue&);
-    void parseLayer(const std::string& id, const JSValue&, std::unique_ptr<Layer>&);
+    void parseTransition(const JSONValue&);
+    void parseLight(const JSONValue&);
+    void parseSources(const JSONValue&);
+    void parseLayers(const JSONValue&);
+    void parseLayer(const std::string& id, const JSONValue&, std::unique_ptr<Layer>&);
 
-    std::unordered_map<std::string, std::pair<const JSValue&, std::unique_ptr<Layer>>> layersMap;
+    std::unordered_map<std::string, std::pair<const JSONValue&, std::unique_ptr<Layer>>> layersMap;
 
     // Store a stack of layer IDs we're parsing right now. This is to prevent reference cycles.
     std::forward_list<std::string> stack;

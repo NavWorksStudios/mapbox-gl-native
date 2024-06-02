@@ -11,7 +11,7 @@ namespace conversion {
 
 template <class T, class...Args>
 optional<T> convertJSON(const std::string& json, Error& error, Args&&...args) {
-    JSDocument document;
+    JSONDocument document;
     document.Parse<0>(json.c_str());
 
     if (document.HasParseError()) {

@@ -60,7 +60,7 @@ std::unique_ptr<style::Image> createStyleImage(const std::string& id,
 
 namespace {
 
-uint16_t getUInt16(const JSValue& value, const char* property, const char* name, const uint16_t def = 0) {
+uint16_t getUInt16(const JSONValue& value, const char* property, const char* name, const uint16_t def = 0) {
     if (value.HasMember(property)) {
         auto& v = value[property];
         if (v.IsUint() && v.GetUint() <= std::numeric_limits<uint16_t>::max()) {
@@ -76,7 +76,7 @@ uint16_t getUInt16(const JSValue& value, const char* property, const char* name,
     return def;
 }
 
-double getDouble(const JSValue& value, const char* property, const char* name, const double def = 0) {
+double getDouble(const JSONValue& value, const char* property, const char* name, const double def = 0) {
     if (value.HasMember(property)) {
         auto& v = value[property];
         if (v.IsNumber()) {
@@ -89,7 +89,7 @@ double getDouble(const JSValue& value, const char* property, const char* name, c
     return def;
 }
 
-bool getBoolean(const JSValue& value, const char* property, const char* name, const bool def = false) {
+bool getBoolean(const JSONValue& value, const char* property, const char* name, const bool def = false) {
     if (value.HasMember(property)) {
         auto& v = value[property];
         if (v.IsBool()) {
@@ -102,14 +102,14 @@ bool getBoolean(const JSValue& value, const char* property, const char* name, co
     return def;
 }
 
-style::ImageStretches getStretches(const JSValue& value, const char* property, const char* name) {
+style::ImageStretches getStretches(const JSONValue& value, const char* property, const char* name) {
     style::ImageStretches stretches;
 
     if (value.HasMember(property)) {
         auto& v = value[property];
         if (v.IsArray()) {
             for (rapidjson::SizeType i = 0; i < v.Size(); ++i) {
-                const JSValue& stretch = v[i];
+                const JSONValue& stretch = v[i];
                 if (stretch.IsArray() && stretch.Size() == 2 && stretch[rapidjson::SizeType(0)].IsNumber() &&
                     stretch[rapidjson::SizeType(1)].IsNumber()) {
                     stretches.emplace_back(style::ImageStretch{stretch[rapidjson::SizeType(0)].GetFloat(),
@@ -129,7 +129,7 @@ style::ImageStretches getStretches(const JSValue& value, const char* property, c
     return stretches;
 }
 
-optional<style::ImageContent> getContent(const JSValue& value, const char* property, const char* name) {
+optional<style::ImageContent> getContent(const JSONValue& value, const char* property, const char* name) {
     if (value.HasMember(property)) {
         auto& content = value[property];
         if (content.IsArray() && content.Size() == 4 && content[rapidjson::SizeType(0)].IsNumber() &&
@@ -155,7 +155,7 @@ optional<style::ImageContent> getContent(const JSValue& value, const char* prope
 std::vector<Immutable<style::Image::Impl>> parseSprite(const std::string& encodedImage, const std::string& json) {
     const PremultipliedImage raster = decodeImage(encodedImage);
 
-    JSDocument doc;
+    JSONDocument doc;
     doc.Parse<0>(json.c_str());
     if (doc.HasParseError()) {
         throw std::runtime_error("Failed to parse JSON: " + formatJSONParseError(doc));
@@ -170,7 +170,7 @@ std::vector<Immutable<style::Image::Impl>> parseSprite(const std::string& encode
     images.reserve(properties.MemberCount());
     for (const auto& property : properties) {
         const std::string name = {property.name.GetString(), property.name.GetStringLength()};
-        const JSValue& value = property.value;
+        const JSONValue& value = property.value;
 
         if (value.IsObject()) {
             const uint16_t x = getUInt16(value, "x", name.c_str(), 0);

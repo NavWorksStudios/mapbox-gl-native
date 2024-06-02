@@ -43,7 +43,7 @@ StyleParseResult Parser::parse(const std::string& json) {
     }
 
     if (document.HasMember("version")) {
-        const JSValue& versionValue = document["version"];
+        const JSONValue& versionValue = document["version"];
         const int version = versionValue.IsNumber() ? versionValue.GetInt() : 0;
         if (version != 8) {
             Log::Warning(Event::ParseStyle, "current renderer implementation only supports style spec version 8; using an outdated style will cause rendering errors");
@@ -51,14 +51,14 @@ StyleParseResult Parser::parse(const std::string& json) {
     }
 
     if (document.HasMember("name")) {
-        const JSValue& value = document["name"];
+        const JSONValue& value = document["name"];
         if (value.IsString()) {
             name = { value.GetString(), value.GetStringLength() };
         }
     }
 
     if (document.HasMember("center")) {
-        const JSValue& value = document["center"];
+        const JSONValue& value = document["center"];
         conversion::Error error;
         auto convertedLatLng = conversion::convert<LatLng>(value, error);
         if (convertedLatLng) {
@@ -69,21 +69,21 @@ StyleParseResult Parser::parse(const std::string& json) {
     }
 
     if (document.HasMember("zoom")) {
-        const JSValue& value = document["zoom"];
+        const JSONValue& value = document["zoom"];
         if (value.IsNumber()) {
             zoom = value.GetDouble();
         }
     }
 
     if (document.HasMember("bearing")) {
-        const JSValue& value = document["bearing"];
+        const JSONValue& value = document["bearing"];
         if (value.IsNumber()) {
             bearing = value.GetDouble();
         }
     }
 
     if (document.HasMember("pitch")) {
-        const JSValue& value = document["pitch"];
+        const JSONValue& value = document["pitch"];
         if (value.IsNumber()) {
             pitch = value.GetDouble();
         }
@@ -106,14 +106,14 @@ StyleParseResult Parser::parse(const std::string& json) {
     }
 
     if (document.HasMember("sprite")) {
-        const JSValue& sprite = document["sprite"];
+        const JSONValue& sprite = document["sprite"];
         if (sprite.IsString()) {
             spriteURL = { sprite.GetString(), sprite.GetStringLength() };
         }
     }
 
     if (document.HasMember("glyphs")) {
-        const JSValue& glyphs = document["glyphs"];
+        const JSONValue& glyphs = document["glyphs"];
         if (glyphs.IsString()) {
             glyphURL = { glyphs.GetString(), glyphs.GetStringLength() };
         }
@@ -125,7 +125,7 @@ StyleParseResult Parser::parse(const std::string& json) {
     return nullptr;
 }
 
-void Parser::parseTransition(const JSValue& value) {
+void Parser::parseTransition(const JSONValue& value) {
     conversion::Error error;
     optional<TransitionOptions> converted = conversion::convert<TransitionOptions>(value, error);
     if (!converted) {
@@ -136,7 +136,7 @@ void Parser::parseTransition(const JSValue& value) {
     transition = std::move(*converted);
 }
 
-void Parser::parseLight(const JSValue& value) {
+void Parser::parseLight(const JSONValue& value) {
     conversion::Error error;
     optional<Light> converted = conversion::convert<Light>(value, error);
     if (!converted) {
@@ -147,7 +147,7 @@ void Parser::parseLight(const JSValue& value) {
     light = *converted;
 }
 
-void Parser::parseSources(const JSValue& value) {
+void Parser::parseSources(const JSONValue& value) {
     if (!value.IsObject()) {
         Log::Warning(Event::ParseStyle, "sources must be an object");
         return;
@@ -168,7 +168,7 @@ void Parser::parseSources(const JSValue& value) {
     }
 }
 
-void Parser::parseLayers(const JSValue& value) {
+void Parser::parseLayers(const JSONValue& value) {
     std::vector<std::string> ids;
 
     if (!value.IsArray()) {
@@ -187,7 +187,7 @@ void Parser::parseLayers(const JSValue& value) {
             continue;
         }
 
-        const JSValue& id = layerValue["id"];
+        const JSONValue& id = layerValue["id"];
         if (!id.IsString()) {
             Log::Warning(Event::ParseStyle, "layer id must be a string");
             continue;
@@ -199,7 +199,7 @@ void Parser::parseLayers(const JSValue& value) {
             continue;
         }
         
-        layersMap.emplace(layerID, std::pair<const JSValue&, std::unique_ptr<Layer>> { layerValue, nullptr });
+        layersMap.emplace(layerID, std::pair<const JSONValue&, std::unique_ptr<Layer>> { layerValue, nullptr });
         ids.push_back(layerID);
     }
 
@@ -223,7 +223,7 @@ void Parser::parseLayers(const JSValue& value) {
     }
 }
 
-void Parser::parseLayer(const std::string& id, const JSValue& value, std::unique_ptr<Layer>& layer) {
+void Parser::parseLayer(const std::string& id, const JSONValue& value, std::unique_ptr<Layer>& layer) {
     if (layer) {
         // Skip parsing this again. We already have a valid layer definition.
         return;
@@ -237,7 +237,7 @@ void Parser::parseLayer(const std::string& id, const JSValue& value, std::unique
 
     if (value.HasMember("ref")) {
         // This layer is referencing another layer. Recursively parse that layer.
-        const JSValue& refVal = value["ref"];
+        const JSONValue& refVal = value["ref"];
         if (!refVal.IsString()) {
             Log::Warning(Event::ParseStyle, "layer ref of '%s' must be a string", id.c_str());
             return;

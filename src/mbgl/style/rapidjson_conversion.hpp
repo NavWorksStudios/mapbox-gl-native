@@ -11,38 +11,38 @@ namespace style {
 namespace conversion {
 
 template <>
-class ConversionTraits<const JSValue*> {
+class ConversionTraits<const JSONValue*> {
 public:
-    static bool isUndefined(const JSValue* value) {
+    static bool isUndefined(const JSONValue* value) {
         return value->IsNull();
     }
 
-    static bool isArray(const JSValue* value) {
+    static bool isArray(const JSONValue* value) {
         return value->IsArray();
     }
 
-    static std::size_t arrayLength(const JSValue* value) {
+    static std::size_t arrayLength(const JSONValue* value) {
         return value->Size();
     }
 
-    static const JSValue* arrayMember(const JSValue* value, std::size_t i) {
+    static const JSONValue* arrayMember(const JSONValue* value, std::size_t i) {
         return &(*value)[rapidjson::SizeType(i)];
     }
 
-    static bool isObject(const JSValue* value) {
+    static bool isObject(const JSONValue* value) {
         return value->IsObject();
     }
 
-    static optional<const JSValue*> objectMember(const JSValue* value, const char * name) {
+    static optional<const JSONValue*> objectMember(const JSONValue* value, const char * name) {
         if (!value->HasMember(name)) {
             return {};
         }
-        const JSValue* const& member = &(*value)[name];
+        const JSONValue* const& member = &(*value)[name];
         return {member};
     }
 
     template <class Fn>
-    static optional<Error> eachMember(const JSValue* value, Fn&& fn) {
+    static optional<Error> eachMember(const JSONValue* value, Fn&& fn) {
         assert(value->IsObject());
         for (const auto& property : value->GetObject()) {
             optional<Error> result =
@@ -54,35 +54,35 @@ public:
         return {};
     }
 
-    static optional<bool> toBool(const JSValue* value) {
+    static optional<bool> toBool(const JSONValue* value) {
         if (!value->IsBool()) {
             return {};
         }
         return value->GetBool();
     }
 
-    static optional<float> toNumber(const JSValue* value) {
+    static optional<float> toNumber(const JSONValue* value) {
         if (!value->IsNumber()) {
             return {};
         }
         return value->GetDouble();
     }
 
-    static optional<double> toDouble(const JSValue* value) {
+    static optional<double> toDouble(const JSONValue* value) {
         if (!value->IsNumber()) {
             return {};
         }
         return value->GetDouble();
     }
 
-    static optional<std::string> toString(const JSValue* value) {
+    static optional<std::string> toString(const JSONValue* value) {
         if (!value->IsString()) {
             return {};
         }
         return {{ value->GetString(), value->GetStringLength() }};
     }
 
-    static optional<Value> toValue(const JSValue* value) {
+    static optional<Value> toValue(const JSONValue* value) {
         switch (value->GetType()) {
             case rapidjson::kNullType:
             case rapidjson::kFalseType:
@@ -104,7 +104,7 @@ public:
         }
     }
 
-    static optional<GeoJSON> toGeoJSON(const JSValue* value, Error& error) {
+    static optional<GeoJSON> toGeoJSON(const JSONValue* value, Error& error) {
         try {
             return mapbox::geojson::convert(*value);
         } catch (const std::exception& ex) {
@@ -115,7 +115,7 @@ public:
 };
 
 template <class T, class...Args>
-optional<T> convert(const JSValue& value, Error& error, Args&&...args) {
+optional<T> convert(const JSONValue& value, Error& error, Args&&...args) {
     return convert<T>(Convertible(&value), error, std::forward<Args>(args)...);
 }
 
