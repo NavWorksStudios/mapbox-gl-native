@@ -100,8 +100,8 @@ void addFillExtrusionLayer(mbgl::style::Style &style, bool visible) {
     auto e = interpolate(
                 linear(),
                 number(get("height")),
-                0.f, toColor(literal("#966CF9")),
-                100.f, toColor(literal("#966CF9")));
+                0.f, toColor(literal("#FFFFFF")),
+                100.f, toColor(literal("#FFFFFF")));
                 
     extrusionLayer->setFillExtrusionColor(PropertyExpression<mbgl::Color>(std::move(e)));
     
