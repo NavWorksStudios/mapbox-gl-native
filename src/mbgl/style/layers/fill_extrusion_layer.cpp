@@ -390,7 +390,7 @@ Value FillExtrusionLayer::serialize() const {
 
 optional<Error> FillExtrusionLayer::setPropertyInternal(const std::string& name, const Convertible& value) {
     const auto it = layerProperties.find(name.c_str());
-    if (it == layerProperties.end()) return Error{"layer doesn't support this property"};
+    if (it == layerProperties.end()) return Error{std::string(name) + " <- FillExtrusionLayer doesn't support this property"};
 
     auto property = static_cast<Property>(it->second);
 
@@ -518,7 +518,7 @@ optional<Error> FillExtrusionLayer::setPropertyInternal(const std::string& name,
         return nullopt;
     }
 
-    return Error{"layer doesn't support this property"};
+    return Error{std::string(name) + " <- FillExtrusionLayer doesn't support this property"};
 }
 
 StyleProperty FillExtrusionLayer::getProperty(const std::string& name) const {

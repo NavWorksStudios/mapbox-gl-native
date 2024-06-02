@@ -398,7 +398,7 @@ Value FillLayer::serialize() const {
 
 optional<Error> FillLayer::setPropertyInternal(const std::string& name, const Convertible& value) {
     const auto it = layerProperties.find(name.c_str());
-    if (it == layerProperties.end()) return Error{"layer doesn't support this property"};
+    if (it == layerProperties.end()) return Error{std::string(name) + " <- FillLayer doesn't support this property"};
 
     auto property = static_cast<Property>(it->second);
 
@@ -518,7 +518,7 @@ optional<Error> FillLayer::setPropertyInternal(const std::string& name, const Co
         return nullopt;
     }
 
-    return Error{"layer doesn't support this property"};
+    return Error{std::string(name) + " <- FillLayer doesn't support this property"};
 }
 
 StyleProperty FillLayer::getProperty(const std::string& name) const {

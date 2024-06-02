@@ -215,7 +215,7 @@ Value BackgroundLayer::serialize() const {
 
 optional<Error> BackgroundLayer::setPropertyInternal(const std::string& name, const Convertible& value) {
     const auto it = layerProperties.find(name.c_str());
-    if (it == layerProperties.end()) return Error{"layer doesn't support this property"};
+    if (it == layerProperties.end()) return Error{std::string(name) + " <- BackgroundLayer doesn't support this property"};
 
     auto property = static_cast<Property>(it->second);
 
@@ -271,7 +271,7 @@ optional<Error> BackgroundLayer::setPropertyInternal(const std::string& name, co
         return nullopt;
     }
 
-    return Error{"layer doesn't support this property"};
+    return Error{std::string(name) + " <- BackgroundLayer doesn't support this property"};
 }
 
 StyleProperty BackgroundLayer::getProperty(const std::string& name) const {

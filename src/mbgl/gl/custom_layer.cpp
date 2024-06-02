@@ -38,8 +38,8 @@ std::unique_ptr<Layer> CustomLayer::cloneRef(const std::string&) const {
 
 using namespace conversion;
 
-optional<Error> CustomLayer::setPropertyInternal(const std::string&, const Convertible&) {
-    return Error { "layer doesn't support this property" };
+optional<Error> CustomLayer::setPropertyInternal(const std::string& name, const Convertible&) {
+    return Error { std::string(name) + " <- CustomLayer doesn't support this property" };
 }
 
 StyleProperty CustomLayer::getProperty(const std::string&) const {

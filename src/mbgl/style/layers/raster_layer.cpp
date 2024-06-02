@@ -390,7 +390,7 @@ Value RasterLayer::serialize() const {
 
 optional<Error> RasterLayer::setPropertyInternal(const std::string& name, const Convertible& value) {
     const auto it = layerProperties.find(name.c_str());
-    if (it == layerProperties.end()) return Error{"layer doesn't support this property"};
+    if (it == layerProperties.end()) return Error{std::string(name) + " <- RasterLayer doesn't support this property"};
 
     auto property = static_cast<Property>(it->second);
 
@@ -496,7 +496,7 @@ optional<Error> RasterLayer::setPropertyInternal(const std::string& name, const 
         return nullopt;
     }
 
-    return Error{"layer doesn't support this property"};
+    return Error{std::string(name) + " <- RasterLayer doesn't support this property"};
 }
 
 StyleProperty RasterLayer::getProperty(const std::string& name) const {

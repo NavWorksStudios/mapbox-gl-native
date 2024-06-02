@@ -287,7 +287,7 @@ Value HeatmapLayer::serialize() const {
 
 optional<Error> HeatmapLayer::setPropertyInternal(const std::string& name, const Convertible& value) {
     const auto it = layerProperties.find(name.c_str());
-    if (it == layerProperties.end()) return Error{"layer doesn't support this property"};
+    if (it == layerProperties.end()) return Error{std::string(name) + " <- HeatmapLayer doesn't support this property"};
 
     auto property = static_cast<Property>(it->second);
 
@@ -367,7 +367,7 @@ optional<Error> HeatmapLayer::setPropertyInternal(const std::string& name, const
         return nullopt;
     }
 
-    return Error{"layer doesn't support this property"};
+    return Error{std::string(name) + " <- HeatmapLayer doesn't support this property"};
 }
 
 StyleProperty HeatmapLayer::getProperty(const std::string& name) const {
