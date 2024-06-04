@@ -20,7 +20,7 @@ MatrixObserver notifyMatrixObserver = nullptr;
 void setMatrixObserver(MatrixObserver observer) { notifyMatrixObserver = observer; }
 void onMatrix(const double* matrix) {
 //    nav::log::i("Projection",
-//                "matrix : [%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf]\n",
+//                "matrix : [%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf]",
 //                matrix[0], matrix[1], matrix[2], matrix[3],
 //                matrix[4], matrix[5], matrix[6], matrix[7],
 //                matrix[8], matrix[9], matrix[10], matrix[11],
@@ -53,7 +53,7 @@ TileMatrixObserver notifyTileMatrixObserver = nullptr;
 void setTileMatrixObserver(TileMatrixObserver observer) { notifyTileMatrixObserver = observer; }
 void onTileMatrix(const TileId* tileId, const double* matrix) {
 //    nav::log::i("Model",
-//                "matrix : (%d,%d,%d) [%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf]\n",
+//                "matrix : (%d,%d,%d) [%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf][%lf,%lf,%lf,%lf]",
 //                tileId->x, tileId->y, tileId->z,
 //                matrix[0], matrix[1], matrix[2], matrix[3],
 //                matrix[4], matrix[5], matrix[6], matrix[7],
@@ -69,7 +69,7 @@ TileTransformObserver notifyTileTransformObserver = nullptr;
 void setTileTransformObserver(TileTransformObserver observer) { notifyTileTransformObserver = observer; }
 void onTileTransform(const TileId* tileId, const double* position, const double* scale) {
 //    nav::log::i("Model",
-//                "transform : (%d,%d,%d) T[%lf,%lf,%lf] S[%lf,%lf,%lf]\n",
+//                "transform : (%d,%d,%d) T[%lf,%lf,%lf] S[%lf,%lf,%lf]",
 //                tileId->x, tileId->y, tileId->z,
 //                position[0], position[1], position[2],
 //                scale[0], scale[1], scale[2]);
@@ -98,7 +98,7 @@ std::string Feature::toString() const {
 FillBucketObserver fillBucketObserver = nullptr;
 void setFillBucketObserver(FillBucketObserver observer) { fillBucketObserver = observer; }
 void onAddFillBucket(const FillBucket* param) {
-    nav::log::i("BucketObserver", "Fill : %s vertices:%d\n",
+    nav::log::i("BucketObserver", "Fill : %s vertices:%d",
                 param->feature.toString().c_str(),
                 param->vertices.count);
     
@@ -110,7 +110,7 @@ void onAddFillBucket(const FillBucket* param) {
 LineBucketObserver lineBucketObserver = nullptr;
 void setLineBucketObserver(LineBucketObserver observer) { lineBucketObserver = observer; }
 void onAddLineBucket(const LineBucket* param) {
-    nav::log::i("BucketObserver", "Line : %s vertices:%d\n",
+    nav::log::i("BucketObserver", "Line : %s vertices:%d",
                 param->feature.toString().c_str(),
                 param->vertices.count);
     
@@ -138,7 +138,7 @@ void onAddSymbolBucket(const SymbolBucket* param) {
 ExtrusionBucketObserver extrusionBucketObserver = nullptr;
 void setExtrusionBucketObserver(ExtrusionBucketObserver observer) { extrusionBucketObserver = observer; } 
 void onAddExtrusionBucket(const ExtrusionBucket* param) {
-    nav::log::i("BucketObserver", "Extrusion : %s vertices:%d\n",
+    nav::log::i("BucketObserver", "Extrusion : %s vertices:%d",
                 param->feature.toString().c_str(),
                 param->vertices.count);
     

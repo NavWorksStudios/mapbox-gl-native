@@ -131,7 +131,7 @@ void RenderTile::prepare(const SourcePrepareParameters& parameters) {
 
     const double digest = ps[0] + ps[1] + ps[3];
     if (tile.matrixDigest != digest) {
-//        nav::log::i("RenderTile", "obj %p (%d,%d,%d) - (%lf | %lf) [%lf,%lf,%lf] \n",
+//        nav::log::i("RenderTile", "obj %p (%d,%d,%d) - (%lf | %lf) [%lf,%lf,%lf]",
 //                    this, id.canonical.x, id.canonical.y, (int)id.canonical.z,
 //                    tile.matrixDigest, digest, ps[0], ps[1], ps[3]);
         

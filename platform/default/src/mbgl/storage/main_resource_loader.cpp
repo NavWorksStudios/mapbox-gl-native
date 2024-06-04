@@ -190,7 +190,7 @@ bool MainResourceLoader::supportsCacheOnlyRequests() const {
 }
 
 std::unique_ptr<AsyncRequest> MainResourceLoader::request(const Resource& resource, Callback callback) {
-    nav::log::i("MainResourceLoader", "request : %s \n", resource.url.c_str());
+    nav::log::i("MainResourceLoader", "request : %s", resource.url.c_str());
     return impl->request(resource, std::move(callback));
 }
 

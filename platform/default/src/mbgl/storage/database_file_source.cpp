@@ -175,7 +175,7 @@ DatabaseFileSource::DatabaseFileSource(const ResourceOptions& options)
 DatabaseFileSource::~DatabaseFileSource() = default;
 
 std::unique_ptr<AsyncRequest> DatabaseFileSource::request(const Resource& resource, Callback callback) {
-    nav::log::i("DatabaseFileSource", "request : %s \n", resource.url.c_str());
+    nav::log::i("DatabaseFileSource", "request : %s", resource.url.c_str());
     auto req = std::make_unique<FileSourceRequest>(std::move(callback));
     impl->actor().invoke(&DatabaseFileSourceThread::request, resource, req->actor());
     return req;

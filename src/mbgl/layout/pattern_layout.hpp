@@ -246,7 +246,7 @@ public:
         const std::string tile = nav::log::tileId(canonical, bucketLeaderID, sourceLayerID);
 //        static std::map<std::string, int> counter;
 //        int count = ++counter[tile];
-//        nav::log::i("PatternLayout", "%s (%d) Bucket:%p \n", tile.c_str(), count, bucket.get());
+//        nav::log::i("PatternLayout", "%s (%d) Bucket:%p", tile.c_str(), count, bucket.get());
 //        assert(nav::mb::bucketMap()[tile] == 0);
 //        nav::log::bucketMap()[tile]++;
         bucket->key = tile;

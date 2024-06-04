@@ -49,7 +49,7 @@ AssetFileSource::AssetFileSource(const std::string& root)
 AssetFileSource::~AssetFileSource() = default;
 
 std::unique_ptr<AsyncRequest> AssetFileSource::request(const Resource& resource, Callback callback) {
-    nav::log::i("AssetFileSource", "request : %s \n", resource.url.c_str());
+    nav::log::i("AssetFileSource", "request : %s", resource.url.c_str());
     
     auto req = std::make_unique<FileSourceRequest>(std::move(callback));
 

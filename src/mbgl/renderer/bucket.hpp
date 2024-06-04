@@ -33,7 +33,7 @@ public:
     std::string key;
     
     virtual ~Bucket() {
-        nav::log::i("Bucket", "delete Bucket %p \n", this);
+        nav::log::i("Bucket", "delete Bucket %p", this);
         
 //        assert(nav::log::bucketMap()[key] > 0);
         nav::log::bucketMap()[key]--;
@@ -82,7 +82,7 @@ public:
 
 protected:
     Bucket() {
-        nav::log::i("Bucket", "new Bucket %p \n", this);
+        nav::log::i("Bucket", "new Bucket %p", this);
     }
     std::atomic<bool> uploaded { false };
 };

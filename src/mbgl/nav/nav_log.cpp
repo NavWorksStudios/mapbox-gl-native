@@ -14,7 +14,7 @@ template <size_t T> struct PrintBuf {
     PrintBuf() { buf = (char*) malloc(T); }
     ~PrintBuf() { free(buf); }
     inline operator char* () const { return buf; }
-    inline void print() const { printf("%s", buf); }
+    inline void print() const { printf("%s\n", buf); }
 };
 
 char* print_timestamp(char* buf) {
@@ -52,7 +52,7 @@ char* print_tag(char* buf, const char* tag) {
 namespace nav {
 namespace log {
 
-const LogLevel LEVEL = LogLevel::Debug;
+const LogLevel LEVEL = LogLevel::Warning;
 
 void v(const char* tag, const char* format, ...) {
     if (LEVEL <= LogLevel::Verbose) {

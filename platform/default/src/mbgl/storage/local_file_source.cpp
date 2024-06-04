@@ -45,7 +45,7 @@ LocalFileSource::LocalFileSource()
 LocalFileSource::~LocalFileSource() = default;
 
 std::unique_ptr<AsyncRequest> LocalFileSource::request(const Resource& resource, Callback callback) {
-    nav::log::i("LocalFileSource", "request : %s \n", resource.url.c_str());
+    nav::log::i("LocalFileSource", "request : %s", resource.url.c_str());
     auto req = std::make_unique<FileSourceRequest>(std::move(callback));
 
     impl->actor().invoke(&Impl::request, resource.url, req->actor());

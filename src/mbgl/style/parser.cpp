@@ -29,7 +29,7 @@ namespace style {
 Parser::~Parser() = default;
 
 StyleParseResult Parser::parse(const std::string& json) {
-    nav::log::v("Style Json", "%s \n", json.c_str());
+    nav::log::v("Style Json", "%s", json.c_str());
     
     rapidjson::GenericDocument<rapidjson::UTF8<>, rapidjson::CrtAllocator> document;
     document.Parse<0>(json.c_str());

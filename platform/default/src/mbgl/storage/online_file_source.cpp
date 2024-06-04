@@ -25,7 +25,9 @@
 #include <list>
 #include <map>
 #include <utility>
+
 #include "mbgl/nav/nav_log.hpp"
+#include "mbgl/nav/nav_mb_layer.hpp"
 
 namespace mbgl {
 
@@ -367,8 +369,7 @@ public:
 
     std::string getAccessToken() const {
         std::lock_guard<std::mutex> lock(cachedAccessTokenMutex);
-        // notheorem
-        return "pk.eyJ1Ijoibm90aGVvcmVtIiwiYSI6ImNsb3Y0cjVoaTBxY20yamxsb3pvNHI3MW0ifQ.ZEemHSq9LP1ScpWw6w9Z0g";
+        return nav::mb::accessToken();
 //        return cachedAccessToken;
     }
 
@@ -568,7 +569,6 @@ OnlineFileSource::OnlineFileSource() : impl(std::make_unique<Impl>()) {}
 OnlineFileSource::~OnlineFileSource() = default;
 
 std::unique_ptr<AsyncRequest> OnlineFileSource::request(const Resource& resource, Callback callback) {
-    nav::log::i("OnlineFileSource", "request : %s \n", resource.url.c_str());
     Resource res = resource;
 
     switch (resource.kind) {
@@ -598,6 +598,8 @@ std::unique_ptr<AsyncRequest> OnlineFileSource::request(const Resource& resource
             res.url = util::mapbox::normalizeTileURL(impl->getAPIBaseURL(), resource.url, impl->getAccessToken());
             break;
     }
+    
+    nav::log::w("OnlineFileSource", "[%d]http[%s]", (int)resource.kind, res.url.c_str());
 
     return impl->request(std::move(callback), std::move(res));
 }
