@@ -63,7 +63,7 @@ public:
     }
     
     T evaluatePitch(float pitch) const {
-        assert(!isZoomConstant());
+        assert(!isPitchConstant());
         assert(isFeatureConstant());
         const auto& e = expression::EvaluationContext().withPitch(pitch);
         return evaluate(e);
@@ -72,8 +72,7 @@ public:
     T evaluate(const GeometryTileFeature& feature, T finalDefaultValue) const {
         assert(isZoomConstant());
         assert(!isFeatureConstant());
-        const auto& e = expression::EvaluationContext().
-        withGeometryTileFeature(&feature);
+        const auto& e = expression::EvaluationContext().withGeometryTileFeature(&feature);
         return evaluate(e, finalDefaultValue);
     }
 

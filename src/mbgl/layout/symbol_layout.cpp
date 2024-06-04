@@ -92,6 +92,7 @@ SymbolLayout::SymbolLayout(const BucketParameters& parameters,
       tileSize(util::tileSize * overscaling),
       tilePixelRatio(float(util::EXTENT) / tileSize),
       layout(createLayout(toSymbolLayerProperties(layers.at(0)).layerImpl().layout, zoom)) {
+    assert(sourceLayer);
     const SymbolLayer::Impl& leader = toSymbolLayerProperties(layers.at(0)).layerImpl();
 
     textSize = leader.layout.get<TextSize>();

@@ -80,6 +80,22 @@ Range<float> Step::getCoveringStops(const double lower, const double upper) cons
 }
 
 
+/* Example
+[   "step",                                 (0) -- step
+ 
+    ["pitch"],                              (1) -- input
+ 
+    true,                                   (2) -- default of output
+ 
+    50,                                     (3) -- value from input
+    ["<",["distance-from-center"],2],       (4) -- value of output
+ 
+    60,                                     (5) -- value from input
+    ["<",["distance-from-center"],2.5],     (6) -- value of output
+ 
+    ...     ]
+*/
+
 ParseResult Step::parse(const mbgl::style::conversion::Convertible& value, ParsingContext& ctx) {
     assert(isArray(value));
 
@@ -96,31 +112,33 @@ ParseResult Step::parse(const mbgl::style::conversion::Convertible& value, Parsi
         return ParseResult();
     }
     
-    ParseResult input = ctx.parse(arrayMember(value, 1), 1, {type::Number});
-    if (!input) {
-        return input;
+    // [1]
+    ParseResult inputVariable = ctx.parse(arrayMember(value, 1), 1, {type::Number});
+    if (!inputVariable) {
+        return inputVariable;
     }
     
-    std::map<double, std::unique_ptr<Expression>> stops;
+    // [2]
+    // consume the first output value, which doesn't have a corresponding input value,
+    // before proceeding into the "stops" loop below.
     optional<type::Type> outputType;
     if (ctx.getExpected() && *ctx.getExpected() != type::Value) {
         outputType = ctx.getExpected();
     }
     
-    double previous = - std::numeric_limits<double>::infinity();
-    
-    // consume the first output value, which doesn't have a corresponding input value,
-    // before proceeding into the "stops" loop below.
-    auto firstOutput = ctx.parse(arrayMember(value, 2), 2, outputType);
-    if (!firstOutput) {
+    auto defaultOutputValue = ctx.parse(arrayMember(value, 2), 2, outputType);
+    if (!defaultOutputValue) {
         return ParseResult();
     }
+    
     if (!outputType) {
-        outputType = (*firstOutput)->getType();
+        outputType = (*defaultOutputValue)->getType();
     }
-    stops.emplace(-std::numeric_limits<double>::infinity(), std::move(*firstOutput));
     
+    std::map<double, std::unique_ptr<Expression>> stops;
+    stops.emplace(-std::numeric_limits<double>::infinity(), std::move(*defaultOutputValue));
     
+    double previous = - std::numeric_limits<double>::infinity();
     for (std::size_t i = 3; i + 1 < length; i += 2) {
         const optional<mbgl::Value> labelValue = toValue(arrayMember(value, i));
         optional<double> label;
@@ -177,7 +195,7 @@ ParseResult Step::parse(const mbgl::style::conversion::Convertible& value, Parsi
     
     assert(outputType);
     
-    return ParseResult(std::make_unique<Step>(*outputType, std::move(*input), std::move(stops)));
+    return ParseResult(std::make_unique<Step>(*outputType, std::move(*inputVariable), std::move(stops)));
 }
 
 mbgl::Value Step::serialize() const {

@@ -160,9 +160,11 @@ void TileLoader<T>::loadFromNetwork() {
     // NetworkOnly request.
     resource.loadingMethod = Resource::LoadingMethod::NetworkOnly;
     resource.minimumUpdateInterval = updateParameters.minimumUpdateInterval;
-    resource.storagePolicy =
-        updateParameters.isVolatile ? Resource::StoragePolicy::Volatile : Resource::StoragePolicy::Permanent;
-    request = fileSource->request(resource, [this](const Response& res) { loadedData(res); });
+    resource.storagePolicy = updateParameters.isVolatile ? Resource::StoragePolicy::Volatile : Resource::StoragePolicy::Permanent;
+    request = fileSource->request(resource, 
+    [this](const Response& res) {
+        loadedData(res);
+    });
 }
 
 } // namespace mbgl

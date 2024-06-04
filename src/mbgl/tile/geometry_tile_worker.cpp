@@ -378,6 +378,9 @@ void GeometryTileWorker::parse() {
         BucketParameters parameters { id, mode, pixelRatio, leaderImpl.getTypeInfo() };
         
         auto geometryLayer = (*data)->getLayer(leaderImpl.sourceLayer);
+        if (!geometryLayer) {
+            continue;
+        }
         
         std::vector<std::string> layerIDs(group.size());
         for (const auto& layer : group) {
@@ -393,7 +396,7 @@ void GeometryTileWorker::parse() {
         if (leaderImpl.getTypeInfo()->layout == LayerTypeInfo::Layout::Required) {
             std::unique_ptr<Layout> layout = LayerManager::get()->createLayout(
                 {parameters, glyphDependencies, imageDependencies, availableImages}, std::move(geometryLayer), group);
-            nav::log::i("Layout", "new layout %ld \n", layout.get());
+            nav::log::i("Layout", "new layout %ld", layout.get());
             if (layout->hasDependencies()) {
                 layouts.push_back(std::move(layout));
             } else {

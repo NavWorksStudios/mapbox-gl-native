@@ -314,7 +314,8 @@ const auto& rgbCompoundExpression() {
 }
 
 const auto& zoomCompoundExpression() {
-    static auto signature = detail::makeSignature("zoom", [](const EvaluationContext& params) -> Result<double> {
+    static auto signature = detail::makeSignature("zoom", 
+    [](const EvaluationContext& params) -> Result<double> {
         if (!params.zoom) {
             return EvaluationError {
                 "The 'zoom' expression is unavailable in the current evaluation context."
@@ -326,7 +327,8 @@ const auto& zoomCompoundExpression() {
 }
 
 const auto& pitchCompoundExpression() {
-    static auto signature = detail::makeSignature("pitch", [](const EvaluationContext& params) -> Result<double> {
+    static auto signature = detail::makeSignature("pitch", 
+    [](const EvaluationContext& params) -> Result<double> {
         if (!params.pitch) {
             return EvaluationError {
                 "The 'pitch' expression is unavailable in the current evaluation context."
@@ -337,8 +339,22 @@ const auto& pitchCompoundExpression() {
     return signature;
 }
 
+const auto& distanceFromCenterCompoundExpression() {
+    static auto signature = detail::makeSignature("distance-from-center",
+    [](const EvaluationContext& params) -> Result<double> {
+        if (!params.pitch) {
+            return EvaluationError {
+                "The 'distance-from-center' expression is unavailable in the current evaluation context."
+            };
+        }
+        return *(params.distanceFromCenter);
+    });
+    return signature;
+}
+
 const auto& heatmapDensityCompoundExpression() {
-    static auto signature = detail::makeSignature("heatmap-density", [](const EvaluationContext& params) -> Result<double> {
+    static auto signature = detail::makeSignature("heatmap-density", 
+    [](const EvaluationContext& params) -> Result<double> {
         if (!params.colorRampParameter) {
             return EvaluationError {
                 "The 'heatmap-density' expression is unavailable in the current evaluation context."
@@ -350,7 +366,8 @@ const auto& heatmapDensityCompoundExpression() {
 }
 
 const auto& lineProgressCompoundExpression() {
-    static auto signature = detail::makeSignature("line-progress", [](const EvaluationContext& params) -> Result<double> {
+    static auto signature = detail::makeSignature("line-progress", 
+    [](const EvaluationContext& params) -> Result<double> {
         if (!params.colorRampParameter) {
             return EvaluationError {
                 "The 'line-progress' expression is unavailable in the current evaluation context."
@@ -362,7 +379,8 @@ const auto& lineProgressCompoundExpression() {
 }
 
 const auto& accumulatedCompoundExpression() {
-    const static auto signature = detail::makeSignature("accumulated", [](const EvaluationContext& params) -> Result<Value> {
+    const static auto signature = detail::makeSignature("accumulated", 
+    [](const EvaluationContext& params) -> Result<Value> {
         if (!params.accumulated) {
             return EvaluationError {
                 "The 'accumulated' expression is unavailable in the current evaluation context."
@@ -374,7 +392,8 @@ const auto& accumulatedCompoundExpression() {
 }
     
 const auto& hasContextCompoundExpression() {
-    static auto signature = detail::makeSignature("has", [](const EvaluationContext& params, const std::string& key) -> Result<bool> {
+    static auto signature = detail::makeSignature("has", 
+    [](const EvaluationContext& params, const std::string& key) -> Result<bool> {
         if (!params.feature) {
             return EvaluationError {
                 "Feature data is unavailable in the current evaluation context."
@@ -387,14 +406,16 @@ const auto& hasContextCompoundExpression() {
 }
 
 const auto& hasObjectCompoundExpression() {
-    static auto signature = detail::makeSignature("has", [](const std::string& key, const std::unordered_map<std::string, Value>& object) -> Result<bool> {
+    static auto signature = detail::makeSignature("has", 
+    [](const std::string& key, const std::unordered_map<std::string, Value>& object) -> Result<bool> {
         return object.find(key) != object.end();
     });
     return signature;
 }
 
 const auto& getContextCompoundExpression() {
-    static auto signature = detail::makeSignature("get", [](const EvaluationContext& params, const std::string& key) -> Result<Value> {
+    static auto signature = detail::makeSignature("get", 
+    [](const EvaluationContext& params, const std::string& key) -> Result<Value> {
         if (!params.feature) {
             return EvaluationError {
                 "Feature data is unavailable in the current evaluation context."
@@ -411,7 +432,8 @@ const auto& getContextCompoundExpression() {
 }
 
 const auto& getObjectCompoundExpression() {
-    static auto signature = detail::makeSignature("get", [](const std::string& key, const std::unordered_map<std::string, Value>& object) -> Result<Value> {
+    static auto signature = detail::makeSignature("get", 
+    [](const std::string& key, const std::unordered_map<std::string, Value>& object) -> Result<Value> {
         if (object.find(key) == object.end()) {
             return Null;
         }
@@ -421,7 +443,8 @@ const auto& getObjectCompoundExpression() {
 }
 
 const auto& propertiesCompoundExpression() {
-    static auto signature = detail::makeSignature("properties", [](const EvaluationContext& params) -> Result<std::unordered_map<std::string, Value>> {
+    static auto signature = detail::makeSignature("properties", 
+    [](const EvaluationContext& params) -> Result<std::unordered_map<std::string, Value>> {
         if (!params.feature) {
             return EvaluationError {
                 "Feature data is unavailable in the current evaluation context."
@@ -439,7 +462,8 @@ const auto& propertiesCompoundExpression() {
 }
 
 const auto& geometryTypeCompoundExpression() {
-    static auto signature = detail::makeSignature("geometry-type", [](const EvaluationContext& params) -> Result<std::string> {
+    static auto signature = detail::makeSignature("geometry-type", 
+    [](const EvaluationContext& params) -> Result<std::string> {
         if (!params.feature) {
             return EvaluationError {
                 "Feature data is unavailable in the current evaluation context."
@@ -716,7 +740,8 @@ const auto& filterTypeEqualsCompoundExpression() {
 }
 
 const auto& filterLessThanNumberCompoundExpression() {
-    static auto signature = detail::makeSignature("filter-<", [](const EvaluationContext& params, const std::string& key, double lhs) -> Result<bool> {
+    static auto signature = detail::makeSignature("filter-<", 
+    [](const EvaluationContext& params, const std::string& key, double lhs) -> Result<bool> {
         auto rhs = featurePropertyAsDouble(params, key);
         return rhs ? rhs < lhs : false;
     });
@@ -724,17 +749,17 @@ const auto& filterLessThanNumberCompoundExpression() {
 }
 
 const auto& filterLessThanStringCompoundExpression() {
-    static auto signature = detail::makeSignature(
-        "filter-<",
-        [](const EvaluationContext& params, const std::string& key, const std::string& lhs) -> Result<bool> {
-            auto rhs = featurePropertyAsString(params, key);
-            return rhs ? rhs < lhs : false;
-        });
+    static auto signature = detail::makeSignature("filter-<",
+    [](const EvaluationContext& params, const std::string& key, const std::string& lhs) -> Result<bool> {
+        auto rhs = featurePropertyAsString(params, key);
+        return rhs ? rhs < lhs : false;
+    });
     return signature;
 }
 
 const auto& filterIdLessThanNumberCompoundExpression() {
-    static auto signature = detail::makeSignature("filter-id-<", [](const EvaluationContext& params, double lhs) -> Result<bool> {
+    static auto signature = detail::makeSignature("filter-id-<", 
+    [](const EvaluationContext& params, double lhs) -> Result<bool> {
         auto rhs = featureIdAsDouble(params);
         return rhs ? rhs < lhs : false;
     });
@@ -742,16 +767,17 @@ const auto& filterIdLessThanNumberCompoundExpression() {
 }
 
 const auto& filterIdLessThanStringCompoundExpression() {
-    static auto signature = detail::makeSignature(
-        "filter-id-<", [](const EvaluationContext& params, const std::string& lhs) -> Result<bool> {
-            auto rhs = featureIdAsString(params);
-            return rhs ? rhs < lhs : false;
-        });
+    static auto signature = detail::makeSignature("filter-id-<",
+    [](const EvaluationContext& params, const std::string& lhs) -> Result<bool> {
+        auto rhs = featureIdAsString(params);
+        return rhs ? rhs < lhs : false;
+    });
     return signature;
 }
 
 const auto& filterMoreThanNumberCompoundExpression() {
-    static auto signature = detail::makeSignature("filter->", [](const EvaluationContext& params, const std::string& key, double lhs) -> Result<bool> {
+    static auto signature = detail::makeSignature("filter->", 
+    [](const EvaluationContext& params, const std::string& key, double lhs) -> Result<bool> {
         auto rhs = featurePropertyAsDouble(params, key);
         return rhs ? rhs > lhs : false;
     });
@@ -759,17 +785,17 @@ const auto& filterMoreThanNumberCompoundExpression() {
 }
 
 const auto& filterMoreThanStringCompoundExpression() {
-    static auto signature = detail::makeSignature(
-        "filter->",
-        [](const EvaluationContext& params, const std::string& key, const std::string& lhs) -> Result<bool> {
-            auto rhs = featurePropertyAsString(params, key);
-            return rhs ? rhs > lhs : false;
-        });
+    static auto signature = detail::makeSignature("filter->",
+    [](const EvaluationContext& params, const std::string& key, const std::string& lhs) -> Result<bool> {
+        auto rhs = featurePropertyAsString(params, key);
+        return rhs ? rhs > lhs : false;
+    });
     return signature;
 }
 
 const auto& filterIdMoreThanNumberCompoundExpression() {
-    static auto signature = detail::makeSignature("filter-id->", [](const EvaluationContext& params, double lhs) -> Result<bool> {
+    static auto signature = detail::makeSignature("filter-id->", 
+    [](const EvaluationContext& params, double lhs) -> Result<bool> {
         auto rhs = featureIdAsDouble(params);
         return rhs ? rhs > lhs : false;
     });
@@ -777,16 +803,17 @@ const auto& filterIdMoreThanNumberCompoundExpression() {
 }
 
 const auto& filterIdMoreThanStringCompoundExpression() {
-    static auto signature = detail::makeSignature(
-        "filter-id->", [](const EvaluationContext& params, const std::string& lhs) -> Result<bool> {
-            auto rhs = featureIdAsString(params);
-            return rhs ? rhs > lhs : false;
-        });
+    static auto signature = detail::makeSignature("filter-id->",
+    [](const EvaluationContext& params, const std::string& lhs) -> Result<bool> {
+        auto rhs = featureIdAsString(params);
+        return rhs ? rhs > lhs : false;
+    });
     return signature;
 }
 
 const auto& filterLessOrEqualThanNumberCompoundExpression() {
-    static auto signature = detail::makeSignature("filter-<=", [](const EvaluationContext& params, const std::string& key, double lhs) -> Result<bool> {
+    static auto signature = detail::makeSignature("filter-<=", 
+    [](const EvaluationContext& params, const std::string& key, double lhs) -> Result<bool> {
         auto rhs = featurePropertyAsDouble(params, key);
         return rhs ? rhs <= lhs : false;
     });
@@ -794,17 +821,17 @@ const auto& filterLessOrEqualThanNumberCompoundExpression() {
 }
 
 const auto& filterLessOrEqualThanStringCompoundExpression() {
-    static auto signature = detail::makeSignature(
-        "filter-<=",
-        [](const EvaluationContext& params, const std::string& key, const std::string& lhs) -> Result<bool> {
-            auto rhs = featurePropertyAsString(params, key);
-            return rhs ? rhs <= lhs : false;
-        });
+    static auto signature = detail::makeSignature("filter-<=",
+    [](const EvaluationContext& params, const std::string& key, const std::string& lhs) -> Result<bool> {
+        auto rhs = featurePropertyAsString(params, key);
+        return rhs ? rhs <= lhs : false;
+    });
     return signature;
 }
 
 const auto& filterIdLessOrEqualThanNumberCompoundExpression() {
-    static auto signature = detail::makeSignature("filter-id-<=", [](const EvaluationContext& params, double lhs) -> Result<bool> {
+    static auto signature = detail::makeSignature("filter-id-<=", 
+    [](const EvaluationContext& params, double lhs) -> Result<bool> {
         auto rhs = featureIdAsDouble(params);
         return rhs ? rhs <= lhs : false;
     });
@@ -812,16 +839,17 @@ const auto& filterIdLessOrEqualThanNumberCompoundExpression() {
 }
 
 const auto& filterIdLessOrEqualThanStringCompoundExpression() {
-    static auto signature = detail::makeSignature(
-        "filter-id-<=", [](const EvaluationContext& params, const std::string& lhs) -> Result<bool> {
-            auto rhs = featureIdAsString(params);
-            return rhs ? rhs <= lhs : false;
-        });
+    static auto signature = detail::makeSignature("filter-id-<=",
+    [](const EvaluationContext& params, const std::string& lhs) -> Result<bool> {
+        auto rhs = featureIdAsString(params);
+        return rhs ? rhs <= lhs : false;
+    });
     return signature;
 }
 
 const auto& filterGreaterOrEqualThanNumberCompoundExpression() {
-    static auto signature = detail::makeSignature("filter->=", [](const EvaluationContext& params, const std::string& key, double lhs) -> Result<bool> {
+    static auto signature = detail::makeSignature("filter->=", 
+    [](const EvaluationContext& params, const std::string& key, double lhs) -> Result<bool> {
         auto rhs = featurePropertyAsDouble(params, key);
         return rhs ? rhs >= lhs : false;
     });
@@ -829,17 +857,17 @@ const auto& filterGreaterOrEqualThanNumberCompoundExpression() {
 }
 
 const auto& filterGreaterOrEqualThanStringCompoundExpression() {
-    static auto signature = detail::makeSignature(
-        "filter->=",
-        [](const EvaluationContext& params, const std::string& key, const std::string& lhs) -> Result<bool> {
-            auto rhs = featurePropertyAsString(params, key);
-            return rhs ? rhs >= lhs : false;
-        });
+    static auto signature = detail::makeSignature("filter->=",
+    [](const EvaluationContext& params, const std::string& key, const std::string& lhs) -> Result<bool> {
+        auto rhs = featurePropertyAsString(params, key);
+        return rhs ? rhs >= lhs : false;
+    });
     return signature;
 }
 
 const auto& filterIdGreaterOrEqualThanNumberCompoundExpression() {
-    static auto signature = detail::makeSignature("filter-id->=", [](const EvaluationContext& params, double lhs) -> Result<bool> {
+    static auto signature = detail::makeSignature("filter-id->=", 
+    [](const EvaluationContext& params, double lhs) -> Result<bool> {
         auto rhs = featureIdAsDouble(params);
         return rhs ? rhs >= lhs : false;
     });
@@ -847,16 +875,17 @@ const auto& filterIdGreaterOrEqualThanNumberCompoundExpression() {
 }
 
 const auto& filterIdGreaterOrEqualThanStringCompoundExpression() {
-    static auto signature = detail::makeSignature(
-        "filter-id->=", [](const EvaluationContext& params, const std::string& lhs) -> Result<bool> {
-            auto rhs = featureIdAsString(params);
-            return rhs ? rhs >= lhs : false;
-        });
+    static auto signature = detail::makeSignature("filter-id->=",
+    [](const EvaluationContext& params, const std::string& lhs) -> Result<bool> {
+        auto rhs = featureIdAsString(params);
+        return rhs ? rhs >= lhs : false;
+    });
     return signature;
 }
 
 const auto& filterHasCompoundExpression() {
-    static auto signature = detail::makeSignature("filter-has", [](const EvaluationContext& params, const std::string& key) -> Result<bool> {
+    static auto signature = detail::makeSignature("filter-has", 
+    [](const EvaluationContext& params, const std::string& key) -> Result<bool> {
         assert(params.feature);
         return bool(params.feature->getValue(key));
     });
@@ -864,7 +893,8 @@ const auto& filterHasCompoundExpression() {
 }
 
 const auto& filterHasIdCompoundExpression() {
-    static auto signature = detail::makeSignature("filter-has-id", [](const EvaluationContext& params) -> Result<bool> {
+    static auto signature = detail::makeSignature("filter-has-id", 
+    [](const EvaluationContext& params) -> Result<bool> {
         assert(params.feature);
         return !params.feature->getID().is<NullValue>();
     });
@@ -872,7 +902,8 @@ const auto& filterHasIdCompoundExpression() {
 }
 
 const auto& filterTypeInCompoundExpression() {
-    static auto signature = detail::makeSignature("filter-type-in", [](const EvaluationContext& params, const Varargs<std::string>& types) -> Result<bool> {
+    static auto signature = detail::makeSignature("filter-type-in", 
+    [](const EvaluationContext& params, const Varargs<std::string>& types) -> Result<bool> {
         assert(params.feature);
         optional<std::string> type = featureTypeAsString(params.feature->getType());
         return std::find(types.begin(), types.end(), type) != types.end();
@@ -881,7 +912,8 @@ const auto& filterTypeInCompoundExpression() {
 }
 
 const auto& filterIdInCompoundExpression() {
-    static auto signature = detail::makeSignature("filter-id-in", [](const EvaluationContext& params, const Varargs<Value>& ids) -> Result<bool> {
+    static auto signature = detail::makeSignature("filter-id-in", 
+    [](const EvaluationContext& params, const Varargs<Value>& ids) -> Result<bool> {
         auto id = featureIdAsExpressionValue(params);
         return std::find(ids.begin(), ids.end(), id) != ids.end();
     });
@@ -890,7 +922,8 @@ const auto& filterIdInCompoundExpression() {
 
 
 const auto& filterInCompoundExpression() {
-    static auto signature = detail::makeSignature("filter-in", [](const EvaluationContext& params, const Varargs<Value>& varargs) -> Result<bool> {
+    static auto signature = detail::makeSignature("filter-in", 
+    [](const EvaluationContext& params, const Varargs<Value>& varargs) -> Result<bool> {
         if (varargs.size() < 2) return false;
         assert(varargs[0].is<std::string>());
         auto value = featurePropertyAsExpressionValue(params, varargs[0].get<std::string>());
@@ -911,6 +944,7 @@ MAPBOX_ETERNAL_CONSTEXPR const auto compoundExpressionRegistry =
         {"rgb", rgbCompoundExpression},
         {"zoom", zoomCompoundExpression},
         {"pitch", pitchCompoundExpression},
+        {"distance-from-center", distanceFromCenterCompoundExpression},
         {"heatmap-density", heatmapDensityCompoundExpression},
         {"line-progress", lineProgressCompoundExpression},
         {"accumulated", accumulatedCompoundExpression},
