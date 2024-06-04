@@ -12,6 +12,7 @@ namespace nav {
 
 namespace mb {
 
+const std::string& accessToken();
 void printLayerTable(const char* id, const char* sourceLayer, const char* sourceId, const char* type);
 bool filterLayerByType(const std::string& id);
 int layerRenderIndex(const std::string& id);

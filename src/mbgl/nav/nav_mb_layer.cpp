@@ -14,8 +14,13 @@ namespace nav {
 
 namespace mb {
 
+const std::string& accessToken() {
+    static std::string token = "pk.eyJ1Ijoibm90aGVvcmVtIiwiYSI6ImNsb3Y0cjVoaTBxY20yamxsb3pvNHI3MW0ifQ.ZEemHSq9LP1ScpWw6w9Z0g";
+    return token;
+}
+
 void printLayerTable(const char* id, const char* type, const char* source, const char* sourceLayer) {
-    nav::log::printf("{ \"%s\", { \"%s\", \"%s\", \"%s\", } },  \n", id, type, source, sourceLayer);
+    nav::log::printf("{ \"%s\", { \"%s\", \"%s\", \"%s\", } }, ", id, type, source, sourceLayer);
 }
 
 struct Source {
@@ -64,6 +69,20 @@ static const std::map<std::string, Source> layerIds = {
     { "admin-1-boundary", { "line", "composite", "admin", } },
     { "admin-0-boundary", { "line", "composite", "admin", } },
     { "admin-0-boundary-disputed", { "line", "composite", "admin", } },
+    { "road-label-simple", { "symbol", "composite", "road", } },
+    { "waterway-label", { "symbol", "composite", "natural_label", } },
+    { "natural-line-label", { "symbol", "composite", "natural_label", } },
+    { "natural-point-label", { "symbol", "composite", "natural_label", } },
+    { "water-line-label", { "symbol", "composite", "natural_label", } },
+    { "water-point-label", { "symbol", "composite", "natural_label", } },
+    { "poi-label", { "symbol", "composite", "poi_label", } },
+    { "airport-label", { "symbol", "composite", "airport_label", } },
+    { "settlement-subdivision-label", { "symbol", "composite", "place_label", } },
+    { "settlement-minor-label", { "symbol", "composite", "place_label", } },
+    { "settlement-major-label", { "symbol", "composite", "place_label", } },
+    { "state-label", { "symbol", "composite", "place_label", } },
+    { "country-label", { "symbol", "composite", "place_label", } },
+    { "continent-label", { "symbol", "composite", "natural_label", } }, 
 };
 
 
