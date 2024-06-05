@@ -68,7 +68,7 @@ public:
 
     static LayoutVertex layoutVertex(Point<int16_t> p, 
                                      double nx, double ny, double nz, unsigned short t, int16_t edgeDistance,
-                                     double nxCorner, double nyCorner, double nzCorner, int16_t edgeLength) {
+                                     double cnx, double cny, double cnz, int16_t edgeLength) {
         const auto factor = pow(2, 13);
 
         return LayoutVertex {
@@ -86,9 +86,9 @@ public:
                 edgeDistance
             }},
             {{
-                static_cast<int16_t>(floor(nxCorner * factor) * 2),
-                static_cast<int16_t>(nyCorner * factor * 2),
-                static_cast<int16_t>(nzCorner * factor * 2),
+                static_cast<int16_t>(cnx * factor * 2),
+                static_cast<int16_t>(cny * factor * 2),
+                static_cast<int16_t>(cnz * factor * 2),
                 edgeLength
             }}
         };
