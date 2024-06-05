@@ -33,12 +33,12 @@ public:
                 returnExpression.useIntegerZoom = true;
                 return ResultType(returnExpression);
             }
-            return ResultType(expression.evaluateZoom(std::floor(parameters.zoom)));
+            return ResultType(expression.evaluateZoom(std::floor(parameters.z)));
         } else {
             if (!expression.isFeatureConstant() || !expression.isRuntimeConstant()) {
                 return ResultType(expression);
             }
-            return ResultType(expression.evaluateZoom(parameters.zoom));
+            return ResultType(expression.evaluateZoom(parameters.z));
         }
     }
 
@@ -68,15 +68,15 @@ public:
         if (!expression.isFeatureConstant() || !expression.isRuntimeConstant()) {
             return ResultType(expression);
         } else {
-            const T evaluated = expression.evaluateZoom(std::floor(parameters.zoom));
+            const T evaluated = expression.evaluateZoom(std::floor(parameters.z));
             return ResultType(calculate(evaluated, evaluated, evaluated));
         }
     }
 
 private:
     Faded<T> calculate(const T& min, const T& mid, const T& max) const {
-        const float zoom = parameters.zoom;
-        return zoom > parameters.zoomHistory.lastIntegerZoom
+        const float z = parameters.z;
+        return z > parameters.zoomHistory.lastIntegerZoom
             ? Faded<T> { min, mid }
             : Faded<T> { max, mid };
     };
