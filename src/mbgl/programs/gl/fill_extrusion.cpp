@@ -79,7 +79,7 @@ struct ShaderSource<FillExtrusionProgram> {
     
         attribute vec2 a_pos;
         attribute vec4 a_normal_ed;
-        attribute vec2 a_normal_corner;
+        attribute vec4 a_normal_corner;
     
         varying vec4 v_color;
         varying vec2 v_corner_gradient;
@@ -136,15 +136,15 @@ struct ShaderSource<FillExtrusionProgram> {
         gl_Position=u_matrix*vec4(a_pos,t>0.0?height:base,1);
         
         // corner normal
-        vec3 corner_normal=vec3(a_normal_corner.x,0,a_normal_corner.y);
-        float h=mod(corner_normal.x,2.0);
-
-        float range=clamp(30./a_normal_ed.w,0.0,0.5);
+        vec3 normalc=a_normal_corner.xyz;
+        float h=mod(a_normal_corner.w,2.0);
+        float range=-1.;
+        if (normalc.z<.1) range=(a_normal_corner.w>30.) ? clamp(30./a_normal_corner.w,.0,.35) : -1.;
         v_corner_gradient=h>0.0?vec2(1.0,range):vec2(0.0,range);
         
         // ambient light
         float colorvalue=color.r*0.2126+color.g*0.7152+color.b*0.0722;
-        vec4 ambientlight=vec4(0.09,0.09,0.09,1.0);
+        vec4 ambientlight=vec4(0.03,0.03,0.03,1.0);
         color+=ambientlight;
 
         // mix light color
@@ -160,9 +160,9 @@ struct ShaderSource<FillExtrusionProgram> {
         v_color*=u_opacity;
     
         // corner color
-        float corner_directional=clamp(dot(corner_normal/16384.0,u_lightpos),0.0,1.0);
+        float corner_directional=clamp(dot(normalc/16384.0,u_lightpos),0.0,1.0);
         corner_directional=mix((1.0-u_lightintensity), max((1.0-colorvalue+u_lightintensity),1.0), directional);
-        if (corner_normal.y!=0.0) {
+        if (normalc.y!=0.0) {
             corner_directional*=((1.0-u_vertical_gradient)+(u_vertical_gradient*clamp((t+base)*pow(height/150.0,0.5),mix(0.7,0.98,1.0-u_lightintensity),1.0)));
         }
         v_corner_color_0.r=clamp(color.r*corner_directional*u_lightcolor.r,0.3*(1.0-u_lightcolor.r),1.0);
@@ -210,9 +210,13 @@ struct ShaderSource<FillExtrusionProgram> {
         
         void main() {
         if (v_corner_gradient[0]<v_corner_gradient[1]) {
-            gl_FragColor=mix(v_corner_color_0,v_color,v_corner_gradient[0]/v_corner_gradient[1]);
+            gl_FragColor=
+//            vec4(0.,1.,0.,1.0);
+            mix(v_corner_color_0,v_color,v_corner_gradient[0]/v_corner_gradient[1]);
         } else if (v_corner_gradient[0]>1.0-v_corner_gradient[1]) {
-            gl_FragColor=mix(v_corner_color_1,v_color,(1.0-v_corner_gradient[0])/v_corner_gradient[1]);
+            gl_FragColor=
+//            vec4(1.,0.,0.,1.0);
+            mix(v_corner_color_1,v_color,(1.0-v_corner_gradient[0])/v_corner_gradient[1]);
         } else {
             gl_FragColor=v_color;
         }
