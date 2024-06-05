@@ -132,7 +132,7 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
         if (parameters.debugOptions & MapDebugOptions::Overdraw) {
             color = Color::black();
         } else if (!backend.contextIsShared()) {
-            color = renderTreeParameters.backgroundColor;
+            color = Color(245/256., 196/256., 148/256., 0.86); // renderTreeParameters.backgroundColor;
         }
         parameters.renderPass = parameters.encoder->createRenderPass("main buffer", { parameters.backend.getDefaultRenderable(), color, 1, 0 });
     }
