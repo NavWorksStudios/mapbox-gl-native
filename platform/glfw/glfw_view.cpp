@@ -195,6 +195,20 @@ GLFWView::GLFWView(bool fullscreen_, bool benchmark_, const mbgl::ResourceOption
     }
 
     glfwMakeContextCurrent(nullptr);
+          
+    // glClearColor( 0.5, 0.5, 0.5, 1.0);
+    // #*#*# 测试fog
+    glEnable(GL_FOG);
+    {
+        GLfloat fogColor[4] = {0.5, 0, 0.5, 1.0};
+        glFogi (GL_FOG_MODE, GL_EXP2); // GL_EXP | GL_EXP2 | GL_LINEAR
+        glFogfv (GL_FOG_COLOR, fogColor);
+        glFogf (GL_FOG_DENSITY, 0.35f);
+        glHint (GL_FOG_HINT, GL_DONT_CARE);    // GL_DONT_CARE | GL_NICEST
+        glFogf(GL_FOG_START, 1.0f);
+        glFogf(GL_FOG_END, 500.0f);
+    }
+    // glClearColor( 0.5, 0.5, 0.5, 1.0);
 
     printf("\n");
     printf("================================================================================\n");
