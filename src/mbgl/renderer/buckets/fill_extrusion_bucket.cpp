@@ -135,13 +135,11 @@ void FillExtrusionBucket::addFeature(const GeometryTileFeature& feature,
                     const Point<double> perp2((perp12.x+perp23.x)*.5, (perp12.y+perp23.y)*.5);
                     
                     const auto edgeLength = util::dist<int16_t>(d1, d2);
+                    if (edgeDistance + edgeLength > std::numeric_limits<int16_t>::max()) edgeDistance = 0;
 
                     vertices.emplace_back(FillExtrusionProgram::layoutVertex(p1, perp12.x, perp12.y, 0, 0, edgeDistance, perp1.x, perp1.y, 0, edgeLength|0x1));
                     vertices.emplace_back(FillExtrusionProgram::layoutVertex(p1, perp12.x, perp12.y, 0, 1, edgeDistance, perp1.x, perp1.y, 0, edgeLength|0x1));
 
-                    if (edgeDistance + edgeLength > std::numeric_limits<int16_t>::max()) {
-                        edgeDistance = 0;
-                    }
                     edgeDistance += edgeLength;
 
                     vertices.emplace_back(FillExtrusionProgram::layoutVertex(p2, perp12.x, perp12.y, 0, 0, edgeDistance, perp2.x, perp2.y, 0, edgeLength&0xFFFE));

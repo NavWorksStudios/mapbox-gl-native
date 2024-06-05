@@ -5,6 +5,7 @@
 #include <mbgl/style/conversion/source.hpp>
 #include <mbgl/style/conversion/layer.hpp>
 #include <mbgl/style/conversion/light.hpp>
+#include <mbgl/style/conversion/fog.hpp>
 #include <mbgl/style/conversion/transition_options.hpp>
 #include <mbgl/style/conversion_impl.hpp>
 
@@ -96,6 +97,10 @@ StyleParseResult Parser::parse(const std::string& json) {
     if (document.HasMember("light")) {
         parseLight(document["light"]);
     }
+    
+    if (document.HasMember("fog")) {
+        parseFog(document["fog"]);
+    }
 
     if (document.HasMember("sources")) {
         parseSources(document["sources"]);
@@ -145,6 +150,17 @@ void Parser::parseLight(const JSONValue& value) {
     }
 
     light = *converted;
+}
+
+void Parser::parseFog(const JSONValue& value) {
+    conversion::Error error;
+    optional<Fog> converted = conversion::convert<Fog>(value, error);
+    if (!converted) {
+        Log::Warning(Event::ParseStyle, error.message);
+        return;
+    }
+
+    fog = *converted;
 }
 
 void Parser::parseSources(const JSONValue& value) {

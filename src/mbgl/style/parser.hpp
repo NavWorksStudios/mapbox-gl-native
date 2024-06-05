@@ -3,6 +3,7 @@
 #include <mbgl/style/layer.hpp>
 #include <mbgl/style/source.hpp>
 #include <mbgl/style/light.hpp>
+#include <mbgl/style/fog.hpp>
 
 #include <mbgl/util/constants.hpp>
 #include <mbgl/util/rapidjson.hpp>
@@ -35,6 +36,7 @@ public:
 
     TransitionOptions transition { { util::DEFAULT_TRANSITION_DURATION } };
     Light light;
+    Fog fog;
 
     std::string name;
     LatLng latLng;
@@ -48,6 +50,7 @@ public:
 private:
     void parseTransition(const JSONValue&);
     void parseLight(const JSONValue&);
+    void parseFog(const JSONValue&);
     void parseSources(const JSONValue&);
     void parseLayers(const JSONValue&);
     void parseLayer(const std::string& id, const JSONValue&, std::unique_ptr<Layer>&);

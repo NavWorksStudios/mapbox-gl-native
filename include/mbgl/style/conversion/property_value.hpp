@@ -48,9 +48,15 @@ struct Converter<PropertyValue<T>> {
 };
 
 template <>
+struct Converter<PropertyValue<std::array<float, 2>>, void> {
+    optional<PropertyValue<std::array<float, 2>>> operator()(const Convertible& value, Error& error, bool, bool) const;
+};
+
+template <>
 struct Converter<PropertyValue<std::array<double, 3>>, void> {
     optional<PropertyValue<std::array<double, 3>>> operator()(const Convertible& value, Error& error, bool, bool) const;
 };
+
 } // namespace conversion
 } // namespace style
 } // namespace mbgl

@@ -59,7 +59,7 @@ optional<PropertyValue<T>> Converter<PropertyValue<T>>::operator()(const Convert
 
 template optional<PropertyValue<bool>> Converter<PropertyValue<bool>>::operator()(conversion::Convertible const&, conversion::Error&, bool, bool) const;
 template optional<PropertyValue<float>> Converter<PropertyValue<float>>::operator()(conversion::Convertible const&, conversion::Error&, bool, bool) const;
-template optional<PropertyValue<std::array<float, 2>>> Converter<PropertyValue<std::array<float, 2>>>::operator()(conversion::Convertible const&, conversion::Error&, bool, bool) const;
+//template optional<PropertyValue<std::array<float, 2>>> Converter<PropertyValue<std::array<float, 2>>>::operator()(conversion::Convertible const&, conversion::Error&, bool, bool) const
 template optional<PropertyValue<std::array<float, 4>>> Converter<PropertyValue<std::array<float, 4>>>::operator()(conversion::Convertible const&, conversion::Error&, bool, bool) const;
 template optional<PropertyValue<std::vector<float>>> Converter<PropertyValue<std::vector<float>>>::operator()(conversion::Convertible const&, conversion::Error&, bool, bool) const;
 template optional<PropertyValue<Color>> Converter<PropertyValue<Color>>::operator()(conversion::Convertible const&, conversion::Error&, bool, bool) const;
@@ -88,6 +88,24 @@ Converter<PropertyValue<mbgl::style::expression::Image>>::operator()(conversion:
                                                                      conversion::Error&,
                                                                      bool,
                                                                      bool) const;
+
+optional<PropertyValue<std::array<float, 2>>>
+mbgl::style::conversion::Converter<PropertyValue<std::array<float, 2>>, void>::operator()(const Convertible& value,
+                                                                                           Error& error,
+                                                                                           bool,
+                                                                                           bool) const {
+    optional<std::array<float, 2>> a = convert<std::array<float, 2>>(value, error);
+
+    if (!a) {
+        return nullopt;
+    }
+    std::array<float, 2> res;
+    res[0] = (*a)[0];
+    res[1] = (*a)[1];
+
+    PropertyValue<std::array<float, 2>> r(res);
+    return r;
+}
 
 optional<PropertyValue<std::array<double, 3>>>
 mbgl::style::conversion::Converter<PropertyValue<std::array<double, 3>>, void>::operator()(const Convertible& value,

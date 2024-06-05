@@ -171,6 +171,7 @@ set(all_files
     ${PROJECT_SOURCE_DIR}/include/mbgl/style/conversion/get_json_type.hpp
     ${PROJECT_SOURCE_DIR}/include/mbgl/style/conversion/layer.hpp
     ${PROJECT_SOURCE_DIR}/include/mbgl/style/conversion/light.hpp
+    ${PROJECT_SOURCE_DIR}/include/mbgl/style/conversion/fog.hpp
     ${PROJECT_SOURCE_DIR}/include/mbgl/style/conversion/position.hpp
     ${PROJECT_SOURCE_DIR}/include/mbgl/style/conversion/property_value.hpp
     ${PROJECT_SOURCE_DIR}/include/mbgl/style/conversion/rotation.hpp
@@ -229,6 +230,7 @@ set(all_files
     ${PROJECT_SOURCE_DIR}/include/mbgl/style/layers/raster_layer.hpp
     ${PROJECT_SOURCE_DIR}/include/mbgl/style/layers/symbol_layer.hpp
     ${PROJECT_SOURCE_DIR}/include/mbgl/style/light.hpp
+    ${PROJECT_SOURCE_DIR}/include/mbgl/style/fog.hpp
     ${PROJECT_SOURCE_DIR}/include/mbgl/style/position.hpp
     ${PROJECT_SOURCE_DIR}/include/mbgl/style/property_expression.hpp
     ${PROJECT_SOURCE_DIR}/include/mbgl/style/property_value.hpp
@@ -575,6 +577,7 @@ set(all_files
     ${PROJECT_SOURCE_DIR}/src/mbgl/style/conversion/json.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/style/conversion/layer.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/style/conversion/light.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/style/conversion/fog.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/style/conversion/position.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/style/conversion/property_value.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/style/conversion/rotation.cpp
@@ -678,6 +681,10 @@ set(all_files
     ${PROJECT_SOURCE_DIR}/src/mbgl/style/light_impl.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/style/light_impl.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/style/light_observer.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/style/fog.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/style/fog_impl.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/style/fog_impl.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/style/fog_observer.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/style/observer.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/style/paint_property.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/style/parser.cpp
