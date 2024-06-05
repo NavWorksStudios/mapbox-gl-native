@@ -78,8 +78,7 @@ void FillExtrusionBucket::addFeature(const GeometryTileFeature& feature,
         std::size_t startVertices = vertices.elements();
 
         if (triangleSegments.empty() ||
-            triangleSegments.back().vertexLength + (5 * (totalVertices - 1) + 1) >
-                std::numeric_limits<uint16_t>::max()) {
+            triangleSegments.back().vertexLength + (5 * (totalVertices - 1) + 1) > std::numeric_limits<uint16_t>::max()) {
             triangleSegments.emplace_back(startVertices, triangles.elements());
         }
 
@@ -87,8 +86,7 @@ void FillExtrusionBucket::addFeature(const GeometryTileFeature& feature,
         assert(triangleSegment.vertexLength <= std::numeric_limits<uint16_t>::max());
         uint16_t triangleIndex = triangleSegment.vertexLength;
 
-        assert(triangleIndex + (5 * (totalVertices - 1) + 1) <=
-               std::numeric_limits<uint16_t>::max());
+        assert(triangleIndex + (5 * (totalVertices - 1) + 1) <= std::numeric_limits<uint16_t>::max());
 
         for (const auto& ring : polygon) {
             std::size_t nVertices = ring.size();
@@ -99,37 +97,56 @@ void FillExtrusionBucket::addFeature(const GeometryTileFeature& feature,
             std::size_t edgeDistance = 0;
 
             for (std::size_t i = 0; i < nVertices; i++) {
+                
+                // 1. [top/bottom surface]
+                // pick this point as the [top/bottom surface]
+                // with the normal value (0,0,1)
                 const auto& p1 = ring[i];
-
-                vertices.emplace_back(
-                    FillExtrusionProgram::layoutVertex(p1, 0, 0, 1, 1, edgeDistance));
+                vertices.emplace_back(FillExtrusionProgram::layoutVertex(p1, 0, 0, 1, 1, edgeDistance, 0, 0, 0));
                 flatIndices.emplace_back(triangleIndex);
-                triangleIndex++;
+                triangleIndex += 1;
 
+                // 2. [side suface]
+                // pick this and the previous point together to make a [side suface]
+                // with the normal value (perp.x, perp.y, 0)
                 if (i != 0) {
-                    const auto& p2 = ring[i - 1];
+                    //      (p3)              (p4)
+                    //        \                /
+                    //  perp23 \              / perp14
+                    //          \            /
+                    //          (p2)-------(p1)
+                    //    perp2      perp12     perp1
+                    
+                    const auto& p2 = ring[(i-1)];
+                    const auto& p3 = (i-2) < 0 ? ring[(i-2+nVertices)] : ring[(i-2)];
+                    const auto& p4 = (i+1) >= nVertices ? ring[(i+1-nVertices)] : ring[(i+1)];
 
                     const auto d1 = convertPoint<double>(p1);
                     const auto d2 = convertPoint<double>(p2);
+                    const auto d3 = convertPoint<double>(p3);
+                    const auto d4 = convertPoint<double>(p4);
 
-                    const Point<double> perp = util::unit(util::perp(d1 - d2));
-                    const auto dist = util::dist<int16_t>(d1, d2);
-                    if (edgeDistance + dist > std::numeric_limits<int16_t>::max()) {
+                    // 3 surfaces
+                    const Point<double> perp12 = util::unit(util::perp(d1 - d2));
+                    const Point<double> perp23 = util::unit(util::perp(d2 - d3));
+                    const Point<double> perp14 = util::unit(util::perp(d1 - d4));
+                    // 2 corner
+                    const Point<double> perp1((perp12.x+perp14.x)*.5, (perp12.y+perp14.y)*.5);
+                    const Point<double> perp2((perp12.x+perp23.x)*.5, (perp12.y+perp23.y)*.5);
+                    
+                    const auto edgeLength = util::dist<int16_t>(d1, d2);
+                    if (edgeDistance + edgeLength > std::numeric_limits<int16_t>::max()) {
                         edgeDistance = 0;
                     }
 
-                    vertices.emplace_back(
-                        FillExtrusionProgram::layoutVertex(p1, perp.x, perp.y, 0, 0, edgeDistance));
-                    vertices.emplace_back(
-                        FillExtrusionProgram::layoutVertex(p1, perp.x, perp.y, 0, 1, edgeDistance));
+                    vertices.emplace_back(FillExtrusionProgram::layoutVertex(p1, perp12.x, perp12.y, 0, 0, edgeDistance, perp1.x, perp1.y, edgeLength|1));
+                    vertices.emplace_back(FillExtrusionProgram::layoutVertex(p1, perp12.x, perp12.y, 0, 1, edgeDistance, perp1.x, perp1.y, edgeLength|1));
 
-                    edgeDistance += dist;
+                    edgeDistance += edgeLength;
 
-                    vertices.emplace_back(
-                        FillExtrusionProgram::layoutVertex(p2, perp.x, perp.y, 0, 0, edgeDistance));
-                    vertices.emplace_back(
-                        FillExtrusionProgram::layoutVertex(p2, perp.x, perp.y, 0, 1, edgeDistance));
-
+                    vertices.emplace_back(FillExtrusionProgram::layoutVertex(p2, perp12.x, perp12.y, 0, 0, edgeDistance, perp2.x, perp2.y, edgeLength&0));
+                    vertices.emplace_back(FillExtrusionProgram::layoutVertex(p2, perp12.x, perp12.y, 0, 1, edgeDistance, perp2.x, perp2.y, edgeLength&0));
+                    
                     // ┌──────┐
                     // │ 0  1 │ Counter-Clockwise winding order.
                     // │      │ Triangle 1: 0 => 2 => 1
@@ -137,6 +154,7 @@ void FillExtrusionBucket::addFeature(const GeometryTileFeature& feature,
                     // └──────┘
                     triangles.emplace_back(triangleIndex, triangleIndex + 2, triangleIndex + 1);
                     triangles.emplace_back(triangleIndex + 1, triangleIndex + 2, triangleIndex + 3);
+                    
                     triangleIndex += 4;
                     triangleSegment.vertexLength += 4;
                     triangleSegment.indexLength += 6;
@@ -144,6 +162,7 @@ void FillExtrusionBucket::addFeature(const GeometryTileFeature& feature,
             }
         }
 
+        // earcut for the top/bottom surface
         std::vector<uint32_t> indices = mapbox::earcut(polygon);
 
         std::size_t nIndices = indices.size();

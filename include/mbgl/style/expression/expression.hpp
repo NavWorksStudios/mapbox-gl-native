@@ -74,7 +74,7 @@ public:
     };
 
 public:
-    optional<float> zoom = 14;
+    optional<float> zoom;
     optional<float> pitch = 50;
     optional<float> distanceFromCenter = 0;
     optional<mbgl::Value> accumulated;

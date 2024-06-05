@@ -30,7 +30,8 @@ MBGL_DEFINE_UNIFORM_SCALAR(float,    height_factor);
 
 using FillExtrusionLayoutAttributes = TypeList<
     attributes::pos,
-    attributes::normal_ed>;
+    attributes::normal_ed,
+    attributes::normal_corner>;
 
 using FillExtrusionUniforms = TypeList<
     uniforms::matrix,
@@ -65,7 +66,9 @@ class FillExtrusionProgram : public Program<
 public:
     using Program::Program;
 
-    static LayoutVertex layoutVertex(Point<int16_t> p, double nx, double ny, double nz, unsigned short t, uint16_t e) {
+    static LayoutVertex layoutVertex(Point<int16_t> p, 
+                                     double nx, double ny, double nz, unsigned short t, uint16_t e,
+                                     double nxCorner, double nyCorner, unsigned short tCorner) {
         const auto factor = pow(2, 13);
 
         return LayoutVertex {
@@ -81,6 +84,10 @@ public:
                 static_cast<int16_t>(nz * factor * 2),
                 // The edgedistance attribute is used for wrapping fill_extrusion patterns
                 static_cast<int16_t>(e)
+            }},
+            {{
+                static_cast<int16_t>(floor(nxCorner * factor) * 2 + tCorner),
+                static_cast<int16_t>(nyCorner * factor * 2)
             }}
         };
     }
