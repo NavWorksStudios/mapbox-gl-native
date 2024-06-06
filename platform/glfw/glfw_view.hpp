@@ -141,9 +141,26 @@ private:
     int height = 720;
     float pixelRatio;
 
-    double lastX = 0, lastY = 0;
+    struct Mouse {
+        mbgl::ScreenCoordinate coord;
+        double time;
+    };
 
-    double lastClick = -1;
+    struct MouseHistory {
+        std::deque<Mouse> history;
+        void push_back(mbgl::ScreenCoordinate coord, double time) {
+            history.push_back({ coord, time });
+            if (history.size() > 50) history.pop_front();
+        }
+        const Mouse& operator [] (int index) const { return history.at(fmin(fmax(0, history.size() - 1 + index), history.size())); }
+        const Mouse& withElapse(double time, double elapse) {
+            auto it = history.end();
+            while (it-- != history.begin()) {
+                if (time - it->time > elapse) return *it;
+            }
+            return history.front();
+        }
+    } _mouseHistory;
 
     std::function<void()> changeStyleCallback;
     std::function<void()> pauseResumeCallback;

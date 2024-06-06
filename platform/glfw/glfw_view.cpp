@@ -48,6 +48,7 @@
 #include <mbgl/style/layers/location_indicator_layer.hpp>
 
 #include "mbgl/nav/nav_mb_style.hpp"
+#include "mbgl/nav/nav_log.hpp"
 
 namespace {
 const std::string mbglPuckAssetsPath{MAPBOX_PUCK_ASSETS_PATH};
@@ -806,7 +807,7 @@ void GLFWView::onScroll(double yOffset) {
         scale = 1.0 / scale;
     }
 
-    view->map->scaleBy(scale, mbgl::ScreenCoordinate { view->lastX, view->lastY });
+    view->map->scaleBy(scale, view->_mouseHistory[0].coord);
 #if defined(MBGL_RENDER_BACKEND_OPENGL) && !defined(MBGL_LAYER_CUSTOM_DISABLE_ALL)
     if (view->puck && view->puckFollowsCameraCenter) {
         mbgl::LatLng mapCenter = view->map->getCameraOptions().center.value();
@@ -842,32 +843,34 @@ void GLFWView::onMouseClick(GLFWwindow *window, int button, int action, int modi
 
 void GLFWView::onMouseClick(int button, int action, int modifiers) {
     auto *view = this;
-    if (button == GLFW_MOUSE_BUTTON_RIGHT ||
-        (button == GLFW_MOUSE_BUTTON_LEFT && modifiers & GLFW_MOD_CONTROL)) {
-        view->rotating = action == GLFW_PRESS;
-        view->map->setGestureInProgress(view->rotating);
-    } else if (button == GLFW_MOUSE_BUTTON_LEFT && (modifiers & GLFW_MOD_SHIFT)) {
-        view->pitching = action == GLFW_PRESS;
-        view->map->setGestureInProgress(view->pitching);
-    } else if (button == GLFW_MOUSE_BUTTON_LEFT) {
-        view->tracking = action == GLFW_PRESS;
-        view->map->setGestureInProgress(view->tracking);
+    double now = glfwGetTime();
 
-        if (action == GLFW_RELEASE) {
-            double now = glfwGetTime();
-            if (now - view->lastClick < 0.4 /* ms */) {
-                if (modifiers & GLFW_MOD_SHIFT) {
-                    view->map->scaleBy(0.5, mbgl::ScreenCoordinate { view->lastX, view->lastY }, mbgl::AnimationOptions{{mbgl::Milliseconds(500)}});
-                } else {
-                    view->map->scaleBy(2.0, mbgl::ScreenCoordinate { view->lastX, view->lastY }, mbgl::AnimationOptions{{mbgl::Milliseconds(500)}});
-                }
+    if (action == GLFW_PRESS) {
+        view->map->setGestureInProgress(true);
+        if (button == GLFW_MOUSE_BUTTON_LEFT) {
+            if (modifiers & GLFW_MOD_CONTROL) { // rotate & pitch
+                view->pitching = true;
+                view->rotating = false;
+            } else { // move
+                view->tracking = true;
             }
-            view->lastClick = now;
         }
-    }
-    
-    if (action == GLFW_RELEASE) {
-        view->rotating = view->pitching = view->tracking = false;
+    } else if (action == GLFW_RELEASE) {
+        if (now - view->_mouseHistory[0].time < 0.2) { // fling
+            if (view->tracking) {
+                Mouse from = view->_mouseHistory.withElapse(now, 0.4);
+                Mouse to = view->_mouseHistory[0];
+                mbgl::ScreenCoordinate d;
+                d.x = fmin(fmax(  (to.coord.x - from.coord.x) / (to.time - from.time)  , -300), 300);
+                d.y = fmin(fmax(  (to.coord.y - from.coord.y) / (to.time - from.time)  , -300), 300);
+                view->map->moveBy(d, mbgl::AnimationOptions{{mbgl::Milliseconds(1000)}});
+                
+                nav::log::i("onMouseClick", "to(%llf,%llf) - from(%llf,%llf) / (%llf-%llf) = (%llf,%llf)",
+                            to.coord.x, to.coord.y, from.coord.x, from.coord.y, to.time, from.time, d.x, d.y);
+            }
+        }
+
+        view->map->setGestureInProgress(view->rotating = view->pitching = view->tracking = false);
     }
 }
 
@@ -878,31 +881,45 @@ void GLFWView::onMouseMove(GLFWwindow *window, double x, double y) {
 
 void GLFWView::onMouseMove(double x, double y) {
     auto *view = this;
+    double now = glfwGetTime();
+    
     if (view->tracking) {
-        const double dx = x - view->lastX;
-        const double dy = y - view->lastY;
+        const double dx = x - view->_mouseHistory[0].coord.x;
+        const double dy = y - view->_mouseHistory[0].coord.y;
         if (dx || dy) {
             view->map->moveBy(mbgl::ScreenCoordinate { dx, dy });
         }
+    }
+    
+    if (view->pitching) {
+        view->map->pitchBy((y - view->_mouseHistory[0].coord.y) / 2);
+        if (abs(x - view->_mouseHistory.withElapse(now, 0.5).coord.x) > 30) {
+            view->pitching = false;
+            view->rotating = true;
+        }
     } else if (view->rotating) {
-        view->map->rotateBy({ view->lastX, view->lastY }, { x, y });
-    } else if (view->pitching) {
-        const double dy = y - view->lastY;
-        if (dy) {
-            view->map->pitchBy(dy / 2);
+        if (now - view->_mouseHistory[0].time > .2) {
+            view->pitching = true;
+            view->rotating = false;
+        } else {
+            view->map->rotateBy(view->_mouseHistory[0].coord, { x, y });
         }
     }
-    view->lastX = x;
-    view->lastY = y;
+    
+    view->_mouseHistory.push_back({x,y}, now);
+    
+
 #if defined(MBGL_RENDER_BACKEND_OPENGL) && !defined(MBGL_LAYER_CUSTOM_DISABLE_ALL)
     if (view->puck && view->puckFollowsCameraCenter) {
         mbgl::LatLng mapCenter = view->map->getCameraOptions().center.value();
         view->puck->setLocation(toArray(mapCenter));
     }
 #endif
+    
+    
     auto &style = view->map->getStyle();
     if (style.getLayer("state-fills")) {
-        auto screenCoordinate = mbgl::ScreenCoordinate{view->lastX, view->lastY};
+        auto screenCoordinate = view->_mouseHistory[0].coord;
         const mbgl::RenderedQueryOptions queryOptions({{{"state-fills"}}, {}});
         auto result = view->rendererFrontend->getRenderer()->queryRenderedFeatures(screenCoordinate, queryOptions);
         using namespace mbgl;
