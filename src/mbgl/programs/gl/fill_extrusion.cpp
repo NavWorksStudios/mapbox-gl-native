@@ -79,12 +79,9 @@ struct ShaderSource<FillExtrusionProgram> {
     
         attribute vec2 a_pos;
         attribute vec4 a_normal_ed;
-        attribute vec4 a_normal_corner;
     
+        varying vec3 v_pos;
         varying vec4 v_color;
-        varying vec2 v_gradientc;
-        varying vec4 v_colorc_left;
-        varying vec4 v_colorc_right;
                 
         #ifndef HAS_UNIFORM_u_base
             uniform lowp float u_base_t;
@@ -134,27 +131,16 @@ struct ShaderSource<FillExtrusionProgram> {
         height=max(0.0,height);
         float t=mod(normal.x,2.0);
         gl_Position=u_matrix*vec4(a_pos,t>0.0?height:base,1);
-        
-        // corner normal
-        vec3 normalc=a_normal_corner.xyz;
-
-        // left:0 right:1
-        bool isright=mod(a_normal_corner.w,2.0)<1.;
-    
-        float range=-1.;
-        if (normalc.z<.1&&a_normal_corner.w>40.) { // is side surface
-            range=20./a_normal_corner.w;
-        }
-        v_gradientc=vec2(isright?0.:1.,range);
+        v_pos=gl_Position.xyz;
         
         // ambient light
         float colorvalue=color.r*0.2126+color.g*0.7152+color.b*0.0722;
-        vec4 ambientlight=vec4(0.03,0.03,0.03,1.0);
+        vec4 ambientlight=vec4(0.1,0.1,0.1,1.0);
         color+=ambientlight;
 
         // color
         float directional=clamp(dot(normal/16384.0,u_lightpos),0.0,1.0);
-        directional=mix((1.0-u_lightintensity), max((1.0-colorvalue+u_lightintensity),1.0), directional);
+        directional=mix((1.0-u_lightintensity), max((1.0-colorvalue+u_lightintensity),1.0), directional)*0.4;
         if (normal.y!=0.0) {
             directional*=((1.0-u_vertical_gradient)+(u_vertical_gradient*clamp((t+base)*pow(height/150.0,0.5),mix(0.7,0.98,1.0-u_lightintensity),1.0)));
         }
@@ -163,26 +149,6 @@ struct ShaderSource<FillExtrusionProgram> {
         v_color.b=clamp(color.b*directional*u_lightcolor.b,0.3*(1.0-u_lightcolor.b),1.0);
         v_color.a=1.0;
         v_color*=u_opacity;
-    
-        // corner color
-        float directionalc=clamp(dot(normalc/16384.0,u_lightpos),0.0,1.0);
-        directionalc=mix((1.0-u_lightintensity), max((1.0-colorvalue+u_lightintensity),1.0), directionalc);
-        if (normalc.y!=0.0) {
-            directionalc*=((1.0-u_vertical_gradient)+(u_vertical_gradient*clamp((t+base)*pow(height/150.0,0.5),mix(0.7,0.98,1.0-u_lightintensity),1.0)));
-        }
-        v_colorc_left.r=clamp(color.r*directionalc*u_lightcolor.r,0.3*(1.0-u_lightcolor.r),1.0);
-        v_colorc_left.g=clamp(color.g*directionalc*u_lightcolor.g,0.3*(1.0-u_lightcolor.g),1.0);
-        v_colorc_left.b=clamp(color.b*directionalc*u_lightcolor.b,0.3*(1.0-u_lightcolor.b),1.0);
-        v_colorc_left.a=1.0;
-        v_colorc_left*=u_opacity;
-    
-        if (isright) {
-            v_colorc_right=v_colorc_left;
-            v_colorc_left=vec4(0.,0.,0.,u_opacity);
-        } else {
-            // v_colorc_left;
-            v_colorc_right=vec4(0.,0.,0.,u_opacity);
-        }
 
         }
         
@@ -206,37 +172,24 @@ struct ShaderSource<FillExtrusionProgram> {
             #endif
         #endif
         
-        )"; }
+    )"; }
     
     static const char* navFragment(const char* ) { return R"(
+
+        varying vec3 v_pos;
         varying vec4 v_color;
-        varying vec2 v_gradientc; // (left:0 right:1, range)
-        varying vec4 v_colorc_left;
-        varying vec4 v_colorc_right;
-        
+
         void main() {
-        if (v_gradientc[0]<v_gradientc[1]) { // right
-            vec4 c=v_colorc_right/(1.-v_gradientc[0]);
-            gl_FragColor=
-            mix(c,v_color,v_gradientc[0]/v_gradientc[1]);
-        
-//            vec4(0.,1.,0.,1.);
-        } else if (v_gradientc[0]>1.0-v_gradientc[1]) { // left
-            vec4 c=v_colorc_left/v_gradientc[0];
-            gl_FragColor=
-            mix(c,v_color,(1.-v_gradientc[0])/v_gradientc[1]);
-        
-//            vec4(1.,0.,0.,1.);
-        } else {
-            gl_FragColor=v_color;
-        }
+        gl_FragColor=v_color;
+        gl_FragColor.a=gl_FragColor.a*0.1+pow(v_pos.z,.9)/7000.;
         
         #ifdef OVERDRAW_INSPECTOR
             gl_FragColor=vec4(1.0);
         #endif
         }
         
-        )"; }
+    )"; }
+    
 };
 
 constexpr const char* ShaderSource<FillExtrusionProgram>::name;

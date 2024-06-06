@@ -9,7 +9,7 @@ namespace mbgl {
 
 using namespace style;
 
-static_assert(sizeof(FillExtrusionLayoutVertex) == 20, "expected FillExtrusionLayoutVertex size");
+static_assert(sizeof(FillExtrusionLayoutVertex) == 12, "expected FillExtrusionLayoutVertex size");
 
 std::array<float, 3> lightColor(const EvaluatedLight& light) {
     const auto color = light.get<LightColor>();

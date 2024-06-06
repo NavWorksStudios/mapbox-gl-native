@@ -102,7 +102,7 @@ void FillExtrusionBucket::addFeature(const GeometryTileFeature& feature,
                 // pick this point as the [top/bottom surface]
                 // with the normal value (0,0,1)
                 const auto& p1 = ring[i];
-                vertices.emplace_back(FillExtrusionProgram::layoutVertex(p1, 0, 0, 1, 1, edgeDistance, 0, 0, 1, 0));
+                vertices.emplace_back(FillExtrusionProgram::layoutVertex(p1, 0, 0, 1, 1, edgeDistance));
                 flatIndices.emplace_back(triangleIndex);
                 triangleIndex += 1;
 
@@ -110,40 +110,21 @@ void FillExtrusionBucket::addFeature(const GeometryTileFeature& feature,
                 // pick this and the previous point together to make a [side suface]
                 // with the normal value (perp.x, perp.y, 0)
                 if (i != 0) {
-                    //      (p3)              (p4)
-                    //        \                /
-                    //  perp23 \              / perp14
-                    //          \            /
-                    //          (p2)-------(p1)
-                    //    perp2      perp12     perp1
-                    
                     const auto& p2 = ring[(i-1)];
-                    const auto& p3 = (i-2) < 0 ? ring[(i-2+nVertices)] : ring[(i-2)];
-                    const auto& p4 = (i+1) >= nVertices ? ring[(i+1-nVertices)] : ring[(i+1)];
-
                     const auto d1 = convertPoint<double>(p1);
                     const auto d2 = convertPoint<double>(p2);
-                    const auto d3 = convertPoint<double>(p3);
-                    const auto d4 = convertPoint<double>(p4);
-
-                    // 3 surfaces
                     const Point<double> perp12 = util::unit(util::perp(d1 - d2));
-                    const Point<double> perp23 = util::unit(util::perp(d2 - d3));
-                    const Point<double> perp14 = util::unit(util::perp(d1 - d4));
-                    // 2 corner
-                    const Point<double> perp1((perp12.x+perp14.x)*.5, (perp12.y+perp14.y)*.5);
-                    const Point<double> perp2((perp12.x+perp23.x)*.5, (perp12.y+perp23.y)*.5);
                     
                     const auto edgeLength = util::dist<int16_t>(d1, d2);
                     if (edgeDistance + edgeLength > std::numeric_limits<int16_t>::max()) edgeDistance = 0;
 
-                    vertices.emplace_back(FillExtrusionProgram::layoutVertex(p1, perp12.x, perp12.y, 0, 0, edgeDistance, perp14.x, perp14.y, 0, edgeLength|0x1));
-                    vertices.emplace_back(FillExtrusionProgram::layoutVertex(p1, perp12.x, perp12.y, 0, 1, edgeDistance, perp14.x, perp14.y, 0, edgeLength|0x1));
+                    vertices.emplace_back(FillExtrusionProgram::layoutVertex(p1, perp12.x, perp12.y, 0, 0, edgeDistance));
+                    vertices.emplace_back(FillExtrusionProgram::layoutVertex(p1, perp12.x, perp12.y, 0, 1, edgeDistance));
 
                     edgeDistance += edgeLength;
 
-                    vertices.emplace_back(FillExtrusionProgram::layoutVertex(p2, perp12.x, perp12.y, 0, 0, edgeDistance, perp23.x, perp23.y, 0, edgeLength&0xFFFE));
-                    vertices.emplace_back(FillExtrusionProgram::layoutVertex(p2, perp12.x, perp12.y, 0, 1, edgeDistance, perp23.x, perp23.y, 0, edgeLength&0xFFFE));
+                    vertices.emplace_back(FillExtrusionProgram::layoutVertex(p2, perp12.x, perp12.y, 0, 0, edgeDistance));
+                    vertices.emplace_back(FillExtrusionProgram::layoutVertex(p2, perp12.x, perp12.y, 0, 1, edgeDistance));
                     
                     // ┌──────┐
                     // │ 0  1 │ Counter-Clockwise winding order.
