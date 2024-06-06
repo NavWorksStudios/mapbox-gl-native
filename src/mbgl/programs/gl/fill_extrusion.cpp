@@ -70,6 +70,7 @@ struct ShaderSource<FillExtrusionProgram> {
     )"; }
     
     static const char* navVertex(const char* ) { return R"(
+
         uniform mat4 u_matrix;
         uniform vec3 u_lightcolor;
         uniform lowp vec3 u_lightpos;
@@ -122,7 +123,7 @@ struct ShaderSource<FillExtrusionProgram> {
         #else
             highp vec4 color=u_color;
         #endif
-        
+    
         // normal
         vec3 normal=a_normal_ed.xyz;
     
@@ -133,23 +134,26 @@ struct ShaderSource<FillExtrusionProgram> {
         gl_Position=u_matrix*vec4(a_pos,withheight?height:base,1);
     
         v_pos=gl_Position.xyz;
-        
-        // ambient light
-        float colorvalue=color.r*0.2126+color.g*0.7152+color.b*0.0722;
-        vec4 ambientlight=vec4(0.2,0.2,0.2,1.0);
-        color+=ambientlight;
 
-        // color
-        float directional=clamp(dot(normal/16384.0,u_lightpos),0.0,1.0);
-        directional=mix((1.0-u_lightintensity), max((1.0-colorvalue+u_lightintensity),1.0), directional)*0.4;
-        if (normal.y!=0.0) {
-            directional*=((1.0-u_vertical_gradient)+(u_vertical_gradient*clamp((height+base)*pow(height/150.0,0.5),mix(0.7,0.98,1.0-u_lightintensity),1.0)));
+        // directional light
+        float colorvalue = color.r*0.2126 + color.g*0.7152 + color.b*0.0722;
+        float directional = clamp(dot(normal/16384.0, u_lightpos), 0.0, 1.0);
+        directional = mix((1.0-u_lightintensity), max((1.0-colorvalue+u_lightintensity),1.0), directional);
+        if (normal.y != 0.0) { // surface is not a horizontal plane
+            // vertical_gradient
+            float vertical_factor = clamp((height+base) * pow(height/150.0,0.5), mix(0.7,0.98,1.0-u_lightintensity), 1.0);
+            directional *= ((1.0 - u_vertical_gradient) + (u_vertical_gradient * vertical_factor));
         }
-        v_color.r=clamp(color.r*directional*u_lightcolor.r,0.3*(1.0-u_lightcolor.r),1.0);
-        v_color.g=clamp(color.g*directional*u_lightcolor.g,0.3*(1.0-u_lightcolor.g),1.0);
-        v_color.b=clamp(color.b*directional*u_lightcolor.b,0.3*(1.0-u_lightcolor.b),1.0);
-        v_color.a=1.0;
-        v_color*=u_opacity;
+    
+        // ambient light
+        vec4 ambientlight=vec4(0.03,0.03,0.03,1.0);
+        color+=ambientlight;
+    
+        // mix color with directional light
+        v_color.r=clamp(color.r*directional*u_lightcolor.r, 0.3*(1.0-u_lightcolor.r), 1.0);
+        v_color.g=clamp(color.g*directional*u_lightcolor.g, 0.3*(1.0-u_lightcolor.g), 1.0);
+        v_color.b=clamp(color.b*directional*u_lightcolor.b, 0.3*(1.0-u_lightcolor.b), 1.0);
+        v_color.a=u_opacity;
 
         }
         
@@ -182,7 +186,10 @@ struct ShaderSource<FillExtrusionProgram> {
 
         void main() {
         gl_FragColor=v_color;
-        gl_FragColor.a=gl_FragColor.a*0.2+pow(v_pos.z,.7)/600.;
+    
+        float radiusRatio = clamp((pow(v_pos.x,2.)+pow(v_pos.y,2.)) / 500000., .0, 1.); // 距离屏幕中心点越近，越透明
+        float zRatio = clamp(v_pos.z/50000., .0, 1.); // 越往屏幕下方（越近），越透明
+        gl_FragColor.a *= radiusRatio + zRatio;
         
         #ifdef OVERDRAW_INSPECTOR
             gl_FragColor=vec4(1.0);
