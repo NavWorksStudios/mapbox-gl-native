@@ -144,6 +144,10 @@ private:
     struct Mouse {
         mbgl::ScreenCoordinate coord;
         double time;
+        
+        float velocity(const Mouse& from) const {
+            return pow(pow(coord.x-from.coord.x, 2.) + pow(coord.y-from.coord.y, 2.), 0.5) / (time - from.time);
+        }
     };
 
     struct MouseHistory {

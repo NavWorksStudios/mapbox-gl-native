@@ -856,9 +856,9 @@ void GLFWView::onMouseClick(int button, int action, int modifiers) {
             }
         }
     } else if (action == GLFW_RELEASE) {
-        if (now - view->_mouseHistory[0].time < 0.2) { // fling
+        if (view->_mouseHistory[0].velocity(view->_mouseHistory[-2]) > 60) { // fling
             if (view->tracking) {
-                Mouse from = view->_mouseHistory.withElapse(now, 0.4);
+                Mouse from = view->_mouseHistory.withElapse(now, 0.6);
                 Mouse to = view->_mouseHistory[0];
                 mbgl::ScreenCoordinate d;
                 d.x = fmin(fmax(  (to.coord.x - from.coord.x) / (to.time - from.time)  , -300), 300);
