@@ -856,7 +856,9 @@ void GLFWView::onMouseClick(int button, int action, int modifiers) {
             }
         }
     } else if (action == GLFW_RELEASE) {
-        if (view->_mouseHistory[0].velocity(view->_mouseHistory[-2]) > 60) { // fling
+        // fling
+        if (now - view->_mouseHistory[0].time < 0.2 &&
+            view->_mouseHistory[0].velocity(view->_mouseHistory[-2]) > 60) {
             if (view->tracking) {
                 Mouse from = view->_mouseHistory.withElapse(now, 0.6);
                 Mouse to = view->_mouseHistory[0];
