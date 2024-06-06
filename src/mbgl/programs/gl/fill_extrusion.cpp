@@ -135,12 +135,12 @@ struct ShaderSource<FillExtrusionProgram> {
         
         // ambient light
         float colorvalue=color.r*0.2126+color.g*0.7152+color.b*0.0722;
-        vec4 ambientlight=vec4(0.1,0.1,0.1,1.0);
+        vec4 ambientlight=vec4(0.2,0.2,0.2,1.0);
         color+=ambientlight;
 
         // color
         float directional=clamp(dot(normal/16384.0,u_lightpos),0.0,1.0);
-        directional=mix((1.0-u_lightintensity), max((1.0-colorvalue+u_lightintensity),1.0), directional)*0.4;
+        directional=mix((1.0-u_lightintensity), max((1.0-colorvalue+u_lightintensity),1.0), directional)*0.5;
         if (normal.y!=0.0) {
             directional*=((1.0-u_vertical_gradient)+(u_vertical_gradient*clamp((t+base)*pow(height/150.0,0.5),mix(0.7,0.98,1.0-u_lightintensity),1.0)));
         }
@@ -181,7 +181,7 @@ struct ShaderSource<FillExtrusionProgram> {
 
         void main() {
         gl_FragColor=v_color;
-        gl_FragColor.a=gl_FragColor.a*0.1+pow(v_pos.z,.9)/7000.;
+        gl_FragColor.a=gl_FragColor.a*0.1 + v_pos.z/9000.;
         
         #ifdef OVERDRAW_INSPECTOR
             gl_FragColor=vec4(1.0);
