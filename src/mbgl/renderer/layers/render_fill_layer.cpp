@@ -99,6 +99,7 @@ void RenderFillLayer::render(PaintParameters& parameters) {
                                                   evaluated.get<FillTranslateAnchor>(),
                                                   parameters.state)
                         ),
+                        uniforms::camera_pos::Value(parameters.state.getCameraPosition()),
                         uniforms::world::Value( parameters.backend.getDefaultRenderable().getSize() ),
                     },
                     paintPropertyBinders,
