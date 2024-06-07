@@ -276,42 +276,46 @@ struct ShaderSource<LineProgram> {
         lowp float opacity=u_opacity;
     #endif
     
+    
+    
+    
+        vec3 cameraPos = v_camera_pos * 0.00001;
+        vec3 lightPos = cameraPos;
         vec3 lightColor = vec3(1.,1.,1.);
-        vec3 cameraPo = v_camera_pos * 0.00001;
-        vec3 lightPo = cameraPo;
-    
-        float ambientStrength = .7;             //环境因子
-    
-        float specularStrength = 1.5;           //镜面强度
-        float reflectance = 2.0;                //反射率
 
-        float constantPara = 1.0;               //距离衰减常量
-        float linearPara = 0.000000009;         //线性衰减常量
-    
         //环境光
-        vec3 norm = normalize(vec3(0.,0.,1.));
-        vec3 lightDir = normalize(lightPo - v_pos);                             //当前顶点 至 光源的的单位向量
-        vec3 ambient = ambientStrength * vec3(color);                           //环境光 = 环境因子 * 物体的材质颜色
+        float ambientIntensity = 0.7;                                                           //环境因子
+        vec3 ambient = ambientIntensity * vec3(color);                                          //环境光 = 环境因子 * 物体的材质颜色
 
         //漫反射
-        float diff = max(dot(norm,lightDir),0.0);                               //DiffuseFactor=光源与法线夹角 max(0,dot(N,L))
-        vec3 diffuse = diff * lightColor * vec3(color);                         //漫反射光颜色计算 = 光源的漫反射颜色 * 物体的漫发射材质颜色 * DiffuseFactor
+        vec3 norm = normalize(vec3(0.,0.,1.));
+        vec3 lightDir = normalize(lightPos - v_pos);                                            //当前顶点 至 光源的的单位向量
+        float dFactor = max(dot(norm,lightDir) ,0.0);                                           //DiffuseFactor=光源与法线夹角 max(0,dot(N,L))
+        vec3 diffuse = dFactor * lightColor * vec3(color);                                      //漫反射光颜色计算 = 光源的漫反射颜色 * 物体的漫发射材质颜色 * DiffuseFactor
 
         //镜面反射
-        vec3 viewDir = normalize(cameraPo - v_pos);
-        vec3 reflectDir = reflect(-lightDir,norm);                              // reflect (genType I, genType N),返回反射向量
-        float spec = pow(max(dot(viewDir, reflectDir),0.0),reflectance);        //SpecularFactor = power(max(0,dot(N,H)),shininess)
-        vec3 specular = specularStrength * spec * vec3(color);                  //镜面反射颜色 = 光源的镜面光的颜色 * 物体的镜面材质颜色 * SpecularFactor
+        float specularIntensity = 1.2;                                                          //镜面强度
+        float reflectanceIntensity = 2.0;                                                       //反射率
+        vec3 viewDir = normalize(cameraPos - v_pos);
+        vec3 reflectDir = reflect(-lightDir,norm);                                              // reflect (genType I, genType N),返回反射向量
+        float sFactor = pow(max(dot(viewDir, reflectDir),0.0), reflectanceIntensity);           //SpecularFactor = power(max(0,dot(N,H)),shininess)
+        vec3 specular = specularIntensity * sFactor * vec3(color);                              //镜面反射颜色 = 光源的镜面光的颜色 * 物体的镜面材质颜色 * SpecularFactor
 
         //衰减因子计算
-        float LFDistance = length(lightPo - v_pos);
-        //衰减因子 =  1.0/(距离衰减常量 + 线性衰减常量 * 距离 + 二次衰减常量 * 距离的平方)
-        float lightWeakPara = 1.0 / (constantPara + linearPara * LFDistance);
+        float baseAttenuation = 1.0;                                                            //距离衰减常量
+        float linearAttenuation = 0.000000009;                                                  //线性衰减常量
+        float distance = length(lightPos - v_pos);
+        float aFactor = 1.0 / (baseAttenuation + linearAttenuation * distance);                 //衰减因子 =  1.0/(距离衰减常量 + 线性衰减常量 * 距离 + 二次衰减常量 * 距离的平方)
 
         //最终的颜色
-        vec3 res = (ambient + diffuse + specular) * lightWeakPara;              //光照颜色 =(环境颜色 + 漫反射颜色 + 镜面反射颜色)* 衰减因子
-        color = vec4(res,1.0);
-
+        vec3 lighted = (ambient + diffuse + specular) * aFactor;                                //光照颜色 =(环境颜色 + 漫反射颜色 + 镜面反射颜色)* 衰减因子
+        color = vec4(lighted, 1.0);
+    
+    
+    
+    
+    
+        // draw line
         float dist=length(v_normal)*v_width2.s;
         float blur2=(blur+1.0/u_device_pixel_ratio)*v_gamma_scale;
         float alpha=clamp(min(dist-(v_width2.t-blur2),v_width2.s-dist)/blur2,0.0,1.0);
