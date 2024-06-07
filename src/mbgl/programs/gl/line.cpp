@@ -76,14 +76,19 @@ struct ShaderSource<LineProgram> {
         
         attribute vec2 a_pos_normal;
         attribute vec4 a_data;
+    
         uniform mat4 u_matrix;
+        uniform vec3 u_camera_pos;
         uniform mediump float u_ratio;
         uniform vec2 u_units_to_pixels;
         uniform lowp float u_device_pixel_ratio;
+    
         varying vec2 v_normal;
         varying vec2 v_width2;
         varying float v_gamma_scale;
         varying highp float v_linesofar;
+        varying vec3 v_pos;
+        varying vec3 v_camera_pos;
         
         #ifndef HAS_UNIFORM_u_color
             uniform lowp float u_color_t;
@@ -170,97 +175,164 @@ struct ShaderSource<LineProgram> {
             float ANTIALIASING=1.0/u_device_pixel_ratio/2.0;
             vec2 a_extrude=a_data.xy-128.0;
             float a_direction=mod(a_data.z,4.0)-1.0;
-    
             v_linesofar=(floor(a_data.z/4.0)+a_data.w*64.0)*2.0;
+    
             vec2 pos=floor(a_pos_normal*0.5);
-            mediump vec2 normal=a_pos_normal-2.0*pos;normal.y=normal.y*2.0-1.0;
+            mediump vec2 normal=a_pos_normal-2.0*pos;
+            normal.y=normal.y*2.0-1.0;
             v_normal=normal;
+
             gapwidth=gapwidth/2.0;
             float halfwidth=width/2.0;
             offset=-1.0*offset;
+
             float inset=gapwidth+(gapwidth > 0.0 ? ANTIALIASING : 0.0);
             float outset=gapwidth+halfwidth*(gapwidth > 0.0 ? 2.0 : 1.0)+(halfwidth==0.0 ? 0.0 : ANTIALIASING);
+    
             mediump vec2 dist=outset*a_extrude*scale;
             mediump float u=0.5*a_direction;
             mediump float t=1.0-abs(u);
             mediump vec2 offset2=offset*a_extrude*scale*normal.y*mat2(t,-u,u,t);
+    
             vec4 projected_extrude=u_matrix*vec4(dist/u_ratio,0.0,0.0);
             gl_Position=u_matrix*vec4(pos+offset2/u_ratio,0.0,1.0)+projected_extrude;
+    
             float extrude_length_without_perspective=length(dist);
             float extrude_length_with_perspective=length(projected_extrude.xy/gl_Position.w*u_units_to_pixels);
             v_gamma_scale=extrude_length_without_perspective/extrude_length_with_perspective;
             v_width2=vec2(outset,inset);
+    
+            v_pos = gl_Position.xyz;
+            v_camera_pos = u_camera_pos;
         }
 
     )"; }
 
     static const char* navFragment(const char* , size_t ) { return R"(
 
-        #ifdef GL_ES
-            precision mediump float;
-        #else
-            #if !defined(lowp)
-                #define lowp
-            #endif
-    
-            #if !defined(mediump)
-                #define mediump
-            #endif
-    
-            #if !defined(highp)
-                #define highp
-            #endif
+    #ifdef GL_ES
+        precision mediump float;
+    #else
+        #if !defined(lowp)
+            #define lowp
         #endif
+
+        #if !defined(mediump)
+            #define mediump
+        #endif
+
+        #if !defined(highp)
+            #define highp
+        #endif
+    #endif
 
     )"; }
 
+    
+    // OpenGL基础23：平行光与点光源
+    // https://blog.csdn.net/Jaihk662/article/details/106722949
+    
+    // 其他参考
+    // https://www.freesion.com/article/98131083178/
 
     static const char* navFragment(const char* ) { return R"(
 
         uniform lowp float u_device_pixel_ratio;
+
         varying vec2 v_width2;
         varying vec2 v_normal;
         varying float v_gamma_scale;
+        varying vec3 v_pos;
+        varying vec3 v_camera_pos;
     
-        #ifndef HAS_UNIFORM_u_color
-            varying highp vec4 color;
-        #else
-            uniform highp vec4 u_color;
-        #endif
+    #ifndef HAS_UNIFORM_u_color
+        varying highp vec4 color;
+    #else
+        uniform highp vec4 u_color;
+    #endif
+
+    #ifndef HAS_UNIFORM_u_blur
+        varying lowp float blur;
+    #else
+        uniform lowp float u_blur;
+    #endif
+
+    #ifndef HAS_UNIFORM_u_opacity
+        varying lowp float opacity;
+    #else
+        uniform lowp float u_opacity;
+    #endif
     
-        #ifndef HAS_UNIFORM_u_blur
-            varying lowp float blur;
-        #else
-            uniform lowp float u_blur;
-        #endif
+        struct Light {
+            vec3 position;
+            vec3 ambient;
+            vec3 diffuse;
+            vec3 specular;
+            float k0, k1, k2;
+        };
+
+        Light light;
+
+    void main() {
+    #ifdef HAS_UNIFORM_u_color
+        highp vec4 color=u_color;
+    #endif
+
+    #ifdef HAS_UNIFORM_u_blur
+        lowp float blur=u_blur;
+    #endif
+
+    #ifdef HAS_UNIFORM_u_opacity
+        lowp float opacity=u_opacity;
+    #endif
+
+        vec3 color3 = color.rgb;
     
-        #ifndef HAS_UNIFORM_u_opacity
-            varying lowp float opacity;
-        #else
-            uniform lowp float u_opacity;
-        #endif
-    
-        void main() {
-        #ifdef HAS_UNIFORM_u_color
-            highp vec4 color=u_color;
-        #endif
-    
-        #ifdef HAS_UNIFORM_u_blur
-            lowp float blur=u_blur;
-        #endif
-    
-        #ifdef HAS_UNIFORM_u_opacity
-            lowp float opacity=u_opacity;
-        #endif
+        // 光源属性
+        light.position = vec3(-10000, -20000.0, 20000);
+        light.ambient = vec3(0.5, 0.5, 0.5);
+        light.diffuse = vec3(1.0, 1.0, 1.0);
+        light.specular = vec3(1.0, 1.0, 1.0);
+        light.k0 = 1.0;
+        light.k1 = 0.09;
+        light.k2 = 0.032;
+
+        //环境光
+        vec3 ambient = light.ambient * color3;
+
+        //漫反射光
+        vec3 norm = normalize(vec3(v_normal,.0));
+        vec3 lightDir = normalize(light.position - v_pos);
+        float diff = max(dot(norm, lightDir), 0.0);
+        vec3 diffuse = light.diffuse * (diff * color3);
+
+        //镜面光
+        vec3 viewDir = normalize(v_camera_pos - v_pos);
+        vec3 reflectDir = reflect(-lightDir, norm);
+        float shininess = 32.0;
+        float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
+        vec3 specular = light.specular * (spec * color3);
+
+        //点光源
+        float dis = length(light.position - v_pos) / 8000.0;
+        float attenuation = 1.0 / (light.k0 + light.k1 * dis + light.k2 * (dis * dis));
+
+        //混合
+        diffuse *= attenuation;
+        specular *= attenuation;
+        vec3 result = ambient + diffuse + specular;
+
+        color = vec4(result, color[3]);
+
     
         float dist=length(v_normal)*v_width2.s;
         float blur2=(blur+1.0/u_device_pixel_ratio)*v_gamma_scale;
         float alpha=clamp(min(dist-(v_width2.t-blur2),v_width2.s-dist)/blur2,0.0,1.0);
         gl_FragColor=color*(alpha*opacity);
-    
-        #ifdef OVERDRAW_INSPECTOR
-            gl_FragColor=vec4(1.0);
-        #endif
+        
+    #ifdef OVERDRAW_INSPECTOR
+        gl_FragColor=vec4(1.0);
+    #endif
         }
 
     )"; }

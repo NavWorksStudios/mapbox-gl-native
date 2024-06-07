@@ -303,6 +303,9 @@ private:
     
 public:
     void notifyProjectionTransform() const;
+    inline vec3f getCameraPosition() const {
+        return { (float) _cameraPosition[0], (float) _cameraPosition[1], (float) _cameraPosition[2] };
+    }
     
 };
 

@@ -36,6 +36,7 @@ class LineProgram : public Program<
     LineLayoutAttributes,
     TypeList<
         uniforms::matrix,
+        uniforms::camera_pos,
         uniforms::ratio,
         uniforms::units_to_pixels,
         uniforms::device_pixel_ratio>,

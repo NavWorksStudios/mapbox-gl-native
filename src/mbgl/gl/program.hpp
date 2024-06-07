@@ -49,31 +49,6 @@ public:
                   context.createShader(ShaderType::Vertex, vertexSource),
                   context.createShader(ShaderType::Fragment, fragmentSource),
                   attributeLocations.getFirstAttribName())) {
-                      
-//            {
-//                std::string vertex;
-//                for (auto s : vertexSource) {
-//                  vertex += s;
-//                  vertex += "\n";
-//                }
-//
-//                std::string fragment;
-//                for (auto s : fragmentSource) {
-//                  fragment += s;
-//                  fragment += "\n";
-//                }
-//
-//                std::cout
-//                << "*************************************\n"
-//                << "Vertex Shader For \n\n"
-//                << vertex
-//                << "\n\n\n\n"
-//                << "Fragment Shader For \n\n"
-//                << fragment
-//                << "\n\n\n\n"
-//                << "*************************************\n";
-//            }
-                      
             attributeLocations.queryLocations(program);
             uniformStates.queryLocations(program);
             // Texture units are specified via uniforms as well, so we need query their locations
@@ -86,6 +61,7 @@ public:
                        const std::string& additionalDefines) {
             
 #if 0
+            // 原代码
             // Compile the shader
             const std::initializer_list<const char*> vertexSource = {
                 programParameters.getDefines().c_str(),
