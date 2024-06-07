@@ -282,11 +282,11 @@ struct ShaderSource<LineProgram> {
     
         float ambientStrength = .7;             //环境因子
     
-        float specularStrength = .8;            //镜面强度
+        float specularStrength = 1.5;           //镜面强度
         float reflectance = 2.0;                //反射率
 
         float constantPara = 1.0;               //距离衰减常量
-        float linearPara = 0.0000000009;        //线性衰减常量
+        float linearPara = 0.000000009;         //线性衰减常量
     
         //环境光
         vec3 norm = normalize(vec3(0.,0.,1.));
@@ -306,7 +306,7 @@ struct ShaderSource<LineProgram> {
         //衰减因子计算
         float LFDistance = length(lightPo - v_pos);
         //衰减因子 =  1.0/(距离衰减常量 + 线性衰减常量 * 距离 + 二次衰减常量 * 距离的平方)
-        float lightWeakPara = 1.0/(constantPara + linearPara * LFDistance);
+        float lightWeakPara = 1.0 / (constantPara + linearPara * LFDistance);
 
         //最终的颜色
         vec3 res = (ambient + diffuse + specular) * lightWeakPara;              //光照颜色 =(环境颜色 + 漫反射颜色 + 镜面反射颜色)* 衰减因子
