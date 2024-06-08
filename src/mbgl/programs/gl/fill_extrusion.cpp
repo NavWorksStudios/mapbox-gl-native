@@ -19,6 +19,11 @@ struct ShaderSource<FillExtrusionProgram> {
     static constexpr const auto vertexOffset = 21491;
     static constexpr const auto fragmentOffset = 23422;
     
+//    static const char* navVertex(const char* shaderSource, size_t preludeOffset) { return shaderSource + preludeOffset; }
+//    static const char* navVertex(const char* shaderSource) { return shaderSource + vertexOffset; }
+//    static const char* navFragment(const char* shaderSource, size_t preludeOffset) { return shaderSource + preludeOffset; }
+//    static const char* navFragment(const char* shaderSource) { return shaderSource + fragmentOffset; }
+    
     static const char* navVertex(const char* , size_t ) { return R"(
         
         #ifdef GL_ES
