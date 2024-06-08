@@ -382,7 +382,7 @@ void GLFWView::onKey(int key, int action, int mods) {
 
                 static double routeDistance = ruler.lineDistance(lineString);
                 static double routeProgress = 0;
-                routeProgress += 0.0005;
+                routeProgress += 0.0001;
                 if (routeProgress > 1.0) {
                     routeProgress = 0.0;
                 }
@@ -395,7 +395,9 @@ void GLFWView::onKey(int key, int action, int mods) {
                 double bearing = ruler.bearing({ latLng.longitude(), latLng.latitude() }, point);
                 double easing = bearing - *camera.bearing;
                 easing += easing > 180.0 ? -360.0 : easing < -180 ? 360.0 : 0;
-                bearing = *camera.bearing + (easing / 20);
+                
+                bearing = *camera.bearing + (easing / 100);
+                
                 routeMap->jumpTo(mbgl::CameraOptions().withCenter(center).withZoom(18.0).withBearing(bearing).withPitch(60.0));
             };
             view->animateRouteCallback(view->map);
