@@ -208,9 +208,10 @@ void main() {
     lowp float opacity=u_opacity;
 #endif
 
-    float centerFactor = clamp(pow(pow(v_pos.x,2.) + pow(v_pos.y,2.) + .001, 0.3) / 400., 0., 1.);
+    float centerFactor = clamp(pow(pow(v_pos.x,2.) + pow(v_pos.y,2.) + .001, 0.3) / 300., 0., 1.);
     vec3 rgb = color.rgb * (.8 + (1. - centerFactor)); // 距离屏幕中心点越近，越亮
     gl_FragColor = vec4(rgb,color.a) * opacity;
+//    gl_FragColor=color;
         
 #ifdef OVERDRAW_INSPECTOR
     gl_FragColor=vec4(1.0);

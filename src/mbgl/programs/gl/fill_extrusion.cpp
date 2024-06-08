@@ -190,11 +190,10 @@ struct ShaderSource<FillExtrusionProgram> {
         varying vec4 v_color;
 
         void main() {
-        gl_FragColor=v_color;
+            float centerFactor = clamp((pow(v_pos.x,2.) + pow(v_pos.y,2.)) / 1000000., 0., 1.);
+            gl_FragColor = v_color * centerFactor; // 距离屏幕中心点越近，越透明
+//            gl_FragColor=v_color;
     
-        float centerFactor = clamp((pow(v_pos.x,2.) + pow(v_pos.y,2.)) / 1000000., 0., 1.);
-        gl_FragColor *= centerFactor; // 距离屏幕中心点越近，越透明
-
         #ifdef OVERDRAW_INSPECTOR
             gl_FragColor=vec4(1.0);
         #endif
