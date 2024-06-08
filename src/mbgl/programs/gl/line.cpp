@@ -276,10 +276,28 @@ struct ShaderSource<LineProgram> {
         lowp float opacity=u_opacity;
     #endif
     
+        float centerFactor = clamp((pow(v_pos.x,2.) + pow(v_pos.y,2.)) / 1000000., 0., 1.);
+        float a = color.a;
+        color *= .7 + (1. - centerFactor); // 距离屏幕中心点越近，越亮
+        color.a = a;
     
-    
-    
-        vec3 cameraPos = v_camera_pos * 0.00001;
+        // draw line
+        float dist=length(v_normal)*v_width2.s;
+        float blur2=(blur+1.0/u_device_pixel_ratio)*v_gamma_scale;
+        float alpha=clamp(min(dist-(v_width2.t-blur2),v_width2.s-dist)/blur2,0.0,1.0);
+        gl_FragColor=color*(alpha*opacity);
+        
+    #ifdef OVERDRAW_INSPECTOR
+        gl_FragColor=vec4(1.0);
+    #endif
+        }
+
+    )"; }
+
+};
+
+/* 点光源光照效果
+        vec3 cameraPos = v_camera_pos * 0.00001;                                                //量纲调整
         vec3 lightPos = cameraPos;
         vec3 lightColor = vec3(1.,1.,1.);
 
@@ -297,7 +315,7 @@ struct ShaderSource<LineProgram> {
         float specularIntensity = 1.2;                                                          //镜面强度
         float reflectanceIntensity = 2.0;                                                       //反射率
         vec3 viewDir = normalize(cameraPos - v_pos);
-        vec3 reflectDir = reflect(-lightDir,norm);                                              // reflect (genType I, genType N),返回反射向量
+        vec3 reflectDir = reflect(-lightDir, norm);                                             // reflect (genType I, genType N),返回反射向量
         float sFactor = pow(max(dot(viewDir, reflectDir),0.0), reflectanceIntensity);           //SpecularFactor = power(max(0,dot(N,H)),shininess)
         vec3 specular = specularIntensity * sFactor * vec3(color);                              //镜面反射颜色 = 光源的镜面光的颜色 * 物体的镜面材质颜色 * SpecularFactor
 
@@ -310,25 +328,8 @@ struct ShaderSource<LineProgram> {
         //最终的颜色
         vec3 lighted = (ambient + diffuse + specular) * aFactor;                                //光照颜色 =(环境颜色 + 漫反射颜色 + 镜面反射颜色)* 衰减因子
         color = vec4(lighted, 1.0);
+*/
     
-    
-    
-    
-    
-        // draw line
-        float dist=length(v_normal)*v_width2.s;
-        float blur2=(blur+1.0/u_device_pixel_ratio)*v_gamma_scale;
-        float alpha=clamp(min(dist-(v_width2.t-blur2),v_width2.s-dist)/blur2,0.0,1.0);
-        gl_FragColor=color*(alpha*opacity);
-        
-    #ifdef OVERDRAW_INSPECTOR
-        gl_FragColor=vec4(1.0);
-    #endif
-        }
-
-    )"; }
-
-};
 
 constexpr const char* ShaderSource<LineProgram>::name;
 constexpr const uint8_t ShaderSource<LineProgram>::hash[8];
