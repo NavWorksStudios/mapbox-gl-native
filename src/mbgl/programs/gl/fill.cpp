@@ -72,23 +72,48 @@ R"(
 
 attribute vec2 a_pos;
 uniform mat4 u_matrix;
-
+uniform vec3 u_camera_pos;
 uniform highp float u_base;
+        
+//varying vec2 v_normal;
+varying vec3 v_pos;
+varying vec3 v_camera_pos;
 
 #ifndef HAS_UNIFORM_u_color
-uniform lowp float u_color_t;
-attribute highp vec4 a_color;
-varying highp vec4 color;
+    uniform lowp float u_color_t;
+    attribute highp vec4 a_color;
+    varying highp vec4 color;
 #else
-uniform highp vec4 u_color;
+    uniform highp vec4 u_color;
 #endif
 
 #ifndef HAS_UNIFORM_u_opacity
-uniform lowp float u_opacity_t;
-attribute lowp vec2 a_opacity;
-varying lowp float opacity;
+    uniform lowp float u_opacity_t;
+    attribute lowp vec2 a_opacity;
+    varying lowp float opacity;
 #else
-uniform lowp float u_opacity;
+    uniform lowp float u_opacity;
+#endif
+
+#ifndef HAS_UNIFORM_u_gapwidth
+    uniform lowp float u_gapwidth_t;
+    attribute mediump vec2 a_gapwidth;
+#else
+    uniform mediump float u_gapwidth;
+#endif
+
+#ifndef HAS_UNIFORM_u_offset
+    uniform lowp float u_offset_t;
+    attribute lowp vec2 a_offset;
+#else
+    uniform lowp float u_offset;
+#endif
+
+#ifndef HAS_UNIFORM_u_width
+    uniform lowp float u_width_t;
+    attribute mediump vec2 a_width;
+#else
+    uniform mediump float u_width;
 #endif
 
 void main() {
@@ -104,7 +129,28 @@ void main() {
     lowp float opacity=u_opacity;
 #endif
 
+#ifndef HAS_UNIFORM_u_gapwidth
+    mediump float gapwidth=unpack_mix_vec2(a_gapwidth,u_gapwidth_t);
+#else
+    mediump float gapwidth=u_gapwidth;
+#endif
+
+#ifndef HAS_UNIFORM_u_offset
+    lowp float offset=unpack_mix_vec2(a_offset,u_offset_t);
+#else
+    lowp float offset=u_offset;
+#endif
+
+#ifndef HAS_UNIFORM_u_width
+    mediump float width=unpack_mix_vec2(a_width,u_width_t);
+#else
+    mediump float width=u_width;
+#endif
+
     gl_Position=u_matrix*vec4(a_pos,u_base,1);
+    
+    v_pos = gl_Position.xyz;
+    v_camera_pos = u_camera_pos;
 }
 
 )"; }
@@ -131,26 +177,68 @@ precision mediump float;
     static const char* navFragment(const char* ) { return
 R"(
 
+//varying vec2 v_normal;
+varying vec3 v_pos;
+varying vec3 v_camera_pos;
+
 #ifndef HAS_UNIFORM_u_color
-varying highp vec4 color;
+    varying highp vec4 color;
 #else
-uniform highp vec4 u_color;
+    uniform highp vec4 u_color;
 #endif
+
 #ifndef HAS_UNIFORM_u_opacity
-varying lowp float opacity;
+    varying lowp float opacity;
 #else
-uniform lowp float u_opacity;
+    uniform lowp float u_opacity;
 #endif
+        
 void main() {
+
 #ifdef HAS_UNIFORM_u_color
-highp vec4 color=u_color;
+    highp vec4 color=u_color;
 #endif
+
 #ifdef HAS_UNIFORM_u_opacity
-lowp float opacity=u_opacity;
+    lowp float opacity=u_opacity;
 #endif
-gl_FragColor=color*opacity;
+
+    vec3 cameraPos = v_camera_pos * 0.00001;
+    vec3 lightPos = cameraPos;
+    vec3 lightColor = vec3(1.,1.,1.);
+
+    //环境光
+    float ambientIntensity = 0.7;                                                           //环境因子
+    vec3 ambient = ambientIntensity * vec3(color);                                          //环境光 = 环境因子 * 物体的材质颜色
+
+    //漫反射
+    vec3 norm = normalize(vec3(0.,0.,1.));
+    vec3 lightDir = normalize(lightPos - v_pos);                                            //当前顶点 至 光源的的单位向量
+    float dFactor = max(dot(norm,lightDir) ,0.0);                                           //DiffuseFactor=光源与法线夹角 max(0,dot(N,L))
+    vec3 diffuse = dFactor * lightColor * vec3(color);                                      //漫反射光颜色计算 = 光源的漫反射颜色 * 物体的漫发射材质颜色 * DiffuseFactor
+
+    //镜面反射
+    float specularIntensity = 1.2;                                                          //镜面强度
+    float reflectanceIntensity = 2.0;                                                       //反射率
+    vec3 viewDir = normalize(cameraPos - v_pos);
+    vec3 reflectDir = reflect(-lightDir,norm);                                              // reflect (genType I, genType N),返回反射向量
+    float sFactor = pow(max(dot(viewDir, reflectDir),0.0), reflectanceIntensity);           //SpecularFactor = power(max(0,dot(N,H)),shininess)
+    vec3 specular = specularIntensity * sFactor * vec3(color);                              //镜面反射颜色 = 光源的镜面光的颜色 * 物体的镜面材质颜色 * SpecularFactor
+
+    //衰减因子计算
+    float baseAttenuation = 1.0;                                                            //距离衰减常量
+    float linearAttenuation = 0.000000009;                                                  //线性衰减常量
+    float distance = length(lightPos - v_pos);
+    float aFactor = 1.0 / (baseAttenuation + linearAttenuation * distance);                 //衰减因子 =  1.0/(距离衰减常量 + 线性衰减常量 * 距离 + 二次衰减常量 * 距离的平方)
+
+    //最终的颜色
+    vec3 lighted = (ambient + diffuse + specular) * aFactor;                                //光照颜色 =(环境颜色 + 漫反射颜色 + 镜面反射颜色)* 衰减因子
+    vec4 color4 = vec4(lighted, 1.0);
+        
+    gl_FragColor=color4*opacity;
+        
 #ifdef OVERDRAW_INSPECTOR
-gl_FragColor=vec4(1.0);
+    gl_FragColor=vec4(1.0);
 #endif
 }
 
