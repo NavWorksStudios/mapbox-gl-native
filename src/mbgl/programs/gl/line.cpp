@@ -297,37 +297,37 @@ struct ShaderSource<LineProgram> {
 // https://www.freesion.com/article/98131083178/
 
 /* 点光源光照效果
-        vec3 cameraPos = v_camera_pos * 0.00001;                                                //量纲调整
-        vec3 lightPos = cameraPos;
-        vec3 lightColor = vec3(1.,1.,1.);
+    vec3 cameraPos = v_camera_pos * 0.00001;                                                //量纲调整
+    vec3 lightPos = cameraPos;
+    vec3 lightColor = vec3(1.,1.,1.);
 
-        //环境光
-        float ambientIntensity = 0.7;                                                           //环境因子
-        vec3 ambient = ambientIntensity * vec3(color);                                          //环境光 = 环境因子 * 物体的材质颜色
+    //环境光
+    float ambientIntensity = 0.7;                                                           //环境因子
+    vec3 ambient = ambientIntensity * vec3(color);                                          //环境光 = 环境因子 * 物体的材质颜色
 
-        //漫反射
-        vec3 norm = normalize(vec3(0.,0.,1.));
-        vec3 lightDir = normalize(lightPos - v_pos);                                            //当前顶点 至 光源的的单位向量
-        float dFactor = max(dot(norm,lightDir) ,0.0);                                           //DiffuseFactor=光源与法线夹角 max(0,dot(N,L))
-        vec3 diffuse = dFactor * lightColor * vec3(color);                                      //漫反射光颜色计算 = 光源的漫反射颜色 * 物体的漫发射材质颜色 * DiffuseFactor
+    //漫反射
+    vec3 norm = normalize(vec3(0.,0.,1.));
+    vec3 lightDir = normalize(lightPos - v_pos);                                            //当前顶点 至 光源的的单位向量
+    float dFactor = max(dot(norm,lightDir) ,0.0);                                           //DiffuseFactor=光源与法线夹角 max(0,dot(N,L))
+    vec3 diffuse = dFactor * lightColor * vec3(color);                                      //漫反射光颜色计算 = 光源的漫反射颜色 * 物体的漫发射材质颜色 * DiffuseFactor
 
-        //镜面反射
-        float specularIntensity = 1.2;                                                          //镜面强度
-        float reflectanceIntensity = 2.0;                                                       //反射率
-        vec3 viewDir = normalize(cameraPos - v_pos);
-        vec3 reflectDir = reflect(-lightDir, norm);                                             // reflect (genType I, genType N),返回反射向量
-        float sFactor = pow(max(dot(viewDir, reflectDir),0.0), reflectanceIntensity);           //SpecularFactor = power(max(0,dot(N,H)),shininess)
-        vec3 specular = specularIntensity * sFactor * vec3(color);                              //镜面反射颜色 = 光源的镜面光的颜色 * 物体的镜面材质颜色 * SpecularFactor
+    //镜面反射
+    float specularIntensity = 1.2;                                                          //镜面强度
+    float reflectanceIntensity = 2.0;                                                       //反射率
+    vec3 viewDir = normalize(cameraPos - v_pos);
+    vec3 reflectDir = reflect(-lightDir, norm);                                             // reflect (genType I, genType N),返回反射向量
+    float sFactor = pow(max(dot(viewDir, reflectDir),0.0), reflectanceIntensity);           //SpecularFactor = power(max(0,dot(N,H)),shininess)
+    vec3 specular = specularIntensity * sFactor * vec3(color);                              //镜面反射颜色 = 光源的镜面光的颜色 * 物体的镜面材质颜色 * SpecularFactor
 
-        //衰减因子计算
-        float baseAttenuation = 1.0;                                                            //距离衰减常量
-        float linearAttenuation = 0.000000009;                                                  //线性衰减常量
-        float distance = length(lightPos - v_pos);
-        float aFactor = 1.0 / (baseAttenuation + linearAttenuation * distance);                 //衰减因子 =  1.0/(距离衰减常量 + 线性衰减常量 * 距离 + 二次衰减常量 * 距离的平方)
+    //衰减因子计算
+    float baseAttenuation = 1.0;                                                            //距离衰减常量
+    float linearAttenuation = 0.000000009;                                                  //线性衰减常量
+    float distance = length(lightPos - v_pos);
+    float aFactor = 1.0 / (baseAttenuation + linearAttenuation * distance);                 //衰减因子 =  1.0/(距离衰减常量 + 线性衰减常量 * 距离 + 二次衰减常量 * 距离的平方)
 
-        //最终的颜色
-        vec3 lighted = (ambient + diffuse + specular) * aFactor;                                //光照颜色 =(环境颜色 + 漫反射颜色 + 镜面反射颜色)* 衰减因子
-        color = vec4(lighted, 1.0);
+    //最终的颜色
+    vec3 lighted = (ambient + diffuse + specular) * aFactor;                                //光照颜色 =(环境颜色 + 漫反射颜色 + 镜面反射颜色)* 衰减因子
+    color = vec4(lighted, 1.0);
 */
     
 
