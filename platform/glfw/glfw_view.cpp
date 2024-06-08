@@ -375,8 +375,13 @@ void GLFWView::onKey(int key, int action, int mods) {
             view->toggle3DExtrusions(view->show3DExtrusions);
             if (view->animateRouteCallback) break;
             view->animateRouteCallback = [](mbgl::Map* routeMap) {
-                static mapbox::cheap_ruler::CheapRuler ruler { 40.7 }; // New York
-                static mapbox::geojson::geojson route { mapbox::geojson::parse(mbgl::platform::glfw::route) };
+                
+                static mapbox::cheap_ruler::CheapRuler ruler { mbgl::platform::glfw::NewYorkLatitude }; // New York
+                static mapbox::geojson::geojson route { mapbox::geojson::parse(mbgl::platform::glfw::NewYorkRoute) };
+                
+//                static mapbox::cheap_ruler::CheapRuler ruler { mbgl::platform::glfw::BeijingLatitude }; // Beijing
+//                static mapbox::geojson::geojson route { mapbox::geojson::parse(mbgl::platform::glfw::BeijingRoute) };
+                
                 const auto& geometry = route.get<mapbox::geometry::geometry<double>>();
                 const auto& lineString = geometry.get<mapbox::geometry::line_string<double>>();
 
@@ -858,20 +863,20 @@ void GLFWView::onMouseClick(int button, int action, int modifiers) {
             }
         }
     } else if (action == GLFW_RELEASE) {
-        // fling
-        if (now - view->_mouseHistory[0].time < 0.2 &&
-            view->_mouseHistory[0].velocity(view->_mouseHistory[-2]) > 60) {
-            if (view->tracking) {
-                Mouse from = view->_mouseHistory.withElapse(now, 0.6);
-                Mouse to = view->_mouseHistory[0];
-                mbgl::ScreenCoordinate d;
-                d.x = fmin(fmax(  (to.coord.x - from.coord.x) / (to.time - from.time)  , -300), 300);
-                d.y = fmin(fmax(  (to.coord.y - from.coord.y) / (to.time - from.time)  , -300), 300);
-                view->map->moveBy(d, mbgl::AnimationOptions{{mbgl::Milliseconds(1000)}});
-                
-                nav::log::i("onMouseClick", "to(%llf,%llf) - from(%llf,%llf) / (%llf-%llf) = (%llf,%llf)",
-                            to.coord.x, to.coord.y, from.coord.x, from.coord.y, to.time, from.time, d.x, d.y);
-            }
+        const double elapsed = now - view->_mouseHistory[0].time;
+        const Mouse from = view->_mouseHistory.byTime(now - 0.3);
+        const float velocity = view->_mouseHistory[0].velocity(from);
+        if (view->tracking && elapsed < 0.05 && velocity > 50) { // fling
+            const Mouse to = view->_mouseHistory[0];
+            
+            mbgl::ScreenCoordinate d;
+            d.x = (to.coord.x - from.coord.x) / (to.time - from.time);
+            d.y = (to.coord.y - from.coord.y) / (to.time - from.time);
+            view->map->moveBy(d, mbgl::AnimationOptions{{mbgl::Milliseconds(1000)}});
+            
+            nav::log::w("onMouseClick", "e:%llf v:%llf to(%llf,%llf) - from(%llf,%llf) / (%llf-%llf) = (%llf,%llf)",
+                        elapsed, velocity,
+                        to.coord.x, to.coord.y, from.coord.x, from.coord.y, to.time, from.time, d.x, d.y);
         }
 
         view->map->setGestureInProgress(view->rotating = view->pitching = view->tracking = false);
@@ -897,7 +902,7 @@ void GLFWView::onMouseMove(double x, double y) {
     
     if (view->pitching) {
         view->map->pitchBy((y - view->_mouseHistory[0].coord.y) / 2);
-        if (abs(x - view->_mouseHistory.withElapse(now, 0.5).coord.x) > 30) {
+        if (abs(x - view->_mouseHistory.byTime(now - 0.5).coord.x) > 30) {
             view->pitching = false;
             view->rotating = true;
         }

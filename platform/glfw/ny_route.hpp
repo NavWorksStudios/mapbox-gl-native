@@ -4,7 +4,10 @@ namespace mbgl {
 namespace platform {
 namespace glfw {
 
-constexpr const char* route = R"route(
+
+constexpr const double NewYorkLatitude = 40.7;
+
+constexpr const char* NewYorkRoute = R"route(
 {
   "coordinates": [
     [ -74.013841, 40.702449 ],
@@ -98,6 +101,35 @@ constexpr const char* route = R"route(
   ],
   "type": "LineString"
 })route";
+
+
+
+
+constexpr const double BeijingLatitude = 39.9;
+
+constexpr const char* BeijingRoute = R"route(
+{
+  "coordinates": [
+    [ 116.4321571290319, 39.908633544047696 ],
+    [ 116.42683284242412, 39.90850139292561 ],
+    [ 116.41144400245696, 39.90815802792853 ],
+    [ 116.39944859518369, 39.90776563579062 ],
+    [ 116.39191126658011, 39.90752265604088 ],
+    [ 116.37390852584895, 39.90723577275832 ],
+    [ 116.35389397292204, 39.907302098471504 ],
+    [ 116.34286824334868, 39.907390921939644 ],
+    [ 116.34198530510275, 39.907556113598744 ],
+    [ 116.33126421507768, 39.90758354893854 ],
+    [ 116.31507594566324, 39.90758126054998 ],
+    [ 116.30851357851611, 39.90755752432853 ],
+  ],
+  "type": "LineString"
+})route";
+
+
+
+
+
 
 } // namespace glfw
 } // namespace platform

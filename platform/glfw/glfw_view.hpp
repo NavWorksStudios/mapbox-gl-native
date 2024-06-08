@@ -156,11 +156,15 @@ private:
             history.push_back({ coord, time });
             if (history.size() > 50) history.pop_front();
         }
-        const Mouse& operator [] (int index) const { return history.at(fmin(fmax(0, history.size() - 1 + index), history.size())); }
-        const Mouse& withElapse(double time, double elapse) {
+        
+        const Mouse& operator [] (int index) const {
+            return history.at(fmin(fmax(0, history.size() - 1 + index), history.size()));
+        }
+        
+        const Mouse& byTime(double time) {
             auto it = history.end();
             while (it-- != history.begin()) {
-                if (time - it->time > elapse) return *it;
+                if (time > it->time) return *it;
             }
             return history.front();
         }
