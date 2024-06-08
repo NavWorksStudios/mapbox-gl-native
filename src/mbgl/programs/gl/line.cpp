@@ -78,7 +78,6 @@ struct ShaderSource<LineProgram> {
         attribute vec4 a_data;
     
         uniform mat4 u_matrix;
-        uniform vec3 u_camera_pos;
         uniform mediump float u_ratio;
         uniform vec2 u_units_to_pixels;
         uniform lowp float u_device_pixel_ratio;
@@ -88,7 +87,6 @@ struct ShaderSource<LineProgram> {
         varying float v_gamma_scale;
         varying highp float v_linesofar;
         varying vec3 v_pos;
-        varying vec3 v_camera_pos;
         
         #ifndef HAS_UNIFORM_u_color
             uniform lowp float u_color_t;
@@ -203,7 +201,6 @@ struct ShaderSource<LineProgram> {
             v_width2=vec2(outset,inset);
     
             v_pos = gl_Position.xyz;
-            v_camera_pos = u_camera_pos;
         }
 
     )"; }
@@ -228,13 +225,6 @@ struct ShaderSource<LineProgram> {
 
     )"; }
 
-    
-    // OpenGL基础23：平行光与点光源
-    // https://blog.csdn.net/Jaihk662/article/details/106722949
-    
-    // 其他参考
-    // https://www.freesion.com/article/98131083178/
-
     static const char* navFragment(const char* ) { return R"(
 
         uniform lowp float u_device_pixel_ratio;
@@ -243,7 +233,6 @@ struct ShaderSource<LineProgram> {
         varying vec2 v_normal;
         varying float v_gamma_scale;
         varying vec3 v_pos;
-        varying vec3 v_camera_pos;
     
     #ifndef HAS_UNIFORM_u_color
         varying highp vec4 color;
@@ -295,6 +284,12 @@ struct ShaderSource<LineProgram> {
     )"; }
 
 };
+
+// OpenGL基础23：平行光与点光源
+// https://blog.csdn.net/Jaihk662/article/details/106722949
+
+// 其他参考
+// https://www.freesion.com/article/98131083178/
 
 /* 点光源光照效果
         vec3 cameraPos = v_camera_pos * 0.00001;                                                //量纲调整
