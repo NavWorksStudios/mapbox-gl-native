@@ -396,7 +396,7 @@ void GLFWView::onKey(int key, int action, int mods) {
                 double easing = bearing - *camera.bearing;
                 easing += easing > 180.0 ? -360.0 : easing < -180 ? 360.0 : 0;
                 
-                bearing = *camera.bearing + (easing / 100);
+                bearing = *camera.bearing + (easing / 80);
                 
                 routeMap->jumpTo(mbgl::CameraOptions().withCenter(center).withZoom(18.0).withBearing(bearing).withPitch(60.0));
             };
