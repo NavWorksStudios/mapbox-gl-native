@@ -88,6 +88,7 @@ struct ShaderSource<FillExtrusionProgram> {
     
         varying vec3 v_pos;
         varying vec4 v_color;
+        varying vec2 v_height;
                 
         #ifndef HAS_UNIFORM_u_base
             uniform lowp float u_base_t;
@@ -135,10 +136,11 @@ struct ShaderSource<FillExtrusionProgram> {
         // position
         //base=max(0.0,base);
         height=max(0.0,height);
-        bool withheight=mod(normal.x,2.0)>0.0;
-        gl_Position=u_matrix*vec4(a_pos,withheight?height:base,1);
+        bool h=mod(normal.x,2.0)>0.0;
+        gl_Position=u_matrix*vec4(a_pos,h?height:base,1.);
     
         v_pos=gl_Position.xyz;
+        v_height=vec2(height-base,h?1.:0.);
 
         // directional light
         float colorvalue = color.r*0.2126 + color.g*0.7152 + color.b*0.0722;
@@ -188,10 +190,16 @@ struct ShaderSource<FillExtrusionProgram> {
 
         varying vec3 v_pos;
         varying vec4 v_color;
+        varying vec2 v_height;
 
         void main() {
+            float hRatio = 8. / v_height.x;
+            float edgeFactor = v_height.y < hRatio ? hRatio - v_height.y : v_height.y - (1. - hRatio);
+            edgeFactor = pow(max(edgeFactor, 0.) / hRatio, 3.);
+    
             float centerFactor = clamp((pow(v_pos.x,2.) + pow(v_pos.y,2.)) / 1000000., 0., 1.);
-            gl_FragColor = v_color * centerFactor; // 距离屏幕中心点越近，越透明
+            gl_FragColor = v_color * (centerFactor + edgeFactor * 0.2); // 距离屏幕中心点越近，越透明。上下边缘永远加个描边
+
 //            gl_FragColor=v_color;
     
         #ifdef OVERDRAW_INSPECTOR
