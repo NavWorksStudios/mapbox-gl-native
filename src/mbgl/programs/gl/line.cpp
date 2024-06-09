@@ -272,7 +272,7 @@ struct ShaderSource<LineProgram> {
     #endif
     
         // 在近比例尺下，光圈变大
-        float zoomFactor = 1. + clamp(u_zoom - 16., 0., 10.);
+        float zoomFactor = clamp(u_zoom - 15., 1., 10.);
     
         // 距离屏幕中心点越近，越亮
         float radius = 1000000. * zoomFactor;
