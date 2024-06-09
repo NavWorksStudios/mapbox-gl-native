@@ -22,6 +22,7 @@ using FillLayoutAttributes = PositionOnlyLayoutAttributes;
 
 using FillUniforms = TypeList<
     uniforms::matrix,
+    uniforms::normal_matrix,
     uniforms::camera_pos,
     uniforms::world>;
 

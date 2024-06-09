@@ -37,6 +37,7 @@ public:
 
     UnwrappedTileID id;
     mat4 matrix;
+    mat4 normalMatrix;
     mat4 nearClippedMatrix;
     // Contains the tile ID string for painting debug information.
     std::unique_ptr<DebugBucket> debugBucket;

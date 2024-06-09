@@ -125,6 +125,10 @@ void RenderTile::prepare(const SourcePrepareParameters& parameters) {
     const auto& transform = parameters.transform;
     double ps[6];
     transform.state.matrixFor(matrix, id, ps);
+    
+    matrix::invert(normalMatrix, matrix);
+    matrix::transpose(normalMatrix);
+    
     transform.state.matrixFor(nearClippedMatrix, id);
     matrix::multiply(matrix, transform.projMatrix, matrix);
     matrix::multiply(nearClippedMatrix, transform.nearClippedProjMatrix, nearClippedMatrix);

@@ -104,6 +104,35 @@ bool invert(mat4& out, const mat4& a) {
     return false;
 }
 
+void transpose(mat4& out) {
+    double v;
+
+    v = out[1];
+    out[1] = out[4];
+    out[4] = v;
+    
+    v = out[2];
+    out[2] = out[8];
+    out[8] = v;
+    
+    v = out[3];
+    out[3] = out[12];
+    out[12] = v;
+
+    v = out[6];
+    out[6] = out[9];
+    out[9] = v;
+    
+    v = out[7];
+    out[7] = out[13];
+    out[13] = v;
+
+    v = out[11];
+    out[11] = out[14];
+    out[14] = v;
+
+}
+
 void ortho(mat4& out, double left, double right, double bottom, double top, double near, double far) {
     double lr = 1.0f / (left - right);
     double bt = 1.0f / (bottom - top);
