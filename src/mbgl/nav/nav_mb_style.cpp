@@ -11,6 +11,7 @@
 #include <mbgl/style/layers/fill_layer.hpp>
 #include <mbgl/style/layers/line_layer.hpp>
 #include <mbgl/style/layers/fill_extrusion_layer.hpp>
+#include <mbgl/util/io.hpp>
 
 namespace nav {
 namespace mb {
@@ -53,6 +54,33 @@ void displaceStyle(const std::string& id, std::unique_ptr<::mbgl::style::Layer>&
 //            }
 //        }
 //    }
+}
+
+
+struct ImageData {
+    mbgl::PremultipliedImage image;
+    mbgl::optional<mbgl::gfx::Texture> texture { mbgl::nullopt };
+};
+
+std::map<std::string, ImageData> imageMap;
+
+void loadAllImage(const std::string& path) {
+    imageMap["matcap.0.png"].image = mbgl::decodeImage(mbgl::util::read_file(path + "matcap.0.png"));
+    imageMap["matcap.1.png"].image = mbgl::decodeImage(mbgl::util::read_file(path + "matcap.1.png"));
+    imageMap["matcap.2.png"].image = mbgl::decodeImage(mbgl::util::read_file(path + "matcap.2.png"));
+    imageMap["matcap.3.png"].image = mbgl::decodeImage(mbgl::util::read_file(path + "matcap.3.png"));
+}
+
+void uploadTexture(mbgl::gfx::UploadPass& uploadPass) {
+    for (auto& i : imageMap) {
+        if (!i.second.texture) {
+            i.second.texture = uploadPass.createTexture(i.second.image);
+        }
+    }
+}
+
+mbgl::gfx::TextureResource& getTexture(const std::string& name) {
+    return imageMap[name].texture->getResource();
 }
 
 }

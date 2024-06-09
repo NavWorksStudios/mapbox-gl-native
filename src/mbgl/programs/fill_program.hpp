@@ -40,7 +40,7 @@ class FillProgram : public Program<
     gfx::PrimitiveType::Triangle,
     FillLayoutAttributes,
     FillUniforms,
-    TypeList<>,
+    TypeList<textures::matcap>,
     style::FillPaintProperties>
 {
 public:

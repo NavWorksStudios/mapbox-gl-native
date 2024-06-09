@@ -252,6 +252,8 @@ GLFWView::GLFWView(bool fullscreen_, bool benchmark_, const mbgl::ResourceOption
     printf("\n");
     printf("================================================================================\n");
     printf("\n");
+          
+    nav::mb::loadAllImage(mbglPuckAssetsPath);
 }
 
 GLFWView::~GLFWView() {

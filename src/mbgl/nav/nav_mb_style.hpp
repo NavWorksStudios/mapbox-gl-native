@@ -8,6 +8,9 @@
 
 #include <mbgl/util/color.hpp>
 #include <mbgl/style/layer.hpp>
+#include <mbgl/style/image.hpp>
+#include <mbgl/gfx/texture.hpp>
+#include <mbgl/gfx/upload_pass.hpp>
 
 namespace nav {
 namespace mb {
@@ -15,6 +18,10 @@ namespace mb {
 mbgl::Color land_color();
 
 void displaceStyle(const std::string& id, std::unique_ptr<::mbgl::style::Layer>& layer);
+
+void loadAllImage(const std::string& path);
+void uploadTexture(mbgl::gfx::UploadPass& uploadPass);
+mbgl::gfx::TextureResource& getTexture(const std::string& name);
 
 }
 }

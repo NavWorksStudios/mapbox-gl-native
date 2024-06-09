@@ -10,6 +10,8 @@
 #include <cassert>
 
 #include "mbgl/nav/nav_unity_bridge.hpp"
+#include "mbgl/nav/nav_mb_style.hpp"
+
 
 namespace mapbox {
 namespace util {
@@ -135,6 +137,8 @@ void FillBucket::upload(gfx::UploadPass& uploadPass) {
     for (auto& pair : paintPropertyBinders) {
         pair.second.upload(uploadPass);
     }
+    
+    nav::mb::uploadTexture(uploadPass);
 
     uploaded = true;
 }

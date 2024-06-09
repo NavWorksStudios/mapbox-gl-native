@@ -18,6 +18,8 @@
 #include <mbgl/util/intersection_tests.hpp>
 #include <mbgl/util/math.hpp>
 
+#include "mbgl/nav/nav_mb_style.hpp"
+
 namespace mbgl {
 
 using namespace style;
@@ -141,7 +143,9 @@ void RenderFillLayer::render(PaintParameters& parameters) {
                         : gfx::DepthMaskType::ReadOnly),
                      *bucket.triangleIndexBuffer,
                      bucket.triangleSegments,
-                     FillProgram::TextureBindings{});
+                     FillProgram::TextureBindings{
+                        textures::matcap::Value{ nav::mb::getTexture("matcap.0.png"), gfx::TextureFilterType::Linear },
+                     });
             }
 
             if (evaluated.get<FillAntialias>() && parameters.pass == RenderPass::Translucent) {

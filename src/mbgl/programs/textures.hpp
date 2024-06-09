@@ -13,5 +13,8 @@ MBGL_DEFINE_TEXTURE(texture);
 MBGL_DEFINE_TEXTURE(texture_icon);
 MBGL_DEFINE_TEXTURE(overlay);
 
+MBGL_DEFINE_TEXTURE(matcap);
+MBGL_DEFINE_TEXTURE(matcap0);
+
 } // namespace textures
 } // namespace mbgl
