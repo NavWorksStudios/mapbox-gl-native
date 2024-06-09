@@ -135,7 +135,7 @@ struct ShaderSource<FillExtrusionProgram> {
     
         // position
         //base=max(0.0,base);
-        height=max(base+30.,height);
+        height=max(base+15.,height);
         bool h=mod(normal.x,2.0)>0.0;
         gl_Position=u_matrix*vec4(a_pos,h?height:base,1.);
 
@@ -207,7 +207,7 @@ struct ShaderSource<FillExtrusionProgram> {
             centerFactor = .05 + .95 * centerFactor;
     
             // 在近比例尺下才显示透明效果
-            float zoomFactor = clamp(16.5 - u_zoom, .0, .95) / 1.5;
+            float zoomFactor = clamp(16.5 - u_zoom, .0, .95) / 1.;
 
             gl_FragColor = v_color * mix(centerFactor + edgeFactor, 1., zoomFactor);
 

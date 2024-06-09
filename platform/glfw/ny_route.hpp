@@ -4,10 +4,12 @@ namespace mbgl {
 namespace platform {
 namespace glfw {
 
+namespace NewYork {
 
-constexpr const double NewYorkLatitude = 40.7;
+constexpr const double Latitude = 40.7;
+constexpr const double Speed = 0.0001;
 
-constexpr const char* NewYorkRoute = R"route(
+constexpr const char* Route = R"route(
 {
   "coordinates": [
     [ -74.013841, 40.702449 ],
@@ -102,35 +104,37 @@ constexpr const char* NewYorkRoute = R"route(
   "type": "LineString"
 })route";
 
+}
 
 
 
-constexpr const double BeijingLatitude = 39.9;
+namespace Beijing {
 
-constexpr const char* BeijingRoute = R"route(
+constexpr const double Latitude = 39.9;
+constexpr const double Speed = 0.00002;
+
+constexpr const char* Route = R"route(
 {
   "coordinates": [
-    [ 116.4321571290319, 39.908633544047696 ],
-    [ 116.42683284242412, 39.90850139292561 ],
-    [ 116.41144400245696, 39.90815802792853 ],
-    [ 116.39944859518369, 39.90776563579062 ],
-    [ 116.39191126658011, 39.90752265604088 ],
-    [ 116.37390852584895, 39.90723577275832 ],
-    [ 116.35389397292204, 39.907302098471504 ],
-    [ 116.34286824334868, 39.907390921939644 ],
-    [ 116.34198530510275, 39.907556113598744 ],
-    [ 116.33126421507768, 39.90758354893854 ],
-    [ 116.31507594566324, 39.90758126054998 ],
-    [ 116.30851357851611, 39.90755752432853 ],
+    [ 116.42594031503690, 39.90724904013898 ],
+    [ 116.42060755193813, 39.90711050174532 ],
+    [ 116.40520312437374, 39.90675574402423 ],
+    [ 116.39320486197218, 39.90636183093520 ],
+    [ 116.38566977192387, 39.90612109376588 ],
+    [ 116.36768379979738, 39.90584866516121 ],
+    [ 116.34770315450643, 39.90594330443560 ],
+    [ 116.33670069606526, 39.90605147068948 ],
+    [ 116.33581969002350, 39.90621827893505 ],
+    [ 116.32512288959354, 39.90626594802742 ],
+    [ 116.30897127047076, 39.90629444241826 ],
+    [ 116.30242291741931, 39.90628261959953 ]
   ],
   "type": "LineString"
 })route";
 
-
-
-
-
+}
 
 } // namespace glfw
 } // namespace platform
 } // namespace mbgl
+

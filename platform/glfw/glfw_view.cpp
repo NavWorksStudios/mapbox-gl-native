@@ -106,7 +106,7 @@ void addFillExtrusionLayer(mbgl::style::Style &style, bool visible) {
                 
     extrusionLayer->setFillExtrusionColor(PropertyExpression<mbgl::Color>(std::move(e)));
     
-    extrusionLayer->setFillExtrusionOpacity(.7f);
+    extrusionLayer->setFillExtrusionOpacity(.2f);
     extrusionLayer->setFillExtrusionHeight(PropertyExpression<float>(get("height")));
     extrusionLayer->setFillExtrusionBase(PropertyExpression<float>(get("min_height")));
     style.addLayer(std::move(extrusionLayer));
@@ -376,18 +376,20 @@ void GLFWView::onKey(int key, int action, int mods) {
             if (view->animateRouteCallback) break;
             view->animateRouteCallback = [](mbgl::Map* routeMap) {
                 
-                static mapbox::cheap_ruler::CheapRuler ruler { mbgl::platform::glfw::NewYorkLatitude }; // New York
-                static mapbox::geojson::geojson route { mapbox::geojson::parse(mbgl::platform::glfw::NewYorkRoute) };
-                
-//                static mapbox::cheap_ruler::CheapRuler ruler { mbgl::platform::glfw::BeijingLatitude }; // Beijing
-//                static mapbox::geojson::geojson route { mapbox::geojson::parse(mbgl::platform::glfw::BeijingRoute) };
+//                static mapbox::cheap_ruler::CheapRuler ruler { mbgl::platform::glfw::NewYork::Latitude }; // New York
+//                static mapbox::geojson::geojson route { mapbox::geojson::parse(mbgl::platform::glfw::NewYork::Route) };
+                static mapbox::cheap_ruler::CheapRuler ruler { mbgl::platform::glfw::Beijing::Latitude }; // Beijing
+                static mapbox::geojson::geojson route { mapbox::geojson::parse(mbgl::platform::glfw::Beijing::Route) };
                 
                 const auto& geometry = route.get<mapbox::geometry::geometry<double>>();
                 const auto& lineString = geometry.get<mapbox::geometry::line_string<double>>();
 
                 static double routeDistance = ruler.lineDistance(lineString);
                 static double routeProgress = 0;
-                routeProgress += 0.0001;
+                
+//                routeProgress += mbgl::platform::glfw::NewYork::Speed;
+                routeProgress += mbgl::platform::glfw::Beijing::Speed;
+                
                 if (routeProgress > 1.0) {
                     routeProgress = 0.0;
                 }
