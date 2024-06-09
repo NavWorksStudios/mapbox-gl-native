@@ -874,7 +874,7 @@ void GLFWView::onMouseClick(int button, int action, int modifiers) {
             d.y = (to.coord.y - from.coord.y) / (to.time - from.time);
             view->map->moveBy(d, mbgl::AnimationOptions{{mbgl::Milliseconds(1000)}});
             
-            nav::log::w("onMouseClick", "e:%llf v:%llf to(%llf,%llf) - from(%llf,%llf) / (%llf-%llf) = (%llf,%llf)",
+            nav::log::w("onMouseClick", "e:%lf v:%lf to(%lf,%lf) - from(%lf,%lf) / (%lf-%lf) = (%lf,%lf)",
                         elapsed, velocity,
                         to.coord.x, to.coord.y, from.coord.x, from.coord.y, to.time, from.time, d.x, d.y);
         }
