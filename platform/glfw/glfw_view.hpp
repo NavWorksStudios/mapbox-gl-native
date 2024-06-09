@@ -143,30 +143,40 @@ private:
 
     struct Mouse {
         mbgl::ScreenCoordinate coord;
-        double time;
+        double time { 0 };
+        int sequenceNum { 0 };
         
         float velocity(const Mouse& from) const {
             return pow(pow(coord.x-from.coord.x, 2.) + pow(coord.y-from.coord.y, 2.), 0.5) / (time - from.time);
+        }
+        
+        bool prefer(double t, int s) {
+            return (t < time && s == sequenceNum);
         }
     };
 
     struct MouseHistory {
         std::deque<Mouse> history;
+        int sequenceNum { 0 };
+        
         void push_back(mbgl::ScreenCoordinate coord, double time) {
-            history.push_back({ coord, time });
-            if (history.size() > 50) history.pop_front();
+            history.push_back({ coord, time, sequenceNum });
+            if (history.size() > 100) history.pop_front();
         }
+        
+        size_t size() const { return history.size(); }
+        void newSequence() { sequenceNum++; }
         
         const Mouse& operator [] (int index) const {
             return history.at(fmin(fmax(0, history.size() - 1 + index), history.size()));
         }
-        
-        const Mouse& byTime(double time) {
-            auto it = history.end();
-            while (it-- != history.begin()) {
-                if (time > it->time) return *it;
+
+        const Mouse& prefer(double time) {
+            auto it = history.end() - 1;
+            while (it != history.begin() && (it - 1)->prefer(time, sequenceNum)) {
+                it--;
             }
-            return history.front();
+            return *it;
         }
     } _mouseHistory;
 

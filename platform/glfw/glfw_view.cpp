@@ -283,31 +283,30 @@ void GLFWView::onKey(GLFWwindow *window, int key, int /*scancode*/, int action, 
 }
 
 void GLFWView::onKey(int key, int action, int mods) {
-    auto *view = this;
     if (action == GLFW_RELEASE) {
-        if (key != GLFW_KEY_R || key != GLFW_KEY_S) view->animateRouteCallback = nullptr;
+        if (key != GLFW_KEY_R || key != GLFW_KEY_S) animateRouteCallback = nullptr;
 
         switch (key) {
             case GLFW_KEY_ESCAPE:
                 if (this->nullableWindow) glfwSetWindowShouldClose(nullableWindow, true);
                 break;
             case GLFW_KEY_TAB:
-                view->cycleDebugOptions();
+                cycleDebugOptions();
                 break;
             case GLFW_KEY_X:
                 if (!mods)
-                    view->map->jumpTo(
+                    map->jumpTo(
                         mbgl::CameraOptions().withCenter(mbgl::LatLng{}).withZoom(0.0).withBearing(0.0).withPitch(0.0));
                 break;
             case GLFW_KEY_O:
-                view->onlineStatusCallback();
+                onlineStatusCallback();
                 break;
             case GLFW_KEY_S:
-                if (view->changeStyleCallback) view->changeStyleCallback();
+                if (changeStyleCallback) changeStyleCallback();
                 break;
 #if not MBGL_USE_GLES2
         case GLFW_KEY_B: {
-            auto debug = view->map->getDebug();
+            auto debug = map->getDebug();
             if (debug & mbgl::MapDebugOptions::StencilClip) {
                 debug &= ~mbgl::MapDebugOptions::StencilClip;
                 debug |= mbgl::MapDebugOptions::DepthBuffer;
@@ -316,39 +315,39 @@ void GLFWView::onKey(int key, int action, int mods) {
             } else {
                 debug |= mbgl::MapDebugOptions::StencilClip;
             }
-            view->map->setDebug(debug);
+            map->setDebug(debug);
         } break;
 #endif // MBGL_USE_GLES2
         case GLFW_KEY_N:
             if (!mods)
-                view->map->easeTo(mbgl::CameraOptions().withBearing(0.0), mbgl::AnimationOptions {{mbgl::Milliseconds(500)}});
+                map->easeTo(mbgl::CameraOptions().withBearing(0.0), mbgl::AnimationOptions {{mbgl::Milliseconds(500)}});
             break;
         case GLFW_KEY_Z:
-            view->nextOrientation();
+            nextOrientation();
             break;
         case GLFW_KEY_Q: {
-            auto result = view->rendererFrontend->getRenderer()->queryPointAnnotations({ {}, { double(view->getSize().width), double(view->getSize().height) } });
+            auto result = rendererFrontend->getRenderer()->queryPointAnnotations({ {}, { double(getSize().width), double(getSize().height) } });
             printf("visible point annotations: %lu\n", result.size());
-            auto features = view->rendererFrontend->getRenderer()->queryRenderedFeatures(
-                mbgl::ScreenBox{{double(view->getSize().width * 0.5), double(view->getSize().height * 0.5)},
-                                {double(view->getSize().width * 0.5 + 1), double(view->getSize().height * 0.5 + 1)}},
+            auto features = rendererFrontend->getRenderer()->queryRenderedFeatures(
+                mbgl::ScreenBox{{double(getSize().width * 0.5), double(getSize().height * 0.5)},
+                                {double(getSize().width * 0.5 + 1), double(getSize().height * 0.5 + 1)}},
                 {});
             printf("Rendered features at the center of the screen: %lu\n", features.size());
         } break;
         case GLFW_KEY_P:
-            view->pauseResumeCallback();
+            pauseResumeCallback();
             break;
         case GLFW_KEY_C:
-            view->clearAnnotations();
+            clearAnnotations();
             break;
         case GLFW_KEY_I:
-            view->resetDatabaseCallback();
+            resetDatabaseCallback();
             break;
         case GLFW_KEY_K:
-            view->addRandomCustomPointAnnotations(1);
+            addRandomCustomPointAnnotations(1);
             break;
         case GLFW_KEY_L:
-            view->addRandomLineAnnotations(1);
+            addRandomLineAnnotations(1);
             break;
         case GLFW_KEY_A: {
             // XXX Fix precision loss in flyTo:
@@ -367,17 +366,17 @@ void GLFWView::onKey(int key, int action, int mods) {
             cameraOptions.pitch = 30;
 
             mbgl::AnimationOptions animationOptions(mbgl::Seconds(10));
-            view->map->flyTo(cameraOptions, animationOptions);
+            map->flyTo(cameraOptions, animationOptions);
             nextPlace = nextPlace % places.size();
         } break;
         case GLFW_KEY_R: {
-            view->show3DExtrusions = true;
-            view->toggle3DExtrusions(view->show3DExtrusions);
-            if (view->animateRouteCallback) break;
-            view->animateRouteCallback = [](mbgl::Map* routeMap) {
+            show3DExtrusions = true;
+            toggle3DExtrusions(show3DExtrusions);
+            if (animateRouteCallback) break;
+            animateRouteCallback = [](mbgl::Map* routeMap) {
 
-                static mapbox::cheap_ruler::CheapRuler ruler { mbgl::platform::glfw::Guomao::Latitude }; // Beijing
-                static mapbox::geojson::geojson route { mapbox::geojson::parse(mbgl::platform::glfw::Guomao::Route) };
+                static mapbox::cheap_ruler::CheapRuler ruler { mbgl::platform::glfw::Changanjie::Latitude };
+                static mapbox::geojson::geojson route { mapbox::geojson::parse(mbgl::platform::glfw::Changanjie::Route) };
                 
                 const auto& geometry = route.get<mapbox::geometry::geometry<double>>();
                 const auto& lineString = geometry.get<mapbox::geometry::line_string<double>>();
@@ -385,7 +384,7 @@ void GLFWView::onKey(int key, int action, int mods) {
                 static double routeDistance = ruler.lineDistance(lineString);
                 static double routeProgress = 0;
 
-                routeProgress += mbgl::platform::glfw::Guomao::Speed;
+                routeProgress += mbgl::platform::glfw::Changanjie::Speed;
                 
                 if (routeProgress > 1.0) {
                     routeProgress = 0.0;
@@ -404,10 +403,10 @@ void GLFWView::onKey(int key, int action, int mods) {
                 
                 routeMap->jumpTo(mbgl::CameraOptions().withCenter(center).withZoom(18.0).withBearing(bearing).withPitch(60.0));
             };
-            view->animateRouteCallback(view->map);
+            animateRouteCallback(map);
         } break;
         case GLFW_KEY_E:
-            view->toggle3DExtrusions(!view->show3DExtrusions);
+            toggle3DExtrusions(!show3DExtrusions);
             break;
         case GLFW_KEY_D: {
             static const std::vector<mbgl::LatLngBounds> bounds = {
@@ -421,10 +420,10 @@ void GLFWView::onKey(int key, int action, int mods) {
             mbgl::LatLngBounds bound = bounds[nextBound++];
             nextBound = nextBound % bounds.size();
 
-            view->map->setBounds(mbgl::BoundOptions().withLatLngBounds(bound));
+            map->setBounds(mbgl::BoundOptions().withLatLngBounds(bound));
 
             if (bound == mbgl::LatLngBounds()) {
-                view->map->removeAnnotation(boundAnnotationID);
+                map->removeAnnotation(boundAnnotationID);
                 boundAnnotationID = std::numeric_limits<mbgl::AnnotationID>::max();
             } else {
                 mbgl::Polygon<double> rect;
@@ -435,24 +434,24 @@ void GLFWView::onKey(int key, int action, int mods) {
                     mbgl::Point<double>{ bound.west(), bound.south() },
                 });
 
-                auto boundAnnotation = mbgl::FillAnnotation { rect, 0.5f, { view->makeRandomColor() }, { view->makeRandomColor() } };
+                auto boundAnnotation = mbgl::FillAnnotation { rect, 0.5f, { makeRandomColor() }, { makeRandomColor() } };
 
                 if (boundAnnotationID == std::numeric_limits<mbgl::AnnotationID>::max()) {
-                    boundAnnotationID = view->map->addAnnotation(boundAnnotation);
+                    boundAnnotationID = map->addAnnotation(boundAnnotation);
                 } else {
-                    view->map->updateAnnotation(boundAnnotationID, boundAnnotation);
+                    map->updateAnnotation(boundAnnotationID, boundAnnotation);
                 }
             }
         } break;
         case GLFW_KEY_T:
-            view->toggleCustomSource();
+            toggleCustomSource();
             break;
         case GLFW_KEY_F: {
             using namespace mbgl;
             using namespace mbgl::style;
             using namespace mbgl::style::expression::dsl;
 
-            auto &style = view->map->getStyle();
+            auto &style = map->getStyle();
             if (!style.getSource("states")) {
                 std::string url = "https://docs.mapbox.com/mapbox-gl-js/assets/us_states.geojson";
                 auto source = std::make_unique<GeoJSONSource>("states");
@@ -464,7 +463,7 @@ void GLFWView::onKey(int key, int action, int mods) {
                 cameraOptions.zoom = 3;
                 cameraOptions.pitch = 0;
                 cameraOptions.bearing = 0;
-                view->map->jumpTo(cameraOptions);
+                map->jumpTo(cameraOptions);
             }
 
             auto layer = style.getLayer("state-fills");
@@ -495,10 +494,10 @@ void GLFWView::onKey(int key, int action, int mods) {
         } break;
         case GLFW_KEY_F1: {
             bool success = TestWriter()
-                               .withInitialSize(mbgl::Size(view->width, view->height))
-                               .withStyle(view->map->getStyle())
-                               .withCameraOptions(view->map->getCameraOptions())
-                               .write(view->testDirectory);
+                               .withInitialSize(mbgl::Size(width, height))
+                               .withStyle(map->getStyle())
+                               .withCameraOptions(map->getCameraOptions())
+                               .write(testDirectory);
 
             if (success) {
                 mbgl::Log::Info(mbgl::Event::General, "Render test created!");
@@ -508,48 +507,48 @@ void GLFWView::onKey(int key, int action, int mods) {
             }
         } break;
         case GLFW_KEY_U: {
-            auto bounds = view->map->getBounds();
+            auto bounds = map->getBounds();
             if (bounds.minPitch == mbgl::util::PITCH_MIN * mbgl::util::RAD2DEG &&
                 bounds.maxPitch == mbgl::util::PITCH_MAX * mbgl::util::RAD2DEG) {
                 mbgl::Log::Info(mbgl::Event::General, "Limiting pitch bounds to [30, 40] degrees");
-                view->map->setBounds(mbgl::BoundOptions().withMinPitch(30).withMaxPitch(40));
+                map->setBounds(mbgl::BoundOptions().withMinPitch(30).withMaxPitch(40));
             } else {
                 mbgl::Log::Info(mbgl::Event::General, "Resetting pitch bounds to [0, 60] degrees");
-                view->map->setBounds(mbgl::BoundOptions().withMinPitch(0).withMaxPitch(60));
+                map->setBounds(mbgl::BoundOptions().withMinPitch(0).withMaxPitch(60));
             }
         } break;
         case GLFW_KEY_H: {
-            view->makeSnapshot();
+            makeSnapshot();
         } break;
         case GLFW_KEY_J: {
             // Snapshot with overlay
-            view->makeSnapshot(true);
+            makeSnapshot(true);
         } break;
         case GLFW_KEY_G: {
-            view->toggleLocationIndicatorLayer();
+            toggleLocationIndicatorLayer();
         } break;
         case GLFW_KEY_Y: {
-            view->freeCameraDemoPhase = 0;
-            view->freeCameraDemoStartTime = mbgl::Clock::now();
-            view->invalidate();
+            freeCameraDemoPhase = 0;
+            freeCameraDemoStartTime = mbgl::Clock::now();
+            invalidate();
         } break;
         }
     }
 
     if (action == GLFW_RELEASE || action == GLFW_REPEAT) {
         switch (key) {
-        case GLFW_KEY_W: view->popAnnotation(); break;
-        case GLFW_KEY_1: view->addRandomPointAnnotations(1); break;
-        case GLFW_KEY_2: view->addRandomPointAnnotations(10); break;
-        case GLFW_KEY_3: view->addRandomPointAnnotations(100); break;
-        case GLFW_KEY_4: view->addRandomPointAnnotations(1000); break;
-        case GLFW_KEY_5: view->addRandomPointAnnotations(10000); break;
-        case GLFW_KEY_6: view->addRandomPointAnnotations(100000); break;
-        case GLFW_KEY_7: view->addRandomShapeAnnotations(1); break;
-        case GLFW_KEY_8: view->addRandomShapeAnnotations(10); break;
-        case GLFW_KEY_9: view->addRandomShapeAnnotations(100); break;
-        case GLFW_KEY_0: view->addRandomShapeAnnotations(1000); break;
-        case GLFW_KEY_M: view->addAnimatedAnnotation(); break;
+        case GLFW_KEY_W: popAnnotation(); break;
+        case GLFW_KEY_1: addRandomPointAnnotations(1); break;
+        case GLFW_KEY_2: addRandomPointAnnotations(10); break;
+        case GLFW_KEY_3: addRandomPointAnnotations(100); break;
+        case GLFW_KEY_4: addRandomPointAnnotations(1000); break;
+        case GLFW_KEY_5: addRandomPointAnnotations(10000); break;
+        case GLFW_KEY_6: addRandomPointAnnotations(100000); break;
+        case GLFW_KEY_7: addRandomShapeAnnotations(1); break;
+        case GLFW_KEY_8: addRandomShapeAnnotations(10); break;
+        case GLFW_KEY_9: addRandomShapeAnnotations(100); break;
+        case GLFW_KEY_0: addRandomShapeAnnotations(1000); break;
+        case GLFW_KEY_M: addAnimatedAnnotation(); break;
         }
     }
 }
@@ -795,7 +794,6 @@ void GLFWView::onScroll(GLFWwindow *window, double /*xOffset*/, double yOffset) 
 }
 
 void GLFWView::onScroll(double yOffset) {
-    auto *view = this;
     double delta = yOffset * 40;
 
     bool isWheel = delta != 0 && std::fmod(delta, 4.000244140625) == 0;
@@ -813,11 +811,14 @@ void GLFWView::onScroll(double yOffset) {
         scale = 1.0 / scale;
     }
 
-    view->map->scaleBy(scale, view->_mouseHistory[0].coord);
+    if (_mouseHistory.size()) {
+        map->scaleBy(scale, _mouseHistory[0].coord);
+    }
+
 #if defined(MBGL_RENDER_BACKEND_OPENGL) && !defined(MBGL_LAYER_CUSTOM_DISABLE_ALL)
-    if (view->puck && view->puckFollowsCameraCenter) {
-        mbgl::LatLng mapCenter = view->map->getCameraOptions().center.value();
-        view->puck->setLocation(toArray(mapCenter));
+    if (puck && puckFollowsCameraCenter) {
+        mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
+        puck->setLocation(toArray(mapCenter));
     }
 #endif
 }
@@ -848,37 +849,39 @@ void GLFWView::onMouseClick(GLFWwindow *window, int button, int action, int modi
 }
 
 void GLFWView::onMouseClick(int button, int action, int modifiers) {
-    auto *view = this;
     double now = glfwGetTime();
 
     if (action == GLFW_PRESS) {
-        view->map->setGestureInProgress(true);
+        map->setGestureInProgress(true);
         if (button == GLFW_MOUSE_BUTTON_LEFT) {
             if (modifiers & GLFW_MOD_CONTROL) { // rotate & pitch
-                view->pitching = true;
-                view->rotating = false;
+                pitching = true;
+                rotating = false;
             } else { // move
-                view->tracking = true;
+                tracking = true;
             }
         }
+        
+        _mouseHistory.newSequence();
     } else if (action == GLFW_RELEASE) {
-        const double elapsed = now - view->_mouseHistory[0].time;
-        const Mouse from = view->_mouseHistory.byTime(now - 0.3);
-        const float velocity = view->_mouseHistory[0].velocity(from);
-        if (view->tracking && elapsed < 0.05 && velocity > 50) { // fling
-            const Mouse to = view->_mouseHistory[0];
+        const double stillTime = now - _mouseHistory[0].time;
+        const Mouse pos = _mouseHistory[0];
+        const Mouse from = _mouseHistory.prefer(now - 0.5);
+        const float velocity = _mouseHistory[0].velocity(from);
+        
+        if (tracking && stillTime < 0.05 && velocity > 50) { // fling
+            const float duration = pos.time - from.time;
+            const mbgl::ScreenCoordinate moved(pos.coord.x - from.coord.x, pos.coord.y - from.coord.y);
+            const mbgl::ScreenCoordinate fling(moved.x / duration * .6, moved.y / duration * .6);
+            map->moveBy(fling, mbgl::AnimationOptions{{mbgl::Milliseconds((long) velocity)}});
             
-            mbgl::ScreenCoordinate d;
-            d.x = (to.coord.x - from.coord.x) / (to.time - from.time);
-            d.y = (to.coord.y - from.coord.y) / (to.time - from.time);
-            view->map->moveBy(d, mbgl::AnimationOptions{{mbgl::Milliseconds(1000)}});
-            
-            nav::log::w("onMouseClick", "e:%lf v:%lf to(%lf,%lf) - from(%lf,%lf) / (%lf-%lf) = (%lf,%lf)",
-                        elapsed, velocity,
-                        to.coord.x, to.coord.y, from.coord.x, from.coord.y, to.time, from.time, d.x, d.y);
+            nav::log::w("onMouseClick", "duration:%lf velocity:%lf moved(%lf,%lf) fling(%lf,%lf)",
+                        duration, velocity, moved.x, moved.y, fling.x, fling.y);
+        } else {
+            nav::log::w("onMouseClick", "tracking:%d stillTime:%lf velocity:%lf", (int) tracking, stillTime, velocity);
         }
 
-        view->map->setGestureInProgress(view->rotating = view->pitching = view->tracking = false);
+        map->setGestureInProgress(rotating = pitching = tracking = false);
     }
 }
 
@@ -888,48 +891,46 @@ void GLFWView::onMouseMove(GLFWwindow *window, double x, double y) {
 }
 
 void GLFWView::onMouseMove(double x, double y) {
-    auto *view = this;
     double now = glfwGetTime();
     
-    if (view->tracking) {
-        const double dx = x - view->_mouseHistory[0].coord.x;
-        const double dy = y - view->_mouseHistory[0].coord.y;
+    if (tracking) {
+        const double dx = x - _mouseHistory[0].coord.x;
+        const double dy = y - _mouseHistory[0].coord.y;
         if (dx || dy) {
-            view->map->moveBy(mbgl::ScreenCoordinate { dx, dy });
+            map->moveBy(mbgl::ScreenCoordinate { dx, dy });
         }
     }
     
-    if (view->pitching) {
-        view->map->pitchBy((y - view->_mouseHistory[0].coord.y) / 2);
-        if (abs(x - view->_mouseHistory.byTime(now - 0.5).coord.x) > 50) {
-            view->pitching = false;
-            view->rotating = true;
+    if (pitching) {
+        map->pitchBy((y - _mouseHistory[0].coord.y) / 2);
+        if (abs(x - _mouseHistory.prefer(now - 0.5).coord.x) > 50) {
+            pitching = false;
+            rotating = true;
         }
-    } else if (view->rotating) {
-        if (now - view->_mouseHistory[0].time > .2) {
-            view->pitching = true;
-            view->rotating = false;
+    } else if (rotating) {
+        if (now - _mouseHistory[0].time > .2) {
+            pitching = true;
+            rotating = false;
         } else {
-            view->map->rotateBy(view->_mouseHistory[0].coord, { x, y });
+            map->rotateBy(_mouseHistory[0].coord, { x, y });
         }
     }
     
-    view->_mouseHistory.push_back({x,y}, now);
+    _mouseHistory.push_back({x,y}, now);
     
 
 #if defined(MBGL_RENDER_BACKEND_OPENGL) && !defined(MBGL_LAYER_CUSTOM_DISABLE_ALL)
-    if (view->puck && view->puckFollowsCameraCenter) {
-        mbgl::LatLng mapCenter = view->map->getCameraOptions().center.value();
-        view->puck->setLocation(toArray(mapCenter));
+    if (puck && puckFollowsCameraCenter) {
+        mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
+        puck->setLocation(toArray(mapCenter));
     }
 #endif
-    
-    
-    auto &style = view->map->getStyle();
+
+    auto &style = map->getStyle();
     if (style.getLayer("state-fills")) {
-        auto screenCoordinate = view->_mouseHistory[0].coord;
+        auto screenCoordinate = _mouseHistory[0].coord;
         const mbgl::RenderedQueryOptions queryOptions({{{"state-fills"}}, {}});
-        auto result = view->rendererFrontend->getRenderer()->queryRenderedFeatures(screenCoordinate, queryOptions);
+        auto result = rendererFrontend->getRenderer()->queryRenderedFeatures(screenCoordinate, queryOptions);
         using namespace mbgl;
         FeatureState newState;
 
@@ -938,26 +939,26 @@ void GLFWView::onMouseMove(double x, double y) {
             optional<std::string> idStr = featureIDtoString(id);
 
             if (idStr) {
-                if (view->featureID && (*view->featureID != *idStr)) {
+                if (featureID && (*featureID != *idStr)) {
                     newState["hover"] = false;
-                    view->rendererFrontend->getRenderer()->setFeatureState("states", {}, *view->featureID, newState);
-                    view->featureID = nullopt;
+                    rendererFrontend->getRenderer()->setFeatureState("states", {}, *featureID, newState);
+                    featureID = nullopt;
                 }
 
-                if (!view->featureID) {
+                if (!featureID) {
                     newState["hover"] = true;
-                    view->featureID = featureIDtoString(id);
-                    view->rendererFrontend->getRenderer()->setFeatureState("states", {}, *view->featureID, newState);
+                    featureID = featureIDtoString(id);
+                    rendererFrontend->getRenderer()->setFeatureState("states", {}, *featureID, newState);
                 }
             }
         } else {
-            if (view->featureID) {
+            if (featureID) {
                 newState["hover"] = false;
-                view->rendererFrontend->getRenderer()->setFeatureState("states", {}, *view->featureID, newState);
-                view->featureID = nullopt;
+                rendererFrontend->getRenderer()->setFeatureState("states", {}, *featureID, newState);
+                featureID = nullopt;
             }
         }
-        view->invalidate();
+        invalidate();
     }
 }
 
