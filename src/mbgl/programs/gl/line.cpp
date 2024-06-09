@@ -232,6 +232,7 @@ struct ShaderSource<LineProgram> {
 
     static const char* navFragment(const char* ) { return R"(
 
+        uniform float u_zoom;
         uniform lowp float u_device_pixel_ratio;
 
         varying vec2 v_width2;
@@ -270,9 +271,15 @@ struct ShaderSource<LineProgram> {
         lowp float opacity=u_opacity;
     #endif
     
-        float centerFactor = clamp((pow(v_pos.x,2.) + pow(v_pos.y,2.)) / 1000000., 0., 1.);
+        // 在近比例尺下，光圈变大
+        float zoomFactor = 1. + clamp(u_zoom - 16., 0., 10.);
+    
+        // 距离屏幕中心点越近，越亮
+        float radius = 1000000. * zoomFactor;
+        float centerFactor = clamp((pow(v_pos.x,2.) + pow(v_pos.y,2.)) / radius, 0., 1.);
+
         float a = color.a;
-        color *= .7 + (1. - centerFactor); // 距离屏幕中心点越近，越亮
+        color *= .7 + (1. - centerFactor);
         color.a = a;
     
         // draw line

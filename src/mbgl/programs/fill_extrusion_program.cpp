@@ -32,9 +32,10 @@ float lightIntensity(const EvaluatedLight& light) {
 }
 
 FillExtrusionProgram::LayoutUniformValues FillExtrusionProgram::layoutUniformValues(
-    mat4 matrix, const TransformState& state, const float opacity, const EvaluatedLight& light, const float verticalGradient) {
+    const mat4& matrix, const TransformState& state, float opacity, const EvaluatedLight& light, float verticalGradient) {
     return {
         uniforms::matrix::Value( matrix ),
+        uniforms::zoom::Value( state.getZoom() ),
         uniforms::opacity::Value( opacity ),
         uniforms::lightcolor::Value( lightColor(light) ),
         uniforms::lightpos::Value( lightPosition(light, state) ),

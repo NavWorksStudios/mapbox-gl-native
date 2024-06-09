@@ -34,6 +34,7 @@ using FillExtrusionLayoutAttributes = TypeList<
 
 using FillExtrusionUniforms = TypeList<
     uniforms::matrix,
+    uniforms::zoom,
     uniforms::opacity,
     uniforms::lightcolor,
     uniforms::lightpos,
@@ -87,7 +88,7 @@ public:
     }
 
     static LayoutUniformValues layoutUniformValues(
-        mat4, const TransformState&, float opacity, const EvaluatedLight&, float verticalGradient);
+        const mat4&, const TransformState&, float opacity, const EvaluatedLight&, float verticalGradient);
 };
 
 class FillExtrusionPatternProgram : public Program<
