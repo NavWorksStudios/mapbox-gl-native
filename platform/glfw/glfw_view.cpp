@@ -375,10 +375,10 @@ void GLFWView::onKey(int key, int action, int mods) {
             show3DExtrusions = true;
             toggle3DExtrusions(show3DExtrusions);
             if (animateRouteCallback) break;
-            animateRouteCallback = [](mbgl::Map* routeMap) {
+            animateRouteCallback = [this](mbgl::Map* routeMap) {
 
-                static mapbox::cheap_ruler::CheapRuler ruler { mbgl::platform::glfw::Changanjie::Latitude };
-                static mapbox::geojson::geojson route { mapbox::geojson::parse(mbgl::platform::glfw::Changanjie::Route) };
+                static mapbox::cheap_ruler::CheapRuler ruler { mbgl::platform::glfw::Guomao::Latitude };
+                static mapbox::geojson::geojson route { mapbox::geojson::parse(mbgl::platform::glfw::Guomao::Route) };
                 
                 const auto& geometry = route.get<mapbox::geometry::geometry<double>>();
                 const auto& lineString = geometry.get<mapbox::geometry::line_string<double>>();
@@ -386,7 +386,7 @@ void GLFWView::onKey(int key, int action, int mods) {
                 static double routeDistance = ruler.lineDistance(lineString);
                 static double routeProgress = 0;
 
-                routeProgress += mbgl::platform::glfw::Changanjie::Speed;
+                routeProgress += mbgl::platform::glfw::Guomao::Speed;
                 
                 if (routeProgress > 1.0) {
                     routeProgress = 0.0;
@@ -401,10 +401,14 @@ void GLFWView::onKey(int key, int action, int mods) {
                 double easing = bearing - *camera.bearing;
                 easing += easing > 180.0 ? -360.0 : easing < -180 ? 360.0 : 0;
                 
-                bearing = *camera.bearing + (easing / 80);
+                bearing = *camera.bearing + (easing / 20);
                 
-                routeMap->jumpTo(mbgl::CameraOptions().withCenter(center).withZoom(18.0).withBearing(bearing).withPitch(60.0));
+                routeMap->jumpTo(mbgl::CameraOptions().withCenter(center).withZoom(17.0).withBearing(bearing).withPitch(70.0));
+
+                mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
+                puck->setLocation(toArray(mapCenter));
             };
+            toggleLocationIndicatorLayer();
             animateRouteCallback(map);
         } break;
         case GLFW_KEY_E:

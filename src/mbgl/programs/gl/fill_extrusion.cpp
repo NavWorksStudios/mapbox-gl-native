@@ -135,7 +135,7 @@ struct ShaderSource<FillExtrusionProgram> {
     
         // position
         //base=max(0.0,base);
-        height=max(base+15.,height);
+        height=max(max(base,height), 5.);
         bool h=mod(normal.x,2.0)>0.0;
         gl_Position=u_matrix*vec4(a_pos,h?height:base,1.);
 

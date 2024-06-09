@@ -138,7 +138,7 @@ constexpr const char* Route = R"route(
 namespace Guomao {
 
 constexpr const double Latitude = 39.9;
-constexpr const double Speed = 0.0001;
+constexpr const double Speed = 0.0003;
 
 constexpr const char* Route = R"route(
 {
