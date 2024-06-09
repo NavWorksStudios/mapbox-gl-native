@@ -375,20 +375,17 @@ void GLFWView::onKey(int key, int action, int mods) {
             view->toggle3DExtrusions(view->show3DExtrusions);
             if (view->animateRouteCallback) break;
             view->animateRouteCallback = [](mbgl::Map* routeMap) {
-                
-//                static mapbox::cheap_ruler::CheapRuler ruler { mbgl::platform::glfw::NewYork::Latitude }; // New York
-//                static mapbox::geojson::geojson route { mapbox::geojson::parse(mbgl::platform::glfw::NewYork::Route) };
-                static mapbox::cheap_ruler::CheapRuler ruler { mbgl::platform::glfw::Beijing::Latitude }; // Beijing
-                static mapbox::geojson::geojson route { mapbox::geojson::parse(mbgl::platform::glfw::Beijing::Route) };
+
+                static mapbox::cheap_ruler::CheapRuler ruler { mbgl::platform::glfw::Guomao::Latitude }; // Beijing
+                static mapbox::geojson::geojson route { mapbox::geojson::parse(mbgl::platform::glfw::Guomao::Route) };
                 
                 const auto& geometry = route.get<mapbox::geometry::geometry<double>>();
                 const auto& lineString = geometry.get<mapbox::geometry::line_string<double>>();
 
                 static double routeDistance = ruler.lineDistance(lineString);
                 static double routeProgress = 0;
-                
-//                routeProgress += mbgl::platform::glfw::NewYork::Speed;
-                routeProgress += mbgl::platform::glfw::Beijing::Speed;
+
+                routeProgress += mbgl::platform::glfw::Guomao::Speed;
                 
                 if (routeProgress > 1.0) {
                     routeProgress = 0.0;
@@ -904,7 +901,7 @@ void GLFWView::onMouseMove(double x, double y) {
     
     if (view->pitching) {
         view->map->pitchBy((y - view->_mouseHistory[0].coord.y) / 2);
-        if (abs(x - view->_mouseHistory.byTime(now - 0.5).coord.x) > 30) {
+        if (abs(x - view->_mouseHistory.byTime(now - 0.5).coord.x) > 50) {
             view->pitching = false;
             view->rotating = true;
         }
