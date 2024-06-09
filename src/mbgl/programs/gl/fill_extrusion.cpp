@@ -88,7 +88,7 @@ struct ShaderSource<FillExtrusionProgram> {
     
         varying vec3 v_pos;
         varying vec4 v_color;
-        varying vec2 v_height;
+        varying vec2 v_heightInterpolator;
                 
         #ifndef HAS_UNIFORM_u_base
             uniform lowp float u_base_t;
@@ -161,7 +161,7 @@ struct ShaderSource<FillExtrusionProgram> {
     
     
         v_pos=gl_Position.xyz;
-        v_height=vec2(height-base,h?1.:0.);
+        v_heightInterpolator=vec2(height-base,h?1.:0.);
 
         }
         
@@ -193,21 +193,23 @@ struct ShaderSource<FillExtrusionProgram> {
 
         varying vec3 v_pos;
         varying vec4 v_color;
-        varying vec2 v_height;
+        varying vec2 v_heightInterpolator;
 
         void main() {
     
             // 建筑物上下边缘，渐变描边
-            float hRatio = 8. / v_height.x;
-            float edgeFactor = v_height.y < hRatio ? hRatio - v_height.y : v_height.y - (1. - hRatio);
-            edgeFactor = pow(max(edgeFactor, 0.) / hRatio, 3.) * 0.2;
+            float hProportion = 8. / v_heightInterpolator.x;
+            float edgeFactor = v_heightInterpolator.y < hProportion ? 
+                               hProportion - v_heightInterpolator.y :
+                               v_heightInterpolator.y - (1. - hProportion);
+            edgeFactor = pow(max(edgeFactor, 0.) / hProportion, 3.) * 0.2;
     
             // 距离屏幕中心点越近，越透明
             float centerFactor = clamp((pow(v_pos.x,2.) + pow(v_pos.y,2.)) / 1000000., 0., 1.);
             centerFactor = .05 + .95 * centerFactor;
     
             // 在近比例尺下才显示透明效果
-            float zoomFactor = clamp(16.5 - u_zoom, .0, .95) / 1.;
+            float zoomFactor = clamp((17. - u_zoom) / .5, 0., .95);
 
             gl_FragColor = v_color * mix(centerFactor + edgeFactor, 1., zoomFactor);
 
