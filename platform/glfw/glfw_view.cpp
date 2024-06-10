@@ -259,6 +259,7 @@ GLFWView::GLFWView(bool fullscreen_, bool benchmark_, const mbgl::ResourceOption
 GLFWView::~GLFWView() {
     if (nullableWindow) glfwDestroyWindow(nullableWindow);
     glfwTerminate();
+    nav::mb::releaseAllImage();
 }
 
 void GLFWView::setMap(mbgl::Map *map_) {

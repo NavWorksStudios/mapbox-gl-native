@@ -72,6 +72,10 @@ void loadAllImage(const std::string& path) {
     imageMap["matcap.4.png"].image = mbgl::decodeImage(mbgl::util::read_file(path + "matcap.4.png"));
 }
 
+void releaseAllImage() {
+    imageMap.clear();
+}
+
 void uploadTexture(mbgl::gfx::UploadPass& uploadPass) {
     for (auto& i : imageMap) {
         if (!i.second.texture) {

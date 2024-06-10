@@ -20,6 +20,8 @@ mbgl::Color land_color();
 void displaceStyle(const std::string& id, std::unique_ptr<::mbgl::style::Layer>& layer);
 
 void loadAllImage(const std::string& path);
+void releaseAllImage();
+
 void uploadTexture(mbgl::gfx::UploadPass& uploadPass);
 mbgl::gfx::TextureResource& getTexture(const std::string& name);
 
