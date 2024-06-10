@@ -143,7 +143,7 @@ void FillBucket::upload(gfx::UploadPass& uploadPass) {
     uploaded = true;
 }
 
-void FillBucket::nav_upload(const CanonicalTileID& canonical, const std::string& layerId, const std::string& sourceLayer) {
+void FillBucket::nav_upload_external(const CanonicalTileID& canonical, const std::string& layerId, const std::string& sourceLayer) {
     if (hasData()) {
         const nav::layer::FillBucket param = {
             {&canonical, nav::mb::layerRenderIndex(layerId), layerId.c_str(), sourceLayer.c_str()},

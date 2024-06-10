@@ -534,7 +534,7 @@ void LineBucket::upload(gfx::UploadPass& uploadPass) {
     uploaded = true;
 }
 
-void LineBucket::nav_upload(const CanonicalTileID& canonical, const std::string& layerId, const std::string& sourceLayer) {
+void LineBucket::nav_upload_external(const CanonicalTileID& canonical, const std::string& layerId, const std::string& sourceLayer) {
     if (hasData()) {
         const nav::layer::LineBucket param = {
             {&canonical, nav::mb::layerRenderIndex(layerId), layerId.c_str(), sourceLayer.c_str() },

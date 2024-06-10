@@ -173,7 +173,7 @@ void SymbolBucket::upload(gfx::UploadPass& uploadPass) {
     sortUploaded = true;
 }
 
-void SymbolBucket::nav_upload(const CanonicalTileID& canonical, const std::string& layerID, const std::string& sourceLayer) {
+void SymbolBucket::nav_upload_external(const CanonicalTileID& canonical, const std::string& layerID, const std::string& sourceLayer) {
     
 }
 

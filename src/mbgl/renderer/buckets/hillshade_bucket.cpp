@@ -44,7 +44,7 @@ void HillshadeBucket::upload(gfx::UploadPass& uploadPass) {
     uploaded = true;
 }
 
-void HillshadeBucket::nav_upload(const CanonicalTileID& canonical, const std::string& layerID, const std::string& sourceLayer) {
+void HillshadeBucket::nav_upload_external(const CanonicalTileID& canonical, const std::string& layerID, const std::string& sourceLayer) {
     
 }
 

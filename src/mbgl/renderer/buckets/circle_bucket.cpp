@@ -36,7 +36,7 @@ void CircleBucket::upload(gfx::UploadPass& uploadPass) {
     uploaded = true;
 }
 
-void CircleBucket::nav_upload(const CanonicalTileID& canonical, const std::string& layerID, const std::string& sourceLayer) {
+void CircleBucket::nav_upload_external(const CanonicalTileID& canonical, const std::string& layerID, const std::string& sourceLayer) {
     
 }
 

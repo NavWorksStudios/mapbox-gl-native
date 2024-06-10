@@ -251,7 +251,7 @@ public:
 //        nav::log::bucketMap()[tile]++;
         bucket->key = tile;
         
-        bucket->nav_upload(canonical, bucketLeaderID, sourceLayerID);
+        bucket->nav_upload_external(canonical, bucketLeaderID, sourceLayerID);
         
         if (bucket->hasData()) {
             for (const auto& pair : layerPropertiesMap) {
