@@ -227,12 +227,14 @@ void main() {
 #endif
 
     vec4 color4 = color;
+
     if (u_enable_matcap) {
         vec3 fragCoord = gl_FragCoord.xyz;
         vec3 normal = normalize((u_normal_matrix * vec4(0., 0., 1., 0.0)).xyz);
         vec3 camera_normal = normalize(v_camera_pos - fragCoord);
         vec2 uv = matcap(camera_normal, normal).xy;
-        color4 = vec4(texture2D(u_matcap, uv).rgb, color4.a);
+        vec3 color3 = mix(color4.xyz, texture2D(u_matcap, uv).rgb, 0.2);
+        color4 = vec4(color3, color4.a);
     }
         
     float centerFactor = clamp(pow(pow(v_pos.x,2.) + pow(v_pos.y,2.) + .001, 0.3) / 300., 0., 1.);

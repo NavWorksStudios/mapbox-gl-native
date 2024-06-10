@@ -39,6 +39,7 @@ static const std::map<std::string, Source> layerIds = {
     { "land-structure-polygon", { "fill", "composite", "structure", } },
     { "land-structure-line", { "line", "composite", "structure", } },
     { "aeroway-polygon", { "fill", "composite", "aeroway", } },
+    
     { "aeroway-line", { "line", "composite", "aeroway", } },
     { "tunnel-path-trail", { "line", "composite", "road", } },
     { "tunnel-path-cycleway-piste", { "line", "composite", "road", } },
@@ -63,12 +64,15 @@ static const std::map<std::string, Source> layerIds = {
     { "bridge-simple", { "line", "composite", "road", } },
     { "bridge-rail", { "line", "composite", "road", } },
     { "bridge-rail-tracks", { "line", "composite", "road", } },
+    
     { "building-extrusion", { "fill-extrusion", "composite", "building", } },
+    
     { "admin-1-boundary-bg", { "line", "composite", "admin", } },
     { "admin-0-boundary-bg", { "line", "composite", "admin", } },
     { "admin-1-boundary", { "line", "composite", "admin", } },
     { "admin-0-boundary", { "line", "composite", "admin", } },
     { "admin-0-boundary-disputed", { "line", "composite", "admin", } },
+    
     { "road-label-simple", { "symbol", "composite", "road", } },
     { "waterway-label", { "symbol", "composite", "natural_label", } },
     { "natural-line-label", { "symbol", "composite", "natural_label", } },
