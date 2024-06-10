@@ -910,7 +910,7 @@ void GLFWView::onMouseMove(double x, double y) {
     
     if (pitching) {
         map->pitchBy((y - _mouseHistory[0].coord.y) / 2);
-        if (abs(x - _mouseHistory.prefer(now - 0.5).coord.x) > 50) {
+        if (abs(x - _mouseHistory.prefer(now - 0.3).coord.x) > 25) {
             pitching = false;
             rotating = true;
         }
