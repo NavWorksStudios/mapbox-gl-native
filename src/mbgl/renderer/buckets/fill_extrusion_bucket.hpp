@@ -42,10 +42,12 @@ public:
 
     gfx::VertexVector<FillExtrusionLayoutVertex> vertices;
     gfx::IndexVector<gfx::Triangles> triangles;
+    gfx::IndexVector<gfx::Triangles> reflectionTriangles;
     SegmentVector<FillExtrusionAttributes> triangleSegments;
 
     optional<gfx::VertexBuffer<FillExtrusionLayoutVertex>> vertexBuffer;
     optional<gfx::IndexBuffer> indexBuffer;
+    optional<gfx::IndexBuffer> reflectionIndexBuffer;
     
     std::unordered_map<std::string, FillExtrusionProgram::Binders> paintPropertyBinders;
 };

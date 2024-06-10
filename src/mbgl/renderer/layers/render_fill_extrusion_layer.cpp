@@ -86,6 +86,7 @@ void RenderFillExtrusionLayer::render(PaintParameters& parameters) {
                     const gfx::ColorMode& colorMode,
                     const auto& tileBucket,
                     const auto& uniformValues,
+                    const auto& reflectionUniformValues,
                     const optional<ImagePosition>& patternPositionA,
                     const optional<ImagePosition>& patternPositionB,
                     const auto& textureBindings,
@@ -93,34 +94,62 @@ void RenderFillExtrusionLayer::render(PaintParameters& parameters) {
         const auto& paintPropertyBinders = tileBucket.paintPropertyBinders.at(getID());
         paintPropertyBinders.setPatternParameters(patternPositionA, patternPositionB, crossfade_);
 
-        const auto allUniformValues = programInstance.computeAllUniformValues(
-            uniformValues,
-            paintPropertyBinders,
-            evaluated_,
-            parameters.state.getZoom()
-        );
         const auto allAttributeBindings = programInstance.computeAllAttributeBindings(
             *tileBucket.vertexBuffer,
             paintPropertyBinders,
             evaluated_
         );
-
+        
         checkRenderability(parameters, programInstance.activeBindingCount(allAttributeBindings));
+        
+        { // draw reflection
+            auto allUniformValues = programInstance.computeAllUniformValues(
+                reflectionUniformValues,
+                paintPropertyBinders,
+                evaluated_,
+                parameters.state.getZoom()
+            );
+            
+            programInstance.draw(
+                parameters.context,
+                *parameters.renderPass,
+                gfx::Triangles(),
+                depthMode,
+                stencilMode,
+                colorMode,
+                gfx::CullFaceMode::backCCW(),
+                *tileBucket.reflectionIndexBuffer,
+                tileBucket.triangleSegments,
+                allUniformValues,
+                allAttributeBindings,
+                textureBindings,
+                getID() + "/" + uniqueName);
+        }
+        
+        { // draw self
+            auto allUniformValues = programInstance.computeAllUniformValues(
+                uniformValues,
+                paintPropertyBinders,
+                evaluated_,
+                parameters.state.getZoom()
+            );
+            
+            programInstance.draw(
+                parameters.context,
+                *parameters.renderPass,
+                gfx::Triangles(),
+                depthMode,
+                stencilMode,
+                colorMode,
+                gfx::CullFaceMode::backCCW(),
+                *tileBucket.indexBuffer,
+                tileBucket.triangleSegments,
+                allUniformValues,
+                allAttributeBindings,
+                textureBindings,
+                getID() + "/" + uniqueName);
+        }
 
-        programInstance.draw(
-            parameters.context,
-            *parameters.renderPass,
-            gfx::Triangles(),
-            depthMode,
-            stencilMode,
-            colorMode,
-            gfx::CullFaceMode::backCCW(),
-            *tileBucket.indexBuffer,
-            tileBucket.triangleSegments,
-            allUniformValues,
-            allAttributeBindings,
-            textureBindings,
-            getID() + "/" + uniqueName);
     };
 
     if (unevaluated.get<FillExtrusionPattern>().isUndefined()) {
@@ -139,15 +168,26 @@ void RenderFillExtrusionLayer::render(PaintParameters& parameters) {
                     stencilMode_,
                     colorMode_,
                     bucket,
-                    FillExtrusionProgram::layoutUniformValues(
-                        tile.translatedClipMatrix(evaluated.get<FillExtrusionTranslate>(),
-                                                  evaluated.get<FillExtrusionTranslateAnchor>(),
-                                                  parameters.state),
-                        parameters.state,
-                        evaluated.get<FillExtrusionOpacity>(),
-                        parameters.evaluatedLight,
-                        evaluated.get<FillExtrusionVerticalGradient>()
-                    ),
+                     FillExtrusionProgram::layoutUniformValues(
+                         tile.translatedClipMatrix(evaluated.get<FillExtrusionTranslate>(),
+                                                   evaluated.get<FillExtrusionTranslateAnchor>(),
+                                                   parameters.state),
+                         parameters.state,
+                         evaluated.get<FillExtrusionOpacity>(),
+                         parameters.evaluatedLight,
+                         evaluated.get<FillExtrusionVerticalGradient>(),
+                         false
+                     ),
+                     FillExtrusionProgram::layoutUniformValues(
+                         tile.translatedClipMatrix(evaluated.get<FillExtrusionTranslate>(),
+                                                   evaluated.get<FillExtrusionTranslateAnchor>(),
+                                                   parameters.state),
+                         parameters.state,
+                         evaluated.get<FillExtrusionOpacity>(),
+                         parameters.evaluatedLight,
+                         evaluated.get<FillExtrusionVerticalGradient>(),
+                         true
+                     ),
                     {},
                     {},
                     FillExtrusionProgram::TextureBindings{},
@@ -190,20 +230,36 @@ void RenderFillExtrusionLayer::render(PaintParameters& parameters) {
                     stencilMode_,
                     colorMode_,
                     bucket,
-                    FillExtrusionPatternProgram::layoutUniformValues(
-                        tile.translatedClipMatrix(evaluated.get<FillExtrusionTranslate>(),
-                                                  evaluated.get<FillExtrusionTranslateAnchor>(),
-                                                  parameters.state),
-                        tile.getIconAtlasTexture().size,
-                        crossfade,
-                        tile.id,
-                        parameters.state,
-                        evaluated.get<FillExtrusionOpacity>(),
-                        -std::pow(2, tile.id.canonical.z) / util::tileSize / 8.0f,
-                        parameters.pixelRatio,
-                        parameters.evaluatedLight,
-                        evaluated.get<FillExtrusionVerticalGradient>()
-                    ),
+                     FillExtrusionPatternProgram::layoutUniformValues(
+                         tile.translatedClipMatrix(evaluated.get<FillExtrusionTranslate>(),
+                                                   evaluated.get<FillExtrusionTranslateAnchor>(),
+                                                   parameters.state),
+                         tile.getIconAtlasTexture().size,
+                         crossfade,
+                         tile.id,
+                         parameters.state,
+                         evaluated.get<FillExtrusionOpacity>(),
+                         -std::pow(2, tile.id.canonical.z) / util::tileSize / 8.0f,
+                         parameters.pixelRatio,
+                         parameters.evaluatedLight,
+                         evaluated.get<FillExtrusionVerticalGradient>(),
+                         true
+                     ),
+                     FillExtrusionPatternProgram::layoutUniformValues(
+                         tile.translatedClipMatrix(evaluated.get<FillExtrusionTranslate>(),
+                                                   evaluated.get<FillExtrusionTranslateAnchor>(),
+                                                   parameters.state),
+                         tile.getIconAtlasTexture().size,
+                         crossfade,
+                         tile.id,
+                         parameters.state,
+                         evaluated.get<FillExtrusionOpacity>(),
+                         -std::pow(2, tile.id.canonical.z) / util::tileSize / 8.0f,
+                         parameters.pixelRatio,
+                         parameters.evaluatedLight,
+                         evaluated.get<FillExtrusionVerticalGradient>(),
+                         false
+                     ),
                     patternPosA,
                     patternPosB,
                     FillExtrusionPatternProgram::TextureBindings{

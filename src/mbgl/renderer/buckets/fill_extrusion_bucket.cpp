@@ -88,6 +88,7 @@ void FillExtrusionBucket::addFeature(const GeometryTileFeature& feature,
 
         assert(triangleIndex + (5 * (totalVertices - 1) + 1) <= std::numeric_limits<uint16_t>::max());
 
+        // for all side surface
         for (const auto& ring : polygon) {
             std::size_t nVertices = ring.size();
 
@@ -134,6 +135,9 @@ void FillExtrusionBucket::addFeature(const GeometryTileFeature& feature,
                     triangles.emplace_back(triangleIndex, triangleIndex + 2, triangleIndex + 1);
                     triangles.emplace_back(triangleIndex + 1, triangleIndex + 2, triangleIndex + 3);
                     
+                    reflectionTriangles.emplace_back(triangleIndex, triangleIndex + 1, triangleIndex + 2);
+                    reflectionTriangles.emplace_back(triangleIndex + 1, triangleIndex + 3, triangleIndex + 2);
+                    
                     triangleIndex += 4;
                     triangleSegment.vertexLength += 4;
                     triangleSegment.indexLength += 6;
@@ -141,16 +145,20 @@ void FillExtrusionBucket::addFeature(const GeometryTileFeature& feature,
             }
         }
 
-        // earcut for the top/bottom surface
+        // earcut for the top surface
         std::vector<uint32_t> indices = mapbox::earcut(polygon);
 
         std::size_t nIndices = indices.size();
         assert(nIndices % 3 == 0);
 
+        // for all top surface
         for (std::size_t i = 0; i < nIndices; i += 3) {
             // Counter-Clockwise winding order.
             triangles.emplace_back(flatIndices[indices[i]], flatIndices[indices[i + 2]],
                                    flatIndices[indices[i + 1]]);
+            
+            reflectionTriangles.emplace_back(flatIndices[indices[i]], flatIndices[indices[i + 2]],
+                                             flatIndices[indices[i + 1]]);
         }
 
         triangleSegment.vertexLength += totalVertices;
@@ -172,6 +180,7 @@ void FillExtrusionBucket::upload(gfx::UploadPass& uploadPass) {
     if (!uploaded) {
         vertexBuffer = uploadPass.createVertexBuffer(std::move(vertices));
         indexBuffer = uploadPass.createIndexBuffer(std::move(triangles));
+        reflectionIndexBuffer = uploadPass.createIndexBuffer(std::move(reflectionTriangles));
     }
 
     for (auto& pair : paintPropertyBinders) {

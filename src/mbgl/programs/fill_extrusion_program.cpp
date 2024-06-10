@@ -32,7 +32,7 @@ float lightIntensity(const EvaluatedLight& light) {
 }
 
 FillExtrusionProgram::LayoutUniformValues FillExtrusionProgram::layoutUniformValues(
-    const mat4& matrix, const TransformState& state, float opacity, const EvaluatedLight& light, float verticalGradient) {
+    const mat4& matrix, const TransformState& state, float opacity, const EvaluatedLight& light, float verticalGradient, bool renderingReflection) {
     return {
         uniforms::matrix::Value( matrix ),
         uniforms::zoom::Value( state.getZoom() ),
@@ -40,7 +40,8 @@ FillExtrusionProgram::LayoutUniformValues FillExtrusionProgram::layoutUniformVal
         uniforms::lightcolor::Value( lightColor(light) ),
         uniforms::lightpos::Value( lightPosition(light, state) ),
         uniforms::lightintensity::Value( lightIntensity(light) ),
-        uniforms::vertical_gradient::Value( verticalGradient )
+        uniforms::vertical_gradient::Value( verticalGradient ),
+        uniforms::rendering_reflection::Value( renderingReflection ),
     };
 }
 
@@ -54,7 +55,8 @@ FillExtrusionPatternProgram::layoutUniformValues(mat4 matrix,
                                            const float heightFactor,
                                            const float pixelRatio,
                                            const EvaluatedLight& light,
-                                           const float verticalGradient) {
+                                           const float verticalGradient,
+                                           const bool renderingReflection) {
     const auto tileRatio = 1 / tileID.pixelsToTileUnits(1, state.getIntegerZoom());
     int32_t tileSizeAtNearestZoom = util::tileSize * state.zoomScale(state.getIntegerZoom() - tileID.canonical.z);
     int32_t pixelX = tileSizeAtNearestZoom * (tileID.canonical.x + tileID.wrap * state.zoomScale(tileID.canonical.z));
@@ -72,7 +74,8 @@ FillExtrusionPatternProgram::layoutUniformValues(mat4 matrix,
         uniforms::lightcolor::Value( lightColor(light) ),
         uniforms::lightpos::Value( lightPosition(light, state) ),
         uniforms::lightintensity::Value( lightIntensity(light) ),
-        uniforms::vertical_gradient::Value( verticalGradient )
+        uniforms::vertical_gradient::Value( verticalGradient ),
+        uniforms::rendering_reflection::Value( renderingReflection )
     };
 }
 

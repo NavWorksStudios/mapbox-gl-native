@@ -82,6 +82,7 @@ struct ShaderSource<FillExtrusionProgram> {
         uniform lowp float u_lightintensity;
         uniform float u_vertical_gradient;
         uniform lowp float u_opacity;
+        uniform bool u_rendering_reflection;
     
         attribute vec2 a_pos;
         attribute vec4 a_normal_ed;
@@ -129,16 +130,25 @@ struct ShaderSource<FillExtrusionProgram> {
         #else
             highp vec4 color=u_color;
         #endif
+
     
         // normal
         vec3 normal=a_normal_ed.xyz;
     
-        // position
+        // height
         //base=max(0.0,base);
         height=max(max(base,height), 5.);
         bool h=mod(normal.x,2.0)>0.0;
-        gl_Position=u_matrix*vec4(a_pos,h?height:base,1.);
 
+        // reflection
+        if (u_rendering_reflection) {
+            base=-base;
+            height=-height;
+        }
+    
+        // position
+        gl_Position=u_matrix*vec4(a_pos, h?height:base, 1.);
+    
         // directional light
         float colorvalue = color.r*0.2126 + color.g*0.7152 + color.b*0.0722;
         float directional = clamp(dot(normal/16384.0, u_lightpos), 0.0, 1.0);
@@ -158,10 +168,10 @@ struct ShaderSource<FillExtrusionProgram> {
         v_color.g=clamp(color.g*directional*u_lightcolor.g, 0.3*(1.0-u_lightcolor.g), 1.0);
         v_color.b=clamp(color.b*directional*u_lightcolor.b, 0.3*(1.0-u_lightcolor.b), 1.0);
         v_color*=u_opacity;
-    
+        if (u_rendering_reflection) v_color*=.3;
     
         v_pos=gl_Position.xyz;
-        v_heightInterpolator=vec2(height-base,h?1.:0.);
+        v_heightInterpolator=vec2(abs(height-base), h?1.:0.);
 
         }
         
@@ -190,6 +200,7 @@ struct ShaderSource<FillExtrusionProgram> {
     static const char* navFragment(const char* ) { return R"(
 
         uniform float u_zoom;
+        uniform bool u_rendering_reflection;
 
         varying vec3 v_pos;
         varying vec4 v_color;
@@ -198,10 +209,11 @@ struct ShaderSource<FillExtrusionProgram> {
         void main() {
     
             // 建筑物上下边缘，渐变描边
-            float hProportion = 8. / v_heightInterpolator.x;
-            float edgeFactor = v_heightInterpolator.y < hProportion ? 
-                               hProportion - v_heightInterpolator.y :
-                               v_heightInterpolator.y - (1. - hProportion);
+            float hProportion = 8. / v_heightInterpolator[0]; // 上下边缘最大高度比例
+            float edgeFactor = v_heightInterpolator[1] < hProportion ?
+                               hProportion - v_heightInterpolator[1] : // 下边缘
+                               v_heightInterpolator[1] - (1. - hProportion); // 上边缘
+    
             edgeFactor = pow(max(edgeFactor, 0.) / hProportion, 3.) * 0.2;
     
             // 距离屏幕中心点越近，越透明
