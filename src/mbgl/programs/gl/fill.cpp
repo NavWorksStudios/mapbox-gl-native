@@ -76,13 +76,16 @@ vec2 get_pattern_pos(const vec2 pixel_coord_upper,const vec2 pixel_coord_lower,c
 R"(
 
 attribute vec2 a_pos;
+attribute vec3 a_normal;
 uniform mat4 u_matrix;
 uniform vec3 u_camera_pos;
 uniform highp float u_base;
-        
-//varying vec2 v_normal;
-varying vec3 v_pos;
+uniform mat4 u_normal_matrix;
+
+//varying vec3 v_normal;
 varying vec3 v_camera_pos;
+varying vec3 v_pos;
+//varying vec2 v_uv;
 
 #ifndef HAS_UNIFORM_u_color
     uniform lowp float u_color_t;
@@ -120,7 +123,7 @@ varying vec3 v_camera_pos;
 #else
     uniform mediump float u_width;
 #endif
-
+        
 void main() {
 #ifndef HAS_UNIFORM_u_color
     color=unpack_mix_color(a_color,u_color_t);
@@ -151,11 +154,14 @@ void main() {
 #else
     mediump float width=u_width;
 #endif
-
-    gl_Position=u_matrix*vec4(a_pos,u_base,1);
-    
-    v_pos = gl_Position.xyz;
+       
     v_camera_pos = u_camera_pos;
+    gl_Position=u_matrix*vec4(a_pos, u_base, 1);
+        
+//    v_normal = normalize((u_normal_matrix * vec4(0., 0., 1., 0.0)).xyz);
+    v_pos = gl_Position.xyz;
+//    v_camera_pos = normalize(u_camera_pos - vec3(a_pos,u_base));
+//    v_uv = matcap(v_camera_pos, v_normal).xy;
 }
 
 )"; }
@@ -182,9 +188,12 @@ precision mediump float;
     static const char* navFragment(const char* ) { return
 R"(
 
-//varying vec2 v_normal;
+uniform mat4 u_normal_matrix;
+uniform sampler2D u_matcap;
 varying vec3 v_pos;
 varying vec3 v_camera_pos;
+varying vec3 v_normal;
+varying vec2 v_uv;
 
 #ifndef HAS_UNIFORM_u_color
     varying highp vec4 color;
@@ -198,6 +207,13 @@ varying vec3 v_camera_pos;
     uniform lowp float u_opacity;
 #endif
         
+
+vec2 matcap(vec3 eye, vec3 normal) {
+    vec3 reflected = reflect(eye, normal);
+    float m = 2.8284271247461903 * sqrt( reflected.z+1.0 );
+    return reflected.xy / m + 0.5;
+}
+        
 void main() {
 
 #ifdef HAS_UNIFORM_u_color
@@ -207,11 +223,18 @@ void main() {
 #ifdef HAS_UNIFORM_u_opacity
     lowp float opacity=u_opacity;
 #endif
-
+        
+    vec3 fragCoord = gl_FragCoord.xyz;
+    vec3 normal = normalize((u_normal_matrix * vec4(0., 0., 1., 0.0)).xyz);
+    vec3 camera_normal = normalize(v_camera_pos - fragCoord);
+    vec2 uv = matcap(camera_normal, normal).xy;
+    vec4 matcap_color = vec4(texture2D(u_matcap, uv).rgb, 1.0);
+        
     float centerFactor = clamp(pow(pow(v_pos.x,2.) + pow(v_pos.y,2.) + .001, 0.3) / 300., 0., 1.);
-    vec3 rgb = color.rgb * (.8 + (1. - centerFactor)); // 距离屏幕中心点越近，越亮
+    vec3 rgb = matcap_color.rgb * (.8 + (1. - centerFactor)); // 距离屏幕中心点越近，越亮
     gl_FragColor = vec4(rgb,color.a) * opacity;
-//    gl_FragColor=color;
+        
+//    gl_FragColor = matcap_color;
         
 #ifdef OVERDRAW_INSPECTOR
     gl_FragColor=vec4(1.0);
