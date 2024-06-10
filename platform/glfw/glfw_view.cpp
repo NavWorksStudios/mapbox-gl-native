@@ -404,7 +404,7 @@ void GLFWView::onKey(int key, int action, int mods) {
                 
                 bearing = *camera.bearing + (easing / 40);
                 
-                routeMap->jumpTo(mbgl::CameraOptions().withCenter(center).withZoom(17.).withBearing(bearing).withPitch(65.0));
+                routeMap->jumpTo(mbgl::CameraOptions().withCenter(center).withZoom(17.5).withBearing(bearing).withPitch(60.0));
 
                 mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
                 puck->setLocation(toArray(mapCenter));
