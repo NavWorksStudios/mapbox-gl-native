@@ -190,6 +190,8 @@ R"(
 
 uniform mat4 u_normal_matrix;
 uniform sampler2D u_matcap;
+uniform bool u_enable_matcap;
+
 varying vec3 v_pos;
 varying vec3 v_camera_pos;
 varying vec3 v_normal;
@@ -223,22 +225,26 @@ void main() {
 #ifdef HAS_UNIFORM_u_opacity
     lowp float opacity=u_opacity;
 #endif
-        
-    vec3 fragCoord = gl_FragCoord.xyz;
-    vec3 normal = normalize((u_normal_matrix * vec4(0., 0., 1., 0.0)).xyz);
-    vec3 camera_normal = normalize(v_camera_pos - fragCoord);
-    vec2 uv = matcap(camera_normal, normal).xy;
-    vec4 matcap_color = vec4(texture2D(u_matcap, uv).rgb, 1.0);
+
+    vec4 color4 = color;
+    if (u_enable_matcap) {
+        vec3 fragCoord = gl_FragCoord.xyz;
+        vec3 normal = normalize((u_normal_matrix * vec4(0., 0., 1., 0.0)).xyz);
+        vec3 camera_normal = normalize(v_camera_pos - fragCoord);
+        vec2 uv = matcap(camera_normal, normal).xy;
+        color4 = vec4(texture2D(u_matcap, uv).rgb, color4.a);
+    }
         
     float centerFactor = clamp(pow(pow(v_pos.x,2.) + pow(v_pos.y,2.) + .001, 0.3) / 300., 0., 1.);
-    vec3 rgb = matcap_color.rgb * (.8 + (1. - centerFactor)); // 距离屏幕中心点越近，越亮
-    gl_FragColor = vec4(rgb,color.a) * opacity;
+    vec3 rgb = color4.rgb * (.8 + (1. - centerFactor)); // 距离屏幕中心点越近，越亮
+    gl_FragColor = vec4(rgb, color4.a) * opacity;
         
-//    gl_FragColor = matcap_color;
+//    gl_FragColor = color;
         
 #ifdef OVERDRAW_INSPECTOR
     gl_FragColor=vec4(1.0);
 #endif
+
 }
 
 )"; }

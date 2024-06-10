@@ -69,5 +69,7 @@ MBGL_DEFINE_UNIFORM_SCALAR(float, scale_b);
 MBGL_DEFINE_UNIFORM_SCALAR(float, tile_units_to_pixels);
 MBGL_DEFINE_UNIFORM_SCALAR(float, overscale_factor);
 
+MBGL_DEFINE_UNIFORM_SCALAR(bool, enable_matcap);
+
 } // namespace uniforms
 } // namespace mbgl

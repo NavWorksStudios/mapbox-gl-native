@@ -24,7 +24,8 @@ using FillUniforms = TypeList<
     uniforms::matrix,
     uniforms::normal_matrix,
     uniforms::camera_pos,
-    uniforms::world>;
+    uniforms::world,
+    uniforms::enable_matcap>;
 
 using FillPatternUniforms = TypeList<
     uniforms::matrix,
