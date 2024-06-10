@@ -401,9 +401,9 @@ void GLFWView::onKey(int key, int action, int mods) {
                 double easing = bearing - *camera.bearing;
                 easing += easing > 180.0 ? -360.0 : easing < -180 ? 360.0 : 0;
                 
-                bearing = *camera.bearing + (easing / 20);
+                bearing = *camera.bearing + (easing / 40);
                 
-                routeMap->jumpTo(mbgl::CameraOptions().withCenter(center).withZoom(17.0).withBearing(bearing).withPitch(70.0));
+                routeMap->jumpTo(mbgl::CameraOptions().withCenter(center).withZoom(17.).withBearing(bearing).withPitch(65.0));
 
                 mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
                 puck->setLocation(toArray(mapCenter));
