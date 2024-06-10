@@ -378,8 +378,8 @@ void GLFWView::onKey(int key, int action, int mods) {
             if (animateRouteCallback) break;
             animateRouteCallback = [this](mbgl::Map* routeMap) {
 
-                static mapbox::cheap_ruler::CheapRuler ruler { mbgl::platform::glfw::Guomao::Latitude };
-                static mapbox::geojson::geojson route { mapbox::geojson::parse(mbgl::platform::glfw::Guomao::Route) };
+                static mapbox::cheap_ruler::CheapRuler ruler { mbgl::platform::glfw::NewYork::Latitude };
+                static mapbox::geojson::geojson route { mapbox::geojson::parse(mbgl::platform::glfw::NewYork::Route) };
                 
                 const auto& geometry = route.get<mapbox::geometry::geometry<double>>();
                 const auto& lineString = geometry.get<mapbox::geometry::line_string<double>>();
@@ -387,7 +387,7 @@ void GLFWView::onKey(int key, int action, int mods) {
                 static double routeDistance = ruler.lineDistance(lineString);
                 static double routeProgress = 0;
 
-                routeProgress += mbgl::platform::glfw::Guomao::Speed;
+                routeProgress += mbgl::platform::glfw::NewYork::Speed;
                 
                 if (routeProgress > 1.0) {
                     routeProgress = 0.0;
@@ -408,6 +408,7 @@ void GLFWView::onKey(int key, int action, int mods) {
 
                 mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
                 puck->setLocation(toArray(mapCenter));
+                puck->setBearing(mbgl::style::Rotation(bearing));
             };
             toggleLocationIndicatorLayer();
             animateRouteCallback(map);
@@ -1135,7 +1136,7 @@ void GLFWView::toggleLocationIndicatorLayer() {
                                                               // SDKs should not use this, or else the location
                                                               // will "jump" to positions.
         puckLayer->setLocation(toArray(puckLocation));
-        puckLayer->setAccuracyRadius(50);
+        puckLayer->setAccuracyRadius(15);
         puckLayer->setAccuracyRadiusColor(
             premultiply(mbgl::Color{0.0, 1.0, 0.0, 0.2})); // Note: these must be fed premultiplied
 
