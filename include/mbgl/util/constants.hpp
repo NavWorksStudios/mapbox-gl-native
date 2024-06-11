@@ -46,7 +46,7 @@ constexpr float ONE_EM = 24.0f;
 
 constexpr uint8_t DEFAULT_PREFETCH_ZOOM_DELTA = 4;
 
-constexpr uint64_t DEFAULT_MAX_CACHE_SIZE = 800 * 1024 * 1024;
+constexpr uint64_t DEFAULT_MAX_CACHE_SIZE = 2000 * 1024 * 1024;
 
 // Default ImageManager's cache size for images added via onStyleImageMissing API.
 // Average sprite size with 1.0 pixel ratio is ~2kB, 8kB for pixel ratio of 2.0.
