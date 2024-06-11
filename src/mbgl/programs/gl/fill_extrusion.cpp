@@ -172,7 +172,7 @@ struct ShaderSource<FillExtrusionProgram> {
         if (u_rendering_reflection) {
 //            float zoomFactor=clamp(u_zoom-15.,0.,3.)/3.;
 //            v_color*=zoomFactor*.4;
-            v_color*=.4;
+            v_color*=.15;
         }
     
         v_pos=gl_Position.xyz;
