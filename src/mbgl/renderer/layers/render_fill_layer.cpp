@@ -104,7 +104,7 @@ void RenderFillLayer::render(PaintParameters& parameters) {
                         uniforms::normal_matrix::Value(tile.normalMatrix),
                         uniforms::camera_pos::Value(parameters.state.getCameraPosition()),
                         uniforms::world::Value( parameters.backend.getDefaultRenderable().getSize() ),
-                        uniforms::enable_matcap::Value( getID() == "water" )
+                        uniforms::render_time::Value(nav::mb::getRenderTime()),
                     },
                     paintPropertyBinders,
                     evaluated,
