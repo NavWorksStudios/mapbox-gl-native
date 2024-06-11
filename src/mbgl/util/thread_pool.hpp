@@ -66,6 +66,6 @@ class SequencedScheduler : public ThreadedScheduler<1> {};
 template <std::size_t extra>
 using ParallelScheduler = ThreadedScheduler<1 + extra>;
 
-class ThreadPool : public ParallelScheduler<3> {};
+class ThreadPool : public ParallelScheduler<7> {};
 
 } // namespace mbgl
