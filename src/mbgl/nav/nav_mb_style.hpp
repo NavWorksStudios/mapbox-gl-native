@@ -25,5 +25,8 @@ void releaseAllImage();
 void uploadTexture(mbgl::gfx::UploadPass& uploadPass);
 mbgl::gfx::TextureResource& getTexture(const std::string& name);
 
+void updateRenderTime();
+double getRenderTime();
+
 }
 }

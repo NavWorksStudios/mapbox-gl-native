@@ -88,5 +88,16 @@ mbgl::gfx::TextureResource& getTexture(const std::string& name) {
     return imageMap[name].texture->getResource();
 }
 
+double render_time_seconds;
+
+void updateRenderTime() {
+    const auto now = std::chrono::steady_clock::now();
+    render_time_seconds = std::chrono::duration_cast<std::chrono::duration<double>>(now.time_since_epoch()).count();
+}
+
+double getRenderTime() {
+    return render_time_seconds;
+}
+
 }
 }
