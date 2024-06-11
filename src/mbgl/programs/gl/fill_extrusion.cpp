@@ -77,6 +77,7 @@ struct ShaderSource<FillExtrusionProgram> {
     static const char* navVertex(const char* ) { return R"(
 
         uniform mat4 u_matrix;
+        uniform float u_zoom;
         uniform vec3 u_lightcolor;
         uniform lowp vec3 u_lightpos;
         uniform lowp float u_lightintensity;
@@ -168,7 +169,11 @@ struct ShaderSource<FillExtrusionProgram> {
         v_color.g=clamp(color.g*directional*u_lightcolor.g, 0.3*(1.0-u_lightcolor.g), 1.0);
         v_color.b=clamp(color.b*directional*u_lightcolor.b, 0.3*(1.0-u_lightcolor.b), 1.0);
         v_color*=u_opacity;
-        if (u_rendering_reflection) v_color*=.3;
+        if (u_rendering_reflection) {
+//            float zoomFactor=clamp(u_zoom-15.,0.,3.)/3.;
+//            v_color*=zoomFactor*.4;
+            v_color*=.4;
+        }
     
         v_pos=gl_Position.xyz;
         v_heightInterpolator=vec2(abs(height-base), h?1.:0.);
