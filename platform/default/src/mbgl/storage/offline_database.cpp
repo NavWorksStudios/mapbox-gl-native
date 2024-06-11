@@ -10,6 +10,8 @@
 #include <mbgl/storage/offline_schema.hpp>
 #include <mbgl/storage/merge_sideloaded.hpp>
 
+#include "mbgl/nav/nav_log.hpp"
+
 namespace mbgl {
 
 OfflineDatabase::OfflineDatabase(std::string path_)
@@ -364,6 +366,7 @@ optional<std::pair<Response, uint64_t>> OfflineDatabase::getResource(const Resou
     query.bind(1, resource.url);
 
     if (!query.run()) {
+        nav::log::w("OfflineDatabase", "getResource error %d,%d,%d", resource.url.c_str());
         return nullopt;
     }
 
@@ -386,6 +389,7 @@ optional<std::pair<Response, uint64_t>> OfflineDatabase::getResource(const Resou
         size = data->length();
     }
 
+    nav::log::w("OfflineDatabase", "getResource OK %d,%d,%d", resource.url.c_str());
     return std::make_pair(response, size);
 }
 
@@ -420,6 +424,8 @@ bool OfflineDatabase::putResource(const Resource& resource,
         notModifiedQuery.bind(3, response.mustRevalidate);
         notModifiedQuery.bind(4, resource.url);
         notModifiedQuery.run();
+        
+        nav::log::w("OfflineDatabase", "putResource error %d,%d,%d", resource.url.c_str());
         return false;
     }
 
@@ -483,6 +489,7 @@ bool OfflineDatabase::putResource(const Resource& resource,
 
     insertQuery.run();
 
+    nav::log::w("OfflineDatabase", "putResource OK %d,%d,%d", resource.url.c_str());
     return true;
 }
 
@@ -537,6 +544,7 @@ optional<std::pair<Response, uint64_t>> OfflineDatabase::getTile(const Resource:
     query.bind(5, tile.z);
 
     if (!query.run()) {
+        nav::log::w("OfflineDatabase", "getTile error %d/%d/%d", (int)tile.z, (int)tile.x, (int)tile.y);
         return nullopt;
     }
 
@@ -559,6 +567,7 @@ optional<std::pair<Response, uint64_t>> OfflineDatabase::getTile(const Resource:
         size = data->length();
     }
 
+    nav::log::w("OfflineDatabase", "getTile OK %d/%d/%d", (int)tile.z, (int)tile.x, (int)tile.y);
     return std::make_pair(response, size);
 }
 
@@ -616,6 +625,8 @@ bool OfflineDatabase::putTile(const Resource::TileData& tile,
         notModifiedQuery.bind(7, tile.y);
         notModifiedQuery.bind(8, tile.z);
         notModifiedQuery.run();
+        
+        nav::log::w("OfflineDatabase", "putTile error %d/%d/%d", (int)tile.z, (int)tile.x, (int)tile.y);
         return false;
     }
 
@@ -659,6 +670,7 @@ bool OfflineDatabase::putTile(const Resource::TileData& tile,
 
     updateQuery.run();
     if (updateQuery.changes() != 0) {
+        nav::log::w("OfflineDatabase", "putTile error %d/%d/%d", (int)tile.z, (int)tile.x, (int)tile.y);
         return false;
     }
 
@@ -689,6 +701,7 @@ bool OfflineDatabase::putTile(const Resource::TileData& tile,
 
     insertQuery.run();
 
+    nav::log::w("OfflineDatabase", "putTile OK %d/%d/%d", (int)tile.z, (int)tile.x, (int)tile.y);
     return true;
 }
 
