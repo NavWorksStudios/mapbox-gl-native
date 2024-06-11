@@ -378,8 +378,8 @@ void GLFWView::onKey(int key, int action, int mods) {
             if (animateRouteCallback) break;
             animateRouteCallback = [this](mbgl::Map* routeMap) {
 
-                static mapbox::cheap_ruler::CheapRuler ruler { mbgl::platform::glfw::NewYork::Latitude };
-                static mapbox::geojson::geojson route { mapbox::geojson::parse(mbgl::platform::glfw::NewYork::Route) };
+                static mapbox::cheap_ruler::CheapRuler ruler { mbgl::platform::glfw::Guomao::Latitude };
+                static mapbox::geojson::geojson route { mapbox::geojson::parse(mbgl::platform::glfw::Guomao::Route) };
                 
                 const auto& geometry = route.get<mapbox::geometry::geometry<double>>();
                 const auto& lineString = geometry.get<mapbox::geometry::line_string<double>>();
@@ -387,7 +387,7 @@ void GLFWView::onKey(int key, int action, int mods) {
                 static double routeDistance = ruler.lineDistance(lineString);
                 static double routeProgress = 0;
 
-                routeProgress += mbgl::platform::glfw::NewYork::Speed;
+                routeProgress += mbgl::platform::glfw::Guomao::Speed;
                 
                 if (routeProgress > 1.0) {
                     routeProgress = 0.0;
@@ -875,9 +875,12 @@ void GLFWView::onMouseClick(int button, int action, int modifiers) {
         const double stillTime = now - _mouseHistory[0].time;
         const Mouse pos = _mouseHistory[0];
         const Mouse from = _mouseHistory.prefer(now - 0.5);
-        const float velocity = _mouseHistory[0].velocity(from);
+        const Mouse recent = _mouseHistory.prefer(now - 0.1);
         
-        if (tracking && stillTime < 0.05 && velocity > 50) { // fling
+        const float velocity = _mouseHistory[0].velocity(from);
+        const float recentVelocity = _mouseHistory[0].velocity(recent);
+        
+        if (tracking && stillTime < 0.05 && recentVelocity > 50 && velocity > 50) { // fling
             const float duration = pos.time - from.time;
             const mbgl::ScreenCoordinate moved(pos.coord.x - from.coord.x, pos.coord.y - from.coord.y);
             const mbgl::ScreenCoordinate fling(moved.x / duration * .6, moved.y / duration * .6);
