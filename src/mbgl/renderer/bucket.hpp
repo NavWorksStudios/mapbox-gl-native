@@ -30,13 +30,10 @@ public:
     Bucket(const Bucket&) = delete;
     Bucket& operator=(const Bucket&) = delete;
 
-    std::string key;
+    std::string layerId;
     
     virtual ~Bucket() {
         nav::log::i("Bucket", "delete Bucket %p", this);
-        
-//        assert(nav::log::bucketMap()[key] > 0);
-        nav::log::bucketMap()[key]--;
     }
 
     // Feature geometries are also used to populate the feature index.
