@@ -34,19 +34,24 @@ static const std::map<std::string, Source> layerIds = {
     { "national-park", { "fill", "composite", "landuse_overlay", } },
     { "landuse", { "fill", "composite", "landuse", } },
     { "hillshade", { "fill", "composite", "hillshade", } },
+    
     { "waterway", { "line", "composite", "waterway", } },
+    
     { "water", { "fill", "composite", "water", } },
+    
     { "land-structure-polygon", { "fill", "composite", "structure", } },
     { "land-structure-line", { "line", "composite", "structure", } },
     { "aeroway-polygon", { "fill", "composite", "aeroway", } },
     
     { "aeroway-line", { "line", "composite", "aeroway", } },
+    
     { "tunnel-path-trail", { "line", "composite", "road", } },
     { "tunnel-path-cycleway-piste", { "line", "composite", "road", } },
     { "tunnel-path", { "line", "composite", "road", } },
     { "tunnel-steps", { "line", "composite", "road", } },
     { "tunnel-pedestrian", { "line", "composite", "road", } },
     { "tunnel-simple", { "line", "composite", "road", } },
+    
     { "road-path-trail", { "line", "composite", "road", } },
     { "road-path-cycleway-piste", { "line", "composite", "road", } },
     { "road-path", { "line", "composite", "road", } },
@@ -55,6 +60,7 @@ static const std::map<std::string, Source> layerIds = {
     { "road-simple", { "line", "composite", "road", } },
     { "road-rail", { "line", "composite", "road", } },
     { "road-rail-tracks", { "line", "composite", "road", } },
+    
     { "bridge-path-trail", { "line", "composite", "road", } },
     { "bridge-path-cycleway-piste", { "line", "composite", "road", } },
     { "bridge-path", { "line", "composite", "road", } },
