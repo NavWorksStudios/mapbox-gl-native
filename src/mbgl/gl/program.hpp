@@ -100,20 +100,20 @@ public:
             auto vit = vertexSource.begin(); vit++; vit++;
             printf("static const char* navVertex(const char* , size_t ) { return R\"(\n\n%s\n)\"; } \n\n\n", *vit); vit++;
             printf("static const char* navVertex(const char* ) { return R\"(\n\n%s\n)\"; } \n\n\n", *vit);
-            printf("###vertexSource \n%s%s%s%s\n",
-                   programParameters.getDefines().c_str(),
-                   additionalDefines.c_str(),
-                   programs::gl::ShaderSource<Name>::navVertex(programs::gl::shaderSource(), programs::gl::vertexPreludeOffset),
-                   programs::gl::ShaderSource<Name>::navVertex(programs::gl::shaderSource()));
+//            printf("###vertexSource \n%s%s%s%s\n",
+//                   programParameters.getDefines().c_str(),
+//                   additionalDefines.c_str(),
+//                   programs::gl::ShaderSource<Name>::navVertex(programs::gl::shaderSource(), programs::gl::vertexPreludeOffset),
+//                   programs::gl::ShaderSource<Name>::navVertex(programs::gl::shaderSource()));
             
             auto fit = fragmentSource.begin(); fit++; fit++;
             printf("static const char* navFragment(const char* , size_t ) { return R\"(\n\n%s\n)\"; } \n\n\n", *fit); fit++;
             printf("static const char* navFragment(const char* ) { return R\"(\n\n%s\n)\"; } \n\n\n", *fit);
-            printf("###fragmentSource \n%s%s%s%s\n",
-                   programParameters.getDefines().c_str(),
-                   additionalDefines.c_str(),
-                   programs::gl::ShaderSource<Name>::navFragment(programs::gl::shaderSource(), programs::gl::fragmentPreludeOffset),
-                   programs::gl::ShaderSource<Name>::navFragment(programs::gl::shaderSource()));
+//            printf("###fragmentSource \n%s%s%s%s\n",
+//                   programParameters.getDefines().c_str(),
+//                   additionalDefines.c_str(),
+//                   programs::gl::ShaderSource<Name>::navFragment(programs::gl::shaderSource(), programs::gl::fragmentPreludeOffset),
+//                   programs::gl::ShaderSource<Name>::navFragment(programs::gl::shaderSource()));
             
             printf("\n\n******* %s - end *******\n\n", programs::gl::ShaderSource<Name>::name);
 #endif
