@@ -35,12 +35,12 @@ using FillExtrusionLayoutAttributes = TypeList<
 
 using FillExtrusionUniforms = TypeList<
     uniforms::matrix,
-    uniforms::zoom,
     uniforms::opacity,
     uniforms::lightcolor,
     uniforms::lightpos,
     uniforms::lightintensity,
     uniforms::vertical_gradient,
+    uniforms::spotlight_ratio,
     uniforms::rendering_reflection>;
 
 using FillExtrusionPatternUniforms = TypeList<
@@ -56,6 +56,7 @@ using FillExtrusionPatternUniforms = TypeList<
     uniforms::lightpos,
     uniforms::lightintensity,
     uniforms::vertical_gradient,
+    uniforms::spotlight_ratio,
     uniforms::rendering_reflection>;
 
 class FillExtrusionProgram : public Program<

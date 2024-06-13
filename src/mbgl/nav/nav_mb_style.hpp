@@ -25,14 +25,18 @@ void releaseAllImage();
 void uploadTexture(mbgl::gfx::UploadPass& uploadPass);
 mbgl::gfx::TextureResource& getTexture(const std::string& name);
 
-void updateRenderTime();
-double getRenderTime();
-
 bool layerHasLineHeight(const std::string& layerId);
 
-void updateXRayedRatio();
-void setXRayed(bool enabled);
-float xRayedRatio();
+namespace rendertime {
+double value();
+}
+
+namespace spotlight {
+void enable(bool enabled);
+float value();
+}
+
+void update();
 
 }
 }

@@ -88,17 +88,6 @@ mbgl::gfx::TextureResource& getTexture(const std::string& name) {
     return imageMap[name].texture->getResource();
 }
 
-double render_time_seconds;
-
-void updateRenderTime() {
-    const auto now = std::chrono::steady_clock::now();
-    render_time_seconds = std::chrono::duration_cast<std::chrono::duration<double>>(now.time_since_epoch()).count();
-}
-
-double getRenderTime() {
-    return render_time_seconds;
-}
-
 std::map<std::string, int16_t> layerHeightMap = {
 //    { "tunnel-path-trail", 0 },
 //    { "tunnel-path-cycleway-piste", 0 },
@@ -127,16 +116,50 @@ bool layerHasLineHeight(const std::string& layerId) {
     return layerHeightMap.find(layerId) != layerHeightMap.end();
 }
 
-void updateXRayedRatio() {
-    
+
+
+
+namespace rendertime {
+
+double time_seconds;
+
+void update() {
+    const auto now = std::chrono::steady_clock::now();
+    time_seconds = std::chrono::duration_cast<std::chrono::duration<double>>(now.time_since_epoch()).count();
 }
 
-void setXRayed(bool enabled) {
-    
+double value() {
+    return time_seconds;
 }
 
-float xRayedRatio() {
-    
+}
+
+namespace spotlight {
+
+bool _enabled = false;
+float _ratio = 0.;
+
+void update() {
+    if (_enabled && _ratio < 1.) {
+        _ratio = fmin(_ratio + fmax((1. - _ratio) * 0.05, 0.01), 1.);
+    } else if (_ratio > 0.) {
+        _ratio = fmax(_ratio - fmax((_ratio - 0.) * 0.05, 0.01), 0.);
+    }
+}
+
+void enable(bool enabled) {
+    _enabled = enabled;
+}
+
+float value() {
+    return _ratio;
+}
+
+}
+
+void update() {
+    rendertime::update();
+    spotlight::update();
 }
 
 }

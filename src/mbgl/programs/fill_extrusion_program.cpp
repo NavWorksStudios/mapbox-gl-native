@@ -35,12 +35,12 @@ FillExtrusionProgram::LayoutUniformValues FillExtrusionProgram::layoutUniformVal
     const mat4& matrix, const TransformState& state, float opacity, const EvaluatedLight& light, float verticalGradient, bool renderingReflection) {
     return {
         uniforms::matrix::Value( matrix ),
-        uniforms::zoom::Value( state.getZoom() ),
         uniforms::opacity::Value( opacity ),
         uniforms::lightcolor::Value( lightColor(light) ),
         uniforms::lightpos::Value( lightPosition(light, state) ),
         uniforms::lightintensity::Value( lightIntensity(light) ),
         uniforms::vertical_gradient::Value( verticalGradient ),
+        uniforms::spotlight_ratio::Value( nav::mb::spotlight::value() ),
         uniforms::rendering_reflection::Value( renderingReflection ),
     };
 }
@@ -75,6 +75,7 @@ FillExtrusionPatternProgram::layoutUniformValues(mat4 matrix,
         uniforms::lightpos::Value( lightPosition(light, state) ),
         uniforms::lightintensity::Value( lightIntensity(light) ),
         uniforms::vertical_gradient::Value( verticalGradient ),
+        uniforms::spotlight_ratio::Value( nav::mb::spotlight::value() ),
         uniforms::rendering_reflection::Value( renderingReflection )
     };
 }

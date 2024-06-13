@@ -30,7 +30,7 @@ void Renderer::setObserver(RendererObserver* observer) {
 void Renderer::render(const std::shared_ptr<UpdateParameters>& updateParameters) {
     assert(updateParameters);
     
-    nav::mb::updateRenderTime();
+    nav::mb::update();
     
     if (auto renderTree = impl->orchestrator.createRenderTree(updateParameters)) {
         renderTree->prepare();
