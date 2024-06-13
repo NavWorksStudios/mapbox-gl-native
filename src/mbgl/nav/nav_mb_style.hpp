@@ -28,5 +28,11 @@ mbgl::gfx::TextureResource& getTexture(const std::string& name);
 void updateRenderTime();
 double getRenderTime();
 
+bool layerHasLineHeight(const std::string& layerId);
+
+void updateXRayedRatio();
+void setXRayed(bool enabled);
+float xRayedRatio();
+
 }
 }

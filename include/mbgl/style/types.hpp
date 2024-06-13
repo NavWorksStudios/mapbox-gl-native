@@ -23,16 +23,34 @@ enum class VisibilityType : bool {
     None,
 };
 
+// https://www.jianshu.com/p/55158aa236a4
+
+// 端点
 enum class LineCapType : uint8_t {
-    Round,
-    Butt,
-    Square,
+    Round,      // 圆头  c|------
+    Butt,       // 齐平   |------
+    Square,     // 方头  [|------
 };
 
+
+/*
+         /
+ Miter  <
+         \
+
+         /
+ Bevel  |
+         \
+
+         /
+ Round  c
+         \
+*/
+// 线段中间点
 enum class LineJoinType : uint8_t {
-    Miter,
-    Bevel,
-    Round,
+    Miter, // 尖角
+    Bevel, // 切角
+    Round, // 圆角
     // the following two types are for internal use only
     FakeRound,
     FlipBevel

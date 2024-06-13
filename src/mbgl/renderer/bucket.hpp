@@ -29,8 +29,6 @@ class Bucket {
 public:
     Bucket(const Bucket&) = delete;
     Bucket& operator=(const Bucket&) = delete;
-
-    std::string layerId;
     
     virtual ~Bucket() {
         nav::log::i("Bucket", "delete Bucket %p", this);
@@ -76,6 +74,8 @@ public:
     virtual void place(Placement&, const BucketPlacementData&, std::set<uint32_t>&) {}
     virtual void updateVertices(
         const Placement&, bool /*updateOpacities*/, const TransformState&, const RenderTile&, std::set<uint32_t>&) {}
+    
+    bool hasLineHeight { false };
 
 protected:
     Bucket() {

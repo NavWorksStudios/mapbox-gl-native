@@ -8,6 +8,7 @@
 #include <utility>
 
 #include "mbgl/nav/nav_unity_bridge.hpp"
+#include "mbgl/nav/nav_mb_style.hpp"
 
 namespace mbgl {
 
@@ -36,9 +37,50 @@ void LineBucket::addFeature(const GeometryTileFeature& feature,
                             const PatternLayerMap& patternDependencies,
                             std::size_t index,
                             const CanonicalTileID& canonical) {
-    for (auto& line : geometryCollection) {
-        addGeometry(line, feature, canonical);
-    }
+    
+    // 判断每根线的两端是否为终结
+//    if (hasLineHeight) {
+//        std::vector<IsTermination> endpointIsTermination;
+//        
+//        static auto checkIntersection = [] (const GeometryCoordinate& point, const GeometryCoordinates& line) {
+//            for (size_t i=0; i<line.size() - 1; i++) {
+//                const double dis = util::distToLine<double>(point, line[i], line[i+1]);
+//                if (dis < 100000) {
+//                    return false;
+//                }
+//            }
+//            return true;
+//        };
+//        
+//        static auto checkEndpointIntersection = [] (const GeometryCoordinates& line, const GeometryCollection& geometryCollection) {
+//            bool headIsTermination = true;
+//            bool tailIsTermination = true;
+//            
+//            for (auto& line_ : geometryCollection) {
+//                if (&line == &line_) continue;
+//                
+//                if (headIsTermination) headIsTermination = checkIntersection(line[0], line_);
+//                if (tailIsTermination) tailIsTermination = checkIntersection(line[line.size() - 1], line_);
+//            }
+//            
+//            return IsTermination({ headIsTermination, tailIsTermination });
+//        };
+//        
+//        for (auto& line : geometryCollection) {
+//            endpointIsTermination.push_back(checkEndpointIntersection(line, geometryCollection));
+//        }
+//        
+//        // 遍历所有线
+//        auto isTermination = endpointIsTermination.begin();
+//        for (auto& line : geometryCollection) {
+//            addGeometry(line, feature, canonical, *isTermination++);
+//        }
+//    } else {
+        // 遍历所有线
+        for (auto& line : geometryCollection) {
+            addGeometry(line, feature, canonical, {true, true});
+        }
+//    }
 
     for (auto& pair : paintPropertyBinders) {
         const auto it = patternDependencies.find(pair.first);
@@ -100,10 +142,15 @@ private:
     double total;
 };
 
+// 添加一条线段
 void LineBucket::addGeometry(const GeometryCoordinates& coordinates,
                              const GeometryTileFeature& feature,
-                             const CanonicalTileID& canonical) {
+                             const CanonicalTileID& canonical,
+                             const IsTermination& isTermination) {
+    
     const FeatureType type = feature.getType();
+
+    // 略过首尾重复点
     const std::size_t len = [&coordinates] {
         std::size_t l = coordinates.size();
         // If the line has duplicate vertices at the end, adjust length to remove them.
@@ -122,11 +169,13 @@ void LineBucket::addGeometry(const GeometryCoordinates& coordinates,
         return i;
     }();
 
+    // 判断数据个数有效性
     // Ignore invalid geometry.
     if (len < (type == FeatureType::Polygon ? 3 : 2)) {
         return;
     }
-
+    
+    // 此段路线，距离长度
     optional<Distances> lineDistances;
 
     const auto &props = feature.getProperties();
@@ -139,24 +188,26 @@ void LineBucket::addGeometry(const GeometryCoordinates& coordinates,
         }
 
         lineDistances = Distances{
-            *numericValue<double>(clip_start_it->second), *numericValue<double>(clip_end_it->second), total_length};
+            *numericValue<double>(clip_start_it->second), 
+            *numericValue<double>(clip_end_it->second),
+            total_length};
     }
 
+    // 计算此段路线，连接属性（join type）& 端点样式（cap type）
+    // https://www.jianshu.com/p/55158aa236a4
+
     const LineJoinType joinType = layout.evaluate<LineJoin>(zoom, feature, canonical);
-
-    const float miterLimit = joinType == LineJoinType::Bevel ? 1.05f : float(layout.get<LineMiterLimit>());
-
-    const double sharpCornerOffset =
-        overscaling == 0
-            ? SHARP_CORNER_OFFSET * (float(util::EXTENT) / util::tileSize)
-            : (overscaling <= 16.0 ? SHARP_CORNER_OFFSET * (float(util::EXTENT) / (util::tileSize * overscaling))
-                                   : 0.0f);
+    const float miterLimit = (joinType == LineJoinType::Bevel) ? 1.05f : float(layout.get<LineMiterLimit>());
+    const double sharpCornerOffset = (overscaling == 0) ?
+        (SHARP_CORNER_OFFSET * (float(util::EXTENT) / util::tileSize)) :
+        (overscaling <= 16.0 ? SHARP_CORNER_OFFSET * (float(util::EXTENT) / (util::tileSize * overscaling)) : 0.0f);
 
     const GeometryCoordinate firstCoordinate = coordinates[first];
     const LineCapType beginCap = layout.get<LineCap>();
-    const LineCapType endCap = type == FeatureType::Polygon ? LineCapType::Butt : LineCapType(layout.get<LineCap>());
+    const LineCapType endCap = (type == FeatureType::Polygon) ? LineCapType::Butt : LineCapType(layout.get<LineCap>());
 
-    double distance = 0.0;
+    // 开始线段上添加所有点
+    double geoDistance = 0.0;
     bool startOfLine = true;
     optional<GeometryCoordinate> currentCoordinate;
     optional<GeometryCoordinate> prevCoordinate;
@@ -175,38 +226,54 @@ void LineBucket::addGeometry(const GeometryCoordinates& coordinates,
     const std::size_t startVertex = vertices.elements();
     std::vector<TriangleElement> triangleStore;
 
+    // ======================================== 遍历所有点 ========================================
+
     for (std::size_t i = first; i < len; ++i) {
-        if (type == FeatureType::Polygon && i == len - 1) {
-            // if the line is closed, we treat the last vertex like the first
-            nextCoordinate = coordinates[first + 1];
-        } else if (i + 1 < len) {
+        int16_t zHeightRatio = hasLineHeight ? 3 : 0;
+        
+        // 计算下一个点，循环或非循环的情况
+        if (i < len - 1) {
             // just the next vertex
             nextCoordinate = coordinates[i + 1];
+            
+//            if (i == first && isTermination[0]) zHeightRatio = 0;
         } else {
-            // there is no next vertex
-            nextCoordinate = {};
+            if (type == FeatureType::Polygon) {
+                // if the line is closed, we treat the last vertex like the first
+                nextCoordinate = coordinates[first + 1];
+            } else {
+                // there is no next vertex
+                nextCoordinate = {};
+//                if (isTermination[1]) zHeightRatio = 0;
+            }
         }
 
+        // 跳过重复点
         // if two consecutive vertices exist, skip the current one
         if (nextCoordinate && coordinates[i] == *nextCoordinate) {
             continue;
         }
-
+        
+        // 上一个点的法线
         if (nextNormal) {
             prevNormal = *nextNormal;
         }
         if (currentCoordinate) {
             prevCoordinate = *currentCoordinate;
         }
-
+        
+        // 当前点
         currentCoordinate = coordinates[i];
 
+        // 下一个点法线
         // Calculate the normal towards the next vertex in this line. In case
         // there is no next vertex, pretend that the line is continuing straight,
         // meaning that we are just using the previous normal.
-        nextNormal = nextCoordinate ? util::perp(util::unit(convertPoint<double>(*nextCoordinate - *currentCoordinate)))
-                                : prevNormal;
+        nextNormal = nextCoordinate ?
+        util::perp(util::unit(convertPoint<double>(*nextCoordinate - *currentCoordinate))) :
+        prevNormal;
 
+        // 处理非闭合线第一个点
         // If we still don't have a previous normal, this is the beginning of a
         // non-closed line, so we're doing a straight "join".
         if (!prevNormal) {
@@ -240,30 +307,35 @@ void LineBucket::addGeometry(const GeometryCoordinates& coordinates,
 
         // Calculate the length of the miter (the ratio of the miter to the width)
         // as the inverse of cosine of the angle between next and join normals.
-        const double miterLength =
-            cosHalfAngle != 0 ? 1 / cosHalfAngle : std::numeric_limits<double>::infinity();
+        const double miterLength = (cosHalfAngle != 0) ? 1 / cosHalfAngle : std::numeric_limits<double>::infinity();
 
         // Approximate angle from cosine.
         const double approxAngle = 2 * std::sqrt(2 - 2 * cosHalfAngle);
 
         const bool isSharpCorner = cosHalfAngle < COS_HALF_SHARP_CORNER && prevCoordinate && nextCoordinate;
 
+        // 处理转折角度过大尖角点，填补一个新pre坐标点
         if (isSharpCorner && i > first) {
             const auto prevSegmentLength = util::dist<double>(*currentCoordinate, *prevCoordinate);
             if (prevSegmentLength > 2.0 * sharpCornerOffset) {
-                GeometryCoordinate newPrevVertex = *currentCoordinate - convertPoint<int16_t>(util::round(convertPoint<double>(*currentCoordinate - *prevCoordinate) * (sharpCornerOffset / prevSegmentLength)));
-                distance += util::dist<double>(newPrevVertex, *prevCoordinate);
-                addCurrentVertex(newPrevVertex, distance, *prevNormal, 0, 0, false, startVertex, triangleStore, lineDistances);
+                // 伪造新的中间点
+                GeometryCoordinate newPrevVertex = *currentCoordinate -
+                convertPoint<int16_t>(util::round(convertPoint<double>(*currentCoordinate - *prevCoordinate) * (sharpCornerOffset / prevSegmentLength)));
+                geoDistance += util::dist<double>(newPrevVertex, *prevCoordinate);
+                addCurrentVertex(newPrevVertex, zHeightRatio, geoDistance, *prevNormal, 0, 0, false,
+                                 startVertex, triangleStore, lineDistances);
+                
                 prevCoordinate = newPrevVertex;
             }
         }
 
         // The join if a middle vertex, otherwise the cap
-        const bool middleVertex = prevCoordinate && nextCoordinate;
+        const bool hasPrevNextVertex = prevCoordinate && nextCoordinate;
         LineJoinType currentJoin = joinType;
         const LineCapType currentCap = nextCoordinate ? beginCap : endCap;
 
-        if (middleVertex) {
+        // 前后都有点
+        if (hasPrevNextVertex) {
             if (currentJoin == LineJoinType::Round) {
                 if (miterLength < layout.get<LineRoundLimit>()) {
                     currentJoin = LineJoinType::Miter;
@@ -293,14 +365,14 @@ void LineBucket::addGeometry(const GeometryCoordinates& coordinates,
 
         // Calculate how far along the line the currentVertex is
         if (prevCoordinate)
-            distance += util::dist<double>(*currentCoordinate, *prevCoordinate);
+            geoDistance += util::dist<double>(*currentCoordinate, *prevCoordinate);
 
-        if (middleVertex && currentJoin == LineJoinType::Miter) {
+        if (hasPrevNextVertex && currentJoin == LineJoinType::Miter) {
             joinNormal = joinNormal * miterLength;
-            addCurrentVertex(*currentCoordinate, distance, joinNormal, 0, 0, false, startVertex,
-                             triangleStore, lineDistances);
-
-        } else if (middleVertex && currentJoin == LineJoinType::FlipBevel) {
+            addCurrentVertex(*currentCoordinate, zHeightRatio, geoDistance, joinNormal, 0, 0, false, 
+                             startVertex, triangleStore, lineDistances);
+        } else if (hasPrevNextVertex && currentJoin == LineJoinType::FlipBevel) {
+            // 斜接太大，翻转方向以形成斜接
             // miter is too big, flip the direction to make a beveled join
 
             if (miterLength > 100) {
@@ -308,17 +380,16 @@ void LineBucket::addGeometry(const GeometryCoordinates& coordinates,
                 joinNormal = *nextNormal * -1.0;
             } else {
                 const double direction = prevNormal->x * nextNormal->y - prevNormal->y * nextNormal->x > 0 ? -1 : 1;
-                const double bevelLength = miterLength * util::mag(*prevNormal + *nextNormal) /
-                                          util::mag(*prevNormal - *nextNormal);
+                const double bevelLength = miterLength * util::mag(*prevNormal + *nextNormal) / util::mag(*prevNormal - *nextNormal);
                 joinNormal = util::perp(joinNormal) * bevelLength * direction;
             }
 
-            addCurrentVertex(*currentCoordinate, distance, joinNormal, 0, 0, false, startVertex,
-                             triangleStore, lineDistances);
+            addCurrentVertex(*currentCoordinate, zHeightRatio, geoDistance, joinNormal, 0, 0, false, 
+                             startVertex, triangleStore, lineDistances);
 
-            addCurrentVertex(*currentCoordinate, distance, joinNormal * -1.0, 0, 0, false, startVertex,
-                             triangleStore, lineDistances);
-        } else if (middleVertex && (currentJoin == LineJoinType::Bevel || currentJoin == LineJoinType::FakeRound)) {
+            addCurrentVertex(*currentCoordinate, zHeightRatio, geoDistance, joinNormal * -1.0, 0, 0, false, 
+                             startVertex, triangleStore, lineDistances);
+        } else if (hasPrevNextVertex && (currentJoin == LineJoinType::Bevel || currentJoin == LineJoinType::FakeRound)) {
             const bool lineTurnsLeft = (prevNormal->x * nextNormal->y - prevNormal->y * nextNormal->x) > 0;
             const float offset = -std::sqrt(miterLength * miterLength - 1);
             float offsetA;
@@ -334,7 +405,7 @@ void LineBucket::addGeometry(const GeometryCoordinates& coordinates,
 
             // Close previous segement with bevel
             if (!startOfLine) {
-                addCurrentVertex(*currentCoordinate, distance, *prevNormal, offsetA, offsetB, false,
+                addCurrentVertex(*currentCoordinate, zHeightRatio, geoDistance, *prevNormal, offsetA, offsetB, false,
                                  startVertex, triangleStore, lineDistances);
             }
 
@@ -357,33 +428,33 @@ void LineBucket::addGeometry(const GeometryCoordinates& coordinates,
                         t = t + t * t2 * (t - 1) * (A * t2 * t2 + B);
                     }
                     auto approxFractionalNormal = util::unit(*prevNormal * (1.0 - t) + *nextNormal * t);
-                    addPieSliceVertex(*currentCoordinate, distance, approxFractionalNormal, lineTurnsLeft, startVertex, triangleStore, lineDistances);
+                    addPieSliceVertex(*currentCoordinate, geoDistance, approxFractionalNormal, lineTurnsLeft, startVertex, triangleStore, lineDistances);
                 }
             }
 
             // Start next segment
             if (nextCoordinate) {
-                addCurrentVertex(*currentCoordinate, distance, *nextNormal, -offsetA, -offsetB,
+                addCurrentVertex(*currentCoordinate, zHeightRatio, geoDistance, *nextNormal, -offsetA, -offsetB,
                                  false, startVertex, triangleStore, lineDistances);
             }
 
-        } else if (!middleVertex && currentCap == LineCapType::Butt) {
+        } else if (!hasPrevNextVertex && currentCap == LineCapType::Butt) {
             if (!startOfLine) {
                 // Close previous segment with a butt
-                addCurrentVertex(*currentCoordinate, distance, *prevNormal, 0, 0, false,
+                addCurrentVertex(*currentCoordinate, zHeightRatio, geoDistance, *prevNormal, 0, 0, false,
                                  startVertex, triangleStore, lineDistances);
             }
 
             // Start next segment with a butt
             if (nextCoordinate) {
-                addCurrentVertex(*currentCoordinate, distance, *nextNormal, 0, 0, false,
+                addCurrentVertex(*currentCoordinate, zHeightRatio, geoDistance, *nextNormal, 0, 0, false,
                                  startVertex, triangleStore, lineDistances);
             }
 
-        } else if (!middleVertex && currentCap == LineCapType::Square) {
+        } else if (!hasPrevNextVertex && currentCap == LineCapType::Square) {
             if (!startOfLine) {
                 // Close previous segment with a square cap
-                addCurrentVertex(*currentCoordinate, distance, *prevNormal, 1, 1, false,
+                addCurrentVertex(*currentCoordinate, zHeightRatio, geoDistance, *prevNormal, 1, 1, false,
                                  startVertex, triangleStore, lineDistances);
 
                 // The segment is done. Unset vertices to disconnect segments.
@@ -392,18 +463,18 @@ void LineBucket::addGeometry(const GeometryCoordinates& coordinates,
 
             // Start next segment
             if (nextCoordinate) {
-                addCurrentVertex(*currentCoordinate, distance, *nextNormal, -1, -1, false,
+                addCurrentVertex(*currentCoordinate, zHeightRatio, geoDistance, *nextNormal, -1, -1, false,
                                  startVertex, triangleStore, lineDistances);
             }
 
-        } else if (middleVertex ? currentJoin == LineJoinType::Round : currentCap == LineCapType::Round) {
+        } else if (hasPrevNextVertex ? currentJoin == LineJoinType::Round : currentCap == LineCapType::Round) {
             if (!startOfLine) {
                 // Close previous segment with a butt
-                addCurrentVertex(*currentCoordinate, distance, *prevNormal, 0, 0, false,
+                addCurrentVertex(*currentCoordinate, zHeightRatio, geoDistance, *prevNormal, 0, 0, false,
                                  startVertex, triangleStore, lineDistances);
 
                 // Add round cap or linejoin at end of segment
-                addCurrentVertex(*currentCoordinate, distance, *prevNormal, 1, 1, true, startVertex,
+                addCurrentVertex(*currentCoordinate, zHeightRatio, geoDistance, *prevNormal, 1, 1, true, startVertex,
                                  triangleStore, lineDistances);
 
                 // The segment is done. Unset vertices to disconnect segments.
@@ -413,20 +484,25 @@ void LineBucket::addGeometry(const GeometryCoordinates& coordinates,
             // Start next segment with a butt
             if (nextCoordinate) {
                 // Add round cap before first segment
-                addCurrentVertex(*currentCoordinate, distance, *nextNormal, -1, -1, true,
+                addCurrentVertex(*currentCoordinate, zHeightRatio, geoDistance, *nextNormal, -1, -1, true,
                                  startVertex, triangleStore, lineDistances);
 
-                addCurrentVertex(*currentCoordinate, distance, *nextNormal, 0, 0, false,
+                addCurrentVertex(*currentCoordinate, zHeightRatio, geoDistance, *nextNormal, 0, 0, false,
                                  startVertex, triangleStore, lineDistances);
             }
         }
 
+        // 处理转折角度过大尖角点，填补一个新pre坐标点
         if (isSharpCorner && i < len - 1) {
             const auto nextSegmentLength = util::dist<double>(*currentCoordinate, *nextCoordinate);
             if (nextSegmentLength > 2 * sharpCornerOffset) {
-                GeometryCoordinate newCurrentVertex = *currentCoordinate + convertPoint<int16_t>(util::round(convertPoint<double>(*nextCoordinate - *currentCoordinate) * (sharpCornerOffset / nextSegmentLength)));
-                distance += util::dist<double>(newCurrentVertex, *currentCoordinate);
-                addCurrentVertex(newCurrentVertex, distance, *nextNormal, 0, 0, false, startVertex, triangleStore, lineDistances);
+                // 伪造新的中间点
+                GeometryCoordinate newCurrentVertex = *currentCoordinate +
+                convertPoint<int16_t>(util::round(convertPoint<double>(*nextCoordinate - *currentCoordinate) * (sharpCornerOffset / nextSegmentLength)));
+                geoDistance += util::dist<double>(newCurrentVertex, *currentCoordinate);
+                addCurrentVertex(newCurrentVertex, zHeightRatio, geoDistance, *nextNormal, 0, 0, false,
+                                 startVertex, triangleStore, lineDistances);
+                
                 currentCoordinate = newCurrentVertex;
             }
         }
@@ -454,6 +530,7 @@ void LineBucket::addGeometry(const GeometryCoordinates& coordinates,
 }
 
 void LineBucket::addCurrentVertex(const GeometryCoordinate& currentCoordinate,
+                                  const int16_t z,
                                   double &distance,
                                   const Point<double>& normal,
                                   double endLeft,
@@ -467,7 +544,9 @@ void LineBucket::addCurrentVertex(const GeometryCoordinate& currentCoordinate,
 
     if (endLeft)
         extrude = extrude - (util::perp(normal) * endLeft);
-    vertices.emplace_back(LineProgram::layoutVertex(currentCoordinate, extrude, round, false, endLeft, scaledDistance * LINE_DISTANCE_SCALE));
+    vertices.emplace_back(LineProgram::layoutVertex(currentCoordinate, z,
+                                                    extrude, round, false, endLeft,
+                                                    scaledDistance * LINE_DISTANCE_SCALE));
     e3 = vertices.elements() - 1 - startVertex;
     if (e1 >= 0 && e2 >= 0) {
         triangleStore.emplace_back(e1, e2, e3);
@@ -478,7 +557,9 @@ void LineBucket::addCurrentVertex(const GeometryCoordinate& currentCoordinate,
     extrude = normal * -1.0;
     if (endRight)
         extrude = extrude - (util::perp(normal) * endRight);
-    vertices.emplace_back(LineProgram::layoutVertex(currentCoordinate, extrude, round, true, -endRight, scaledDistance * LINE_DISTANCE_SCALE));
+    vertices.emplace_back(LineProgram::layoutVertex(currentCoordinate, z,
+                                                    extrude, round, true, -endRight,
+                                                    scaledDistance * LINE_DISTANCE_SCALE));
     e3 = vertices.elements() - 1 - startVertex;
     if (e1 >= 0 && e2 >= 0) {
         triangleStore.emplace_back(e1, e2, e3);
@@ -492,7 +573,8 @@ void LineBucket::addCurrentVertex(const GeometryCoordinate& currentCoordinate,
     // to `linesofar`.
     if (distance > MAX_LINE_DISTANCE / 2.0f && !lineDistances) {
         distance = 0.0;
-        addCurrentVertex(currentCoordinate, distance, normal, endLeft, endRight, round, startVertex, triangleStore, lineDistances);
+        addCurrentVertex(currentCoordinate, z, distance, normal, endLeft, endRight, 
+                         round, startVertex, triangleStore, lineDistances);
     }
 }
 
@@ -508,7 +590,9 @@ void LineBucket::addPieSliceVertex(const GeometryCoordinate& currentVertex,
         distance = lineDistances->scaleToMaxLineDistance(distance);
     }
 
-    vertices.emplace_back(LineProgram::layoutVertex(currentVertex, flippedExtrude, false, lineTurnsLeft, 0, distance * LINE_DISTANCE_SCALE));
+    vertices.emplace_back(LineProgram::layoutVertex(currentVertex, 0,
+                                                    flippedExtrude, false, lineTurnsLeft, 0,
+                                                    distance * LINE_DISTANCE_SCALE));
     e3 = vertices.elements() - 1 - startVertex;
     if (e1 >= 0 && e2 >= 0) {
         triangleStore.emplace_back(e1, e2, e3);
@@ -551,7 +635,8 @@ bool LineBucket::hasData() const {
 }
 
 template <class Property>
-static float get(const LinePaintProperties::PossiblyEvaluated& evaluated, const std::string& id, const std::map<std::string, LineProgram::Binders>& paintPropertyBinders) {
+static float get(const LinePaintProperties::PossiblyEvaluated& evaluated, const std::string& id, 
+                 const std::map<std::string, LineProgram::Binders>& paintPropertyBinders) {
     auto it = paintPropertyBinders.find(id);
     if (it == paintPropertyBinders.end() || !it->second.statistics<Property>().max()) {
         return evaluated.get<Property>().constantOr(Property::defaultValue());

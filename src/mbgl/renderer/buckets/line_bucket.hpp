@@ -53,7 +53,8 @@ public:
     std::map<std::string, LineProgram::Binders> paintPropertyBinders;
 
 private:
-    void addGeometry(const GeometryCoordinates&, const GeometryTileFeature&, const CanonicalTileID&);
+    using IsTermination = std::array<bool, 2>;
+    void addGeometry(const GeometryCoordinates&, const GeometryTileFeature&, const CanonicalTileID&, const IsTermination&);
 
     struct TriangleElement {
         TriangleElement(uint16_t a_, uint16_t b_, uint16_t c_) : a(a_), b(b_), c(c_) {}
@@ -62,6 +63,7 @@ private:
 
     class Distances;
     void addCurrentVertex(const GeometryCoordinate& currentCoordinate,
+                          const int16_t z,
                           double& distance,
                           const Point<double>& normal,
                           double endLeft,

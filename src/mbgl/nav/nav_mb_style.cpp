@@ -99,5 +99,45 @@ double getRenderTime() {
     return render_time_seconds;
 }
 
+std::map<std::string, int16_t> layerHeightMap = {
+//    { "tunnel-path-trail", 0 },
+//    { "tunnel-path-cycleway-piste", 0 },
+//    { "tunnel-path", 0 },
+//    { "tunnel-steps", 0 },
+//    { "tunnel-pedestrian", 0 },
+//    { "tunnel-simple", 0 },
+    
+    // 0
+    
+//    { "bridge-path-trail", 0 },
+//    { "bridge-path-cycleway-piste", 0 },
+//    { "bridge-path", 0 },
+//    { "bridge-steps", 0 },
+//    { "bridge-pedestrian", 0 },
+    
+    { "bridge-case-simple copy", 3 },
+//    { "bridge-case-simple", 3 },
+    { "bridge-simple", 3 },
+
+//    { "bridge-rail", 0 },
+//    { "bridge-rail-tracks", 0 },
+};
+
+bool layerHasLineHeight(const std::string& layerId) {
+    return layerHeightMap.find(layerId) != layerHeightMap.end();
+}
+
+void updateXRayedRatio() {
+    
+}
+
+void setXRayed(bool enabled) {
+    
+}
+
+float xRayedRatio() {
+    
+}
+
 }
 }

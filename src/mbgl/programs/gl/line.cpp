@@ -81,6 +81,7 @@ struct ShaderSource<LineProgram> {
         
         attribute vec2 a_pos_normal;
         attribute vec4 a_data;
+        attribute float a_height_ratio;
     
         uniform mat4 u_matrix;
         uniform mediump float u_ratio;
@@ -198,7 +199,7 @@ struct ShaderSource<LineProgram> {
             mediump vec2 offset2=offset*a_extrude*scale*normal.y*mat2(t,-u,u,t);
     
             vec4 projected_extrude=u_matrix*vec4(dist/u_ratio,0.0,0.0);
-            gl_Position=u_matrix*vec4(pos+offset2/u_ratio,0.0,1.0)+projected_extrude;
+            gl_Position=u_matrix*vec4(pos+offset2/u_ratio,a_height_ratio,1.0)+projected_extrude;
     
             float extrude_length_without_perspective=length(dist);
             float extrude_length_with_perspective=length(projected_extrude.xy/gl_Position.w*u_units_to_pixels);

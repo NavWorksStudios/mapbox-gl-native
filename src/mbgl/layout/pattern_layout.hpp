@@ -9,6 +9,7 @@
 #include <mbgl/clipper2/clipper.h>
 
 #include "mbgl/nav/nav_log.hpp"
+#include "mbgl/nav/nav_mb_style.hpp"
 
 namespace mbgl {
 
@@ -232,6 +233,7 @@ public:
                     const PatternLayerMap& patterns = patternFeature.patterns;
                     const GeometryCollection& geometries = feature->getGeometries();
 
+                    bucket->hasLineHeight = nav::mb::layerHasLineHeight(bucketLeaderID);
                     bucket->addFeature(*feature, geometries, patternPositions, patterns, i, canonical);
                     featureIndex->insert(geometries, i, sourceLayerID, bucketLeaderID);
                 }
@@ -249,7 +251,7 @@ public:
 //        nav::log::i("PatternLayout", "%s (%d) Bucket:%p", tile.c_str(), count, bucket.get());
 //        assert(nav::mb::bucketMap()[tile] == 0);
 //        nav::log::bucketMap()[tile]++;
-        bucket->key = tile;
+//        bucket->key = tile;
         
         bucket->nav_upload_external(canonical, bucketLeaderID, sourceLayerID);
         

@@ -53,6 +53,25 @@ T dist(const S1& a, const S2& b) {
     return c;
 }
 
+template <typename T, typename P>
+T distToLine(const P& p, const P& a, const P& b) {
+    T len = dist<T>(a, b);
+    if (len == 0) { // 线段长度为0，即线段为点
+        return dist<T>(p, a);
+    }
+    
+    T r = ((p.x - a.x) * (b.x - a.x) + (p.y - a.y) * (b.y - a.y)) / pow(len, 2);
+    if (r <= 0) { // 垂足在p1处
+        return dist<T>(p, a);
+    } else if (r >= 1) { // 垂足在p2处
+        return dist<T>(p, b);
+    } else { // 垂足在线段上
+        T x = (T) (a.x + r * (b.x - a.x));
+        T y = (T) (a.y + r * (b.y - a.y));
+        return dist<T>(p, P(x,y));
+    }
+}
+
 template <typename T, typename S1, typename S2>
 T distSqr(const S1& a, const S2& b) {
     T dx = b.x - a.x;
