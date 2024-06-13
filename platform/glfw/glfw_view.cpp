@@ -375,23 +375,32 @@ void GLFWView::onKey(int key, int action, int mods) {
         case GLFW_KEY_R: {
             show3DExtrusions = true;
             toggle3DExtrusions(show3DExtrusions);
-            if (animateRouteCallback) break;
-            animateRouteCallback = [this](mbgl::Map* routeMap) {
+//            if (animateRouteCallback) break;
+            
+            static int index = 0;
+            index = fmod(index + 1, 3);
+            
+            static mapbox::cheap_ruler::CheapRuler ruler { 0 };
+            ruler = mapbox::cheap_ruler::CheapRuler(mbgl::platform::glfw::LatitudeValue[index]);
+            
+            static mapbox::geojson::geojson route;
+            route = { mapbox::geojson::parse(mbgl::platform::glfw::RouteValue[index]) };
 
-                static mapbox::cheap_ruler::CheapRuler ruler { mbgl::platform::glfw::Guomao::Latitude };
-                static mapbox::geojson::geojson route { mapbox::geojson::parse(mbgl::platform::glfw::Guomao::Route) };
-                
+            static double routeProgress;
+            routeProgress = 0;
+
+            static double routeDistance;
+            const auto& geometry = route.get<mapbox::geometry::geometry<double>>();
+            const auto& lineString = geometry.get<mapbox::geometry::line_string<double>>();
+            routeDistance = ruler.lineDistance(lineString);
+
+            animateRouteCallback = [this](mbgl::Map* routeMap) {
                 const auto& geometry = route.get<mapbox::geometry::geometry<double>>();
                 const auto& lineString = geometry.get<mapbox::geometry::line_string<double>>();
-
-                static double routeDistance = ruler.lineDistance(lineString);
-                static double routeProgress = 0;
-
-                routeProgress += mbgl::platform::glfw::Guomao::Speed;
                 
-                if (routeProgress > 1.0) {
-                    routeProgress = 0.0;
-                }
+                double speed = mbgl::platform::glfw::SpeedValue[index];
+                double progress = fmod(routeProgress + speed, 1.0);
+                routeProgress = progress;
 
                 auto camera = routeMap->getCameraOptions();
 
@@ -410,7 +419,8 @@ void GLFWView::onKey(int key, int action, int mods) {
                 puck->setLocation(toArray(mapCenter));
                 puck->setBearing(mbgl::style::Rotation(bearing));
             };
-            toggleLocationIndicatorLayer();
+            
+            toggleLocationIndicatorLayer(true);
             animateRouteCallback(map);
         } break;
         case GLFW_KEY_E:
@@ -533,7 +543,7 @@ void GLFWView::onKey(int key, int action, int mods) {
             makeSnapshot(true);
         } break;
         case GLFW_KEY_G: {
-            toggleLocationIndicatorLayer();
+            toggleLocationIndicatorLayer(false);
         } break;
         case GLFW_KEY_Y: {
             freeCameraDemoPhase = 0;
@@ -1127,7 +1137,7 @@ void GLFWView::toggleCustomSource() {
     }
 }
 
-void GLFWView::toggleLocationIndicatorLayer() {
+void GLFWView::toggleLocationIndicatorLayer(bool visibility) {
 #if defined(MBGL_RENDER_BACKEND_OPENGL) && !defined(MBGL_LAYER_LOCATION_INDICATOR_DISABLE_ALL)
     puck = static_cast<mbgl::style::LocationIndicatorLayer *>(map->getStyle().getLayer("puck"));
     static const mbgl::LatLng puckLocation{35.683389, 139.76525}; // A location on the crossing of 4 tiles
@@ -1167,22 +1177,22 @@ void GLFWView::toggleLocationIndicatorLayer() {
 
         puck = puckLayer.get();
         map->getStyle().addLayer(std::move(puckLayer));
-    } else {
-        bool visible = puck->getVisibility() == mbgl::style::VisibilityType::Visible;
-        if (visible) {
-            if (!puckFollowsCameraCenter) {
-                mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
-                puck->setLocation(toArray(mapCenter));
-                puckFollowsCameraCenter = true;
-            } else {
-                puckFollowsCameraCenter = false;
-                puck->setVisibility(mbgl::style::VisibilityType(mbgl::style::VisibilityType::None));
-            }
+    }
+
+//    bool visible = puck->getVisibility() == mbgl::style::VisibilityType::Visible;
+    if (!visibility) {
+        if (!puckFollowsCameraCenter) {
+            mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
+            puck->setLocation(toArray(mapCenter));
+            puckFollowsCameraCenter = true;
         } else {
-            puck->setLocation(toArray(puckLocation));
-            puck->setVisibility(mbgl::style::VisibilityType(mbgl::style::VisibilityType::Visible));
             puckFollowsCameraCenter = false;
+            puck->setVisibility(mbgl::style::VisibilityType(mbgl::style::VisibilityType::None));
         }
+    } else {
+        puck->setLocation(toArray(puckLocation));
+        puck->setVisibility(mbgl::style::VisibilityType(mbgl::style::VisibilityType::Visible));
+        puckFollowsCameraCenter = false;
     }
 #endif
 }

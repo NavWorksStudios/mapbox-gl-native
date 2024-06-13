@@ -100,7 +100,7 @@ private:
     void updateFreeCameraDemo();
     void updateAnimatedAnnotations();
     void toggleCustomSource();
-    void toggleLocationIndicatorLayer();
+    void toggleLocationIndicatorLayer(bool visibility);
 
     void cycleDebugOptions();
     void clearAnnotations();
