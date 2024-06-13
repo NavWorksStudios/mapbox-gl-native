@@ -137,7 +137,7 @@ private:
     float frameTime = 0;
     double lastReported = 0;
 
-    int width = 1280;
+    int width = 1800;
     int height = 720;
     float pixelRatio;
 

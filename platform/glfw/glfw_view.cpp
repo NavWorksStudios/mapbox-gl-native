@@ -287,7 +287,11 @@ void GLFWView::onKey(GLFWwindow *window, int key, int /*scancode*/, int action, 
 
 void GLFWView::onKey(int key, int action, int mods) {
     if (action == GLFW_RELEASE) {
-        if (key != GLFW_KEY_R || key != GLFW_KEY_S) animateRouteCallback = nullptr;
+        if (key != GLFW_KEY_R/* || key != GLFW_KEY_S*/) {
+            animateRouteCallback = nullptr;
+            toggleLocationIndicatorLayer(false);
+            nav::mb::spotlight::enable(false);
+        }
 
         switch (key) {
             case GLFW_KEY_ESCAPE:
@@ -373,12 +377,16 @@ void GLFWView::onKey(int key, int action, int mods) {
             nextPlace = nextPlace % places.size();
         } break;
         case GLFW_KEY_R: {
-            show3DExtrusions = true;
-            toggle3DExtrusions(show3DExtrusions);
+//            show3DExtrusions = true;
+//            toggle3DExtrusions(show3DExtrusions);
 //            if (animateRouteCallback) break;
             
+            nav::mb::spotlight::enable(true);
+            
             static int index = 0;
-            index = fmod(index + 1, 3);
+            if (animateRouteCallback) {
+                index = fmod(index + 1, 3);
+            }
             
             static mapbox::cheap_ruler::CheapRuler ruler { 0 };
             ruler = mapbox::cheap_ruler::CheapRuler(mbgl::platform::glfw::LatitudeValue[index]);
@@ -386,8 +394,7 @@ void GLFWView::onKey(int key, int action, int mods) {
             static mapbox::geojson::geojson route;
             route = { mapbox::geojson::parse(mbgl::platform::glfw::RouteValue[index]) };
 
-            static double routeProgress;
-            routeProgress = 0;
+            static double routeProgress = 0;
 
             static double routeDistance;
             const auto& geometry = route.get<mapbox::geometry::geometry<double>>();
@@ -413,7 +420,7 @@ void GLFWView::onKey(int key, int action, int mods) {
                 
                 bearing = *camera.bearing + (easing / 40);
                 
-                routeMap->jumpTo(mbgl::CameraOptions().withCenter(center).withZoom(17.5).withBearing(bearing).withPitch(60.0));
+                routeMap->jumpTo(mbgl::CameraOptions().withCenter(center).withZoom(18).withBearing(bearing).withPitch(65.0));
 
                 mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
                 puck->setLocation(toArray(mapCenter));
