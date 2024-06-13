@@ -203,7 +203,7 @@ struct ShaderSource<FillExtrusionProgram> {
     static const char* navFragment(const char* ) { return R"(
 
         uniform bool u_rendering_reflection;
-        uniform float u_spotlight_ratio;
+        uniform float u_spotlight;
 
         varying vec3 v_pos;
         varying vec4 v_color;
@@ -222,10 +222,10 @@ struct ShaderSource<FillExtrusionProgram> {
 
                 // 距离屏幕中心点越近，越透明
                 float centerDis = pow(v_pos.x, 2.) + pow(v_pos.y, 2.);
-                float centerFactor = clamp(centerDis / 1000000., 1. - u_spotlight_ratio, 1.);
+                float centerFactor = clamp(centerDis / 1000000., 1. - u_spotlight, 1.);
     
                 gl_FragColor = v_color * (edgeFactor + centerFactor);
-                gl_FragColor *= 1.2 + 1.5 * u_spotlight_ratio; // 提亮
+                gl_FragColor *= 1.2 + 1.5 * u_spotlight; // 提亮
             }
     
         #ifdef OVERDRAW_INSPECTOR

@@ -104,6 +104,7 @@ void RenderFillLayer::render(PaintParameters& parameters) {
                         uniforms::normal_matrix::Value(tile.normalMatrix),
                         uniforms::camera_pos::Value(parameters.state.getCameraPosition()),
                         uniforms::world::Value( parameters.backend.getDefaultRenderable().getSize() ),
+                        uniforms::spotlight::Value( nav::mb::spotlight::value() ),
                         uniforms::render_time::Value(nav::mb::rendertime::value()),
                     },
                     paintPropertyBinders,

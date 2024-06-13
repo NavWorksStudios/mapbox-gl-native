@@ -191,6 +191,7 @@ R"(
 uniform mat4 u_normal_matrix;
 uniform sampler2D u_matcap;
 uniform bool u_enable_matcap;
+uniform float u_spotlight;
 
 varying vec3 v_pos;
 varying vec3 v_camera_pos;
@@ -237,9 +238,11 @@ void main() {
         color4 = vec4(color3, color4.a);
     }
         
-    float centerFactor = clamp(pow(pow(v_pos.x,2.) + pow(v_pos.y,2.) + .001, 0.3) / 300., 0., 1.);
-    vec3 rgb = color4.rgb * (.8 + (1. - centerFactor)); // 距离屏幕中心点越近，越亮
-    gl_FragColor = vec4(rgb, color4.a) * opacity;
+    float centerDis = pow(v_pos.x, 2.) + pow(v_pos.y, 2.);
+    float centerFactor = clamp(centerDis / 500000., 1. - u_spotlight, 1.);
+    vec3 spotlight = color4.rgb * (1. + 1.5 * (1. - centerFactor)); // 距离屏幕中心点越近，越亮
+
+    gl_FragColor = vec4(spotlight, color4.a) * opacity;
         
 //    gl_FragColor = color;
         
