@@ -197,7 +197,7 @@ private:
     mbgl::ResourceOptions mapResourceOptions;
 
 #if defined(MBGL_RENDER_BACKEND_OPENGL) && !defined(MBGL_LAYER_CUSTOM_DISABLE_ALL)
-    bool puckFollowsCameraCenter = false;
+    bool puckFollowsCameraCenter = true;
     mbgl::style::LocationIndicatorLayer *puck = nullptr;
 #endif
 };
