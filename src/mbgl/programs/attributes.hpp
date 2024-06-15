@@ -22,7 +22,7 @@ MBGL_DEFINE_ATTRIBUTE(uint8_t, 2, placed);
 MBGL_DEFINE_ATTRIBUTE(uint16_t, 3, size);
 MBGL_DEFINE_ATTRIBUTE(float, 1, offset);
 MBGL_DEFINE_ATTRIBUTE(float, 2, shift);
-MBGL_DEFINE_ATTRIBUTE(int16_t, 1, height_ratio);
+MBGL_DEFINE_ATTRIBUTE(float, 1, zvalue);
 
 template <typename T, std::size_t N>
 struct data {

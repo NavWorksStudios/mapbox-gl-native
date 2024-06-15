@@ -96,16 +96,13 @@ std::map<std::string, int16_t> layerHeightMap = {
 //    { "tunnel-pedestrian", 0 },
 //    { "tunnel-simple", 0 },
     
-    // 0
-    
 //    { "bridge-path-trail", 0 },
 //    { "bridge-path-cycleway-piste", 0 },
 //    { "bridge-path", 0 },
 //    { "bridge-steps", 0 },
 //    { "bridge-pedestrian", 0 },
     
-    { "bridge-case-simple copy", 3 },
-//    { "bridge-case-simple", 3 },
+    { "bridge-case-simple", 3 },
     { "bridge-simple", 3 },
 
 //    { "bridge-rail", 0 },
@@ -134,33 +131,72 @@ double value() {
 
 }
 
+struct ToggleValue {
+    bool _enabled = false;
+    float _ratio = 0.;
+
+    void update() {
+        if (_enabled && _ratio < 1.) {
+            _ratio = fmin(_ratio + fmax((1. - _ratio) * 0.2, 0.01), 1.);
+        } else if (_ratio > 0.) {
+            _ratio = fmax(_ratio - fmax((_ratio - 0.) * 0.05, 0.01), 0.);
+        }
+    }
+
+    void enable() { _enabled = true; }
+    void disable() { _enabled = false; }
+    operator float () { return _ratio; }
+};
+
 namespace spotlight {
 
-bool _enabled = false;
-float _ratio = 0.;
-
-void update() {
-    if (_enabled && _ratio < 1.) {
-        _ratio = fmin(_ratio + fmax((1. - _ratio) * 0.05, 0.01), 1.);
-    } else if (_ratio > 0.) {
-        _ratio = fmax(_ratio - fmax((_ratio - 0.) * 0.05, 0.01), 0.);
-    }
-}
-
-void enable(bool enabled) {
-    _enabled = enabled;
-}
+ToggleValue toggle;
 
 float value() {
-    return _ratio;
+    return toggle;
+}
+
+}
+
+namespace landscape {
+
+ToggleValue toggle;
+
+float value() {
+    return toggle;
 }
 
 }
 
 void update() {
     rendertime::update();
-    spotlight::update();
+    spotlight::toggle.update();
+    landscape::toggle.update();
 }
+
+void setViewMode(ViewMode mode) {
+    switch (mode) {
+        case Landscape:
+            spotlight::toggle.disable();
+            landscape::toggle.enable();
+            break;
+            
+        case Normal:
+            spotlight::toggle.disable();
+            landscape::toggle.disable();
+            break;
+            
+        case Spotlight:
+            spotlight::toggle.enable();
+            landscape::toggle.disable();
+            break;
+            
+        default:
+            break;
+    }
+}
+
+
 
 }
 }

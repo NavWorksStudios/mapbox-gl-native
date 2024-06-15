@@ -27,16 +27,29 @@ mbgl::gfx::TextureResource& getTexture(const std::string& name);
 
 bool layerHasLineHeight(const std::string& layerId);
 
+
+
 namespace rendertime {
 double value();
 }
 
 namespace spotlight {
-void enable(bool enabled);
+float value();
+}
+
+namespace landscape {
 float value();
 }
 
 void update();
+
+enum ViewMode : int8_t {
+    Landscape,
+    Normal,
+    Spotlight,
+};
+
+void setViewMode(ViewMode mode);
 
 }
 }

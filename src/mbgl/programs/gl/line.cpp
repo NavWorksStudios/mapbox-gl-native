@@ -81,7 +81,7 @@ struct ShaderSource<LineProgram> {
         
         attribute vec2 a_pos_normal;
         attribute vec4 a_data;
-        attribute float a_height_ratio;
+        attribute float a_zvalue;
     
         uniform mat4 u_matrix;
         uniform mediump float u_ratio;
@@ -199,7 +199,7 @@ struct ShaderSource<LineProgram> {
             mediump vec2 offset2=offset*a_extrude*scale*normal.y*mat2(t,-u,u,t);
     
             vec4 projected_extrude=u_matrix*vec4(dist/u_ratio,0.0,0.0);
-            gl_Position=u_matrix*vec4(pos+offset2/u_ratio,a_height_ratio,1.0)+projected_extrude;
+            gl_Position=u_matrix*vec4(pos+offset2/u_ratio,a_zvalue,1.0)+projected_extrude;
     
             float extrude_length_without_perspective=length(dist);
             float extrude_length_with_perspective=length(projected_extrude.xy/gl_Position.w*u_units_to_pixels);
@@ -217,15 +217,15 @@ struct ShaderSource<LineProgram> {
         precision mediump float;
     #else
         #if !defined(lowp)
-            #define lowp
+        #define lowp
         #endif
 
         #if !defined(mediump)
-            #define mediump
+        #define mediump
         #endif
 
         #if !defined(highp)
-            #define highp
+        #define highp
         #endif
     #endif
 
@@ -235,6 +235,7 @@ struct ShaderSource<LineProgram> {
 
         uniform float u_zoom;
         uniform lowp float u_device_pixel_ratio;
+        uniform float u_spotlight;
 
         varying vec2 v_width2;
         varying vec2 v_normal;
@@ -273,14 +274,14 @@ struct ShaderSource<LineProgram> {
     #endif
     
         // 在近比例尺下，光圈变大
-        float zoomFactor = clamp(u_zoom - 15., 1., 10.);
+        float zoomFactor = clamp(u_zoom - 17., 1., 10.);
     
         // 距离屏幕中心点越近，越亮
         float radius = 1000000. * zoomFactor;
         float centerFactor = clamp((pow(v_pos.x,2.) + pow(v_pos.y,2.)) / radius, 0., 1.);
 
         float a = color.a;
-        color *= .7 + (1. - centerFactor);
+        color *= .7 + (1. - centerFactor) * (.7 + 0.3*u_spotlight);
         color.a = a;
     
         // draw line

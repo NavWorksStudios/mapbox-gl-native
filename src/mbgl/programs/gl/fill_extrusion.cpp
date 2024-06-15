@@ -82,6 +82,7 @@ struct ShaderSource<FillExtrusionProgram> {
         uniform lowp float u_lightintensity;
         uniform float u_vertical_gradient;
         uniform lowp float u_opacity;
+        uniform float u_spotlight;
         uniform bool u_rendering_reflection;
     
         attribute vec2 a_pos;
@@ -92,24 +93,24 @@ struct ShaderSource<FillExtrusionProgram> {
         varying vec2 v_heightInterpolator;
                 
         #ifndef HAS_UNIFORM_u_base
-            uniform lowp float u_base_t;
-            attribute highp vec2 a_base;
+        uniform lowp float u_base_t;
+        attribute highp vec2 a_base;
         #else
-            uniform highp float u_base;
+        uniform highp float u_base;
         #endif
         
         #ifndef HAS_UNIFORM_u_height
-            uniform lowp float u_height_t;
-            attribute highp vec2 a_height;
+        uniform lowp float u_height_t;
+        attribute highp vec2 a_height;
         #else
-            uniform highp float u_height;
+        uniform highp float u_height;
         #endif
         
         #ifndef HAS_UNIFORM_u_color
-            uniform lowp float u_color_t;
-            attribute highp vec4 a_color;
+        uniform lowp float u_color_t;
+        attribute highp vec4 a_color;
         #else
-            uniform highp vec4 u_color;
+        uniform highp vec4 u_color;
         #endif
         
         void main() {
@@ -130,86 +131,85 @@ struct ShaderSource<FillExtrusionProgram> {
         #else
             highp vec4 color=u_color;
         #endif
+    
+            // normal
+            vec3 normal=a_normal_ed.xyz;
+        
+            // height
+            //base=max(0.0,base);
+            height=max(max(base,height), 5.);
+            bool h=mod(normal.x,2.0)>0.0;
 
-    
-        // normal
-        vec3 normal=a_normal_ed.xyz;
-    
-        // height
-        //base=max(0.0,base);
-        height=max(max(base,height), 5.);
-        bool h=mod(normal.x,2.0)>0.0;
-
-        // reflection
-        if (u_rendering_reflection) {
-            base=-base;
-            height=-height;
-        }
-    
-        // position
-        gl_Position=u_matrix*vec4(a_pos, h?height:base, 1.);
-    
-        // directional light
-        float colorvalue = color.r*0.2126 + color.g*0.7152 + color.b*0.0722;
-        float directional = clamp(dot(normal/16384.0, u_lightpos), 0.0, 1.0);
-        directional = mix((1.0-u_lightintensity), max((1.0-colorvalue+u_lightintensity),1.0), directional);
-        if (normal.y != 0.0) { // surface is not a horizontal plane
-            // vertical_gradient
-            float vertical_factor = clamp((height+base) * pow(height/150.0,0.5), mix(0.7,0.98,1.0-u_lightintensity), 1.0);
-            directional *= ((1.0 - u_vertical_gradient) + (u_vertical_gradient * vertical_factor));
-        }
-    
-        // ambient light
-        vec4 ambientlight=vec4(0.03,0.03,0.03,1.0);
-        color+=ambientlight;
-    
-        // mix color with directional light
-        v_color.r=clamp(color.r*directional*u_lightcolor.r, 0.3*(1.0-u_lightcolor.r), 1.0);
-        v_color.g=clamp(color.g*directional*u_lightcolor.g, 0.3*(1.0-u_lightcolor.g), 1.0);
-        v_color.b=clamp(color.b*directional*u_lightcolor.b, 0.3*(1.0-u_lightcolor.b), 1.0);
-        v_color*=u_opacity;
-    
-        if (u_rendering_reflection) {
-            v_color*=.3;
-        }
-    
-        v_pos=gl_Position.xyz;
-        v_heightInterpolator=vec2(abs(height-base), h?1.:0.);
-
+            // reflection
+            if (u_rendering_reflection) {
+                base=-base;
+                height=-height;
+            }
+        
+            // position
+            gl_Position=u_matrix*vec4(a_pos, h?height:base, 1.);
+        
+            // directional light
+            float colorvalue = color.r*0.2126 + color.g*0.7152 + color.b*0.0722;
+            float directional = clamp(dot(normal/16384.0, u_lightpos), 0.0, 1.0);
+            directional = mix((1.0-u_lightintensity), max((1.0-colorvalue+u_lightintensity),1.0), directional);
+            if (normal.y != 0.0) { // surface is not a horizontal plane
+                // vertical_gradient
+                float vertical_factor = clamp((height+base) * pow(height/150.0,0.5), mix(0.7,0.98,1.0-u_lightintensity), 1.0);
+                directional *= ((1.0 - u_vertical_gradient) + (u_vertical_gradient * vertical_factor));
+            }
+        
+            // ambient light
+            vec4 ambientlight=vec4(0.03,0.03,0.03,1.0);
+            color+=ambientlight;
+        
+            // mix color with directional light
+            v_color.r=clamp(color.r*directional*u_lightcolor.r, 0.3*(1.0-u_lightcolor.r), 1.0);
+            v_color.g=clamp(color.g*directional*u_lightcolor.g, 0.3*(1.0-u_lightcolor.g), 1.0);
+            v_color.b=clamp(color.b*directional*u_lightcolor.b, 0.3*(1.0-u_lightcolor.b), 1.0);
+            v_color *= u_opacity * (2.5 + 2.*u_spotlight);
+        
+            if (u_rendering_reflection) {
+                v_color*=.15;
+            }
+        
+            v_pos=gl_Position.xyz;
+            v_heightInterpolator=vec2(abs(height-base), h?1.:0.);
         }
         
     )"; }
     
     static const char* navFragment(const char* , size_t ) { return R"(
 
-        #ifdef GL_ES
-            precision mediump float;
-        #else
-            #if !defined(lowp)
-                #define lowp
-            #endif
-        
-            #if !defined(mediump)
-                #define mediump
-            #endif
-        
-            #if !defined(highp)
-                #define highp
-            #endif
+    #ifdef GL_ES
+        precision mediump float;
+    #else
+        #if !defined(lowp)
+        #define lowp
         #endif
+    
+        #if !defined(mediump)
+        #define mediump
+        #endif
+    
+        #if !defined(highp)
+        #define highp
+        #endif
+    #endif
         
     )"; }
     
     static const char* navFragment(const char* ) { return R"(
 
-        uniform bool u_rendering_reflection;
         uniform float u_spotlight;
+        uniform bool u_rendering_reflection;
 
         varying vec3 v_pos;
         varying vec4 v_color;
         varying vec2 v_heightInterpolator;
 
         void main() {
+    
             if (u_rendering_reflection) {
                 gl_FragColor=v_color;
             } else {
@@ -225,12 +225,12 @@ struct ShaderSource<FillExtrusionProgram> {
                 float centerFactor = clamp(centerDis / 1000000., 1. - u_spotlight, 1.);
     
                 gl_FragColor = v_color * (edgeFactor + centerFactor);
-                gl_FragColor *= 1.2 + 1.5 * u_spotlight; // 提亮
             }
     
         #ifdef OVERDRAW_INSPECTOR
             gl_FragColor=vec4(1.0);
         #endif
+
         }
         
     )"; }
