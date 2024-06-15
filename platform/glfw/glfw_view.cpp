@@ -290,7 +290,7 @@ void GLFWView::onKey(int key, int action, int mods) {
         if (key != GLFW_KEY_R/* || key != GLFW_KEY_S*/) {
             animateRouteCallback = nullptr;
             toggleLocationIndicatorLayer(false);
-            nav::mb::spotlight::enable(false);
+            nav::mb::setViewMode(nav::mb::ViewMode::Normal);
         }
 
         switch (key) {
@@ -381,7 +381,7 @@ void GLFWView::onKey(int key, int action, int mods) {
 //            toggle3DExtrusions(show3DExtrusions);
 //            if (animateRouteCallback) break;
             
-            nav::mb::spotlight::enable(true);
+            nav::mb::setViewMode(nav::mb::ViewMode::Spotlight);
             
             static int index = 0;
             if (animateRouteCallback) {
@@ -428,6 +428,7 @@ void GLFWView::onKey(int key, int action, int mods) {
             };
             
             toggleLocationIndicatorLayer(true);
+            
             animateRouteCallback(map);
         } break;
         case GLFW_KEY_E:
@@ -1187,19 +1188,19 @@ void GLFWView::toggleLocationIndicatorLayer(bool visibility) {
     }
 
 //    bool visible = puck->getVisibility() == mbgl::style::VisibilityType::Visible;
-    if (!visibility) {
-        if (!puckFollowsCameraCenter) {
+    if (visibility) {
+        puck->setLocation(toArray(puckLocation));
+        puck->setVisibility(mbgl::style::VisibilityType(mbgl::style::VisibilityType::Visible));
+        puckFollowsCameraCenter = true;
+    } else {
+        if (puckFollowsCameraCenter) {
+            puck->setVisibility(mbgl::style::VisibilityType(mbgl::style::VisibilityType::None));
+            puckFollowsCameraCenter = false;
+        } else {
             mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
             puck->setLocation(toArray(mapCenter));
             puckFollowsCameraCenter = true;
-        } else {
-            puckFollowsCameraCenter = false;
-            puck->setVisibility(mbgl::style::VisibilityType(mbgl::style::VisibilityType::None));
         }
-    } else {
-        puck->setLocation(toArray(puckLocation));
-        puck->setVisibility(mbgl::style::VisibilityType(mbgl::style::VisibilityType::Visible));
-        puckFollowsCameraCenter = false;
     }
 #endif
 }
