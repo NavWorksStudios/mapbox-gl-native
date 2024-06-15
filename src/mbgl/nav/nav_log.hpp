@@ -22,6 +22,7 @@ enum LogLevel : uint8_t {
     Debug,
     Warning,
     Error,
+    None,
 };
 
 void v(const char* tag, const char* format, ...);

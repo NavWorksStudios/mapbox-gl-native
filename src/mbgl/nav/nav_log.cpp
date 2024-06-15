@@ -52,7 +52,7 @@ char* print_tag(char* buf, const char* tag) {
 namespace nav {
 namespace log {
 
-const LogLevel LEVEL = LogLevel::Warning;
+const LogLevel LEVEL = LogLevel::None;
 
 void v(const char* tag, const char* format, ...) {
     if (LEVEL <= LogLevel::Verbose) {
