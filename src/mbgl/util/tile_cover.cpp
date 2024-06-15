@@ -10,6 +10,8 @@
 #include <functional>
 #include <list>
 
+#include "mbgl/nav/nav_log.hpp"
+
 namespace mbgl {
 
 namespace {
@@ -161,36 +163,50 @@ std::vector<OverscaledTileID> tileCover(const TransformState& state, uint8_t z, 
         double sqrDist;
     };
 
+    // z级有多少tile
     const double numTiles = std::pow(2.0, z);
+    // 按照逻辑tile尺寸512，在当前比例尺下的大小
     const double worldSize = Projection::worldSize(state.getScale());
-    const uint8_t minZoom = state.getPitch() <= (60.0 / 180.0) * M_PI ? z : 0;
+    
+    // 通过俯仰角计算LOD的取值范围
+    // const double pitchAngle = state.getPitch() / M_PI * 180.0;
+    // const uint8_t minZoom = (pitchAngle <= 60.0) ? z : 0;
+    const uint8_t minZoom = 0;
     const uint8_t maxZoom = z;
+    
     const uint8_t overscaledZoom = overscaledZ.value_or(z);
     const bool flippedY = state.getViewportMode() == ViewportMode::FlippedY;
 
-    auto centerPoint =
-        TileCoordinate::fromScreenCoordinate(state, z, {state.getSize().width / 2.0, state.getSize().height / 2.0}).p;
+    // 通过屏幕坐标中心点，计算tile坐标系地图中心点
+    const ScreenCoordinate screenCenter(state.getSize().width / 2.0, state.getSize().height / 2.0);
+    auto centerPoint = TileCoordinate::fromScreenCoordinate(state, z, screenCenter).p;
+    vec3 centerCoord = {centerPoint.x, centerPoint.y, 0.0};
 
-    vec3 centerCoord = {{centerPoint.x, centerPoint.y, 0.0}};
-
+    // 计算平截头体空间
     const Frustum frustum = Frustum::fromInvProjMatrix(state.getInvProjectionMatrix(), worldSize, z, flippedY);
 
+    // 围绕中心点附近，必须得有几个当前最高级别（最详尽级别）的tile
     // There should always be a certain number of maximum zoom level tiles surrounding the center location
     const double radiusOfMaxLvlLodInTiles = 3;
 
+    // 制作左3，右3，中间1，共7个最低等级的tile，用来判断可见性，并往细粒度拆分
     const auto newRootTile = [&](int16_t wrap) -> Node {
-        return {AABB({{wrap * numTiles, 0.0, 0.0}}, {{(wrap + 1) * numTiles, numTiles, 0.0}}),
-                uint8_t(0),
-                uint16_t(0),
-                uint16_t(0),
-                wrap,
-                false};
+        const vec3 min = { wrap * numTiles, 0.0, 0.0 };
+        const vec3 max = { (wrap + 1) * numTiles, numTiles, 0.0 };
+        const AABB envelopeBox(min, max);
+        return {
+            envelopeBox,                // AABB
+            uint8_t(0),                 // zoom
+            uint16_t(0), uint16_t(0),   // x, y
+            wrap,                       // wrap
+            false                       // fully visible
+        };
     };
 
     // Perform depth-first traversal on tile tree to find visible tiles
     std::vector<Node> stack;
-    std::vector<ResultTile> result;
     stack.reserve(128);
+    std::vector<ResultTile> result;
 
     // World copies shall be rendered three times on both sides from closest to farthest
     for (int i = 1; i <= 3; i++) {
@@ -200,37 +216,52 @@ std::vector<OverscaledTileID> tileCover(const TransformState& state, uint8_t z, 
 
     stack.push_back(newRootTile(0));
 
-    while (!stack.empty()) {
+    // 开始从低等级向高等级拆分，收集由远及近、由粗到细LOD的tile序列
+    while (!stack.empty()) { // 如果还存在需要拆分的tile
         Node node = stack.back();
         stack.pop_back();
 
         // Use cached visibility information of ancestor nodes
         if (!node.fullyVisible) {
             const IntersectionResult intersection = frustum.intersects(node.aabb);
-
-            if (intersection == IntersectionResult::Separate) continue;
-
-            node.fullyVisible = intersection == IntersectionResult::Contains;
+            if (intersection == IntersectionResult::Separate) {
+                // 如果该tile和平截头体不想交，则丢弃该tile
+                continue;
+            }
+            
+            // 包含关系则全部可见
+            node.fullyVisible = (intersection == IntersectionResult::Contains);
         }
 
+        // 该tile距离地图中心点xyz分量中最大值
         const vec3 distanceXyz = node.aabb.distanceXYZ(centerCoord);
-        const double* longestDim = std::max_element(distanceXyz.data(), distanceXyz.data() + distanceXyz.size());
-        assert(longestDim);
+        const double* longestDimension = std::max_element(distanceXyz.data(), distanceXyz.data() + distanceXyz.size());
+        assert(longestDimension);
 
+        // 该比例尺下，允许拆分tile的最大距离（允许范围）
         // We're using distance based heuristics to determine if a tile should be split into quadrants or not.
         // radiusOfMaxLvlLodInTiles defines that there's always a certain number of maxLevel tiles next to the map
         // center. Using the fact that a parent node in quadtree is twice the size of its children (per dimension) we
         // can define distance thresholds for each relative level: f(k) = offset + 2 + 4 + 8 + 16 + ... + 2^k. This is
         // the same as "offset+2^(k+1)-2"
-        const double distToSplit = radiusOfMaxLvlLodInTiles + (1 << (maxZoom - node.zoom)) - 2;
+        const double maxSplitingRadiusByZoom = radiusOfMaxLvlLodInTiles + (1 << (maxZoom - node.zoom)) - 2;
 
+        // 不能再拆分的tile直接进入结果列表，包括：
+        // 已经是显示的最大级别而不能再拆分的，或者是超过该级别拆分距离而不能再拆分的
         // Have we reached the target depth or is the tile too far away to be any split further?
-        if (node.zoom == maxZoom || (*longestDim > distToSplit && node.zoom >= minZoom)) {
+        if ((node.zoom == maxZoom) ||
+            (*longestDimension > maxSplitingRadiusByZoom && node.zoom >= minZoom)) {
+            // 再次进行校验，必须粗相交测试全部可见，或者精确相交测试后可见的
             // Perform precise intersection test between the frustum and aabb. This will cull < 1% false positives
             // missed by the original test
-            if (node.fullyVisible || frustum.intersectsPrecise(node.aabb, true) != IntersectionResult::Separate) {
-                const OverscaledTileID id = {
-                    node.zoom == maxZoom ? overscaledZoom : node.zoom, node.wrap, node.zoom, node.x, node.y};
+            const bool visible =  node.fullyVisible || (frustum.intersectsPrecise(node.aabb, true) != IntersectionResult::Separate);
+            if (visible) {
+                const OverscaledTileID id = { 
+                    node.zoom == maxZoom ? overscaledZoom : node.zoom,
+                    node.wrap, 
+                    node.zoom,
+                    node.x, node.y };
+
                 const double dx = node.wrap * numTiles + node.x + 0.5 - centerCoord[0];
                 const double dy = node.y + 0.5 - centerCoord[1];
 
@@ -239,6 +270,7 @@ std::vector<OverscaledTileID> tileCover(const TransformState& state, uint8_t z, 
             continue;
         }
 
+        // 需要继续拆分的tile被1拆4，重复上述操作，直至没有tile需要拆分
         for (int i = 0; i < 4; i++) {
             const uint32_t childX = (node.x << 1) + (i % 2);
             const uint32_t childY = (node.y << 1) + (i >> 1);
@@ -255,16 +287,32 @@ std::vector<OverscaledTileID> tileCover(const TransformState& state, uint8_t z, 
         }
     }
 
+    // 由近及远排序结果列表
     // Sort results by distance
-    std::sort(
-        result.begin(), result.end(), [](const ResultTile& a, const ResultTile& b) { return a.sqrDist < b.sqrDist; });
+    auto compare = [](const ResultTile& a, const ResultTile& b) {
+        return a.sqrDist < b.sqrDist;
+    };
+    std::sort(result.begin(), result.end(), compare);
 
+    // 组织结果tile id列表
     std::vector<OverscaledTileID> ids;
     ids.reserve(result.size());
-
     for (const auto& tile : result) {
         ids.push_back(tile.id);
     }
+    
+//    { // debug info
+//        static char buf[256];
+//        char* p = buf;
+//        memset(p, ' ', 256);
+//        for (auto id : ids) {
+//            sprintf(p, "%d,", id.overscaledZ);
+//            p += 3;
+//        }
+//        *p = 0;
+//        
+//        nav::log::i("tile cover", "%d tiles to be render (%s)", (int) ids.size(), buf);
+//    }
 
     return ids;
 }
