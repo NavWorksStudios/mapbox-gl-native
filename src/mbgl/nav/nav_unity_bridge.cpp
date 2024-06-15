@@ -98,9 +98,9 @@ std::string Feature::toString() const {
 FillBucketObserver fillBucketObserver = nullptr;
 void setFillBucketObserver(FillBucketObserver observer) { fillBucketObserver = observer; }
 void onAddFillBucket(const FillBucket* param) {
-    nav::log::i("BucketObserver", "Fill : %s vertices:%d",
-                param->feature.toString().c_str(),
-                param->vertices.count);
+//    nav::log::i("BucketObserver", "Fill : %s vertices:%d",
+//                param->feature.toString().c_str(),
+//                param->vertices.count);
     
     if (fillBucketObserver) {
         fillBucketObserver(param);
@@ -110,9 +110,9 @@ void onAddFillBucket(const FillBucket* param) {
 LineBucketObserver lineBucketObserver = nullptr;
 void setLineBucketObserver(LineBucketObserver observer) { lineBucketObserver = observer; }
 void onAddLineBucket(const LineBucket* param) {
-    nav::log::i("BucketObserver", "Line : %s vertices:%d",
-                param->feature.toString().c_str(),
-                param->vertices.count);
+//    nav::log::i("BucketObserver", "Line : %s vertices:%d",
+//                param->feature.toString().c_str(),
+//                param->vertices.count);
     
     if (lineBucketObserver) {
         lineBucketObserver(param);
@@ -138,9 +138,9 @@ void onAddSymbolBucket(const SymbolBucket* param) {
 ExtrusionBucketObserver extrusionBucketObserver = nullptr;
 void setExtrusionBucketObserver(ExtrusionBucketObserver observer) { extrusionBucketObserver = observer; } 
 void onAddExtrusionBucket(const ExtrusionBucket* param) {
-    nav::log::i("BucketObserver", "Extrusion : %s vertices:%d",
-                param->feature.toString().c_str(),
-                param->vertices.count);
+//    nav::log::i("BucketObserver", "Extrusion : %s vertices:%d",
+//                param->feature.toString().c_str(),
+//                param->vertices.count);
     
     if (extrusionBucketObserver) {
         extrusionBucketObserver(param);

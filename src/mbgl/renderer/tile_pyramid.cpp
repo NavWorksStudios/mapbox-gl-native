@@ -118,11 +118,11 @@ void TilePyramid::update(const std::vector<Immutable<style::LayerProperties>>& l
             }
 
             if (panZoom < idealZoom) {
-                panTiles = util::tileCover(parameters.transformState, panZoom);
+                panTiles = util::tileCover(false, parameters.transformState, panZoom);
             }
         }
 
-        idealTiles = util::tileCover(parameters.transformState, idealZoom, tileZoom);
+        idealTiles = util::tileCover(true, parameters.transformState, idealZoom, tileZoom);
         if (parameters.mode == MapMode::Tile && type != SourceType::Raster && type != SourceType::RasterDEM &&
             idealTiles.size() > 1) {
             mbgl::Log::Warning(mbgl::Event::General,

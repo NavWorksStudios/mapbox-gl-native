@@ -149,7 +149,7 @@ int32_t coveringZoomLevel(double zoom, style::SourceType type, uint16_t size) {
     }
 }
 
-std::vector<OverscaledTileID> tileCover(const TransformState& state, uint8_t z, const optional<uint8_t>& overscaledZ) {
+std::vector<OverscaledTileID> tileCover(bool log, const TransformState& state, uint8_t z, const optional<uint8_t>& overscaledZ) {
     struct Node {
         AABB aabb;
         uint8_t zoom;
@@ -301,18 +301,28 @@ std::vector<OverscaledTileID> tileCover(const TransformState& state, uint8_t z, 
         ids.push_back(tile.id);
     }
     
-//    { // debug info
-//        static char buf[256];
-//        char* p = buf;
-//        memset(p, ' ', 256);
-//        for (auto id : ids) {
-//            sprintf(p, "%d,", id.overscaledZ);
-//            p += 3;
-//        }
-//        *p = 0;
-//        
-//        nav::log::i("tile cover", "%d tiles to be render (%s)", (int) ids.size(), buf);
-//    }
+    if (log) { // debug info
+        static int i = 0;
+        static int tileNum = 0;
+        
+        tileNum += ids.size();
+        if (i++ > 60) {
+            static char buf[256];
+            char* p = buf;
+            memset(p, ' ', 256);
+            for (auto id : ids) {
+                sprintf(p, "%d,", id.overscaledZ);
+                p += id.overscaledZ > 9 ? 3 : 2;
+            }
+            *p = 0;
+
+            nav::log::i("tile cover", "%d tiles to be render (%s)", tileNum/60, buf);
+            
+            i = 0;
+            tileNum = 0;
+        }
+        
+    }
 
     return ids;
 }

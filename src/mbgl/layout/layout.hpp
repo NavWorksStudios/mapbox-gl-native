@@ -18,7 +18,7 @@ class LayerRenderData;
 class Layout {
 public:
     virtual ~Layout() {
-        nav::log::i("Layout", "delete layout %ld", this);
+//        nav::log::i("Layout", "delete layout %ld", this);
     }
 
     virtual void createBucket(const ImagePositions&,

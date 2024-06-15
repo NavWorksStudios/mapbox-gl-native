@@ -31,7 +31,7 @@ public:
     Bucket& operator=(const Bucket&) = delete;
     
     virtual ~Bucket() {
-        nav::log::i("Bucket", "delete Bucket %p", this);
+//        nav::log::i("Bucket", "delete Bucket %p", this);
     }
 
     // Feature geometries are also used to populate the feature index.
@@ -79,7 +79,7 @@ public:
 
 protected:
     Bucket() {
-        nav::log::i("Bucket", "new Bucket %p", this);
+//        nav::log::i("Bucket", "new Bucket %p", this);
     }
     std::atomic<bool> uploaded { false };
 };

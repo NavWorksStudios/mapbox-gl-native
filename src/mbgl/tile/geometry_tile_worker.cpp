@@ -396,7 +396,7 @@ void GeometryTileWorker::parse() {
         if (leaderImpl.getTypeInfo()->layout == LayerTypeInfo::Layout::Required) {
             std::unique_ptr<Layout> layout = LayerManager::get()->createLayout(
                 {parameters, glyphDependencies, imageDependencies, availableImages}, std::move(geometryLayer), group);
-            nav::log::i("Layout", "new layout %ld", layout.get());
+//            nav::log::i("Layout", "new layout %ld", layout.get());
             if (layout->hasDependencies()) {
                 layouts.push_back(std::move(layout));
             } else {
