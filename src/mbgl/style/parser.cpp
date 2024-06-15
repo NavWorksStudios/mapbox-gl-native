@@ -22,7 +22,7 @@
 
 #include "mbgl/nav/nav_mb_layer.hpp"
 #include "mbgl/nav/nav_mb_style.hpp"
-#include "mbgl/nav/nav_log.hpp"
+#include "mbgl/nav/nav_mb_json.hpp"
 
 namespace mbgl {
 namespace style {
@@ -30,7 +30,7 @@ namespace style {
 Parser::~Parser() = default;
 
 StyleParseResult Parser::parse(const std::string& json) {
-    nav::log::v("Style Json", "%s", json.c_str());
+    nav::mb::printJson(json);
     
     rapidjson::GenericDocument<rapidjson::UTF8<>, rapidjson::CrtAllocator> document;
     document.Parse<0>(json.c_str());
