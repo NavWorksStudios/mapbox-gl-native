@@ -133,7 +133,6 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
             color = Color::black();
         } else if (!backend.contextIsShared()) {
             color = renderTreeParameters.backgroundColor;
-            color = Color(130/256., 139/256., 150/256., 1.);
         }
         parameters.renderPass = parameters.encoder->createRenderPass("main buffer", { parameters.backend.getDefaultRenderable(), color, 1, 0 });
     }
