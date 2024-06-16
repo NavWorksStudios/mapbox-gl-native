@@ -364,7 +364,10 @@ void GeometryTile::querySourceFeatures(
                 auto feature = layer->getFeature(i);
 
                 // Apply filter, if any
-                const auto& e = style::expression::EvaluationContext().withZoom(this->id.overscaledZ).withGeometryTileFeature(feature.get());
+                style::expression::EvaluationContext context;
+                context.withZoom(this->id.overscaledZ).withGeometryTileFeature(feature.get());
+                const auto& e = context;
+
                 if (options.filter && !(*options.filter)(e)) {
                     continue;
                 }

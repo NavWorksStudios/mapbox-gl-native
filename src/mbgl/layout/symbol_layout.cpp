@@ -134,9 +134,11 @@ SymbolLayout::SymbolLayout(const BucketParameters& parameters,
     const size_t featureCount = sourceLayer->featureCount();
     for (size_t i = 0; i < featureCount; ++i) {
         auto feature = sourceLayer->getFeature(i);
+
+        expression::EvaluationContext context;
+        context.withZoom(this->zoom).withGeometryTileFeature(feature.get()).withCanonicalTileID(&parameters.tileID.canonical);
+        const auto& e = context;
         
-        const auto& e = expression::EvaluationContext().
-        withZoom(this->zoom).withGeometryTileFeature(feature.get()).withCanonicalTileID(&parameters.tileID.canonical);
         if (!leader.filter(e))
             continue;
 

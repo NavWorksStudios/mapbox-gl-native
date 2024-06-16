@@ -227,8 +227,10 @@ public:
                               const style::expression::Value& formattedSection) override {
         using style::expression::EvaluationContext;
         
-        const auto& e = EvaluationContext().
-        withGeometryTileFeature(&feature).withFormattedSection(&formattedSection).withCanonicalTileID(&canonical);
+        EvaluationContext context;
+        context.withGeometryTileFeature(&feature).withFormattedSection(&formattedSection).withCanonicalTileID(&canonical);
+        const auto& e = context;
+        
         auto evaluated = expression.evaluate(e, defaultValue);
         this->statistics.add(evaluated);
         auto value = attributeValue(evaluated);
@@ -263,7 +265,10 @@ public:
                             const FeatureState& state) override {
         using style::expression::EvaluationContext;
 
-        const auto& e = EvaluationContext().withGeometryTileFeature(&feature).withFeatureState(&state);
+        EvaluationContext context;
+        context.withGeometryTileFeature(&feature).withFeatureState(&state);
+        const auto& e = context;
+        
         auto evaluated = expression.evaluate(e, defaultValue);
         this->statistics.add(evaluated);
         auto value = attributeValue(evaluated);

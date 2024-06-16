@@ -393,13 +393,18 @@ void GeometryTileWorker::parse() {
         // are needed to render the layer. They use the intermediate Layout data structure to accomplish this,
         // and either immediately create a bucket if no images/glyphs are used, or the Layout is stored until
         // the images/glyphs are available to add the features to the buckets.
+
         if (leaderImpl.getTypeInfo()->layout == LayerTypeInfo::Layout::Required) {
-            std::unique_ptr<Layout> layout = LayerManager::get()->createLayout(
-                {parameters, glyphDependencies, imageDependencies, availableImages}, std::move(geometryLayer), group);
-//            nav::log::i("Layout", "new layout %ld", layout.get());
+            // 符号层和支持图案属性的层，在布局时有一个额外的步骤，以确定哪些图像/字形需要渲染。
+            // 会使用中间数据结构Layout来实现这一点。
+            LayoutParameters lp = { parameters, glyphDependencies, imageDependencies, availableImages };
+            std::unique_ptr<Layout> layout = LayerManager::get()->createLayout(lp, std::move(geometryLayer), group);
+            
             if (layout->hasDependencies()) {
+                // 如果有使用图像/字形（依赖），Layout先被存下来，直到图像/字形可用，然后创建bucket，再将特征添加到其中。
                 layouts.push_back(std::move(layout));
             } else {
+                // 如果没有使用（依赖）图像/字形，则立即创建一个bucket。
                 layout->createBucket({}, featureIndex, renderData, firstLoad, showCollisionBoxes, id.canonical, false);
             }
         } else {
@@ -410,8 +415,10 @@ void GeometryTileWorker::parse() {
             for (std::size_t i = 0; !obsolete && i < geometryLayer->featureCount(); i++) {
                 std::unique_ptr<GeometryTileFeature> feature = geometryLayer->getFeature(i);
 
-                const auto& e = style::expression::EvaluationContext().
-                withZoom(this->id.overscaledZ).withGeometryTileFeature(feature.get()).withCanonicalTileID(&id.canonical);
+                style::expression::EvaluationContext context;
+                context.withZoom(this->id.overscaledZ).withGeometryTileFeature(feature.get()).withCanonicalTileID(&id.canonical);
+                const auto& e = context;
+
                 if (!filter(expression::EvaluationContext(e)))
                     continue;
 

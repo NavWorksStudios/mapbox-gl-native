@@ -58,72 +58,100 @@ public:
     T evaluateZoom(float zoom) const {
         assert(!isZoomConstant());
         assert(isFeatureConstant());
-        const auto& e = expression::EvaluationContext().withZoom(zoom);
+        
+        expression::EvaluationContext context;
+        context.withZoom(zoom);
+        const auto& e = context;
+        
         return evaluate(e);
     }
     
     T evaluatePitch(float pitch) const {
         assert(!isPitchConstant());
         assert(isFeatureConstant());
-        const auto& e = expression::EvaluationContext().withPitch(pitch);
+        
+        expression::EvaluationContext context;
+        context.withPitch(pitch);
+        const auto& e = context;
+        
         return evaluate(e);
     }
 
     T evaluate(const GeometryTileFeature& feature, T finalDefaultValue) const {
         assert(isZoomConstant());
         assert(!isFeatureConstant());
-        const auto& e = expression::EvaluationContext().withGeometryTileFeature(&feature);
+        
+        expression::EvaluationContext context;
+        context.withGeometryTileFeature(&feature);
+        const auto& e = context;
+        
         return evaluate(e, finalDefaultValue);
     }
 
     T evaluate(const GeometryTileFeature& feature, const std::set<std::string>& availableImages, T finalDefaultValue) const {
-        const auto& e = expression::EvaluationContext().
-        withGeometryTileFeature(&feature).withAvailableImages(&availableImages);
+        expression::EvaluationContext context;
+        context.withGeometryTileFeature(&feature).withAvailableImages(&availableImages);
+        const auto& e = context;
+
         return evaluate(e, finalDefaultValue);
     }
 
     T evaluate(const GeometryTileFeature& feature, const CanonicalTileID& canonical, T finalDefaultValue) const {
-        const auto& e = expression::EvaluationContext().
-        withGeometryTileFeature(&feature).withCanonicalTileID(&canonical);
+        expression::EvaluationContext context;
+        context.withGeometryTileFeature(&feature).withCanonicalTileID(&canonical);
+        const auto& e = context;
+
         return evaluate(e, finalDefaultValue);
     }
 
     T evaluate(const GeometryTileFeature& feature, const std::set<std::string>& availableImages,
                const CanonicalTileID& canonical, T finalDefaultValue) const {
-        const auto& e = expression::EvaluationContext().
-        withGeometryTileFeature(&feature).withAvailableImages(&availableImages).withCanonicalTileID(&canonical);
+        expression::EvaluationContext context;
+        context.withGeometryTileFeature(&feature).withAvailableImages(&availableImages).withCanonicalTileID(&canonical);
+        const auto& e = context;
+
         return evaluate(e, finalDefaultValue);
     }
 
     T evaluate(float zoom, const GeometryTileFeature& feature, T finalDefaultValue) const {
-        const auto& e = expression::EvaluationContext().
-        withZoom(zoom).withGeometryTileFeature(&feature);
+        expression::EvaluationContext context;
+        context.withZoom(zoom).withGeometryTileFeature(&feature);
+        const auto& e = context;
+        
         return evaluate(e, finalDefaultValue);
     }
 
     T evaluate(float zoom, const GeometryTileFeature& feature, const std::set<std::string>& availableImages, T finalDefaultValue) const {
-        const auto& e = expression::EvaluationContext().
-        withZoom(zoom).withGeometryTileFeature(&feature).withAvailableImages(&availableImages);
+        expression::EvaluationContext context;
+        context.withZoom(zoom).withGeometryTileFeature(&feature).withAvailableImages(&availableImages);
+        const auto& e = context;
+        
         return evaluate(e, finalDefaultValue);
     }
 
     T evaluate(float zoom, const GeometryTileFeature& feature, const std::set<std::string>& availableImages,
                const CanonicalTileID& canonical, T finalDefaultValue) const {
-        const auto& e = expression::EvaluationContext().
-        withZoom(zoom).withGeometryTileFeature(&feature).withAvailableImages(&availableImages).withCanonicalTileID(&canonical);
+        expression::EvaluationContext context;
+        context.withZoom(zoom).withGeometryTileFeature(&feature).withAvailableImages(&availableImages).withCanonicalTileID(&canonical);
+        const auto& e = context;
+        
         return evaluate(e, finalDefaultValue);
     }
 
     T evaluate(float zoom, const GeometryTileFeature& feature, const CanonicalTileID& canonical, T finalDefaultValue) const {
-        const auto& e = expression::EvaluationContext().
-        withZoom(zoom).withGeometryTileFeature(&feature).withCanonicalTileID(&canonical);
+        expression::EvaluationContext context;
+        context.withZoom(zoom).withGeometryTileFeature(&feature).withCanonicalTileID(&canonical);
+        const auto& e = context;
+        
         return evaluate(e, finalDefaultValue);
     }
 
     T evaluate(float zoom, const GeometryTileFeature& feature, const FeatureState& state, T finalDefaultValue) const {
         assert(!isFeatureConstant());
-        const auto& e = expression::EvaluationContext().
-        withZoom(zoom).withGeometryTileFeature(&feature).withFeatureState(&state);
+        expression::EvaluationContext context;
+        context.withZoom(zoom).withGeometryTileFeature(&feature).withFeatureState(&state);
+        const auto& e = context;
+        
         return evaluate(e, finalDefaultValue);
     }
 

@@ -34,7 +34,10 @@ public:
     Color evaluate(const Evaluator&, TimePoint = {}) const { return {}; }
 
     Color evaluate(double rampEvaluationParameter) const {
-        const auto& e = expression::EvaluationContext().withColorRampParameter(rampEvaluationParameter);
+        expression::EvaluationContext context;
+        context.withColorRampParameter(rampEvaluationParameter);
+        const auto& e = context;
+        
         const auto result = value->evaluate(e);
         return *expression::fromExpressionValue<Color>(*result);
     }

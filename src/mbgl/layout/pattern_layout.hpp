@@ -117,8 +117,11 @@ public:
         const size_t featureCount = sourceLayer->featureCount();
         for (size_t i = 0; i < featureCount; ++i) {
             auto feature = sourceLayer->getFeature(i);
-            const auto& e = style::expression::EvaluationContext().
-            withZoom(this->zoom).withGeometryTileFeature(feature.get()).withCanonicalTileID(&parameters.tileID.canonical);
+            
+            style::expression::EvaluationContext context;
+            context.withZoom(this->zoom).withGeometryTileFeature(feature.get()).withCanonicalTileID(&parameters.tileID.canonical);
+            const auto& e = context;
+            
             if (!leaderLayerProperties->layerImpl().filter(e))
                 continue;
 
@@ -178,6 +181,11 @@ public:
                       const bool /*showCollisionBoxes*/,
                       const CanonicalTileID& canonical,
                       const bool reversal) override {
+        nav::log::w("PatternLayout", "createBucket (%d,%d,%d) [%s, %s] feature:%d",
+                    (int)canonical.x, (int)canonical.y, (int)canonical.z,
+                    bucketLeaderID.c_str(), sourceLayerID.c_str(),
+                    (int)features.size());
+        
         auto bucket = std::make_shared<BucketType>(layout, layerPropertiesMap, zoom, overscaling);
         if(features.size() > 0) {
             for (auto & patternFeature : features) {
@@ -190,14 +198,11 @@ public:
                     // need add clipper->Difference logic
                     // ========================================================================
                     const Clipper2Lib::Paths64 tilePath = { Clipper2Lib::MakePath({8192, 8192, 0, 8192, 0, 0, 8192, 0}) };
-
-//                    std::string cooStr = "";
                     
                     Clipper2Lib::Paths64 watersPath;
                     for(const auto& geometry : geometries) {
                         Clipper2Lib::Path64 waterPath;
                         for(const auto& geometryCoordinate : geometry) {
-//                            cooStr = cooStr + std::to_string(geometryCoordinate.x) + ", " + std::to_string(geometryCoordinate.y) + ", ";
                             waterPath.push_back(Clipper2Lib::Point64(geometryCoordinate.x, geometryCoordinate.y));
                         }
                         watersPath.push_back(waterPath);
@@ -239,13 +244,8 @@ public:
                 }
             }
         }
-        else {
-            if(reversal) {
-                
-            }
-        }
 
-        const std::string tile = nav::log::tileId(canonical, bucketLeaderID, sourceLayerID);
+//        const std::string tile = nav::log::tileId(canonical, bucketLeaderID, sourceLayerID);
 //        static std::map<std::string, int> counter;
 //        int count = ++counter[tile];
 //        nav::log::i("PatternLayout", "%s (%d) Bucket:%p", tile.c_str(), count, bucket.get());
@@ -253,7 +253,7 @@ public:
 //        nav::log::bucketMap()[tile]++;
 //        bucket->key = tile;
         
-        bucket->nav_upload_external(canonical, bucketLeaderID, sourceLayerID);
+//        bucket->nav_upload_external(canonical, bucketLeaderID, sourceLayerID);
         
         if (bucket->hasData()) {
             for (const auto& pair : layerPropertiesMap) {

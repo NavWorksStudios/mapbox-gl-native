@@ -46,8 +46,11 @@ EvaluationResult Expression::evaluate(optional<float> zoom,
                                       const Feature& feature,
                                       optional<double> colorRampParameter) const {
     GeoJSONFeature f(feature);
-    const auto& e = style::expression::EvaluationContext().
-    withZoom(std::move(zoom)).withGeometryTileFeature(&f).withColorRampParameter(std::move(colorRampParameter));
+
+    style::expression::EvaluationContext context;
+    context.withZoom(std::move(zoom)).withGeometryTileFeature(&f).withColorRampParameter(std::move(colorRampParameter));
+    const auto& e = context;
+
     return this->evaluate(e);
 }
 
@@ -56,11 +59,14 @@ EvaluationResult Expression::evaluate(optional<float> zoom,
                                       optional<double> colorRampParameter,
                                       const std::set<std::string>& availableImages) const {
     GeoJSONFeature f(feature);
-    const auto& e = style::expression::EvaluationContext().
-    withZoom(std::move(zoom)).
+    
+    style::expression::EvaluationContext context;
+    context.withZoom(std::move(zoom)).
     withGeometryTileFeature(&f).
     withColorRampParameter(std::move(colorRampParameter)).
     withAvailableImages(&availableImages);
+    const auto& e = context;
+    
     return this->evaluate(e);
 }
 
@@ -70,20 +76,26 @@ EvaluationResult Expression::evaluate(optional<float> zoom,
                                       const std::set<std::string>& availableImages,
                                       const CanonicalTileID& canonical) const {
     GeoJSONFeature f(feature, canonical);
-    const auto& e = style::expression::EvaluationContext().
-    withZoom(std::move(zoom)).
+    
+    style::expression::EvaluationContext context;
+    context.withZoom(std::move(zoom)).
     withGeometryTileFeature(&f).
     withColorRampParameter(std::move(colorRampParameter)).
     withAvailableImages(&availableImages).
     withCanonicalTileID(&canonical);
+    const auto& e = context;
+
     return this->evaluate(e);
 }
 
 EvaluationResult Expression::evaluate(optional<mbgl::Value> accumulated, const Feature& feature) const {
     GeoJSONFeature f(feature);
-    const auto& e = style::expression::EvaluationContext().
-    withAccumulated(std::move(accumulated)).
+
+    style::expression::EvaluationContext context;
+    context.withAccumulated(std::move(accumulated)).
     withGeometryTileFeature(&f);
+    const auto& e = context;
+    
     return this->evaluate(e);
 }
 

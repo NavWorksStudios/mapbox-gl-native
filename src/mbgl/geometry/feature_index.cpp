@@ -172,8 +172,9 @@ void FeatureIndex::addFeature(std::unordered_map<std::string, std::vector<Featur
             continue;
         }
 
-        const auto& e = style::expression::EvaluationContext().
-        withZoom(static_cast<float>(tileID.z)).withGeometryTileFeature(geometryTileFeature.get());
+        style::expression::EvaluationContext context;
+        context.withZoom(static_cast<float>(tileID.z)).withGeometryTileFeature(geometryTileFeature.get());
+        const auto& e = context;
         if (options.filter && !(*options.filter)(e)) {
             continue;
         }
