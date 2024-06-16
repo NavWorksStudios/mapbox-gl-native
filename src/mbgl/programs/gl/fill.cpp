@@ -81,11 +81,13 @@ uniform mat4 u_matrix;
 uniform vec3 u_camera_pos;
 uniform highp float u_base;
 uniform mat4 u_normal_matrix;
+uniform highp float u_render_time;
 
 //varying vec3 v_normal;
 varying vec3 v_camera_pos;
 varying vec3 v_pos;
 //varying vec2 v_uv;
+//varying highp float u_render_time;
 
 #ifndef HAS_UNIFORM_u_color
     uniform lowp float u_color_t;
@@ -192,7 +194,8 @@ uniform mat4 u_normal_matrix;
 uniform sampler2D u_matcap;
 uniform bool u_enable_matcap;
 uniform float u_spotlight;
-
+uniform highp float u_render_time;
+        
 varying vec3 v_pos;
 varying vec3 v_camera_pos;
 varying vec3 v_normal;
@@ -217,6 +220,40 @@ vec2 matcap(vec3 eye, vec3 normal) {
     return reflected.xy / m + 0.5;
 }
         
+float bubble(vec2 uv, vec2 C, float r, float b)
+{
+    return clamp(1./clamp(length(uv-C)-r,0.,1.)/5.,0.,b);
+}
+        
+vec4 mainImage(vec2 fragCoord)
+{
+    vec2 iResolution = vec2(1800, 720);
+    float iTime = u_render_time;
+        
+    vec2 uv = (2.*fragCoord-iResolution.xy)/iResolution.y;
+//    uv = v_pos.xy;
+//    uv = vec2(100.0, 100.0);
+
+    float time = iTime/100.+123.;
+    vec3 col = 0.5 + 0.5*cos(time*31.+uv.xyx+vec3(1.0,2.0,4.0));
+    vec3 bubbles = vec3(0);
+    
+    for(int i = 0; i < 15; i++){
+        
+        float n = float(i);
+        float c = 2.*(n/14.-.5)*iResolution.x/iResolution.y;
+        vec2 p = vec2(c+cos(n+time*5.),sin(time*n/11.));
+        float r = 0.01*abs(sin(n*time));
+        float b = (sin(time*n)*11.+13.)/2.;
+        
+        bubbles += bubble(uv,p,r,b)/15.;
+    }
+    
+//    return vec4(col, 1.0);
+    return vec4(col+bubbles,1.0);
+//    return vec4(bubbles,0.6);
+}
+        
 void main() {
 
 #ifdef HAS_UNIFORM_u_color
@@ -238,13 +275,15 @@ void main() {
         color4 = vec4(color3, color4.a);
     }
         
-    float centerDis = pow(v_pos.x, 2.) + pow(v_pos.y, 2.);
-    float centerFactor = clamp(centerDis / 500000., 1. - u_spotlight, 1.);
-    vec3 spotlight = color4.rgb * (1. + 1.5 * (1. - centerFactor)); // 距离屏幕中心点越近，越亮
-
-    gl_FragColor = vec4(spotlight, color4.a) * opacity;
+//    float centerDis = pow(v_pos.x, 2.) + pow(v_pos.y, 2.);
+//    float centerFactor = clamp(centerDis / 500000., 1. - u_spotlight, 1.);
+//    vec3 spotlight = color4.rgb * (1. + 1.5 * (1. - centerFactor)); // 距离屏幕中心点越近，越亮
+//
+//    gl_FragColor = vec4(spotlight, color4.a) * opacity;
         
-//    gl_FragColor = color;
+    vec4 color_w = mainImage(gl_FragCoord.xy);
+//    gl_FragColor = color4 * 0.5 + color_w * 0.5;
+    gl_FragColor = color_w;
         
 #ifdef OVERDRAW_INSPECTOR
     gl_FragColor=vec4(1.0);
