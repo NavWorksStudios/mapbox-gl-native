@@ -210,23 +210,18 @@ struct ShaderSource<FillExtrusionProgram> {
         varying vec2 v_heightInterpolator;
 
         void main() {
+            // 建筑物上下边缘，渐变描边
+            float edgeProportion = 8. / v_heightInterpolator[0]; // 上下边缘标准高度所占楼高比例
+            float edgeFactor = v_heightInterpolator[1] < .5 ?
+                               edgeProportion - v_heightInterpolator[1] : // 下边缘
+                               v_heightInterpolator[1] - (1. - edgeProportion); // 上边缘
+            edgeFactor = pow(max(edgeFactor, 0.) / edgeProportion, 3.) * 0.2;
     
-            if (u_rendering_reflection) {
-                gl_FragColor=v_color;
-            } else {
-                // 建筑物上下边缘，渐变描边
-                float edgeProportion = 8. / v_heightInterpolator[0]; // 上下边缘标准高度所占楼高比例
-                float edgeFactor = v_heightInterpolator[1] < .5 ?
-                                   edgeProportion - v_heightInterpolator[1] : // 下边缘
-                                   v_heightInterpolator[1] - (1. - edgeProportion); // 上边缘
-                edgeFactor = pow(max(edgeFactor, 0.) / edgeProportion, 3.) * 0.2;
+            // 距离屏幕中心点越近，越透明
+            float centerDis = pow(v_pos.x, 2.) + pow(v_pos.y, 2.);
+            float centerFactor = clamp(centerDis / 1000000., 1. - u_spotlight, 1.);
 
-                // 距离屏幕中心点越近，越透明
-                float centerDis = pow(v_pos.x, 2.) + pow(v_pos.y, 2.);
-                float centerFactor = clamp(centerDis / 1000000., 1. - u_spotlight, 1.);
-    
-                gl_FragColor = v_color * (edgeFactor + centerFactor);
-            }
+            gl_FragColor = v_color * (edgeFactor + centerFactor);
     
         #ifdef OVERDRAW_INSPECTOR
             gl_FragColor=vec4(1.0);
