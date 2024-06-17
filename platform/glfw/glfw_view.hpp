@@ -147,7 +147,9 @@ private:
         int sequenceNum { 0 };
         
         float velocity(const Mouse& from) const {
-            return pow(pow(coord.x-from.coord.x, 2.) + pow(coord.y-from.coord.y, 2.), 0.5) / (time - from.time);
+            const float duration = time - from.time;
+            const float distance = pow(pow(coord.x-from.coord.x, 2.) + pow(coord.y-from.coord.y, 2.), 0.5);
+            return duration > 0. ? distance / duration : 0.;
         }
         
         bool prefer(double t, int s) {

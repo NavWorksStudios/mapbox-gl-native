@@ -902,12 +902,13 @@ void GLFWView::onMouseClick(int button, int action, int modifiers) {
             const float duration = pos.time - from.time;
             const mbgl::ScreenCoordinate moved(pos.coord.x - from.coord.x, pos.coord.y - from.coord.y);
             const mbgl::ScreenCoordinate fling(moved.x / duration * .6, moved.y / duration * .6);
-            map->moveBy(fling, mbgl::AnimationOptions{{mbgl::Milliseconds((long) velocity + 300)}});
-            
-            nav::log::w("onMouseClick", "duration:%lf velocity:%lf moved(%lf,%lf) fling(%lf,%lf)",
-                        duration, velocity, moved.x, moved.y, fling.x, fling.y);
+            map->moveBy(fling, mbgl::AnimationOptions{{mbgl::Milliseconds((long)(velocity * 1.5))}});
+
+//            nav::log::w("move map", "dur:%lfs velo:(%lf,%lf) moved(%lf,%lf) fling(%lf,%lf)",
+//                        duration, velocity, recentVelocity, moved.x, moved.y, fling.x, fling.y);
         } else {
-            nav::log::w("onMouseClick", "tracking:%d stillTime:%lf velocity:%lf", (int) tracking, stillTime, velocity);
+//            nav::log::w("move map", "tracking:%d still:%lfs velo:(%lf,%lf)",
+//                        (int) tracking, stillTime, velocity, recentVelocity);
         }
 
         map->setGestureInProgress(rotating = pitching = tracking = false);

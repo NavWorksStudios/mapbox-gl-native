@@ -15,6 +15,8 @@
 #include <cstdio>
 #include <utility>
 
+#include "mbgl/nav/nav_log.hpp"
+
 namespace mbgl {
 
 /** Converts the given angle (in radians) to be numerically close to the anchor angle, allowing it to be interpolated properly without sudden jumps. */
@@ -344,11 +346,21 @@ void Transform::flyTo(const CameraOptions& camera, const AnimationOptions& anima
 #pragma mark - Position
 
 void Transform::moveBy(const ScreenCoordinate& offset, const AnimationOptions& animation) {
-    ScreenCoordinate centerOffset = {offset.x, offset.y};
-    ScreenCoordinate pointOnScreen =
-        state.getEdgeInsets().getCenter(state.getSize().width, state.getSize().height) - centerOffset;
+    const auto w = state.getSize().width;
+    const auto h = state.getSize().height;
+    const auto& center = state.getEdgeInsets().getCenter(w, h);
+    auto moveTo = center - offset;
+    moveTo.y = fmax(0., moveTo.y);
+    
+//    nav::log::w("move map", 
+//                "offset(%lf,%lf) center(%lf,%lf) moveTo(%lf,%lf)",
+//                offset.x, offset.y,
+//                center.x, center.y,
+//                moveTo.x, moveTo.y);
+
     // Use unwrapped LatLng to carry information about moveBy direction.
-    easeTo(CameraOptions().withCenter(screenCoordinateToLatLng(pointOnScreen, LatLng::Unwrapped)), animation);
+    const auto& loc = screenCoordinateToLatLng(moveTo, LatLng::Unwrapped);
+    easeTo(CameraOptions().withCenter(loc), animation);
 }
 
 LatLng Transform::getLatLng(LatLng::WrapMode wrap) const {
@@ -631,6 +643,11 @@ ScreenCoordinate Transform::latLngToScreenCoordinate(const LatLng& latLng) const
 LatLng Transform::screenCoordinateToLatLng(const ScreenCoordinate& point, LatLng::WrapMode wrapMode) const {
     ScreenCoordinate flippedPoint = point;
     flippedPoint.y = state.getSize().height - flippedPoint.y;
+    
+//    nav::log::w("screenCoordinateToLatLng", "point(%lf,%lf) flipped(%lf,%lf)",
+//                point.x, point.y,
+//                flippedPoint.x, flippedPoint.y);
+    
     return state.screenCoordinateToLatLng(flippedPoint, wrapMode);
 }
 
