@@ -13,6 +13,8 @@
 #include <mbgl/style/layers/fill_extrusion_layer.hpp>
 #include <mbgl/util/io.hpp>
 
+#include "mbgl/nav/nav_log.hpp"
+
 namespace nav {
 namespace mb {
 
@@ -133,14 +135,20 @@ double value() {
 
 struct ToggleValue {
     bool _enabled = false;
-    float _ratio = 0.;
+    float _ratio = .5;
 
     void update() {
-        if (_enabled && _ratio < 1.) {
-            _ratio = fmin(_ratio + fmax((1. - _ratio) * 0.2, 0.01), 1.);
-        } else if (_ratio > 0.) {
-            _ratio = fmax(_ratio - fmax((_ratio - 0.) * 0.05, 0.01), 0.);
+        if (_enabled) {
+            if (_ratio < 1.) {
+                _ratio = fmin(_ratio + fmax((1. - _ratio) * 0.2, 0.01), 1.);
+            }
+        } else {
+            if (_ratio > 0.) {
+                _ratio = fmax(_ratio - fmax((_ratio - 0.) * 0.05, 0.01), 0.);
+            }
         }
+        
+//        nav::log::i("ToggleValue", "%f", _ratio);
     }
 
     void enable() { _enabled = true; }

@@ -148,6 +148,11 @@ struct ShaderSource<FillExtrusionProgram> {
         
             // position
             gl_Position=u_matrix*vec4(a_pos, h?height:base, 1.);
+    
+            // ambient light
+//            vec4 ambientlight=vec4(0.03,0.03,0.03,1.0);
+//            color+=ambientlight;
+            color += vec4(0.03,0.03,0.03,1.0);
         
             // directional light
             float colorvalue = color.r*0.2126 + color.g*0.7152 + color.b*0.0722;
@@ -158,20 +163,16 @@ struct ShaderSource<FillExtrusionProgram> {
                 float vertical_factor = clamp((height+base) * pow(height/150.0,0.5), mix(0.7,0.98,1.0-u_lightintensity), 1.0);
                 directional *= ((1.0 - u_vertical_gradient) + (u_vertical_gradient * vertical_factor));
             }
-        
-            // ambient light
-            vec4 ambientlight=vec4(0.03,0.03,0.03,1.0);
-            color+=ambientlight;
-        
-            // mix color with directional light
+
             v_color.r=clamp(color.r*directional*u_lightcolor.r, 0.3*(1.0-u_lightcolor.r), 1.0);
             v_color.g=clamp(color.g*directional*u_lightcolor.g, 0.3*(1.0-u_lightcolor.g), 1.0);
             v_color.b=clamp(color.b*directional*u_lightcolor.b, 0.3*(1.0-u_lightcolor.b), 1.0);
+
+            // spotlight
             v_color *= u_opacity * (2.5 + 2.*u_spotlight);
         
-            if (u_rendering_reflection) {
-                v_color*=.15;
-            }
+            // reflection
+            if (u_rendering_reflection) v_color *= .15;
         
             v_pos=gl_Position.xyz;
             v_heightInterpolator=vec2(abs(height-base), h?1.:0.);
@@ -214,8 +215,8 @@ struct ShaderSource<FillExtrusionProgram> {
                 gl_FragColor=v_color;
             } else {
                 // 建筑物上下边缘，渐变描边
-                float edgeProportion = 8. / v_heightInterpolator[0]; // 上下边缘最大高度比例
-                float edgeFactor = v_heightInterpolator[1] < edgeProportion ?
+                float edgeProportion = 8. / v_heightInterpolator[0]; // 上下边缘标准高度所占楼高比例
+                float edgeFactor = v_heightInterpolator[1] < .5 ?
                                    edgeProportion - v_heightInterpolator[1] : // 下边缘
                                    v_heightInterpolator[1] - (1. - edgeProportion); // 上边缘
                 edgeFactor = pow(max(edgeFactor, 0.) / edgeProportion, 3.) * 0.2;
