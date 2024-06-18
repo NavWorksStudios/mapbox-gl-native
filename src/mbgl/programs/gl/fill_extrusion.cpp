@@ -137,22 +137,8 @@ struct ShaderSource<FillExtrusionProgram> {
         
             // height
             //base=max(0.0,base);
-            height=max(max(base,height), 5.);
+            height=max(base,height);
             bool h=mod(normal.x,2.0)>0.0;
-
-            // reflection
-            if (u_rendering_reflection) {
-                base=-base;
-                height=-height;
-            }
-        
-            // position
-            gl_Position=u_matrix*vec4(a_pos, h?height:base, 1.);
-    
-            // ambient light
-//            vec4 ambientlight=vec4(0.03,0.03,0.03,1.0);
-//            color+=ambientlight;
-            color += vec4(0.03,0.03,0.03,1.0);
         
             // directional light
             float colorvalue = color.r*0.2126 + color.g*0.7152 + color.b*0.0722;
@@ -163,16 +149,29 @@ struct ShaderSource<FillExtrusionProgram> {
                 float vertical_factor = clamp((height+base) * pow(height/150.0,0.5), mix(0.7,0.98,1.0-u_lightintensity), 1.0);
                 directional *= ((1.0 - u_vertical_gradient) + (u_vertical_gradient * vertical_factor));
             }
+    
+            // ambient light
+            color += vec4(0.03,0.03,0.03,1.0);
+//            vec4 ambientlight=vec4(0.03,0.03,0.03,1.0);
+//            color+=ambientlight;
 
+            // mix color with directional light
             v_color.r=clamp(color.r*directional*u_lightcolor.r, 0.3*(1.0-u_lightcolor.r), 1.0);
             v_color.g=clamp(color.g*directional*u_lightcolor.g, 0.3*(1.0-u_lightcolor.g), 1.0);
             v_color.b=clamp(color.b*directional*u_lightcolor.b, 0.3*(1.0-u_lightcolor.b), 1.0);
 
-            // spotlight
-            v_color *= u_opacity * (2.5 + 2.*u_spotlight);
+            v_color *= u_opacity * (3. + 3.*u_spotlight);
         
+
             // reflection
-            if (u_rendering_reflection) v_color *= .15;
+            if (u_rendering_reflection) {
+                base=-base;
+                height=-height;
+                v_color *= .15;
+            }
+
+            // position
+            gl_Position=u_matrix*vec4(a_pos, h?height:base, 1.);
         
             v_pos=gl_Position.xyz;
             v_heightInterpolator=vec2(abs(height-base), h?1.:0.);
@@ -215,13 +214,13 @@ struct ShaderSource<FillExtrusionProgram> {
             float edgeFactor = v_heightInterpolator[1] < .5 ?
                                edgeProportion - v_heightInterpolator[1] : // 下边缘
                                v_heightInterpolator[1] - (1. - edgeProportion); // 上边缘
-            edgeFactor = pow(max(edgeFactor, 0.) / edgeProportion, 3.) * 0.2;
+            edgeFactor = pow(max(edgeFactor, 0.) / edgeProportion, 3.) * 0.3;
     
             // 距离屏幕中心点越近，越透明
             float centerDis = pow(v_pos.x, 2.) + pow(v_pos.y, 2.);
             float centerFactor = clamp(centerDis / 1000000., 1. - u_spotlight, 1.);
 
-            gl_FragColor = v_color * (edgeFactor + centerFactor);
+            gl_FragColor = v_color * mix(edgeFactor + centerFactor, 1., 0.0);
     
         #ifdef OVERDRAW_INSPECTOR
             gl_FragColor=vec4(1.0);

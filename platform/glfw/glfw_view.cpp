@@ -106,7 +106,7 @@ void addFillExtrusionLayer(mbgl::style::Style &style, bool visible) {
                 
     extrusionLayer->setFillExtrusionColor(PropertyExpression<mbgl::Color>(std::move(e)));
     
-    extrusionLayer->setFillExtrusionOpacity(.2f);
+    extrusionLayer->setFillExtrusionOpacity(.7f);
     extrusionLayer->setFillExtrusionHeight(PropertyExpression<float>(get("height")));
     extrusionLayer->setFillExtrusionBase(PropertyExpression<float>(get("min_height")));
     style.addLayer(std::move(extrusionLayer));
@@ -1098,7 +1098,6 @@ void GLFWView::onDidFinishLoadingStyle() {
 void GLFWView::toggle3DExtrusions(bool visible) {
     show3DExtrusions = visible;
     addFillExtrusionLayer(map->getStyle(), show3DExtrusions);
-//    addLandFillExtrusionLayer(map->getStyle(), show3DExtrusions);
 }
 
 void GLFWView::toggleCustomSource() {

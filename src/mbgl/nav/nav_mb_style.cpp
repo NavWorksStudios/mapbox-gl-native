@@ -140,11 +140,11 @@ struct ToggleValue {
     void update() {
         if (_enabled) {
             if (_ratio < 1.) {
-                _ratio = fmin(_ratio + fmax((1. - _ratio) * 0.2, 0.01), 1.);
+                _ratio = fmin(_ratio + fmax((1. - _ratio) * 0.1, 0.01), 1.);
             }
         } else {
             if (_ratio > 0.) {
-                _ratio = fmax(_ratio - fmax((_ratio - 0.) * 0.05, 0.01), 0.);
+                _ratio = fmax(_ratio - fmax((_ratio - 0.) * 0.02, 0.002), 0.);
             }
         }
         
