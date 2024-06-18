@@ -1009,7 +1009,7 @@ void GLFWView::run() {
         runOnce();
     };
 
-    frameTick.start(mbgl::Duration::zero(), mbgl::Milliseconds(1000 / 60), callback);
+    frameTick.start(mbgl::Duration::zero(), mbgl::Milliseconds(1000 / 30), callback);
 #if defined(__APPLE__)
     while (nullableWindow && !glfwWindowShouldClose(nullableWindow)) runLoop.run();
 #else
@@ -1058,16 +1058,24 @@ void GLFWView::invalidate() {
 }
 
 void GLFWView::report(float duration) {
-    frames++;
-    frameTime += duration;
+    // Frame timer
+    static int frameCounter = 0;
+    static float frameCost = 0;
+    static double lastReported = 0;
+    
+    frameCounter++;
+    frameCost += duration;
 
     const double currentTime = glfwGetTime();
     if (currentTime - lastReported >= 1) {
-        frameTime /= frames;
-        mbgl::Log::Info(mbgl::Event::OpenGL, "Frame time: %6.2fms (%6.2f fps)", frameTime,
-            1000 / frameTime);
-        frames = 0;
-        frameTime = 0;
+        frameCost /= frameCounter;
+        mbgl::Log::Info(mbgl::Event::OpenGL, "Fps:%d (Avg-Cost:%6.2fms, Max-Fps:%6.2f)",
+                        frameCounter,
+                        frameCost,
+                        1000 / frameCost);
+
+        frameCounter = 0;
+        frameCost = 0;
         lastReported = currentTime;
     }
 }

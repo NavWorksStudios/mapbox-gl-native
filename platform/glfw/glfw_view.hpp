@@ -132,11 +132,6 @@ private:
     bool pitching = false;
     bool show3DExtrusions = false;
 
-    // Frame timer
-    int frames = 0;
-    float frameTime = 0;
-    double lastReported = 0;
-
     int width = 1800;
     int height = 720;
     float pixelRatio;
