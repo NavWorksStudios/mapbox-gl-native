@@ -8,7 +8,7 @@ namespace glfw {
 namespace NewYork {
 
 constexpr const double Latitude = 40.7;
-constexpr const double Speed = 0.0004;
+constexpr const double Speed = 0.0003;
 
 constexpr const char* Route = R"route(
 {
@@ -112,7 +112,7 @@ constexpr const char* Route = R"route(
 namespace Changanjie {
 
 constexpr const double Latitude = 39.9;
-constexpr const double Speed = 0.00008;
+constexpr const double Speed = 0.00004;
 
 constexpr const char* Route = R"route(
 {
@@ -139,7 +139,7 @@ constexpr const char* Route = R"route(
 namespace Guomao {
 
 constexpr const double Latitude = 39.9;
-constexpr const double Speed = 0.0004;
+constexpr const double Speed = 0.0002;
 
 constexpr const char* Route = R"route(
 {
