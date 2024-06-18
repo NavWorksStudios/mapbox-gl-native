@@ -6,6 +6,8 @@
 #include <mbgl/style/style.hpp>
 #include <mbgl/style/style_impl.hpp>
 
+#include "mbgl/nav/nav_mb_style.hpp"
+
 namespace mbgl {
 namespace style {
 
@@ -18,15 +20,8 @@ void Style::loadJSON(const std::string& json) {
     impl->loadJSON(json);
 }
 
-void Style::loadURL(const std::string& url) {
-    
-// standard tamplate
-//    impl->loadURL("mapbox://styles/notheorem/clwufpcwi019v01pn3rsd10p8");
-    
-// monochrome
-    impl->loadURL("mapbox://styles/notheorem/clwvwdd2r01d301nyayhc6p6g");
-
-//    impl->loadURL(url);
+void Style::loadURL(const std::string& /*url*/) {
+    impl->loadURL(nav::style::url());
 }
 
 std::string Style::getJSON() const {

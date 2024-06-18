@@ -238,7 +238,7 @@ public:
                     const PatternLayerMap& patterns = patternFeature.patterns;
                     const GeometryCollection& geometries = feature->getGeometries();
 
-                    bucket->hasLineHeight = nav::mb::layerHasLineHeight(bucketLeaderID);
+                    bucket->hasLineHeight = nav::style::layerHasLineHeight(bucketLeaderID);
                     bucket->addFeature(*feature, geometries, patternPositions, patterns, i, canonical);
                     featureIndex->insert(geometries, i, sourceLayerID, bucketLeaderID);
                 }

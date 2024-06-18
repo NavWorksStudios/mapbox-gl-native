@@ -104,8 +104,8 @@ void RenderFillLayer::render(PaintParameters& parameters) {
                         uniforms::normal_matrix::Value(tile.normalMatrix),
                         uniforms::camera_pos::Value(parameters.state.getCameraPosition()),
                         uniforms::world::Value( parameters.backend.getDefaultRenderable().getSize() ),
-                        uniforms::spotlight::Value( nav::mb::spotlight::value() ),
-                        uniforms::render_time::Value(nav::mb::rendertime::value()),
+                        uniforms::spotlight::Value( nav::style::spotlight::value() ),
+                        uniforms::render_time::Value(nav::style::rendertime::value()),
                     },
                     paintPropertyBinders,
                     evaluated,
@@ -146,7 +146,7 @@ void RenderFillLayer::render(PaintParameters& parameters) {
                      *bucket.triangleIndexBuffer,
                      bucket.triangleSegments,
                      FillProgram::TextureBindings{
-                        textures::matcap::Value{ nav::mb::getTexture("matcap.4.png"), gfx::TextureFilterType::Linear },
+                        textures::matcap::Value{ nav::style::getTexture("matcap.4.png"), gfx::TextureFilterType::Linear },
                      });
             }
 

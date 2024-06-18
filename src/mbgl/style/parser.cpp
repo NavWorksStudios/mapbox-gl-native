@@ -233,7 +233,6 @@ void Parser::parseLayers(const JSONValue& value) {
     for (const auto& id : ids) {
         auto it = layersMap.find(id);
         if (it->second.second) {
-            nav::mb::displaceStyle(id, it->second.second);
             layers.emplace_back(std::move(it->second.second));
         }
     }

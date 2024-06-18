@@ -253,13 +253,13 @@ GLFWView::GLFWView(bool fullscreen_, bool benchmark_, const mbgl::ResourceOption
     printf("================================================================================\n");
     printf("\n");
           
-    nav::mb::loadAllImage(mbglPuckAssetsPath);
+    nav::style::loadAllImage(mbglPuckAssetsPath);
 }
 
 GLFWView::~GLFWView() {
     if (nullableWindow) glfwDestroyWindow(nullableWindow);
     glfwTerminate();
-    nav::mb::releaseAllImage();
+    nav::style::releaseAllImage();
 }
 
 void GLFWView::setMap(mbgl::Map *map_) {
@@ -290,7 +290,7 @@ void GLFWView::onKey(int key, int action, int mods) {
         if (key != GLFW_KEY_R/* || key != GLFW_KEY_S*/) {
             animateRouteCallback = nullptr;
             toggleLocationIndicatorLayer(false);
-            nav::mb::setViewMode(nav::mb::ViewMode::Normal);
+            nav::style::setViewMode(nav::style::ViewMode::Normal);
         }
 
         switch (key) {
@@ -381,7 +381,7 @@ void GLFWView::onKey(int key, int action, int mods) {
 //            toggle3DExtrusions(show3DExtrusions);
 //            if (animateRouteCallback) break;
             
-            nav::mb::setViewMode(nav::mb::ViewMode::Spotlight);
+            nav::style::setViewMode(nav::style::ViewMode::Spotlight);
             
             static int index = 0;
             if (animateRouteCallback) {
@@ -418,7 +418,7 @@ void GLFWView::onKey(int key, int action, int mods) {
                 double easing = bearing - *camera.bearing;
                 easing += easing > 180.0 ? -360.0 : easing < -180 ? 360.0 : 0;
                 
-                bearing = *camera.bearing + (easing / 40);
+                bearing = *camera.bearing + (easing / 20);
                 
                 routeMap->jumpTo(mbgl::CameraOptions().withCenter(center).withZoom(18).withBearing(bearing).withPitch(65.0));
 

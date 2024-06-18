@@ -16,48 +16,16 @@
 #include "mbgl/nav/nav_log.hpp"
 
 namespace nav {
-namespace mb {
+namespace style {
 
-mbgl::Color land_color() { return { 216/255., 225/255., 238/255., 1.0f }; };
-
-void displaceStyle(const std::string& id, std::unique_ptr<::mbgl::style::Layer>& layer) {
-//    if (id == "water") {
-//        auto fillLayer = static_cast<::mbgl::style::FillLayer*>(layer.get());
-//        fillLayer->setFillColor(mbgl::Color(0/255.,255/255.,0/255.,1));
-//        fillLayer->setFillBase(-3);
-//    } 
-//    
-//    else 
-        
-//    if (id == "land") {
-//        auto backgroundLayer = static_cast<::mbgl::style::BackgroundLayer*>(layer.get());
-//        backgroundLayer->setBackgroundColor(mbgl::Color(255/255.,0/255.,255/255.,1));
-//    }
-//    
-//    else 
-//        
-//    if (layer->getSourceLayer() == "road") {
-//        const std::string type(layer->getTypeInfo()->type);
-//        if (type == "line") {
-//            auto lineLayer = static_cast<::mbgl::style::LineLayer*>(layer.get());
-//            
-//            if (id.find("road") == 0) {
-//                lineLayer->setLineColor(mbgl::Color(40/255.,47/255.,71/255.,1));
-//            }
-//            
-//            else if (id.find("tunnel") == 0) {
-//                lineLayer->setLineColor(mbgl::Color(40/255.,47/255.,255/255.,1));
-//                lineLayer->setLineOpacity(0.3);
-//            }
-//            
-//            else if (id.find("bridge") == 0) {
-//                lineLayer->setLineColor(mbgl::Color(255/255.,47/255.,71/255.,1));
-//                lineLayer->setLineOpacity(0.8);
-//            }
-//        }
-//    }
+const std::string& url() {
+    static std::string url(
+//        "mapbox://styles/notheorem/clxk5j3qw00av01qq93udh6bm"
+        "mapbox://styles/notheorem/clwvwdd2r01d301nyayhc6p6g"
+    );
+    
+    return url;
 }
-
 
 struct ImageData {
     mbgl::PremultipliedImage image;
@@ -140,11 +108,11 @@ struct ToggleValue {
     void update() {
         if (_enabled) {
             if (_ratio < 1.) {
-                _ratio = fmin(_ratio + fmax((1. - _ratio) * 0.1, 0.01), 1.);
+                _ratio = fmin(_ratio + fmax((1. - _ratio) * 0.2, 0.02), 1.);
             }
         } else {
             if (_ratio > 0.) {
-                _ratio = fmax(_ratio - fmax((_ratio - 0.) * 0.02, 0.002), 0.);
+                _ratio = fmax(_ratio - fmax((_ratio - 0.) * 0.05, 0.005), 0.);
             }
         }
         
