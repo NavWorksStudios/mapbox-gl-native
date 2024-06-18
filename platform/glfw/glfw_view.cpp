@@ -390,10 +390,7 @@ void GLFWView::onKey(int key, int action, int mods) {
             
             static mapbox::cheap_ruler::CheapRuler ruler { 0 };
             ruler = mapbox::cheap_ruler::CheapRuler(mbgl::platform::glfw::LatitudeValue[index]);
-            
-            static mapbox::geojson::geojson route;
-            route = { mapbox::geojson::parse(mbgl::platform::glfw::RouteValue[index]) };
-
+            const mapbox::geojson::geojson& route = mbgl::platform::glfw::RouteValue(index);
             static double routeProgress = 0;
 
             static double routeDistance;
@@ -401,7 +398,7 @@ void GLFWView::onKey(int key, int action, int mods) {
             const auto& lineString = geometry.get<mapbox::geometry::line_string<double>>();
             routeDistance = ruler.lineDistance(lineString);
 
-            animateRouteCallback = [this](mbgl::Map* routeMap) {
+            animateRouteCallback = [this, route](mbgl::Map* routeMap) {
                 const auto& geometry = route.get<mapbox::geometry::geometry<double>>();
                 const auto& lineString = geometry.get<mapbox::geometry::line_string<double>>();
                 

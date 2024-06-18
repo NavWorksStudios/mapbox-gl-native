@@ -1,4 +1,5 @@
 #include <string>
+#include <mbgl/style/sources/geojson_source.hpp>
 
 namespace mbgl {
 namespace platform {
@@ -177,11 +178,22 @@ constexpr const double SpeedValue[] = {
     Guomao::Speed,
 };
 
-constexpr const char* RouteValue[] = {
-    NewYork::Route,
-    Changanjie::Route,
-    Guomao::Route,
-};
+const mapbox::geojson::geojson& RouteValue(int index) {
+
+    constexpr const char* RouteValue[] = {
+        NewYork::Route,
+        Changanjie::Route,
+        Guomao::Route,
+    };
+    
+    static mapbox::geojson::geojson route[3] = {
+        mapbox::geojson::parse(RouteValue[0]),
+        mapbox::geojson::parse(RouteValue[1]),
+        mapbox::geojson::parse(RouteValue[2])
+    };
+    
+    return route[index];
+}
 
 
 
