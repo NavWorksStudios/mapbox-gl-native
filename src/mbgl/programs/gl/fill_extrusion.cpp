@@ -220,7 +220,7 @@ struct ShaderSource<FillExtrusionProgram> {
             float centerDis = pow(v_pos.x, 2.) + pow(v_pos.y, 2.);
             float centerFactor = clamp(centerDis / 1000000., 1. - u_spotlight, 1.);
 
-            gl_FragColor = v_color * mix(edgeFactor + centerFactor, 1., 0.0);
+            gl_FragColor = v_color * (edgeFactor + centerFactor);
     
         #ifdef OVERDRAW_INSPECTOR
             gl_FragColor=vec4(1.0);
