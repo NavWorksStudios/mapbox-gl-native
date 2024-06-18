@@ -165,31 +165,66 @@ constexpr const char* Route = R"route(
 
 }
 
+namespace Hongkong {
+
+constexpr const double Latitude = 22.3;
+constexpr const double Speed = 0.0001;
+
+constexpr const char* Route = R"route(
+{
+  "coordinates": [
+    [ 114.14834773670837, 22.288465557719565 ],
+    [ 114.15077534910911, 22.287834546054594 ],
+    [ 114.15313570930982, 22.2871052065931 ],
+    [ 114.15360311010225, 22.287025776426255 ],
+    [ 114.15472255846085, 22.287065107606754 ],
+    [ 114.15611991544137, 22.287243598168864 ],
+    [ 114.15709513332747, 22.287176154258347 ],
+    [ 114.15766066442461, 22.286873938139507 ],
+    [ 114.15812810271034, 22.286501939121884 ],
+    [ 114.15961542426045, 22.285755009358134 ],
+    [ 114.16163166989868, 22.28459259522732 ],
+    [ 114.16331444244753, 22.283784827209082 ],
+    [ 114.16495701913115, 22.28319999792726 ],
+    [ 114.16829884256047, 22.28241116012708 ],
+    [ 114.1691875373692, 22.282300974282638 ],
+    [ 114.17239407964799, 22.282221246979788 ],
+    [ 114.17439429428708, 22.282291472902262 ],
+    [ 114.17577846181477, 22.28241686093089 ],
+    [ 114.17750316758564, 22.28267682233138 ],
+    [ 114.18200679448492, 22.28345529977455 ],
+    [ 114.18506895786359, 22.2842452333865 ],
+    [ 114.18592864266994, 22.284539717879362 ],
+    [ 114.18689685189256, 22.28514333160852 ],
+    [ 114.18977063616329, 22.28829204989274 ],
+    [ 114.1927715774678, 22.29126441062061 ]
+  ],
+  "type": "LineString"
+})route";
+
+}
 
 constexpr const double LatitudeValue[] = {
     NewYork::Latitude,
-    Changanjie::Latitude,
     Guomao::Latitude,
+    Hongkong::Latitude,
+    Changanjie::Latitude,
 };
 
 constexpr const double SpeedValue[] = {
     NewYork::Speed,
-    Changanjie::Speed,
     Guomao::Speed,
+    Hongkong::Speed,
+    Changanjie::Speed,
 };
 
 const mapbox::geojson::geojson& RouteValue(int index) {
 
-    constexpr const char* RouteValue[] = {
-        NewYork::Route,
-        Changanjie::Route,
-        Guomao::Route,
-    };
-    
-    static mapbox::geojson::geojson route[3] = {
-        mapbox::geojson::parse(RouteValue[0]),
-        mapbox::geojson::parse(RouteValue[1]),
-        mapbox::geojson::parse(RouteValue[2])
+    static mapbox::geojson::geojson route[] = {
+        mapbox::geojson::parse(NewYork::Route),
+        mapbox::geojson::parse(Guomao::Route),
+        mapbox::geojson::parse(Hongkong::Route),
+        mapbox::geojson::parse(Changanjie::Route),
     };
     
     return route[index];

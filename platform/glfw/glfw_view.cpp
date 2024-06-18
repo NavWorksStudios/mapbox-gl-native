@@ -385,7 +385,7 @@ void GLFWView::onKey(int key, int action, int mods) {
             
             static int index = 0;
             if (animateRouteCallback) {
-                index = fmod(index + 1, 3);
+                index = fmod(index + 1, 4);
             }
             
             static mapbox::cheap_ruler::CheapRuler ruler { 0 };
