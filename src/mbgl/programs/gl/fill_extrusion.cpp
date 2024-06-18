@@ -160,7 +160,7 @@ struct ShaderSource<FillExtrusionProgram> {
             v_color.g=clamp(color.g*directional*u_lightcolor.g, 0.3*(1.0-u_lightcolor.g), 1.0);
             v_color.b=clamp(color.b*directional*u_lightcolor.b, 0.3*(1.0-u_lightcolor.b), 1.0);
 
-            v_color *= (u_opacity + 3. * u_spotlight);
+            v_color *= u_opacity * (1. + .5 * u_spotlight);
         
 
             // reflection
