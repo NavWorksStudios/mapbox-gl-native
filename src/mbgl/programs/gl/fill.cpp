@@ -255,8 +255,9 @@ void main() {
     lowp float opacity=u_opacity;
 #endif
 
-    float centerDis = pow(v_pos.x, 2.) + pow(v_pos.y, 2.);
-    float centerFactor = 1. - clamp(centerDis / 500000., 1. - u_spotlight, 1.);
+    float radius = 500000.;
+    float distance = pow(v_pos.x,2.) + pow(v_pos.y,2.);
+    float centerFactor = 1. - clamp(distance/radius, 1.-u_spotlight, 1.);
 
     vec4 color4 = mix(color, color_flow(gl_FragCoord.xy), centerFactor);
     vec3 spotlight = color4.rgb * (.7 + centerFactor); // 距离屏幕中心点越近，越亮

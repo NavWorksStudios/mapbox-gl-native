@@ -160,14 +160,14 @@ struct ShaderSource<FillExtrusionProgram> {
             v_color.g=clamp(color.g*directional*u_lightcolor.g, 0.3*(1.0-u_lightcolor.g), 1.0);
             v_color.b=clamp(color.b*directional*u_lightcolor.b, 0.3*(1.0-u_lightcolor.b), 1.0);
 
-            v_color *= u_opacity * (1. + .5 * u_spotlight);
+            v_color *= u_opacity * (1. + .4 * u_spotlight);
         
 
             // reflection
             if (u_rendering_reflection) {
                 base=-base;
                 height=-height;
-                v_color *= .15;
+                v_color *= .1;
             }
 
             // position
@@ -217,8 +217,9 @@ struct ShaderSource<FillExtrusionProgram> {
             edgeFactor = pow(max(edgeFactor, 0.) / edgeProportion, 3.) * 0.3;
     
             // 距离屏幕中心点越近，越透明
-            float centerDis = pow(v_pos.x, 2.) + pow(v_pos.y, 2.);
-            float centerFactor = clamp(centerDis / 1000000., 1. - u_spotlight, 1.);
+            float radius = 1000000.;
+            float distance = pow(v_pos.x,2.) + pow(v_pos.y,2.);
+            float centerFactor = clamp(distance/radius, 1.-u_spotlight, 1.);
 
             gl_FragColor = v_color * (edgeFactor + centerFactor);
     
