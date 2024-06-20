@@ -103,7 +103,7 @@ struct SymbolSortKey : DataDrivenLayoutProperty<float> {
 
 struct SymbolSpacing : LayoutProperty<float> {
     static constexpr const char *name() { return "symbol-spacing"; }
-    static float defaultValue() { return 250; }
+    static float defaultValue() { return 600; }
 };
 
 struct SymbolZOrder : LayoutProperty<SymbolZOrderType> {
@@ -168,7 +168,7 @@ struct TextMaxWidth : DataDrivenLayoutProperty<float> {
 
 struct TextOffset : DataDrivenLayoutProperty<std::array<float, 2>> {
     static constexpr const char *name() { return "text-offset"; }
-    static std::array<float, 2> defaultValue() { return {{0, 0}}; }
+    static std::array<float, 2> defaultValue() { return {{0, 1}}; }
 };
 
 struct TextOptional : LayoutProperty<bool> {
