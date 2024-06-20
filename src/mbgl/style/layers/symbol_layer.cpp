@@ -1611,7 +1611,7 @@ optional<Error> SymbolLayer::setPropertyInternal(const std::string& name, const 
         setIconImage(*typedValue);
         return nullopt;
     }
-    if (property == Property::IconOffset || property == Property::TextOffset) {
+    if (property == Property::IconOffset) {
         Error error;
         const auto& typedValue = convert<PropertyValue<std::array<float, 2>>>(value, error, true, false);
         if (!typedValue) {
@@ -1622,9 +1622,18 @@ optional<Error> SymbolLayer::setPropertyInternal(const std::string& name, const 
             setIconOffset(*typedValue);
             return nullopt;
         }
+    }
+    if (property == Property::TextOffset) {
+        
+        Error error;
+        const PropertyValue<std::array<float, 2>> typedValue = {{{0.0, 0.9983417}}};
+//        const auto& typedValue = convert<PropertyValue<std::array<float, 2>>>(value, error, true, false);
+//        if (!typedValue) {
+//            return error;
+//        }
 
         if (property == Property::TextOffset) {
-            setTextOffset(*typedValue);
+            setTextOffset(typedValue);
             return nullopt;
         }
     }
