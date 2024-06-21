@@ -20,8 +20,24 @@ namespace style {
 
 const std::string& url() {
     static std::string url(
-//        "mapbox://styles/notheorem/clxk5j3qw00av01qq93udh6bm"
-        "mapbox://styles/notheorem/clwvwdd2r01d301nyayhc6p6g"
+                           
+                           // 开发测试
+                           "mapbox://styles/notheorem/clxonzrtz00k701qq00fj6rnh" // dark
+//                           "mapbox://styles/notheorem/clxoo5n7100lh01qw47x0fdhe" // light
+                           
+                           
+                           // 正式 0 - 10
+//                           "mapbox://styles/notheorem/clxk5j3qw00av01qq93udh6bm"
+//                           "mapbox://styles/notheorem/clxolet6000jx01qq4un34jep"
+//                           "mapbox://styles/notheorem/clxo6t3l800l501qma3lk7kku"
+//                           "mapbox://styles/notheorem/clxo6u08m00l601qme55bahbs"
+//                           "mapbox://styles/notheorem/clxo6ym3j00k501r2dgm7d26j"
+//                           "mapbox://styles/notheorem/clxo70o4q00l701qmekyz04x5"
+//                           "mapbox://styles/notheorem/clxo72llu00j101qqgeb55xlw"
+//                           "mapbox://styles/notheorem/clxo77xld004501r0ae6s94fz"
+//                           "mapbox://styles/notheorem/clxo7bjja00kn01qrdm5k6o1a"
+//                           "mapbox://styles/notheorem/clxo7dspj00ko01qrhny81uem"
+//                           "mapbox://styles/notheorem/clxo7gf6000l301pf067zcqu9"
     );
     
     return url;
@@ -58,29 +74,9 @@ mbgl::gfx::TextureResource& getTexture(const std::string& name) {
     return imageMap[name].texture->getResource();
 }
 
-std::map<std::string, int16_t> layerHeightMap = {
-//    { "tunnel-path-trail", 0 },
-//    { "tunnel-path-cycleway-piste", 0 },
-//    { "tunnel-path", 0 },
-//    { "tunnel-steps", 0 },
-//    { "tunnel-pedestrian", 0 },
-//    { "tunnel-simple", 0 },
-    
-//    { "bridge-path-trail", 0 },
-//    { "bridge-path-cycleway-piste", 0 },
-//    { "bridge-path", 0 },
-//    { "bridge-steps", 0 },
-//    { "bridge-pedestrian", 0 },
-    
-    { "bridge-case-simple", 3 },
-    { "bridge-simple", 3 },
-
-//    { "bridge-rail", 0 },
-//    { "bridge-rail-tracks", 0 },
-};
 
 bool layerHasLineHeight(const std::string& layerId) {
-    return layerHeightMap.find(layerId) != layerHeightMap.end();
+    return layerId.find("bridge") != std::string::npos;
 }
 
 
@@ -108,11 +104,11 @@ struct ToggleValue {
     void update() {
         if (_enabled) {
             if (_ratio < 1.) {
-                _ratio = fmin(_ratio + fmax((1. - _ratio) * 0.2, 0.02), 1.);
+                _ratio = fmin(_ratio + fmax((1. - _ratio) * 0.1, 0.01), 1.);
             }
         } else {
             if (_ratio > 0.) {
-                _ratio = fmax(_ratio - fmax((_ratio - 0.) * 0.05, 0.005), 0.);
+                _ratio = fmax(_ratio - fmax((_ratio - 0.) * 0.025, 0.0025), 0.);
             }
         }
         

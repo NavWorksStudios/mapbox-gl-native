@@ -415,9 +415,9 @@ void GLFWView::onKey(int key, int action, int mods) {
                 double easing = bearing - *camera.bearing;
                 easing += easing > 180.0 ? -360.0 : easing < -180 ? 360.0 : 0;
                 
-                bearing = *camera.bearing + (easing / 20);
+                bearing = *camera.bearing + (easing / 40);
                 
-                routeMap->jumpTo(mbgl::CameraOptions().withCenter(center).withZoom(18).withBearing(bearing).withPitch(65.0));
+                routeMap->jumpTo(mbgl::CameraOptions().withCenter(center).withZoom(18).withBearing(bearing).withPitch(60.0));
 
                 mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
                 puck->setLocation(toArray(mapCenter));
@@ -899,7 +899,7 @@ void GLFWView::onMouseClick(int button, int action, int modifiers) {
             const float duration = pos.time - from.time;
             const mbgl::ScreenCoordinate moved(pos.coord.x - from.coord.x, pos.coord.y - from.coord.y);
             const mbgl::ScreenCoordinate fling(moved.x / duration * .6, moved.y / duration * .6);
-            map->moveBy(fling, mbgl::AnimationOptions{{mbgl::Milliseconds((long)(velocity * 1.5))}});
+            map->moveBy(fling, mbgl::AnimationOptions{{mbgl::Milliseconds((long)(velocity * 2.))}});
 
 //            nav::log::w("move map", "dur:%lfs velo:(%lf,%lf) moved(%lf,%lf) fling(%lf,%lf)",
 //                        duration, velocity, recentVelocity, moved.x, moved.y, fling.x, fling.y);
@@ -1006,7 +1006,7 @@ void GLFWView::run() {
         runOnce();
     };
 
-    frameTick.start(mbgl::Duration::zero(), mbgl::Milliseconds(1000 / 30), callback);
+    frameTick.start(mbgl::Duration::zero(), mbgl::Milliseconds(1000 / 60), callback);
 #if defined(__APPLE__)
     while (nullableWindow && !glfwWindowShouldClose(nullableWindow)) runLoop.run();
 #else

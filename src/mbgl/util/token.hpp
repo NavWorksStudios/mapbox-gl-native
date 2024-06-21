@@ -15,19 +15,21 @@ const static std::string tokenReservedChars = "{}";
 template <typename Lookup>
 std::string replaceTokens(const std::string &source, const Lookup &lookup) {
     std::string result;
-    result.reserve(source.size());
+    result.reserve(source.size() * 2);
 
     auto pos = source.begin();
     const auto end = source.end();
 
-    while (pos != end) {
+    while (pos < end) {
         auto brace = std::find(pos, end, '{');
         result.append(pos, brace);
         pos = brace;
-        if (pos != end) {
-            for (brace++; brace != end && tokenReservedChars.find(*brace) == std::string::npos; brace++);
-            if (brace != end && *brace == '}') {
-                std::string key { pos + 1, brace };
+        
+        if (pos < end) {
+            for (brace++; brace<end && tokenReservedChars.find(*brace)==std::string::npos; brace++) ;
+            
+            if (brace<end && *brace=='}') {
+                const std::string key { pos+1, brace };
                 if (optional<std::string> replacement = lookup(key)) {
                     result.append(*replacement);
                 } else {
