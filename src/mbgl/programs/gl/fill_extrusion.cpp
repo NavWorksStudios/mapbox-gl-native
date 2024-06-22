@@ -90,7 +90,8 @@ struct ShaderSource<FillExtrusionProgram> {
     
         varying vec3 v_pos;
         varying vec4 v_color;
-        varying vec2 v_heightInterpolator;
+        varying vec2 v_edge_ratio;
+        varying vec2 v_v_factor;
                 
         #ifndef HAS_UNIFORM_u_base
         uniform lowp float u_base_t;
@@ -159,22 +160,25 @@ struct ShaderSource<FillExtrusionProgram> {
             v_color.r=clamp(color.r*directional*u_lightcolor.r, 0.3*(1.0-u_lightcolor.r), 1.0);
             v_color.g=clamp(color.g*directional*u_lightcolor.g, 0.3*(1.0-u_lightcolor.g), 1.0);
             v_color.b=clamp(color.b*directional*u_lightcolor.b, 0.3*(1.0-u_lightcolor.b), 1.0);
-
-            v_color *= u_opacity * (1. + .4 * u_spotlight);
-        
+            v_color.a = 1.;
 
             // reflection
             if (u_rendering_reflection) {
                 base=-base;
                 height=-height;
-                v_color *= .1;
+                v_color *= u_opacity * .1;
+            } else {
+                v_color *= u_opacity * (1. + .2 * u_spotlight);
             }
 
             // position
             gl_Position=u_matrix*vec4(a_pos, h?height:base, 1.);
         
             v_pos=gl_Position.xyz;
-            v_heightInterpolator=vec2(abs(height-base), h?1.:0.);
+            
+            float tall=abs(height-base);
+            v_edge_ratio=vec2(8./tall, 15./tall); // 下上边缘比例
+            v_v_factor=vec2(h?1.:0.,0); // h ? top or bottom
         }
         
     )"; }
@@ -206,15 +210,17 @@ struct ShaderSource<FillExtrusionProgram> {
 
         varying vec3 v_pos;
         varying vec4 v_color;
-        varying vec2 v_heightInterpolator;
+        varying vec2 v_edge_ratio;
+        varying vec2 v_v_factor;
 
         void main() {
-            // 建筑物上下边缘，渐变描边
-            float edgeProportion = 8. / v_heightInterpolator[0]; // 上下边缘标准高度所占楼高比例
-            float edgeFactor = v_heightInterpolator[1] < .5 ?
-                               edgeProportion - v_heightInterpolator[1] : // 下边缘
-                               v_heightInterpolator[1] - (1. - edgeProportion); // 上边缘
-            edgeFactor = pow(max(edgeFactor, 0.) / edgeProportion, 3.) * 0.3;
+            // 建筑物上下边缘渐变描边增强
+            float edgeFactor = 0.;
+            if (v_v_factor.x < v_edge_ratio[0]) { // 下边缘
+                edgeFactor = pow((v_edge_ratio[0] - v_v_factor.x) / v_edge_ratio[0], 3.);
+            } else if (v_v_factor.x > 1. - v_edge_ratio[1]) { // 上边缘
+                edgeFactor = pow((v_v_factor.x + v_edge_ratio[1] - 1.) / v_edge_ratio[1], 3.);
+            }
     
             // 距离屏幕中心点越近，越透明
             float radius = 1000000.;
