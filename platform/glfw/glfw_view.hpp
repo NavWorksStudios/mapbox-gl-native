@@ -54,8 +54,6 @@ public:
 
     void run();
     
-    void runOnce();
-    
     void invalidate();
 
     mbgl::Size getSize() const;
@@ -119,7 +117,7 @@ private:
 
     mbgl::Map* map = nullptr;
     GLFWRendererFrontend* rendererFrontend = nullptr;
-    std::unique_ptr<GLFWBackend> nullableBackend;
+    std::unique_ptr<GLFWBackend> renderBackend;
 
     std::string testDirectory = ".";
 
@@ -186,7 +184,7 @@ private:
     mbgl::util::RunLoop runLoop;
     mbgl::util::Timer frameTick;
 
-    GLFWwindow *nullableWindow = nullptr;
+    GLFWwindow *window = nullptr;
     bool dirty = false;
     mbgl::optional<std::string> featureID;
     std::unique_ptr<mbgl::MapSnapshotter> snapshotter;
