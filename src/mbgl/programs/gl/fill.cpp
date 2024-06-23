@@ -224,17 +224,16 @@ float bubble(vec2 uv, vec2 C, float r, float b) {
     return clamp(1./clamp(length(uv-C)-r,0.,1.)/5.,0.,b);
 }
         
-vec4 color_flow(vec2 fragCoord) {
-    vec2 iResolution = vec2(1800, 720);
-    float time = u_render_time / 100. + 123.;
-    vec2 uv = (2. * fragCoord - iResolution.xy) / iResolution.y;
-    vec3 col = 0.15 * cos(time*31.+uv.xyx+vec3(1.0,2.0,4.0));
+vec3 color_flow(vec2 fragCoord) {
+    const lowp vec2 resolution = vec2(1800, 720);
+    lowp float time = u_render_time / 100. + 123.;
+    lowp vec2 uv = (2. * fragCoord - resolution.xy) / resolution.y;
+    lowp vec3 col = 0.15 * cos(time*31.+uv.xyx+vec3(1.0,2.0,4.0));
 
-    iResolution *= 4.;
     vec3 bubbles = vec3(0);
-    for(int i = 0; i < 15; i++){
+    for(int i = 0; i < 10; i++){
         float n = float(i);
-        float c = 2.*(n/14.-.5)*iResolution.x/iResolution.y;
+        float c = 2.*(n/14.-.5)*resolution.x/resolution.y;
         vec2 p = vec2(c+cos(n+time*5.),sin(time*n/11.));
         float r = 0.01*abs(sin(n*time));
         float b = (sin(time*n)*11.+13.)/2.;
@@ -242,7 +241,7 @@ vec4 color_flow(vec2 fragCoord) {
         bubbles += bubble(uv,p,r,b)/15.;
     }
     
-    return vec4(col+bubbles,1.0);
+    return col+bubbles;
 }
         
 void main() {
@@ -255,13 +254,13 @@ void main() {
     lowp float opacity=u_opacity;
 #endif
 
-    float radius = 500000.;
-    float distance = pow(v_pos.x,2.) + pow(v_pos.y,2.);
-    float centerFactor = 1. - clamp(distance/radius, 1.-u_spotlight, 1.);
+    const lowp float radius = 1500000.;
+    lowp float distance = pow(v_pos.x,2.) + pow(v_pos.y,2.);
+    lowp float centerFactor = clamp(distance/radius, 1.-u_spotlight, 1.);
+    centerFactor = pow(1. - centerFactor, 3.);
 
-    vec4 color4 = mix(color, color_flow(gl_FragCoord.xy), centerFactor);
-    vec3 spotlight = color4.rgb * (.7 + centerFactor); // 距离屏幕中心点越近，越亮
-    gl_FragColor = vec4(spotlight, color4.a) * opacity;
+    gl_FragColor.xyz = mix(color.rgb, color_flow(gl_FragCoord.xy) * 1.5, centerFactor); // 距离屏幕中心点越近，越亮
+    gl_FragColor.a = color.a * opacity;
         
 #ifdef OVERDRAW_INSPECTOR
     gl_FragColor=vec4(1.0);

@@ -90,8 +90,8 @@ struct ShaderSource<FillExtrusionProgram> {
     
         varying vec3 v_pos;
         varying vec4 v_color;
-        varying vec2 v_edge_ratio;
-        varying vec2 v_v_factor;
+        varying lowp vec2 v_edge_ratio;
+        varying lowp vec2 v_v_factor;
                 
         #ifndef HAS_UNIFORM_u_base
         uniform lowp float u_base_t;
@@ -176,7 +176,7 @@ struct ShaderSource<FillExtrusionProgram> {
         
             v_pos=gl_Position.xyz;
             
-            float tall=abs(height-base);
+            lowp float tall=abs(height-base);
             v_edge_ratio=vec2(8./tall,12./tall); // 上下边缘比例
             v_v_factor=vec2(h?1.:0.,0); // h ? top or bottom
         }
@@ -210,8 +210,8 @@ struct ShaderSource<FillExtrusionProgram> {
 
         varying vec3 v_pos;
         varying vec4 v_color;
-        varying vec2 v_edge_ratio;
-        varying vec2 v_v_factor;
+        varying lowp vec2 v_edge_ratio;
+        varying lowp vec2 v_v_factor;
 
         void main() {
             // 建筑物上下边缘渐变描边增强
@@ -226,24 +226,24 @@ struct ShaderSource<FillExtrusionProgram> {
             // |     | 0.3  差值 pow(r, 3)
             // |_____| 1.0
             //
-            float top = 0.;
-            float bottom = 0.;
+            lowp float top = 0.;
+            lowp float bottom = 0.;
             if (v_v_factor.x > 1. - v_edge_ratio[1]) { // 上边缘
                 top = (v_v_factor.x + v_edge_ratio[1] - 1.) / v_edge_ratio[1];
             }
             if (v_v_factor.x < v_edge_ratio[0]) { // 下边缘
                 bottom = (v_edge_ratio[0] - v_v_factor.x) / v_edge_ratio[0];
             }
-            float edgeFactor = pow(max(top, bottom), 3.);
+            lowp float edgeFactor = pow(max(top, bottom), 3.);
     
             // 距离屏幕中心点越近，越透明
             // u_spotlight[0,1]
             // u_spotlight ∈ 0，centerFactor[1,1]
             // u_spotlight ∈ 1，centerFactor[0,1]
             //
-            float radius = 1000000.;
-            float distance = pow(v_pos.x,2.) + pow(v_pos.y,2.);
-            float centerFactor = clamp(distance/radius, 1.-u_spotlight, 1.);
+            const lowp float radius = 1000000.;
+            lowp float distance = pow(v_pos.x,2.) + pow(v_pos.y,2.);
+            lowp float centerFactor = clamp(distance/radius, 1.-u_spotlight, 1.);
 
             gl_FragColor.xyz = v_color.xyz * (edgeFactor  + centerFactor) * .7; // [0,2] * .7
             gl_FragColor.a = v_color.a * centerFactor;

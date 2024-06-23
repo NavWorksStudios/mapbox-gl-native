@@ -33,9 +33,9 @@ const std::string& url() {
 //                           "mapbox://styles/notheorem/clxo6t3l800l501qma3lk7kku" // 玫红
 //                           "mapbox://styles/notheorem/clxo70o4q00l701qmekyz04x5" // 绿
 //                           "mapbox://styles/notheorem/clxo6ym3j00k501r2dgm7d26j" // 芥末绿
-                           "mapbox://styles/notheorem/clxo77xld004501r0ae6s94fz" // 黄橙
+//                           "mapbox://styles/notheorem/clxo77xld004501r0ae6s94fz" // 黄橙
 //                           "mapbox://styles/notheorem/clxo6u08m00l601qme55bahbs" // 土黄
-//                           "mapbox://styles/notheorem/clxo7bjja00kn01qrdm5k6o1a" // 白
+                           "mapbox://styles/notheorem/clxo7bjja00kn01qrdm5k6o1a" // 白
 //                           "mapbox://styles/notheorem/clxo7dspj00ko01qrhny81uem" // 黑
     );
     
