@@ -9,6 +9,7 @@
 #include <mbgl/style/image.hpp>
 #include <mbgl/gfx/texture.hpp>
 #include <mbgl/gfx/upload_pass.hpp>
+#include <mbgl/util/color.hpp>
 
 namespace nav {
 namespace style {
@@ -35,8 +36,6 @@ namespace landscape {
 float value();
 }
 
-void update();
-
 enum ViewMode : int8_t {
     Landscape,
     Normal,
@@ -44,6 +43,21 @@ enum ViewMode : int8_t {
 };
 
 void setViewMode(ViewMode mode);
+
+namespace monochrome {
+struct Hsl {
+    float h=0, s=0, l=0, a=0;
+    Hsl() = default;
+    Hsl(const mbgl::Color& rgb);
+    mbgl::Color rgb();
+    bool operator == (const Hsl& hsl);
+    void smoothto(const Hsl& to);
+};
+void setColorBase(const Hsl& base);
+const std::vector<Hsl>& getColor(const std::string& layerId);
+}
+
+void update();
 
 }
 }

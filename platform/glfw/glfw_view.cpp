@@ -5,7 +5,6 @@
 #include "test_writer.hpp"
 
 #include <mbgl/annotation/annotation.hpp>
-#include <mbgl/gl/headless_backend.hpp>
 #include <mbgl/gfx/backend.hpp>
 #include <mbgl/gfx/backend_scope.hpp>
 #include <mbgl/map/camera.hpp>
@@ -80,36 +79,36 @@ public:
 namespace {
 
 void addFillExtrusionLayer(mbgl::style::Style &style, bool visible) {
-    using namespace mbgl::style;
-    using namespace mbgl::style::expression::dsl;
-
-    // Satellite-only style does not contain building extrusions data.
-    if (!style.getSource("composite")) {
-        return;
-    }
-
-    if (auto layer = style.getLayer("3d-buildings")) {
-        layer->setVisibility(VisibilityType(!visible));
-        return;
-    }
-
-    auto extrusionLayer = std::make_unique<FillExtrusionLayer>("3d-buildings", "composite");
-    extrusionLayer->setSourceLayer("building");
-    extrusionLayer->setMinZoom(15.0f);
-    extrusionLayer->setFilter(Filter(eq(get("extrude"), literal("true"))));
-    
-    auto e = interpolate(
-                linear(),
-                number(get("height")),
-                0.f, toColor(literal("#FFFFFF")),
-                100.f, toColor(literal("#FFFFFF")));
-                
-    extrusionLayer->setFillExtrusionColor(PropertyExpression<mbgl::Color>(std::move(e)));
-    
-    extrusionLayer->setFillExtrusionOpacity(.7f);
-    extrusionLayer->setFillExtrusionHeight(PropertyExpression<float>(get("height")));
-    extrusionLayer->setFillExtrusionBase(PropertyExpression<float>(get("min_height")));
-    style.addLayer(std::move(extrusionLayer));
+//    using namespace mbgl::style;
+//    using namespace mbgl::style::expression::dsl;
+//
+//    // Satellite-only style does not contain building extrusions data.
+//    if (!style.getSource("composite")) {
+//        return;
+//    }
+//
+//    if (auto layer = style.getLayer("3d-buildings")) {
+//        layer->setVisibility(VisibilityType(!visible));
+//        return;
+//    }
+//
+//    auto extrusionLayer = std::make_unique<FillExtrusionLayer>("3d-buildings", "composite");
+//    extrusionLayer->setSourceLayer("building");
+//    extrusionLayer->setMinZoom(15.0f);
+//    extrusionLayer->setFilter(Filter(eq(get("extrude"), literal("true"))));
+//    
+//    auto e = interpolate(
+//                linear(),
+//                number(get("height")),
+//                0.f, toColor(literal("#FFFFFF")),
+//                100.f, toColor(literal("#FFFFFF")));
+//                
+//    extrusionLayer->setFillExtrusionColor(PropertyExpression<mbgl::Color>(std::move(e)));
+//    
+//    extrusionLayer->setFillExtrusionOpacity(.7f);
+//    extrusionLayer->setFillExtrusionHeight(PropertyExpression<float>(get("height")));
+//    extrusionLayer->setFillExtrusionBase(PropertyExpression<float>(get("min_height")));
+//    style.addLayer(std::move(extrusionLayer));
 }
 
 } // namespace
@@ -171,45 +170,45 @@ GLFWView::GLFWView(bool fullscreen_, bool benchmark_, const mbgl::ResourceOption
     glfwWindowHint(GLFW_DEPTH_BITS, 16);
 
     if (!headless) {
-        nullableWindow = glfwCreateWindow(width, height, "Mapbox GL", monitor, nullptr);
+        window = glfwCreateWindow(width, height, "Mapbox GL", monitor, nullptr);
         
-        if (!nullableWindow) {
+        if (!window) {
             glfwTerminate();
             mbgl::Log::Error(mbgl::Event::OpenGL, "failed to initialize window");
             exit(1);
         }
         
-        glfwSetWindowUserPointer(nullableWindow, this);
-        glfwSetCursorPosCallback(nullableWindow, onMouseMove);
-        glfwSetMouseButtonCallback(nullableWindow, onMouseClick);
-        glfwSetWindowSizeCallback(nullableWindow, onWindowResize);
-        glfwSetFramebufferSizeCallback(nullableWindow, onFramebufferResize);
-        glfwSetScrollCallback(nullableWindow, onScroll);
-        glfwSetKeyCallback(nullableWindow, onKey);
-        glfwSetWindowFocusCallback(nullableWindow, onWindowFocus);
+        glfwSetWindowUserPointer(window, this);
+        glfwSetCursorPosCallback(window, onMouseMove);
+        glfwSetMouseButtonCallback(window, onMouseClick);
+        glfwSetWindowSizeCallback(window, onWindowResize);
+        glfwSetFramebufferSizeCallback(window, onFramebufferResize);
+        glfwSetScrollCallback(window, onScroll);
+        glfwSetKeyCallback(window, onKey);
+        glfwSetWindowFocusCallback(window, onWindowFocus);
 
-        glfwGetWindowSize(nullableWindow, &width, &height);
+        glfwGetWindowSize(window, &width, &height);
 
-        nullableBackend = GLFWBackend::Create(nullableWindow, benchmark);
+        renderBackend = GLFWBackend::Create(window, benchmark);
 
-        if (nullableBackend) pixelRatio = static_cast<float>(nullableBackend->getSize().width) / width;
+        if (renderBackend) pixelRatio = static_cast<float>(renderBackend->getSize().width) / width;
     }
 
     glfwMakeContextCurrent(nullptr);
           
-    // glClearColor( 0.5, 0.5, 0.5, 1.0);
-    // #*#*# 测试fog
-    glEnable(GL_FOG);
-    {
-        GLfloat fogColor[4] = {0.5, 0, 0.5, 1.0};
-        glFogi (GL_FOG_MODE, GL_EXP2); // GL_EXP | GL_EXP2 | GL_LINEAR
-        glFogfv (GL_FOG_COLOR, fogColor);
-        glFogf (GL_FOG_DENSITY, 0.35f);
-        glHint (GL_FOG_HINT, GL_DONT_CARE);    // GL_DONT_CARE | GL_NICEST
-        glFogf(GL_FOG_START, 1.0f);
-        glFogf(GL_FOG_END, 500.0f);
-    }
-    // glClearColor( 0.5, 0.5, 0.5, 1.0);
+//    // glClearColor( 0.5, 0.5, 0.5, 1.0);
+//    // #*#*# 测试fog
+//    glEnable(GL_FOG);
+//    {
+//        GLfloat fogColor[4] = {0.5, 0, 0.5, 1.0};
+//        glFogi (GL_FOG_MODE, GL_EXP2); // GL_EXP | GL_EXP2 | GL_LINEAR
+//        glFogfv (GL_FOG_COLOR, fogColor);
+//        glFogf (GL_FOG_DENSITY, 0.35f);
+//        glHint (GL_FOG_HINT, GL_DONT_CARE);    // GL_DONT_CARE | GL_NICEST
+//        glFogf(GL_FOG_START, 1.0f);
+//        glFogf(GL_FOG_END, 500.0f);
+//    }
+//    // glClearColor( 0.5, 0.5, 0.5, 1.0);
 
     printf("\n");
     printf("================================================================================\n");
@@ -257,7 +256,7 @@ GLFWView::GLFWView(bool fullscreen_, bool benchmark_, const mbgl::ResourceOption
 }
 
 GLFWView::~GLFWView() {
-    if (nullableWindow) glfwDestroyWindow(nullableWindow);
+    if (window) glfwDestroyWindow(window);
     glfwTerminate();
     nav::style::releaseAllImage();
 }
@@ -272,12 +271,7 @@ void GLFWView::setRenderFrontend(GLFWRendererFrontend* rendererFrontend_) {
 }
 
 mbgl::gfx::RendererBackend &GLFWView::getRendererBackend() {
-    if (nullableBackend) {
-        return nullableBackend->getRendererBackend();
-    } else {
-        static mbgl::gl::HeadlessBackend renderable;
-        return renderable;
-    }
+    return renderBackend->getRendererBackend();
 }
 
 void GLFWView::onKey(GLFWwindow *window, int key, int /*scancode*/, int action, int mods) {
@@ -295,7 +289,7 @@ void GLFWView::onKey(int key, int action, int mods) {
 
         switch (key) {
             case GLFW_KEY_ESCAPE:
-                if (this->nullableWindow) glfwSetWindowShouldClose(nullableWindow, true);
+                if (this->window) glfwSetWindowShouldClose(window, true);
                 break;
             case GLFW_KEY_TAB:
                 cycleDebugOptions();
@@ -856,8 +850,8 @@ void GLFWView::onWindowResize(GLFWwindow *window, int width, int height) {
 void GLFWView::onFramebufferResize(GLFWwindow *window, int width, int height) {
     auto *view = reinterpret_cast<GLFWView *>(glfwGetWindowUserPointer(window));
     
-    if (view->nullableBackend)
-    view->nullableBackend->setSize({ static_cast<uint32_t>(width), static_cast<uint32_t>(height) });
+    if (view->renderBackend)
+    view->renderBackend->setSize({ static_cast<uint32_t>(width), static_cast<uint32_t>(height) });
 
     // This is only triggered when the framebuffer is resized, but not the window. It can
     // happen when you move the window between screens with a different pixel ratio.
@@ -998,47 +992,47 @@ void GLFWView::onWindowFocus(GLFWwindow *window, int focused) {
 
 void GLFWView::run() {
     auto callback = [&] {
-        if (nullableWindow && glfwWindowShouldClose(nullableWindow)) {
+        if (window && glfwWindowShouldClose(window)) {
             runLoop.stop();
-            return;
-        }
+        } else {
+            glfwPollEvents();
 
-        runOnce();
+            if (dirty && rendererFrontend) {
+                dirty = false;
+                
+                const double started = glfwGetTime();
+
+                if (animateRouteCallback) {
+                    animateRouteCallback(map);
+                }
+
+                updateAnimatedAnnotations();
+
+                mbgl::gfx::BackendScope scope { getRendererBackend() };
+
+                rendererFrontend->render();
+
+                if (freeCameraDemoPhase >= 0.0) {
+                    updateFreeCameraDemo();
+                }
+
+                report(1000 * (glfwGetTime() - started));
+                if (benchmark) {
+                    invalidate();
+                }
+            }
+        }
     };
 
     frameTick.start(mbgl::Duration::zero(), mbgl::Milliseconds(1000 / 60), callback);
+
 #if defined(__APPLE__)
-    while (nullableWindow && !glfwWindowShouldClose(nullableWindow)) runLoop.run();
+    while (window && !glfwWindowShouldClose(window)) {
+        runLoop.run();
+    }
 #else
     runLoop.run();
 #endif
-}
-
-void GLFWView::runOnce() {
-    glfwPollEvents();
-
-    if (dirty && rendererFrontend) {
-        dirty = false;
-        const double started = glfwGetTime();
-
-        if (animateRouteCallback)
-            animateRouteCallback(map);
-
-        updateAnimatedAnnotations();
-
-        mbgl::gfx::BackendScope scope { getRendererBackend() };
-
-        rendererFrontend->render();
-
-        if (freeCameraDemoPhase >= 0.0) {
-            updateFreeCameraDemo();
-        }
-
-        report(1000 * (glfwGetTime() - started));
-        if (benchmark) {
-            invalidate();
-        }
-    }
 }
 
 float GLFWView::getPixelRatio() const {
@@ -1082,12 +1076,12 @@ void GLFWView::setChangeStyleCallback(std::function<void()> callback) {
 }
 
 void GLFWView::setShouldClose() {
-    if (nullableWindow) glfwSetWindowShouldClose(nullableWindow, true);
+    if (window) glfwSetWindowShouldClose(window, true);
     glfwPostEmptyEvent();
 }
 
 void GLFWView::setWindowTitle(const std::string& title) {
-    if (nullableWindow) glfwSetWindowTitle(nullableWindow, (std::string { "Mapbox GL: " } + title).c_str());
+    if (window) glfwSetWindowTitle(window, (std::string { "Mapbox GL: " } + title).c_str());
 }
 
 void GLFWView::onDidFinishLoadingStyle() {
