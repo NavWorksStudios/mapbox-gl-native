@@ -44,17 +44,9 @@ enum ViewMode : int8_t {
 
 void setViewMode(ViewMode mode);
 
-namespace monochrome {
-struct Hsl {
-    float h=0, s=0, l=0, a=0;
-    Hsl() = default;
-    Hsl(const mbgl::Color& rgb);
-    mbgl::Color rgb();
-    bool operator == (const Hsl& hsl);
-    void smoothto(const Hsl& to);
-};
-void setColorBase(const Hsl& base);
-const std::vector<Hsl>& getColor(const std::string& layerId);
+namespace palette {
+void setColorBase(const mbgl::Color& color);
+mbgl::Color getColor(const std::string& uri);
 }
 
 void update();

@@ -164,7 +164,7 @@ void setViewMode(ViewMode mode) {
     }
 }
 
-namespace monochrome {
+namespace palette {
 
 float hue_to_rgb(float p, float q, float t) {
     if (t < 0.) t += 1.;
@@ -185,285 +185,301 @@ float value_smooth_to(float from, float to) {
     }
 }
 
-Hsl::Hsl(const mbgl::Color& rgb) {
-    const float& r = rgb.r;
-    const float& g = rgb.g;
-    const float& b = rgb.b;
-    
-    double maxVal = std::max(r, std::max(g, b));
-    double minVal = std::min(r, std::min(g, b));
-    double delta = maxVal - minVal;
- 
-    l = (maxVal + minVal) / 2.0;
-    if (delta == 0) {
-        h = 0; // 无色彩
-        s = 0; // 灰色
-    } else {
-        if (l < 0.5) {
-            s = delta / (maxVal + minVal);
+struct Hsl {
+    float h=0, s=0, l=0, a=0;
+
+    Hsl() = default;
+
+    Hsl(const mbgl::Color& rgb) {
+        const float& r = rgb.r;
+        const float& g = rgb.g;
+        const float& b = rgb.b;
+        
+        double maxVal = std::max(r, std::max(g, b));
+        double minVal = std::min(r, std::min(g, b));
+        double delta = maxVal - minVal;
+     
+        l = (maxVal + minVal) / 2.0;
+        if (delta == 0) {
+            h = 0; // 无色彩
+            s = 0; // 灰色
         } else {
-            s = delta / (2 - maxVal - minVal);
-        }
- 
-        if (r == maxVal) {
-            h = (g - b) / delta; // between 0 and 6
-        } else if (g == maxVal) {
-            h = 2 + (b - r) / delta; // between 2 and 8
-        } else {
-            h = 4 + (r - g) / delta; // between 4 and 10
-        }
-        h *= 60; // Convert to degrees
-        if (h < 0) {
-            h += 360;
+            if (l < 0.5) {
+                s = delta / (maxVal + minVal);
+            } else {
+                s = delta / (2 - maxVal - minVal);
+            }
+     
+            if (r == maxVal) {
+                h = (g - b) / delta; // between 0 and 6
+            } else if (g == maxVal) {
+                h = 2 + (b - r) / delta; // between 2 and 8
+            } else {
+                h = 4 + (r - g) / delta; // between 4 and 10
+            }
+            h *= 60; // Convert to degrees
+            if (h < 0) {
+                h += 360;
+            }
         }
     }
-}
 
-mbgl::Color Hsl::rgb() {
-    float r, g, b;
- 
-    if (s == 0) {
-        r = g = b = l; //  achromatic
-    } else {
-        float q = l < 0.5 ? l * (1. + s) : l + s - l * s;
-        float p = 2. * l - q;
-        r = hue_to_rgb(p, q, h + 1./3.);
-        g = hue_to_rgb(p, q, h);
-        b = hue_to_rgb(p, q, h - 1./3.);
+    mbgl::Color rgb() const {
+        float r, g, b;
+     
+        if (s == 0) {
+            r = g = b = l; //  achromatic
+        } else {
+            float q = l < 0.5 ? l * (1. + s) : l + s - l * s;
+            float p = 2. * l - q;
+            r = hue_to_rgb(p, q, h + 1./3.);
+            g = hue_to_rgb(p, q, h);
+            b = hue_to_rgb(p, q, h - 1./3.);
+        }
+     
+        return {r, g, b, a};
     }
- 
-    return {r, g, b, a};
-}
 
-bool Hsl::operator == (const Hsl& hsl) {
-    return h == hsl.h && s == hsl.s && l == hsl.l && a == hsl.a;
-}
+    void smoothto(const Hsl& to) {
+        h = value_smooth_to(h, to.h);
+        s = value_smooth_to(s, to.s);
+        l = value_smooth_to(l, to.l);
+        a = value_smooth_to(a, to.a);
+    }
+};
 
-void Hsl::smoothto(const Hsl& to) {
-    h = value_smooth_to(h, to.h);
-    s = value_smooth_to(s, to.s);
-    l = value_smooth_to(l, to.l);
-    a = value_smooth_to(a, to.a);
-}
-
-struct StylableColorEntity {
-    bool needUpdate = false;
-    std::vector<Hsl> colors;
-    std::vector<Hsl> smoothToColors;
+struct StylableColor {
+    const int8_t h, s, l, a;
+    Hsl color;
     
-    virtual ~StylableColorEntity() {}
+    StylableColor(int8_t h, int8_t s, int8_t l, int8_t a) : 
+    h(h), s(s), l(l), a(a) { }
+
+    void operator = (const Hsl& base) const {
+        
+    }
     
-    virtual void stylize(const Hsl& base) = 0;
+    operator const Hsl& () { return color; }
+};
+
+
+class GradientColor {
+    Hsl color;
+    StylableColor stylableColor;
+
+public:
+    GradientColor(const StylableColor& color) : stylableColor(color) {
+        
+    }
     
     void update() {
-        assert(colors.size() == smoothToColors.size());
+        color.smoothto(stylableColor);
+    }
+    
+    void operator = (const Hsl& base) { stylableColor = base; }
+    operator const Hsl& () { return color; }
+    operator mbgl::Color () { return color.rgb(); }
+};
+
+
+
+std::map<std::string, GradientColor> palleteMap = {
+
+    { "land/background-color/interpolate/0",                 StylableColor( { 0,0,0,0 } ) },
+    { "land/background-color/interpolate/1",                 StylableColor( { 0,0,0,0 } ) },
+    { "landcover/fill-color",                                StylableColor( { 0,0,0,0 } ) },
+    { "national-park/fill-color",                            StylableColor( { 0,0,0,0 } ) },
+    { "landuse/fill-color",                                  StylableColor( { 0,0,0,0 } ) },
+    { "hillshade/fill-color/interpolate/0/0",                StylableColor( { 0,0,0,0 } ) },
+    { "hillshade/fill-color/interpolate/0/1",                StylableColor( { 0,0,0,0 } ) },
+    { "hillshade/fill-color/interpolate/1/0",                StylableColor( { 0,0,0,0 } ) },
+    { "hillshade/fill-color/interpolate/1/1",                StylableColor( { 0,0,0,0 } ) },
+    
+    { "waterway/line-color",                                 StylableColor( { 0,0,0,0 } ) },
+    { "water/fill-color",                                    StylableColor( { 0,0,0,0 } ) },
+    { "water-depth/fill-color/interpolate/0/0",              StylableColor( { 0,0,0,0 } ) },
+    { "water-depth/fill-color/interpolate/0/1",              StylableColor( { 0,0,0,0 } ) },
+    { "water-depth/fill-color/interpolate/0/2",              StylableColor( { 0,0,0,0 } ) },
+    { "water-depth/fill-color/interpolate/1/0",              StylableColor( { 0,0,0,0 } ) },
+    { "water-depth/fill-color/interpolate/1/1",              StylableColor( { 0,0,0,0 } ) },
+    { "water-depth/fill-color/interpolate/1/2",              StylableColor( { 0,0,0,0 } ) },
+    
+//    { "land-structure-polygon",                              StylableColor( { 0,0,0,0 } ) },
+//    { "land-structure-line",                                 StylableColor( { 0,0,0,0 } ) },
+    
+//    { "aeroway-polygon",                                     StylableColor( { 0,0,0,0 } ) },
+//    { "aeroway-line",                                        StylableColor( { 0,0,0,0 } ) },
+    
+//    { "tunnel-path-trail",                                   StylableColor( { 0,0,0,0 } ) },
+//    { "tunnel-path-cycleway-piste",                          StylableColor( { 0,0,0,0 } ) },
+    { "tunnel-path/line-color",                              StylableColor( { 0,0,0,0 } ) },
+    { "tunnel-steps/line-color",                             StylableColor( { 0,0,0,0 } ) },
+    { "tunnel-pedestrian/line-color",                        StylableColor( { 0,0,0,0 } ) },
+    
+    { "tunnel-minor-case-navigation/line-color",             StylableColor( { 0,0,0,0 } ) },
+    { "tunnel-street-case-navigation/line-color",            StylableColor( { 0,0,0,0 } ) },
+    { "tunnel-secondary-tertiary-case-navigation/line-color",StylableColor( { 0,0,0,0 } ) },
+    { "tunnel-primary-case-navigation/line-color",           StylableColor( { 0,0,0,0 } ) },
+    { "tunnel-major-link-case-navigation/line-color",        StylableColor( { 0,0,0,0 } ) },
+    { "tunnel-motorway-trunk-case-navigation/line-color",    StylableColor( { 0,0,0,0 } ) },
+    { "tunnel-construction-navigation/line-color",           StylableColor( { 0,0,0,0 } ) },
+    { "tunnel-minor-navigation/line-color",                  StylableColor( { 0,0,0,0 } ) },
+    { "tunnel-major-link-navigation/line-color",             StylableColor( { 0,0,0,0 } ) },
+    { "tunnel-street-navigation/line-color",                 StylableColor( { 0,0,0,0 } ) },
+//    { "tunnel-street-low-navigation",                        StylableColor( { 0,0,0,0 } ) },
+    { "tunnel-secondary-tertiary-navigation/line-color",     StylableColor( { 0,0,0,0 } ) },
+    { "tunnel-primary-navigation/line-color",                StylableColor( { 0,0,0,0 } ) },
+    { "tunnel-motorway-trunk-navigation/line-color",         StylableColor( { 0,0,0,0 } ) },
+//    { "tunnel-oneway-arrow-blue-navigation",                 StylableColor( { 0,0,0,0 } ) },
+//    { "tunnel-oneway-arrow-white-navigation",                StylableColor( { 0,0,0,0 } ) },
+    
+//    { "road-path-trail",                                     StylableColor( { 0,0,0,0 } ) },
+//    { "road-path-cycleway-piste",                            StylableColor( { 0,0,0,0 } ) },
+    { "road-path/line-color",                                StylableColor( { 0,0,0,0 } ) },
+    { "road-steps/line-color",                               StylableColor( { 0,0,0,0 } ) },
+    { "road-pedestrian/line-color",                          StylableColor( { 0,0,0,0 } ) },
         
-        if (needUpdate) {
-            for (size_t i=0; i<colors.size(); i++) {
-                auto& from = colors[i];
-                auto& to = smoothToColors[i];
-                from.smoothto(to);
-            }
-            
-            needUpdate = !(colors[0] == smoothToColors[0]);
-        }
-    }
-};
-
-template <int H, int S, int L, int A> 
-struct HslOffset {
-    static mbgl::Color stylize(const Hsl& base) {
+    { "turning-feature-outline-navigation/circle-color",     StylableColor( { 0,0,0,0 } ) },
+    { "turning-feature-outline-navigation/circle-stroke-color",StylableColor( { 0,0,0,0 } ) },
+    { "road-minor-case-navigation/line-color",               StylableColor( { 0,0,0,0 } ) },
+    { "road-street-case-navigation/line-color",              StylableColor( { 0,0,0,0 } ) },
+    { "road-secondary-tertiary-case-navigation/line-color",  StylableColor( { 0,0,0,0 } ) },
+    { "road-primary-case-navigation/line-color",             StylableColor( { 0,0,0,0 } ) },
+    { "road-major-link-case-navigation/line-color",          StylableColor( { 0,0,0,0 } ) },
+    { "road-motorway-trunk-case-navigation/line-color",      StylableColor( { 0,0,0,0 } ) },
+//    { "road-construction-navigation",                        StylableColor( { 0,0,0,0 } ) },
+    { "road-minor-navigation/line-color",                    StylableColor( { 0,0,0,0 } ) },
+    { "road-major-link-navigation/line-color",               StylableColor( { 0,0,0,0 } ) },
+    { "road-street-navigation/line-color",                   StylableColor( { 0,0,0,0 } ) },
+//    { "road-street-low-navigation",                          StylableColor( { 0,0,0,0 } ) },
+    { "road-secondary-tertiary-navigation/line-color",       StylableColor( { 0,0,0,0 } ) },
+    { "road-primary-navigation/line-color",                  StylableColor( { 0,0,0,0 } ) },
+    { "road-motorway-trunk-case-low-navigation/line-color",  StylableColor( { 0,0,0,0 } ) },
+    { "road-motorway-trunk-navigation/line-color",           StylableColor( { 0,0,0,0 } ) },
+//    { "level-crossing-navigation",                           StylableColor( { 0,0,0,0 } ) },
+//    { "road-oneway-arrow-blue-navigation",                   StylableColor( { 0,0,0,0 } ) },
+//    { "road-oneway-arrow-white-navigation",                  StylableColor( { 0,0,0,0 } ) },
+    { "turning-feature-navigation/circle-color",             StylableColor( { 0,0,0,0 } ) },
+//    { "crosswalks",                                          StylableColor( { 0,0,0,0 } ) },
+    
+//    { "road-rail-bg-white",                                  StylableColor( { 0,0,0,0 } ) },
+//    { "road-rail",                                           StylableColor( { 0,0,0,0 } ) },
+//    { "road-rail-tracks",                                    StylableColor( { 0,0,0,0 } ) },
+    
+//    { "bridge-path-trail",                                   StylableColor( { 0,0,0,0 } ) },
+//    { "bridge-path-cycleway-piste",                          StylableColor( { 0,0,0,0 } ) },
+    { "bridge-path/line-color",                              StylableColor( { 0,0,0,0 } ) },
+    { "bridge-steps/line-color",                             StylableColor( { 0,0,0,0 } ) },
+    { "bridge-pedestrian/line-color",                        StylableColor( { 0,0,0,0 } ) },
+    
+    { "bridge-minor-case-navigation/line-color",             StylableColor( { 0,0,0,0 } ) },
+    { "bridge-street-case-navigation/line-color",            StylableColor( { 0,0,0,0 } ) },
+    { "bridge-secondary-tertiary-case-navigation/line-color",StylableColor( { 0,0,0,0 } ) },
+    { "bridge-primary-case-navigation/line-color",           StylableColor( { 0,0,0,0 } ) },
+    { "bridge-major-link-case-navigation/line-color",        StylableColor( { 0,0,0,0 } ) },
+    { "bridge-motorway-trunk-case-navigation/line-color",    StylableColor( { 0,0,0,0 } ) },
+//    { "bridge-construction-navigation",                      StylableColor( { 0,0,0,0 } ) },
+    { "bridge-minor-navigation/line-color",                  StylableColor( { 0,0,0,0 } ) },
+    { "bridge-major-link-navigation/line-color",             StylableColor( { 0,0,0,0 } ) },
+    { "bridge-street-navigation/line-color",                 StylableColor( { 0,0,0,0 } ) },
+//    { "bridge-street-low-navigation",                        StylableColor( { 0,0,0,0 } ) },
+    { "bridge-secondary-tertiary-navigation/line-color",     StylableColor( { 0,0,0,0 } ) },
+    { "bridge-primary-navigation/line-color",                StylableColor( { 0,0,0,0 } ) },
+    { "bridge-motorway-trunk-navigation/line-color",         StylableColor( { 0,0,0,0 } ) },
+    { "bridge-major-link-2-case-navigation/line-color",      StylableColor( { 0,0,0,0 } ) },
+    { "bridge-motorway-trunk-2-case-navigation/line-color",  StylableColor( { 0,0,0,0 } ) },
+    { "bridge-major-link-2-navigation/line-color",           StylableColor( { 0,0,0,0 } ) },
+    { "bridge-motorway-trunk-2-navigation/line-color",       StylableColor( { 0,0,0,0 } ) },
+//    { "bridge-oneway-arrow-blue-navigation",                 StylableColor( { 0,0,0,0 } ) },
+//    { "bridge-oneway-arrow-white-navigation",                StylableColor( { 0,0,0,0 } ) },
+    
+//    { "bridge-rail-bg-white",                                StylableColor( { 0,0,0,0 } ) },
+//    { "bridge-rail",                                         StylableColor( { 0,0,0,0 } ) },
+//    { "bridge-rail-tracks",                                  StylableColor( { 0,0,0,0 } ) },
+    
+    { "building-extrusion/fill-extrusion-color",             StylableColor( { 0,0,0,0 } ) },
+    
+    { "admin-2-boundary-bg/line-color",                      StylableColor( { 0,0,0,0 } ) },
+    { "admin-1-boundary-bg/line-color",                      StylableColor( { 0,0,0,0 } ) },
+    { "admin-0-boundary-bg/line-color",                      StylableColor( { 0,0,0,0 } ) },
+    { "admin-2-boundary/line-color",                         StylableColor( { 0,0,0,0 } ) },
+    { "admin-1-boundary/line-color",                         StylableColor( { 0,0,0,0 } ) },
+    { "admin-0-boundary/line-color",                         StylableColor( { 0,0,0,0 } ) },
+    { "admin-0-boundary-disputed/line-color",                StylableColor( { 0,0,0,0 } ) },
+    
+    { "building-entrance/text-color",                        StylableColor( { 0,0,0,0 } ) },
+    { "building-entrance/text-halo-color",                   StylableColor( { 0,0,0,0 } ) },
+    { "building-number-label/text-color",                    StylableColor( { 0,0,0,0 } ) },
+    { "building-number-label/text-halo-color",               StylableColor( { 0,0,0,0 } ) },
+    { "block-number-label/text-color",                       StylableColor( { 0,0,0,0 } ) },
+    { "block-number-label/text-halo-color",                  StylableColor( { 0,0,0,0 } ) },
+    
+    { "road-intersection/text-color",                        StylableColor( { 0,0,0,0 } ) },
+//    { "traffic-signal-navigation",                           StylableColor( { 0,0,0,0 } ) },
+    { "road-label-navigation/text-color",                    StylableColor( { 0,0,0,0 } ) },
+    { "road-label-navigation/text-halo-color",               StylableColor( { 0,0,0,0 } ) },
+//    { "road-number-shield-navigation",                       StylableColor( { 0,0,0,0 } ) },
+//    { "road-exit-shield-navigation",                         StylableColor( { 0,0,0,0 } ) },
+    
+    { "waterway-label/text-color",                           StylableColor( { 0,0,0,0 } ) },
+    { "waterway-label/text-halo-color",                      StylableColor( { 0,0,0,0 } ) },
+    { "natural-line-label/text-halo-color",                  StylableColor( { 0,0,0,0 } ) },
+    { "natural-line-label/text-color",                       StylableColor( { 0,0,0,0 } ) },
+    { "natural-point-label/text-color",                      StylableColor( { 0,0,0,0 } ) },
+    { "natural-point-label/text-halo-color",                 StylableColor( { 0,0,0,0 } ) },
+    { "water-line-label/text-color",                         StylableColor( { 0,0,0,0 } ) },
+    { "water-line-label/text-halo-color",                    StylableColor( { 0,0,0,0 } ) },
+    { "water-point-label/text-color",                        StylableColor( { 0,0,0,0 } ) },
+    { "water-point-label/text-halo-color",                   StylableColor( { 0,0,0,0 } ) },
+    
+    { "poi-label/text-color",                                StylableColor( { 0,0,0,0 } ) },
+    { "poi-label/text-halo-color",                           StylableColor( { 0,0,0,0 } ) },
+    
+    { "airport-label/text-color",                            StylableColor( { 0,0,0,0 } ) },
+    { "airport-label/text-halo-color",                       StylableColor( { 0,0,0,0 } ) },
         
-    }
+    { "settlement-subdivision-label/text-color",             StylableColor( { 0,0,0,0 } ) },
+    { "settlement-subdivision-label/text-halo-color",        StylableColor( { 0,0,0,0 } ) },
+    { "settlement-minor-label/text-color/step/0",            StylableColor( { 0,0,0,0 } ) },
+    { "settlement-minor-label/text-color/step/1",            StylableColor( { 0,0,0,0 } ) },
+    { "settlement-minor-label/text-color/step/2",            StylableColor( { 0,0,0,0 } ) },
+    { "settlement-minor-label/text-halo-color",              StylableColor( { 0,0,0,0 } ) },
+    { "settlement-major-label/text-color/step/0",            StylableColor( { 0,0,0,0 } ) },
+    { "settlement-major-label/text-color/step/1",            StylableColor( { 0,0,0,0 } ) },
+    { "settlement-major-label/text-color/step/2",            StylableColor( { 0,0,0,0 } ) },
+    { "settlement-major-label/text-halo-color",              StylableColor( { 0,0,0,0 } ) },
+    { "state-label/text-color",                              StylableColor( { 0,0,0,0 } ) },
+    { "state-label/text-halo-color",                         StylableColor( { 0,0,0,0 } ) },
+    { "country-label/text-color",                            StylableColor( { 0,0,0,0 } ) },
+    { "country-label/text-halo-color",                       StylableColor( { 0,0,0,0 } ) },
+    { "continent-label/text-color",                          StylableColor( { 0,0,0,0 } ) },
+    { "continent-label/text-halo-color",                     StylableColor( { 0,0,0,0 } ) },
+
 };
 
-template <class ...HslOffsets> struct StylableColor : public StylableColorEntity {
-    void stylize(const Hsl& base) override {
-        smoothToColors.clear();
-        needUpdate = true;
-    }
-};
-
-std::map<std::string, std::shared_ptr<StylableColorEntity>> colorMap = {
-
-    
-    { "land",                                                std::make_shared<StylableColor< HslOffset<0,0,0,0>, HslOffset<0,0,0,0> >>() },
-    { "landcover",                                           std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "national-park",                                       std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "landuse",                                             std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "hillshade",                                           std::make_shared<StylableColor< HslOffset<0,0,0,0>, 
-        HslOffset<0,0,0,0>, HslOffset<0,0,0,0>, HslOffset<0,0,0,0> >>() },
-    
-    
-    { "waterway",                                            std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "water",                                               std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "water-depth",                                         std::make_shared<StylableColor< 
-        HslOffset<0,0,0,0>, HslOffset<0,0,0,0>, HslOffset<0,0,0,0>, HslOffset<0,0,0,0>, HslOffset<0,0,0,0>, HslOffset<0,0,0,0> >>() },
-    
-    
-//    { "land-structure-polygon",                              std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-//    { "land-structure-line",                                 std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    
-    
-//    { "aeroway-polygon",                                     std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-//    { "aeroway-line",                                        std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    
-    
-//    { "tunnel-path-trail",                                   std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-//    { "tunnel-path-cycleway-piste",                          std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "tunnel-path",                                         std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "tunnel-steps",                                        std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "tunnel-pedestrian",                                   std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    
-    
-    { "tunnel-minor-case-navigation",                        std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "tunnel-street-case-navigation",                       std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "tunnel-secondary-tertiary-case-navigation",           std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "tunnel-primary-case-navigation",                      std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "tunnel-major-link-case-navigation",                   std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "tunnel-motorway-trunk-case-navigation",               std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "tunnel-construction-navigation",                      std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "tunnel-minor-navigation",                             std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "tunnel-major-link-navigation",                        std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "tunnel-street-navigation",                            std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-//    { "tunnel-street-low-navigation",                        std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "tunnel-secondary-tertiary-navigation",                std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "tunnel-primary-navigation",                           std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "tunnel-motorway-trunk-navigation",                    std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-//    { "tunnel-oneway-arrow-blue-navigation",                 std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-//    { "tunnel-oneway-arrow-white-navigation",                std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    
-    
-//    { "road-path-trail",                                     std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-//    { "road-path-cycleway-piste",                            std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "road-path",                                           std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "road-steps",                                          std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "road-pedestrian",                                     std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    
-    
-    { "turning-feature-outline-navigation",                  std::make_shared<StylableColor< HslOffset<0,0,0,0>, HslOffset<0,0,0,0> >>() },
-    { "road-minor-case-navigation",                          std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "road-street-case-navigation",                         std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "road-secondary-tertiary-case-navigation",             std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "road-primary-case-navigation",                        std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "road-major-link-case-navigation",                     std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "road-motorway-trunk-case-navigation",                 std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-//    { "road-construction-navigation",                        std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "road-minor-navigation",                               std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "road-major-link-navigation",                          std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "road-street-navigation",                              std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-//    { "road-street-low-navigation",                          std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "road-secondary-tertiary-navigation",                  std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "road-primary-navigation",                             std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "road-motorway-trunk-case-low-navigation",             std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "road-motorway-trunk-navigation",                      std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-//    { "level-crossing-navigation",                           std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-//    { "road-oneway-arrow-blue-navigation",                   std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-//    { "road-oneway-arrow-white-navigation",                  std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "turning-feature-navigation",                          std::make_shared<StylableColor< HslOffset<0,0,0,0>, HslOffset<0,0,0,0> >>() },
-//    { "crosswalks",                                          std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    
-    
-//    { "road-rail-bg-white",                                  std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-//    { "road-rail",                                           std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-//    { "road-rail-tracks",                                    std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    
-    
-//    { "bridge-path-trail",                                   std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-//    { "bridge-path-cycleway-piste",                          std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "bridge-path",                                         std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "bridge-steps",                                        std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "bridge-pedestrian",                                   std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    
-    
-    { "bridge-minor-case-navigation",                        std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "bridge-street-case-navigation",                       std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "bridge-secondary-tertiary-case-navigation",           std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "bridge-primary-case-navigation",                      std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "bridge-major-link-case-navigation",                   std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "bridge-motorway-trunk-case-navigation",               std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-//    { "bridge-construction-navigation",                      std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "bridge-minor-navigation",                             std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "bridge-major-link-navigation",                        std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "bridge-street-navigation",                            std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-//    { "bridge-street-low-navigation",                        std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "bridge-secondary-tertiary-navigation",                std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "bridge-primary-navigation",                           std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "bridge-motorway-trunk-navigation",                    std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "bridge-major-link-2-case-navigation",                 std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "bridge-motorway-trunk-2-case-navigation",             std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "bridge-major-link-2-navigation",                      std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "bridge-motorway-trunk-2-navigation",                  std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-//    { "bridge-oneway-arrow-blue-navigation",                 std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-//    { "bridge-oneway-arrow-white-navigation",                std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    
-    
-//    { "bridge-rail-bg-white",                                std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-//    { "bridge-rail",                                         std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-//    { "bridge-rail-tracks",                                  std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    
-    
-    { "building-extrusion",                                  std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    
-    
-    { "admin-2-boundary-bg",                                 std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "admin-1-boundary-bg",                                 std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "admin-0-boundary-bg",                                 std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "admin-2-boundary",                                    std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "admin-1-boundary",                                    std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "admin-0-boundary",                                    std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "admin-0-boundary-disputed",                           std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    
-    
-    { "building-entrance",                                   std::make_shared<StylableColor< HslOffset<0,0,0,0>, HslOffset<0,0,0,0> >>() },
-    { "building-number-label",                               std::make_shared<StylableColor< HslOffset<0,0,0,0>, HslOffset<0,0,0,0> >>() },
-    { "block-number-label",                                  std::make_shared<StylableColor< HslOffset<0,0,0,0>, HslOffset<0,0,0,0> >>() },
-    
-    
-    { "road-intersection",                                   std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-//    { "traffic-signal-navigation",                           std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "road-label-navigation",                               std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-//    { "road-number-shield-navigation",                       std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-//    { "road-exit-shield-navigation",                         std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    
-    
-    { "waterway-label",                                      std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "natural-line-label",                                  std::make_shared<StylableColor< HslOffset<0,0,0,0>, HslOffset<0,0,0,0> >>() },
-    { "natural-point-label",                                 std::make_shared<StylableColor< HslOffset<0,0,0,0>, HslOffset<0,0,0,0> >>() },
-    { "water-line-label",                                    std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    { "water-point-label",                                   std::make_shared<StylableColor< HslOffset<0,0,0,0> >>() },
-    
-    
-    { "poi-label",                                           std::make_shared<StylableColor< HslOffset<0,0,0,0>, HslOffset<0,0,0,0> >>() },
-    
-    
-    { "airport-label",                                       std::make_shared<StylableColor< HslOffset<0,0,0,0>, HslOffset<0,0,0,0> >>() },
-    
-    
-    { "settlement-subdivision-label",                        std::make_shared<StylableColor< HslOffset<0,0,0,0>, HslOffset<0,0,0,0> >>() },
-    { "settlement-minor-label",                              std::make_shared<StylableColor< HslOffset<0,0,0,0>, HslOffset<0,0,0,0> >>() },
-    { "settlement-major-label",                              std::make_shared<StylableColor< HslOffset<0,0,0,0>, HslOffset<0,0,0,0> >>() },
-    { "state-label",                                         std::make_shared<StylableColor< HslOffset<0,0,0,0>, HslOffset<0,0,0,0> >>() },
-    { "country-label",                                       std::make_shared<StylableColor< HslOffset<0,0,0,0>, HslOffset<0,0,0,0> >>() },
-    { "continent-label",                                     std::make_shared<StylableColor< HslOffset<0,0,0,0>, HslOffset<0,0,0,0> >>() },
-};
-
-void setColorBase(const Hsl& base) {
-    for (auto it : colorMap) {
-        it.second->stylize(base);
-    }
-}
+static std::atomic<int> needUpdate = { 0 } ;
 
 void update() {
-    for (auto it : colorMap) {
-        it.second->update();
+    if (needUpdate > 0) {
+        needUpdate--;
+        for (auto it : palleteMap) {
+            it.second.update();
+        }
     }
 }
 
-const std::vector<Hsl>& getColor(const std::string& layerId) {
-    static std::vector<Hsl> stub;
-    auto it = colorMap.find(layerId);
-    if (it != colorMap.end()) return it->second->colors;
+void setColorBase(const mbgl::Color& color) {
+    const Hsl base(color);
+    for (auto& it : palleteMap) {
+        it.second = base;
+    }
+    needUpdate = 100;
+}
+
+mbgl::Color getColor(const std::string& uri) {
+    static mbgl::Color stub;
+    auto it = palleteMap.find(uri);
+    if (it != palleteMap.end()) return it->second;
     else return stub;
 }
 
@@ -474,7 +490,7 @@ void update() {
     rendertime::update();
     spotlight::toggle.update();
     landscape::toggle.update();
-    monochrome::update();
+    palette::update();
 }
 
 
