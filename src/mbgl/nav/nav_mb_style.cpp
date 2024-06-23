@@ -22,7 +22,7 @@ const std::string& url() {
     static std::string url(
                            
                            // 主题模式
-//                           "mapbox://styles/notheorem/clxonzrtz00k701qq00fj6rnh" // dark
+                           "mapbox://styles/notheorem/clxonzrtz00k701qq00fj6rnh" // dark
 //                           "mapbox://styles/notheorem/clxrac32800o901qw94ryfkdz" // light
 
                            // 色彩模式
@@ -35,7 +35,7 @@ const std::string& url() {
 //                           "mapbox://styles/notheorem/clxo6ym3j00k501r2dgm7d26j" // 芥末绿
 //                           "mapbox://styles/notheorem/clxo77xld004501r0ae6s94fz" // 黄橙
 //                           "mapbox://styles/notheorem/clxo6u08m00l601qme55bahbs" // 土黄
-                           "mapbox://styles/notheorem/clxo7bjja00kn01qrdm5k6o1a" // 白
+//                           "mapbox://styles/notheorem/clxo7bjja00kn01qrdm5k6o1a" // 白
 //                           "mapbox://styles/notheorem/clxo7dspj00ko01qrhny81uem" // 黑
     );
     
@@ -109,13 +109,13 @@ struct ToggleValue {
     bool update() {
         if (_enabled) {
             if (_ratio < 1.) {
-                _ratio = fmin(_ratio + fmax((1. - _ratio) * 0.1, 0.01), 1.);
+                _ratio = fmin(_ratio + fmax((1. - _ratio) * 0.15, 0.015), 1.);
                 return true;
             }
             return false;
         } else {
             if (_ratio > 0.) {
-                _ratio = fmax(_ratio - fmax((_ratio - 0.) * 0.025, 0.0025), 0.);
+                _ratio = fmax(_ratio - fmax((_ratio - 0.) * 0.015, 0.0015), 0.);
                 return true;
             }
             return false;
@@ -525,12 +525,10 @@ mbgl::Color getColor(const std::string& uri) {
 
 bool update() {
     bool needUpdate = false;
-
     rendertime::timestamp.update();
     needUpdate |= spotlight::toggle.update();
     needUpdate |= landscape::toggle.update();
     needUpdate |= palette::update();
-    
     return needUpdate;
 }
 
