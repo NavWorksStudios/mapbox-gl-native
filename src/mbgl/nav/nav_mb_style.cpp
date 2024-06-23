@@ -83,15 +83,21 @@ bool layerHasLineHeight(const std::string& layerId) {
 
 namespace rendertime {
 
-double time_seconds;
+struct Time {
+    double time_seconds;
 
-void update() {
-    const auto now = std::chrono::steady_clock::now();
-    time_seconds = std::chrono::duration_cast<std::chrono::duration<double>>(now.time_since_epoch()).count();
-}
+    void update() {
+        const auto now = std::chrono::steady_clock::now();
+        time_seconds = std::chrono::duration_cast<std::chrono::duration<double>>(now.time_since_epoch()).count();
+    }
+    
+    operator double () const { return time_seconds; }
+};
+
+Time timestamp;
 
 double value() {
-    return time_seconds;
+    return timestamp;
 }
 
 }
@@ -100,23 +106,25 @@ struct ToggleValue {
     bool _enabled = false;
     float _ratio = .5;
 
-    void update() {
+    bool update() {
         if (_enabled) {
             if (_ratio < 1.) {
                 _ratio = fmin(_ratio + fmax((1. - _ratio) * 0.1, 0.01), 1.);
+                return true;
             }
+            return false;
         } else {
             if (_ratio > 0.) {
                 _ratio = fmax(_ratio - fmax((_ratio - 0.) * 0.025, 0.0025), 0.);
+                return true;
             }
+            return false;
         }
-        
-//        nav::log::i("ToggleValue", "%f", _ratio);
     }
 
     void enable() { _enabled = true; }
     void disable() { _enabled = false; }
-    operator float () { return _ratio; }
+    operator float () const { return _ratio; }
 };
 
 namespace spotlight {
@@ -246,11 +254,11 @@ struct Hsl {
 };
 
 struct StylableColor {
-    const int8_t h, s, l, a;
+    const int8_t hEffect, sEffect, lEffect, aEffect;
     Hsl color;
     
-    StylableColor(int8_t h, int8_t s, int8_t l, int8_t a) : 
-    h(h), s(s), l(l), a(a) { }
+    StylableColor(int8_t h, int8_t s, int8_t l, int8_t a) :
+    hEffect(h), sEffect(s), lEffect(l), aEffect(a) { }
 
     void operator = (const Hsl& base) const {
         
@@ -284,9 +292,11 @@ std::map<std::string, GradientColor> palleteMap = {
 
     { "land/background-color/interpolate/0",                 StylableColor( { 0,0,0,0 } ) },
     { "land/background-color/interpolate/1",                 StylableColor( { 0,0,0,0 } ) },
+    
     { "landcover/fill-color",                                StylableColor( { 0,0,0,0 } ) },
     { "national-park/fill-color",                            StylableColor( { 0,0,0,0 } ) },
     { "landuse/fill-color",                                  StylableColor( { 0,0,0,0 } ) },
+
     { "hillshade/fill-color/interpolate/0/0",                StylableColor( { 0,0,0,0 } ) },
     { "hillshade/fill-color/interpolate/0/1",                StylableColor( { 0,0,0,0 } ) },
     { "hillshade/fill-color/interpolate/1/0",                StylableColor( { 0,0,0,0 } ) },
@@ -294,6 +304,7 @@ std::map<std::string, GradientColor> palleteMap = {
     
     { "waterway/line-color",                                 StylableColor( { 0,0,0,0 } ) },
     { "water/fill-color",                                    StylableColor( { 0,0,0,0 } ) },
+    
     { "water-depth/fill-color/interpolate/0/0",              StylableColor( { 0,0,0,0 } ) },
     { "water-depth/fill-color/interpolate/0/1",              StylableColor( { 0,0,0,0 } ) },
     { "water-depth/fill-color/interpolate/0/2",              StylableColor( { 0,0,0,0 } ) },
@@ -309,6 +320,7 @@ std::map<std::string, GradientColor> palleteMap = {
     
 //    { "tunnel-path-trail",                                   StylableColor( { 0,0,0,0 } ) },
 //    { "tunnel-path-cycleway-piste",                          StylableColor( { 0,0,0,0 } ) },
+
     { "tunnel-path/line-color",                              StylableColor( { 0,0,0,0 } ) },
     { "tunnel-steps/line-color",                             StylableColor( { 0,0,0,0 } ) },
     { "tunnel-pedestrian/line-color",                        StylableColor( { 0,0,0,0 } ) },
@@ -323,15 +335,19 @@ std::map<std::string, GradientColor> palleteMap = {
     { "tunnel-minor-navigation/line-color",                  StylableColor( { 0,0,0,0 } ) },
     { "tunnel-major-link-navigation/line-color",             StylableColor( { 0,0,0,0 } ) },
     { "tunnel-street-navigation/line-color",                 StylableColor( { 0,0,0,0 } ) },
+    
 //    { "tunnel-street-low-navigation",                        StylableColor( { 0,0,0,0 } ) },
+    
     { "tunnel-secondary-tertiary-navigation/line-color",     StylableColor( { 0,0,0,0 } ) },
     { "tunnel-primary-navigation/line-color",                StylableColor( { 0,0,0,0 } ) },
     { "tunnel-motorway-trunk-navigation/line-color",         StylableColor( { 0,0,0,0 } ) },
+    
 //    { "tunnel-oneway-arrow-blue-navigation",                 StylableColor( { 0,0,0,0 } ) },
 //    { "tunnel-oneway-arrow-white-navigation",                StylableColor( { 0,0,0,0 } ) },
     
 //    { "road-path-trail",                                     StylableColor( { 0,0,0,0 } ) },
 //    { "road-path-cycleway-piste",                            StylableColor( { 0,0,0,0 } ) },
+    
     { "road-path/line-color",                                StylableColor( { 0,0,0,0 } ) },
     { "road-steps/line-color",                               StylableColor( { 0,0,0,0 } ) },
     { "road-pedestrian/line-color",                          StylableColor( { 0,0,0,0 } ) },
@@ -344,19 +360,26 @@ std::map<std::string, GradientColor> palleteMap = {
     { "road-primary-case-navigation/line-color",             StylableColor( { 0,0,0,0 } ) },
     { "road-major-link-case-navigation/line-color",          StylableColor( { 0,0,0,0 } ) },
     { "road-motorway-trunk-case-navigation/line-color",      StylableColor( { 0,0,0,0 } ) },
+    
 //    { "road-construction-navigation",                        StylableColor( { 0,0,0,0 } ) },
+    
     { "road-minor-navigation/line-color",                    StylableColor( { 0,0,0,0 } ) },
     { "road-major-link-navigation/line-color",               StylableColor( { 0,0,0,0 } ) },
     { "road-street-navigation/line-color",                   StylableColor( { 0,0,0,0 } ) },
+    
 //    { "road-street-low-navigation",                          StylableColor( { 0,0,0,0 } ) },
+    
     { "road-secondary-tertiary-navigation/line-color",       StylableColor( { 0,0,0,0 } ) },
     { "road-primary-navigation/line-color",                  StylableColor( { 0,0,0,0 } ) },
     { "road-motorway-trunk-case-low-navigation/line-color",  StylableColor( { 0,0,0,0 } ) },
     { "road-motorway-trunk-navigation/line-color",           StylableColor( { 0,0,0,0 } ) },
+    
 //    { "level-crossing-navigation",                           StylableColor( { 0,0,0,0 } ) },
 //    { "road-oneway-arrow-blue-navigation",                   StylableColor( { 0,0,0,0 } ) },
 //    { "road-oneway-arrow-white-navigation",                  StylableColor( { 0,0,0,0 } ) },
+    
     { "turning-feature-navigation/circle-color",             StylableColor( { 0,0,0,0 } ) },
+    
 //    { "crosswalks",                                          StylableColor( { 0,0,0,0 } ) },
     
 //    { "road-rail-bg-white",                                  StylableColor( { 0,0,0,0 } ) },
@@ -365,6 +388,7 @@ std::map<std::string, GradientColor> palleteMap = {
     
 //    { "bridge-path-trail",                                   StylableColor( { 0,0,0,0 } ) },
 //    { "bridge-path-cycleway-piste",                          StylableColor( { 0,0,0,0 } ) },
+    
     { "bridge-path/line-color",                              StylableColor( { 0,0,0,0 } ) },
     { "bridge-steps/line-color",                             StylableColor( { 0,0,0,0 } ) },
     { "bridge-pedestrian/line-color",                        StylableColor( { 0,0,0,0 } ) },
@@ -375,11 +399,15 @@ std::map<std::string, GradientColor> palleteMap = {
     { "bridge-primary-case-navigation/line-color",           StylableColor( { 0,0,0,0 } ) },
     { "bridge-major-link-case-navigation/line-color",        StylableColor( { 0,0,0,0 } ) },
     { "bridge-motorway-trunk-case-navigation/line-color",    StylableColor( { 0,0,0,0 } ) },
+    
 //    { "bridge-construction-navigation",                      StylableColor( { 0,0,0,0 } ) },
+    
     { "bridge-minor-navigation/line-color",                  StylableColor( { 0,0,0,0 } ) },
     { "bridge-major-link-navigation/line-color",             StylableColor( { 0,0,0,0 } ) },
     { "bridge-street-navigation/line-color",                 StylableColor( { 0,0,0,0 } ) },
+    
 //    { "bridge-street-low-navigation",                        StylableColor( { 0,0,0,0 } ) },
+    
     { "bridge-secondary-tertiary-navigation/line-color",     StylableColor( { 0,0,0,0 } ) },
     { "bridge-primary-navigation/line-color",                StylableColor( { 0,0,0,0 } ) },
     { "bridge-motorway-trunk-navigation/line-color",         StylableColor( { 0,0,0,0 } ) },
@@ -387,6 +415,7 @@ std::map<std::string, GradientColor> palleteMap = {
     { "bridge-motorway-trunk-2-case-navigation/line-color",  StylableColor( { 0,0,0,0 } ) },
     { "bridge-major-link-2-navigation/line-color",           StylableColor( { 0,0,0,0 } ) },
     { "bridge-motorway-trunk-2-navigation/line-color",       StylableColor( { 0,0,0,0 } ) },
+    
 //    { "bridge-oneway-arrow-blue-navigation",                 StylableColor( { 0,0,0,0 } ) },
 //    { "bridge-oneway-arrow-white-navigation",                StylableColor( { 0,0,0,0 } ) },
     
@@ -412,9 +441,12 @@ std::map<std::string, GradientColor> palleteMap = {
     { "block-number-label/text-halo-color",                  StylableColor( { 0,0,0,0 } ) },
     
     { "road-intersection/text-color",                        StylableColor( { 0,0,0,0 } ) },
+    
 //    { "traffic-signal-navigation",                           StylableColor( { 0,0,0,0 } ) },
+    
     { "road-label-navigation/text-color",                    StylableColor( { 0,0,0,0 } ) },
     { "road-label-navigation/text-halo-color",               StylableColor( { 0,0,0,0 } ) },
+    
 //    { "road-number-shield-navigation",                       StylableColor( { 0,0,0,0 } ) },
 //    { "road-exit-shield-navigation",                         StylableColor( { 0,0,0,0 } ) },
     
@@ -437,18 +469,23 @@ std::map<std::string, GradientColor> palleteMap = {
         
     { "settlement-subdivision-label/text-color",             StylableColor( { 0,0,0,0 } ) },
     { "settlement-subdivision-label/text-halo-color",        StylableColor( { 0,0,0,0 } ) },
+    
     { "settlement-minor-label/text-color/step/0",            StylableColor( { 0,0,0,0 } ) },
     { "settlement-minor-label/text-color/step/1",            StylableColor( { 0,0,0,0 } ) },
     { "settlement-minor-label/text-color/step/2",            StylableColor( { 0,0,0,0 } ) },
     { "settlement-minor-label/text-halo-color",              StylableColor( { 0,0,0,0 } ) },
+    
     { "settlement-major-label/text-color/step/0",            StylableColor( { 0,0,0,0 } ) },
     { "settlement-major-label/text-color/step/1",            StylableColor( { 0,0,0,0 } ) },
     { "settlement-major-label/text-color/step/2",            StylableColor( { 0,0,0,0 } ) },
     { "settlement-major-label/text-halo-color",              StylableColor( { 0,0,0,0 } ) },
+    
     { "state-label/text-color",                              StylableColor( { 0,0,0,0 } ) },
     { "state-label/text-halo-color",                         StylableColor( { 0,0,0,0 } ) },
+    
     { "country-label/text-color",                            StylableColor( { 0,0,0,0 } ) },
     { "country-label/text-halo-color",                       StylableColor( { 0,0,0,0 } ) },
+    
     { "continent-label/text-color",                          StylableColor( { 0,0,0,0 } ) },
     { "continent-label/text-halo-color",                     StylableColor( { 0,0,0,0 } ) },
 
@@ -456,13 +493,15 @@ std::map<std::string, GradientColor> palleteMap = {
 
 static std::atomic<int> needUpdate = { 0 } ;
 
-void update() {
+bool update() {
     if (needUpdate > 0) {
         needUpdate--;
         for (auto it : palleteMap) {
             it.second.update();
         }
+        return true;
     }
+    return false;
 }
 
 void setColorBase(const mbgl::Color& color) {
@@ -470,6 +509,7 @@ void setColorBase(const mbgl::Color& color) {
     for (auto& it : palleteMap) {
         it.second = base;
     }
+
     needUpdate = 100;
 }
 
@@ -483,11 +523,15 @@ mbgl::Color getColor(const std::string& uri) {
 }
 
 
-void update() {
-    rendertime::update();
-    spotlight::toggle.update();
-    landscape::toggle.update();
-    palette::update();
+bool update() {
+    bool needUpdate = false;
+
+    rendertime::timestamp.update();
+    needUpdate |= spotlight::toggle.update();
+    needUpdate |= landscape::toggle.update();
+    needUpdate |= palette::update();
+    
+    return needUpdate;
 }
 
 

@@ -1002,9 +1002,9 @@ void GLFWView::run() {
                 
                 const double started = glfwGetTime();
 
-                if (animateRouteCallback) {
-                    animateRouteCallback(map);
-                }
+                if (nav::style::update()) invalidate();
+
+                if (animateRouteCallback) animateRouteCallback(map);
 
                 updateAnimatedAnnotations();
 
@@ -1012,14 +1012,11 @@ void GLFWView::run() {
 
                 rendererFrontend->render();
 
-                if (freeCameraDemoPhase >= 0.0) {
-                    updateFreeCameraDemo();
-                }
+                if (freeCameraDemoPhase >= 0.0) updateFreeCameraDemo();
 
                 report(1000 * (glfwGetTime() - started));
-                if (benchmark) {
-                    invalidate();
-                }
+
+                if (benchmark) invalidate();
             }
         }
     };

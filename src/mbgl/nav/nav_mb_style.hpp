@@ -49,7 +49,7 @@ void setColorBase(const mbgl::Color& color);
 mbgl::Color getColor(const std::string& uri);
 }
 
-void update();
+bool update();
 
 }
 }

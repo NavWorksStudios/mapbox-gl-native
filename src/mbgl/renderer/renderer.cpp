@@ -6,8 +6,6 @@
 #include <mbgl/gfx/backend_scope.hpp>
 #include <mbgl/annotation/annotation_manager.hpp>
 
-#include "mbgl/nav/nav_mb_style.hpp"
-
 namespace mbgl {
 
 Renderer::Renderer(gfx::RendererBackend& backend, float pixelRatio_, const optional<std::string>& localFontFamily_)
@@ -29,9 +27,6 @@ void Renderer::setObserver(RendererObserver* observer) {
 
 void Renderer::render(const std::shared_ptr<UpdateParameters>& updateParameters) {
     assert(updateParameters);
-    
-    nav::style::update();
-    
     if (auto renderTree = impl->orchestrator.createRenderTree(updateParameters)) {
         renderTree->prepare();
         impl->render(*renderTree);
