@@ -21,25 +21,22 @@ namespace style {
 const std::string& url() {
     static std::string url(
                            
-                           // 开发测试
+                           // 主题模式
 //                           "mapbox://styles/notheorem/clxonzrtz00k701qq00fj6rnh" // dark
-//                           "mapbox://styles/notheorem/clxoo5n7100lh01qw47x0fdhe" // light
-                           
-                           
-                           // 正式 0 - 10
-                           "mapbox://styles/notheorem/clxk5j3qw00av01qq93udh6bm" // 暗蓝
-//                           "mapbox://styles/notheorem/clxo7gf6000l301pf067zcqu9" // 蓝
-//                           "mapbox://styles/notheorem/clxolet6000jx01qq4un34jep" // 红紫
+//                           "mapbox://styles/notheorem/clxrac32800o901qw94ryfkdz" // light
+
+                           // 色彩模式
+                           "mapbox://styles/notheorem/clxo7gf6000l301pf067zcqu9" // 蓝
+//                           "mapbox://styles/notheorem/clxk5j3qw00av01qq93udh6bm" // 暗蓝
 //                           "mapbox://styles/notheorem/clxo72llu00j101qqgeb55xlw" // 紫
+//                           "mapbox://styles/notheorem/clxolet6000jx01qq4un34jep" // 红紫
 //                           "mapbox://styles/notheorem/clxo6t3l800l501qma3lk7kku" // 玫红
-//                           "mapbox://styles/notheorem/clxo6u08m00l601qme55bahbs" // 土黄
+//                           "mapbox://styles/notheorem/clxo70o4q00l701qmekyz04x5" // 绿
 //                           "mapbox://styles/notheorem/clxo6ym3j00k501r2dgm7d26j" // 芥末绿
-//                           "mapbox://styles/notheorem/clxo70o4q00l701qmekyz04x5" // 深绿
 //                           "mapbox://styles/notheorem/clxo77xld004501r0ae6s94fz" // 黄橙
-                           
-                           
-//                           "mapbox://styles/notheorem/clxo7bjja00kn01qrdm5k6o1a"
-//                           "mapbox://styles/notheorem/clxo7dspj00ko01qrhny81uem"
+//                           "mapbox://styles/notheorem/clxo6u08m00l601qme55bahbs" // 土黄
+//                           "mapbox://styles/notheorem/clxo7bjja00kn01qrdm5k6o1a" // 白
+//                           "mapbox://styles/notheorem/clxo7dspj00ko01qrhny81uem" // 黑
     );
     
     return url;

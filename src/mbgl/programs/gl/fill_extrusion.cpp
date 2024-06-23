@@ -166,7 +166,7 @@ struct ShaderSource<FillExtrusionProgram> {
             if (u_rendering_reflection) {
                 base=-base;
                 height=-height;
-                v_color *= u_opacity * .1;
+                v_color *= u_opacity * .2;
             } else {
                 v_color *= u_opacity * (1. + .2 * u_spotlight);
             }
@@ -177,7 +177,7 @@ struct ShaderSource<FillExtrusionProgram> {
             v_pos=gl_Position.xyz;
             
             float tall=abs(height-base);
-            v_edge_ratio=vec2(8./tall, 15./tall); // 下上边缘比例
+            v_edge_ratio=vec2(8./tall,12./tall); // 上下边缘比例
             v_v_factor=vec2(h?1.:0.,0); // h ? top or bottom
         }
         
@@ -215,19 +215,38 @@ struct ShaderSource<FillExtrusionProgram> {
 
         void main() {
             // 建筑物上下边缘渐变描边增强
-            float edgeFactor = 0.;
-            if (v_v_factor.x < v_edge_ratio[0]) { // 下边缘
-                edgeFactor = pow((v_edge_ratio[0] - v_v_factor.x) / v_edge_ratio[0], 3.);
-            } else if (v_v_factor.x > 1. - v_edge_ratio[1]) { // 上边缘
-                edgeFactor = pow((v_v_factor.x + v_edge_ratio[1] - 1.) / v_edge_ratio[1], 3.);
+            //
+            // |-----| 1.0
+            // |     | 0.3  差值 pow(r, 3)
+            // |     | 0.0
+            // |     |
+            // |     | 0.0
+            // |     |
+            // |     | 0.0
+            // |     | 0.3  差值 pow(r, 3)
+            // |_____| 1.0
+            //
+            float top = 0.;
+            float bottom = 0.;
+            if (v_v_factor.x > 1. - v_edge_ratio[1]) { // 上边缘
+                top = (v_v_factor.x + v_edge_ratio[1] - 1.) / v_edge_ratio[1];
             }
+            if (v_v_factor.x < v_edge_ratio[0]) { // 下边缘
+                bottom = (v_edge_ratio[0] - v_v_factor.x) / v_edge_ratio[0];
+            }
+            float edgeFactor = pow(max(top, bottom), 3.);
     
             // 距离屏幕中心点越近，越透明
+            // u_spotlight[0,1]
+            // u_spotlight ∈ 0，centerFactor[1,1]
+            // u_spotlight ∈ 1，centerFactor[0,1]
+            //
             float radius = 1000000.;
             float distance = pow(v_pos.x,2.) + pow(v_pos.y,2.);
             float centerFactor = clamp(distance/radius, 1.-u_spotlight, 1.);
 
-            gl_FragColor = v_color * (edgeFactor + centerFactor);
+            gl_FragColor.xyz = v_color.xyz * (edgeFactor  + centerFactor) * .7; // [0,2] * .7
+            gl_FragColor.a = v_color.a * centerFactor;
     
         #ifdef OVERDRAW_INSPECTOR
             gl_FragColor=vec4(1.0);
