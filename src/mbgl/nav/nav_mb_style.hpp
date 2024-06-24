@@ -47,7 +47,7 @@ void setViewMode(ViewMode mode);
 
 namespace palette {
 void setColorBase(const mbgl::Color& color);
-mbgl::Color getColor(const std::string& uri);
+const mbgl::Color& getColor(const std::string& color);
 }
 
 bool update();

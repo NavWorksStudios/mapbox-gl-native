@@ -14,8 +14,8 @@
 #include <mbgl/util/io.hpp>
 
 #include "mbgl/nav/nav_log.hpp"
+#include "csscolorparser/csscolorparser.hpp"
 
-#include <math.h>
 
 namespace nav {
 namespace style {
@@ -175,6 +175,96 @@ void setViewMode(ViewMode mode) {
     }
 }
 
+
+
+
+namespace csscolor {
+
+struct NamedColor { const char *const name; const CSSColorParser::Color color; };
+const NamedColor namedColors[] = {
+    { "transparent", { 0, 0, 0, 0 } }, { "aliceblue", { 240, 248, 255, 1 } },
+    { "antiquewhite", { 250, 235, 215, 1 } }, { "aqua", { 0, 255, 255, 1 } },
+    { "aquamarine", { 127, 255, 212, 1 } }, { "azure", { 240, 255, 255, 1 } },
+    { "beige", { 245, 245, 220, 1 } }, { "bisque", { 255, 228, 196, 1 } },
+    { "black", { 0, 0, 0, 1 } }, { "blanchedalmond", { 255, 235, 205, 1 } },
+    { "blue", { 0, 0, 255, 1 } }, { "blueviolet", { 138, 43, 226, 1 } },
+    { "brown", { 165, 42, 42, 1 } }, { "burlywood", { 222, 184, 135, 1 } },
+    { "cadetblue", { 95, 158, 160, 1 } }, { "chartreuse", { 127, 255, 0, 1 } },
+    { "chocolate", { 210, 105, 30, 1 } }, { "coral", { 255, 127, 80, 1 } },
+    { "cornflowerblue", { 100, 149, 237, 1 } }, { "cornsilk", { 255, 248, 220, 1 } },
+    { "crimson", { 220, 20, 60, 1 } }, { "cyan", { 0, 255, 255, 1 } },
+    { "darkblue", { 0, 0, 139, 1 } }, { "darkcyan", { 0, 139, 139, 1 } },
+    { "darkgoldenrod", { 184, 134, 11, 1 } }, { "darkgray", { 169, 169, 169, 1 } },
+    { "darkgreen", { 0, 100, 0, 1 } }, { "darkgrey", { 169, 169, 169, 1 } },
+    { "darkkhaki", { 189, 183, 107, 1 } }, { "darkmagenta", { 139, 0, 139, 1 } },
+    { "darkolivegreen", { 85, 107, 47, 1 } }, { "darkorange", { 255, 140, 0, 1 } },
+    { "darkorchid", { 153, 50, 204, 1 } }, { "darkred", { 139, 0, 0, 1 } },
+    { "darksalmon", { 233, 150, 122, 1 } }, { "darkseagreen", { 143, 188, 143, 1 } },
+    { "darkslateblue", { 72, 61, 139, 1 } }, { "darkslategray", { 47, 79, 79, 1 } },
+    { "darkslategrey", { 47, 79, 79, 1 } }, { "darkturquoise", { 0, 206, 209, 1 } },
+    { "darkviolet", { 148, 0, 211, 1 } }, { "deeppink", { 255, 20, 147, 1 } },
+    { "deepskyblue", { 0, 191, 255, 1 } }, { "dimgray", { 105, 105, 105, 1 } },
+    { "dimgrey", { 105, 105, 105, 1 } }, { "dodgerblue", { 30, 144, 255, 1 } },
+    { "firebrick", { 178, 34, 34, 1 } }, { "floralwhite", { 255, 250, 240, 1 } },
+    { "forestgreen", { 34, 139, 34, 1 } }, { "fuchsia", { 255, 0, 255, 1 } },
+    { "gainsboro", { 220, 220, 220, 1 } }, { "ghostwhite", { 248, 248, 255, 1 } },
+    { "gold", { 255, 215, 0, 1 } }, { "goldenrod", { 218, 165, 32, 1 } },
+    { "gray", { 128, 128, 128, 1 } }, { "green", { 0, 128, 0, 1 } },
+    { "greenyellow", { 173, 255, 47, 1 } }, { "grey", { 128, 128, 128, 1 } },
+    { "honeydew", { 240, 255, 240, 1 } }, { "hotpink", { 255, 105, 180, 1 } },
+    { "indianred", { 205, 92, 92, 1 } }, { "indigo", { 75, 0, 130, 1 } },
+    { "ivory", { 255, 255, 240, 1 } }, { "khaki", { 240, 230, 140, 1 } },
+    { "lavender", { 230, 230, 250, 1 } }, { "lavenderblush", { 255, 240, 245, 1 } },
+    { "lawngreen", { 124, 252, 0, 1 } }, { "lemonchiffon", { 255, 250, 205, 1 } },
+    { "lightblue", { 173, 216, 230, 1 } }, { "lightcoral", { 240, 128, 128, 1 } },
+    { "lightcyan", { 224, 255, 255, 1 } }, { "lightgoldenrodyellow", { 250, 250, 210, 1 } },
+    { "lightgray", { 211, 211, 211, 1 } }, { "lightgreen", { 144, 238, 144, 1 } },
+    { "lightgrey", { 211, 211, 211, 1 } }, { "lightpink", { 255, 182, 193, 1 } },
+    { "lightsalmon", { 255, 160, 122, 1 } }, { "lightseagreen", { 32, 178, 170, 1 } },
+    { "lightskyblue", { 135, 206, 250, 1 } }, { "lightslategray", { 119, 136, 153, 1 } },
+    { "lightslategrey", { 119, 136, 153, 1 } }, { "lightsteelblue", { 176, 196, 222, 1 } },
+    { "lightyellow", { 255, 255, 224, 1 } }, { "lime", { 0, 255, 0, 1 } },
+    { "limegreen", { 50, 205, 50, 1 } }, { "linen", { 250, 240, 230, 1 } },
+    { "magenta", { 255, 0, 255, 1 } }, { "maroon", { 128, 0, 0, 1 } },
+    { "mediumaquamarine", { 102, 205, 170, 1 } }, { "mediumblue", { 0, 0, 205, 1 } },
+    { "mediumorchid", { 186, 85, 211, 1 } }, { "mediumpurple", { 147, 112, 219, 1 } },
+    { "mediumseagreen", { 60, 179, 113, 1 } }, { "mediumslateblue", { 123, 104, 238, 1 } },
+    { "mediumspringgreen", { 0, 250, 154, 1 } }, { "mediumturquoise", { 72, 209, 204, 1 } },
+    { "mediumvioletred", { 199, 21, 133, 1 } }, { "midnightblue", { 25, 25, 112, 1 } },
+    { "mintcream", { 245, 255, 250, 1 } }, { "mistyrose", { 255, 228, 225, 1 } },
+    { "moccasin", { 255, 228, 181, 1 } }, { "navajowhite", { 255, 222, 173, 1 } },
+    { "navy", { 0, 0, 128, 1 } }, { "oldlace", { 253, 245, 230, 1 } },
+    { "olive", { 128, 128, 0, 1 } }, { "olivedrab", { 107, 142, 35, 1 } },
+    { "orange", { 255, 165, 0, 1 } }, { "orangered", { 255, 69, 0, 1 } },
+    { "orchid", { 218, 112, 214, 1 } }, { "palegoldenrod", { 238, 232, 170, 1 } },
+    { "palegreen", { 152, 251, 152, 1 } }, { "paleturquoise", { 175, 238, 238, 1 } },
+    { "palevioletred", { 219, 112, 147, 1 } }, { "papayawhip", { 255, 239, 213, 1 } },
+    { "peachpuff", { 255, 218, 185, 1 } }, { "peru", { 205, 133, 63, 1 } },
+    { "pink", { 255, 192, 203, 1 } }, { "plum", { 221, 160, 221, 1 } },
+    { "powderblue", { 176, 224, 230, 1 } }, { "purple", { 128, 0, 128, 1 } },
+    { "red", { 255, 0, 0, 1 } }, { "rosybrown", { 188, 143, 143, 1 } },
+    { "royalblue", { 65, 105, 225, 1 } }, { "saddlebrown", { 139, 69, 19, 1 } },
+    { "salmon", { 250, 128, 114, 1 } }, { "sandybrown", { 244, 164, 96, 1 } },
+    { "seagreen", { 46, 139, 87, 1 } }, { "seashell", { 255, 245, 238, 1 } },
+    { "sienna", { 160, 82, 45, 1 } }, { "silver", { 192, 192, 192, 1 } },
+    { "skyblue", { 135, 206, 235, 1 } }, { "slateblue", { 106, 90, 205, 1 } },
+    { "slategray", { 112, 128, 144, 1 } }, { "slategrey", { 112, 128, 144, 1 } },
+    { "snow", { 255, 250, 250, 1 } }, { "springgreen", { 0, 255, 127, 1 } },
+    { "steelblue", { 70, 130, 180, 1 } }, { "tan", { 210, 180, 140, 1 } },
+    { "teal", { 0, 128, 128, 1 } }, { "thistle", { 216, 191, 216, 1 } },
+    { "tomato", { 255, 99, 71, 1 } }, { "turquoise", { 64, 224, 208, 1 } },
+    { "violet", { 238, 130, 238, 1 } }, { "wheat", { 245, 222, 179, 1 } },
+    { "white", { 255, 255, 255, 1 } }, { "whitesmoke", { 245, 245, 245, 1 } },
+    { "yellow", { 255, 255, 0, 1 } }, { "yellowgreen", { 154, 205, 50, 1 } }
+};
+
+mbgl::Color convert(const CSSColorParser::Color& color) {
+    return mbgl::Color(color.r / 255., color.g / 255., color.b / 255., color.a / 255.);
+}
+
+}
+
+
 namespace palette {
 
 float hue_to_rgb(float p, float q, float t) {
@@ -196,22 +286,41 @@ float value_smooth_to(float from, float to) {
     }
 }
 
-struct Hsl {
+
+struct Hsla {
     float h=0., s=0., l=0., a=0.;
 
-    Hsl() = default;
+    Hsla() = default;
 
-    Hsl(float h, float s, float l, float a=1.) : h(h), s(s), l(l), a(a) {
+    Hsla(float h, float s, float l, float a=1.) : h(h), s(s), l(l), a(a) {
         assert(h >= 0. && h <= 360.);
         assert(s >= 0. && s <= 1.);
         assert(l >= 0. && l <= 1.);
         assert(a >= 0. && a <= 1.);
     }
-
-    Hsl(const mbgl::Color& rgb) {
-        const float& r = rgb.r;
-        const float& g = rgb.g;
-        const float& b = rgb.b;
+    
+    void operator >> (mbgl::Color& rgba) const {
+        float& r = rgba.r;
+        float& g = rgba.g;
+        float& b = rgba.b;
+     
+        if (s == 0) {
+            r = g = b = l; //  achromatic
+        } else {
+            float q = l < 0.5 ? l * (1. + s) : l + s - l * s;
+            float p = 2. * l - q;
+            r = hue_to_rgb(p, q, h + 1./3.);
+            g = hue_to_rgb(p, q, h);
+            b = hue_to_rgb(p, q, h - 1./3.);
+        }
+        
+        rgba.a = a;
+    }
+    
+    void operator << (const mbgl::Color& rgba) {
+        const float& r = rgba.r;
+        const float& g = rgba.g;
+        const float& b = rgba.b;
         
         double maxVal = std::max(r, std::max(g, b));
         double minVal = std::min(r, std::min(g, b));
@@ -240,342 +349,99 @@ struct Hsl {
                 h += 360;
             }
         }
+        
+        a = rgba.a;
     }
-
-    mbgl::Color rgb() const {
-        float r, g, b;
-     
-        if (s == 0) {
-            r = g = b = l; //  achromatic
-        } else {
-            float q = l < 0.5 ? l * (1. + s) : l + s - l * s;
-            float p = 2. * l - q;
-            r = hue_to_rgb(p, q, h + 1./3.);
-            g = hue_to_rgb(p, q, h);
-            b = hue_to_rgb(p, q, h - 1./3.);
-        }
-     
-        return {r, g, b, a};
-    }
-
-    void smoothto(const Hsl& to) {
+    
+    void smoothto(const Hsla& to) {
         h = value_smooth_to(h, to.h);
         s = value_smooth_to(s, to.s);
         l = value_smooth_to(l, to.l);
         a = value_smooth_to(a, to.a);
     }
+    
 };
 
-struct StyledHslSample {
+struct StyleFormula {
     float hCoef=0, sCoef=0, lCoef=0, aCoef=0;
-    StyledHslSample(float h, float s, float l, float a=1.) : hCoef(h), sCoef(s), lCoef(l), aCoef(a) { }
-};
+    
+    StyleFormula() = default;
 
-struct HslConstrain {
-    float hCoef=0, sCoef=0, lCoef=0, aCoef=0;
-    
-    HslConstrain() = default;
-    
-    HslConstrain(const StyledHslSample& standardSample) { // center (292., .5, .5, 1.)
-        hCoef = 292. - standardSample.hCoef;
-        sCoef = standardSample.sCoef - .5;
-        lCoef = logf((standardSample.lCoef - .1) / .8) / logf(0.5);
-        aCoef = standardSample.aCoef;
+    StyleFormula(const Hsla& base, const Hsla& sample) {
+        hCoef = base.h - sample.h;
+        sCoef = sample.s - base.s;
+        lCoef = logf((sample.l - .1) / .8) / logf(base.l);
+        aCoef = sample.a;
     }
     
-    Hsl stylize(const Hsl& base) const {
-        Hsl color;
+    void stylize(const Hsla& base, Hsla& color) const {
         color.h = fmod(base.h + hCoef, 360.);          // h [0,360]
         color.s = fmin(fmax(base.s + sCoef, 0.), 1.);  // s [0,1]
         color.l = pow(base.l, lCoef) * .8 + .1;        // l [0,1]
         color.a = fmin(fmax(base.a * aCoef, 0.), 1.);  // a [0,1]
-        return color;
     }
 };
 
-struct StyleNotSupport {
-
-};
-
-
-class GradientColor {
-    Hsl color;
-
-    struct Stylable {
-        enum Mode : uint8_t { stable, dynamic, notSupport };
-        Mode mode = Mode::stable;
-        Hsl color;
-        HslConstrain constain;
-
-        Stylable(const Hsl& color) : mode(Mode::stable), color(color) { }
-        Stylable(const StyledHslSample& standardSample) : mode(Mode::dynamic), constain(standardSample) { }
-        Stylable(const StyleNotSupport&) : mode(Mode::notSupport), color(0,1,1) { }
-        
-        operator const Hsl& () const { return color; }
-
-        void operator = (const Hsl& base) {
-            switch (mode) {
-                case dynamic:
-                    color = constain.stylize(base);
-                    break;
-                default:
-                    break;
-            }
-        }
-    } stylableColor;
+class Color {
+    Hsla hsla;
+    mbgl::Color rgba;
 
 public:
-    GradientColor(const Hsl& color) : stylableColor(color) { }
-    GradientColor(const StyledHslSample& standardSample) : stylableColor(standardSample) { }
-    GradientColor(const StyleNotSupport& notSupport) : stylableColor(notSupport) { }
+    Color() = default;
+    
+    Color(const mbgl::Color& color) : rgba(color) { hsla << rgba; }
+    Color(const Hsla& color) : hsla(color) { hsla >> rgba; }
 
-    inline void operator = (const Hsl& base) { stylableColor = base; }
-    inline void update() { color.smoothto(stylableColor); }
-    inline operator const Hsl& () const { return color; }
-    inline operator mbgl::Color () const { return color.rgb(); }
+    void smoothto(const Color& color) {
+        hsla.smoothto(color.hsla);
+        hsla >> rgba;
+    }
+    
+    void stylize(const Hsla& base, const StyleFormula& formula) {
+        formula.stylize(base, hsla);
+        hsla >> rgba;
+    }
+
+    inline const mbgl::Color& rgb() const { return rgba; }
+
+};
+
+
+class StyleColor {
+    Color color;
+
+    struct Style {
+        enum Mode : uint8_t { fixed, stylized };
+        Mode mode = Mode::fixed;
+        Color color;
+        StyleFormula formula;
+
+        Style() = default;
+        Style(const mbgl::Color& color) : mode(Mode::fixed), color(color) { }
+        Style(const StyleFormula& formula) : mode(Mode::stylized), formula(formula) { }
+        void operator = (const Hsla& base) {
+            if (mode == stylized) color.stylize(base, formula);
+        }
+    } style;
+
+public:
+    StyleColor() = default;
+    StyleColor(const mbgl::Color& color) : style(color) { }
+    StyleColor(const StyleFormula& formula) : style(formula) { }
+    inline void operator = (const Hsla& base) { style = base; }
+    inline void update() { color.smoothto(style.color); }
+    inline operator const mbgl::Color& () const { return color.rgb(); }
 };
 
 
-std::map<std::string, GradientColor> palleteColors = {
-
-    // land & water - land
-    
-    { "land/background-color/0",                             GradientColor(StyledHslSample(292, .5, .5)) },
-    { "land/background-color/1",                             GradientColor(StyledHslSample(292, .49, .35)) },
-    { "landcover/fill-color",                                GradientColor(StyledHslSample(292, .5, .3)) },
-    { "national-park/fill-color",                            GradientColor(StyledHslSample(292, .42, .32)) },
-    { "landuse/fill-color",                                  GradientColor(StyledHslSample(292, .42, .32)) },
-    { "hillshade/fill-color/0/0",                            GradientColor(StyledHslSample(292, .45, .47, 0.06)) },
-    { "hillshade/fill-color/0/1",                            GradientColor(StyledHslSample(292, .49, .43, 0.04)) },
-    { "hillshade/fill-color/1/0",                            GradientColor(StyledHslSample(292, .45, .47, 0)) },
-    { "hillshade/fill-color/1/1",                            GradientColor(StyledHslSample(292, .49, .43, 0)) },
-    
-    // land & water - water
-    
-    { "waterway/line-color",                                 GradientColor(StyledHslSample(292, .45, .23)) },
-    { "water/fill-color",                                    GradientColor(StyledHslSample(292, .45, .33)) },
-    { "water-depth/fill-color/0/0",                          GradientColor(StyledHslSample(292, .45, .28, 0.35)) },
-    { "water-depth/fill-color/0/1",                          GradientColor(StyledHslSample(292, .45, .27, 0.95)) },
-    { "water-depth/fill-color/0/2",                          GradientColor(StyledHslSample(292, .45, .22, 0.95)) },
-    { "water-depth/fill-color/1/0",                          GradientColor(StyledHslSample(292, .45, .28, 0)) },
-    { "water-depth/fill-color/1/1",                          GradientColor(StyledHslSample(292, .45, .27, 0)) },
-    { "water-depth/fill-color/1/2",                          GradientColor(StyledHslSample(292, .45, .22, 0)) },
-    
-    // land & water - built
-    
-    { "land-structure-polygon/fill-color/0",                 GradientColor(StyledHslSample(292, .5, .5, 0)) },
-    { "land-structure-polygon/fill-color/1",                 GradientColor(StyledHslSample(292, .49, .35, 0)) },
-    { "land-structure-line/line-color/0",                    GradientColor(StyledHslSample(292, .5, .5, 0)) },
-    { "land-structure-line/line-color/1",                    GradientColor(StyledHslSample(292, .49, .35, 0)) },
-    
-    // transit - built
-    
-    { "aeroway-polygon/fill-color/",                         GradientColor(StyledHslSample(292, .49, .44)) },
-    { "aeroway-line/line-color",                             GradientColor(StyledHslSample(292, .49, .44)) },
-    
-    // walking cycling etc. - tunnels
-    
-    { "tunnel-path-trail/line-color",                        GradientColor(StyledHslSample(292, .44, .3)) },
-    { "tunnel-path-cycleway-piste/line-color",               GradientColor(StyledHslSample(292, .44, .3)) },
-    { "tunnel-path/line-color",                              GradientColor(StyledHslSample(292, .44, .3)) },
-    { "tunnel-steps/line-color",                             GradientColor(StyledHslSample(292, .44, .3)) },
-    { "tunnel-pedestrian/line-color",                        GradientColor(StyledHslSample(292, .44, .3)) },
-    
-    // road network - tunnels
-    
-    { "tunnel-minor-case-navigation/line-color",             GradientColor(StyledHslSample(292, .46, .46)) },
-    { "tunnel-street-case-navigation/line-color",            GradientColor(StyledHslSample(292, .46, .46)) },
-    { "tunnel-secondary-tertiary-case-navigation/line-color",GradientColor(StyledHslSample(292, .46, .46)) },
-    { "tunnel-primary-case-navigation/line-color",           GradientColor(StyledHslSample(292, .46, .46)) },
-    { "tunnel-major-link-case-navigation/line-color",        GradientColor(StyledHslSample(292, .46, .46)) },
-    { "tunnel-motorway-trunk-case-navigation/line-color",    GradientColor(StyledHslSample(292, .46, .46)) },
-    { "tunnel-construction-navigation/line-color",           GradientColor(StyledHslSample(292, .48, .32)) },
-    { "tunnel-minor-navigation/line-color",                  GradientColor(StyledHslSample(292, .48, .32)) },
-    { "tunnel-major-link-navigation/line-color",             GradientColor(StyledHslSample(292, .48, .32)) },
-    { "tunnel-street-navigation/line-color",                 GradientColor(StyledHslSample(292, .48, .32)) },
-    { "tunnel-street-low-navigation",                        GradientColor(StyledHslSample(292, .48, .32)) },
-    { "tunnel-secondary-tertiary-navigation/line-color",     GradientColor(StyledHslSample(292, .48, .32)) },
-    { "tunnel-primary-navigation/line-color",                GradientColor(StyledHslSample(292, .48, .32)) },
-    { "tunnel-motorway-trunk-navigation/line-color",         GradientColor(StyledHslSample(292, .48, .32)) },
-    { "tunnel-oneway-arrow-blue-navigation",                 GradientColor(StyleNotSupport()) },
-    { "tunnel-oneway-arrow-white-navigation",                GradientColor(StyleNotSupport()) },
-    
-    // walking cycling etc. - surface
-
-    { "road-path-trail/line-color",                          GradientColor(StyledHslSample(292, .49, .43)) },
-    { "road-path-cycleway-piste/line-color",                 GradientColor(StyledHslSample(292, .49, .43)) },
-    { "road-path/line-color",                                GradientColor(StyledHslSample(292, .49, .43)) },
-    { "road-steps/line-color",                               GradientColor(StyledHslSample(292, .49, .43)) },
-    { "road-pedestrian/line-color",                          GradientColor(StyledHslSample(292, .49, .43)) },
-    
-    // road network - surface
-
-    { "turning-feature-outline-navigation/circle-color",     GradientColor(StyledHslSample(292, .49, .43)) },
-    { "turning-feature-outline-navigation/circle-stroke-color",GradientColor(StyledHslSample(292, .43, .32)) },
-    { "road-minor-case-navigation/line-color",               GradientColor(StyledHslSample(292, .43, .32)) },
-    { "road-street-case-navigation/line-color",              GradientColor(StyledHslSample(292, .43, .32)) },
-    { "road-secondary-tertiary-case-navigation/line-color",  GradientColor(StyledHslSample(292, .43, .32)) },
-    { "road-primary-case-navigation/line-color",             GradientColor(StyledHslSample(292, .43, .32)) },
-    { "road-major-link-case-navigation/line-color",          GradientColor(StyledHslSample(292, .43, .32)) },
-    { "road-motorway-trunk-case-navigation/line-color",      GradientColor(StyledHslSample(292, .43, .32)) },
-    { "road-construction-navigation/line-color",             GradientColor(StyledHslSample(292, .49, .43)) },
-    { "road-minor-navigation/line-color",                    GradientColor(StyledHslSample(292, .49, .43)) },
-    { "road-major-link-navigation/line-color",               GradientColor(StyledHslSample(292, .49, .43)) },
-    { "road-street-navigation/line-color",                   GradientColor(StyledHslSample(292, .49, .43)) },
-    { "road-street-low-navigation/line-color",               GradientColor(StyledHslSample(292, .49, .43)) },
-    { "road-secondary-tertiary-navigation/line-color",       GradientColor(StyledHslSample(292, .49, .43)) },
-    { "road-primary-navigation/line-color",                  GradientColor(StyledHslSample(292, .49, .43)) },
-    { "road-motorway-trunk-case-low-navigation/line-color",  GradientColor(StyledHslSample(292, .43, .32)) },
-    { "road-motorway-trunk-navigation/line-color",           GradientColor(StyledHslSample(292, .49, .43)) },
-    { "level-crossing-navigation",                           GradientColor(StyleNotSupport()) },
-    { "road-oneway-arrow-blue-navigation",                   GradientColor(StyleNotSupport()) },
-    { "road-oneway-arrow-white-navigation",                  GradientColor(StyleNotSupport()) },
-    { "turning-feature-navigation/circle-color",             GradientColor(StyledHslSample(292, .49, .43)) },
-    { "crosswalks",                                          GradientColor(StyleNotSupport()) },
-    
-    // transit - surface
-    
-    { "road-rail-bg-white/line-color/0",                     GradientColor(Hsl(0, 0, 1)) },
-    { "road-rail-bg-white/line-color/1",                     GradientColor(Hsl(0, 0, 1)) },
-    { "road-rail/line-color/0",                              GradientColor(StyledHslSample(292, .43, .32)) },
-    { "road-rail/line-color/1",                              GradientColor(StyledHslSample(292, .44, .3)) },
-    { "road-rail-tracks/line-color",                         GradientColor(StyledHslSample(292, .44, .3)) },
-    
-    // walking cycling etc. - barrier / bridges
-    
-    { "bridge-path-trail/line-color",                        GradientColor(StyledHslSample(292, .49, .43)) },
-    { "bridge-path-cycleway-piste/line-color",               GradientColor(StyledHslSample(292, .49, .43)) },
-    { "bridge-path/line-color",                              GradientColor(StyledHslSample(292, .49, .43)) },
-    { "bridge-steps/line-color",                             GradientColor(StyledHslSample(292, .49, .43)) },
-    { "bridge-pedestrian/line-color",                        GradientColor(StyledHslSample(292, .49, .43)) },
-    
-    // road network - bridges
-    
-    { "bridge-minor-case-navigation/line-color",             GradientColor(StyledHslSample(292, .43, .32)) },
-    { "bridge-street-case-navigation/line-color",            GradientColor(StyledHslSample(292, .43, .32)) },
-    { "bridge-secondary-tertiary-case-navigation/line-color",GradientColor(StyledHslSample(292, .43, .32)) },
-    { "bridge-primary-case-navigation/line-color",           GradientColor(StyledHslSample(292, .43, .32)) },
-    { "bridge-major-link-case-navigation/line-color",        GradientColor(StyledHslSample(292, .43, .32)) },
-    { "bridge-motorway-trunk-case-navigation/line-color",    GradientColor(StyledHslSample(292, .43, .32)) },
-    { "bridge-construction-navigation/line-color",           GradientColor(StyledHslSample(292, .49, .43)) },
-    { "bridge-minor-navigation/line-color",                  GradientColor(StyledHslSample(292, .49, .43)) },
-    { "bridge-major-link-navigation/line-color",             GradientColor(StyledHslSample(292, .49, .43)) },
-    { "bridge-street-navigation/line-color",                 GradientColor(StyledHslSample(292, .49, .43)) },
-    { "bridge-street-low-navigation",                        GradientColor(StyledHslSample(292, .49, .43)) },
-    { "bridge-secondary-tertiary-navigation/line-color",     GradientColor(StyledHslSample(292, .49, .43)) },
-    { "bridge-primary-navigation/line-color",                GradientColor(StyledHslSample(292, .49, .43)) },
-    { "bridge-motorway-trunk-navigation/line-color",         GradientColor(StyledHslSample(292, .49, .43)) },
-    { "bridge-major-link-2-case-navigation/line-color",      GradientColor(StyledHslSample(292, .43, .32)) },
-    { "bridge-motorway-trunk-2-case-navigation/line-color",  GradientColor(StyledHslSample(292, .43, .32)) },
-    { "bridge-major-link-2-navigation/line-color",           GradientColor(StyledHslSample(292, .49, .43)) },
-    { "bridge-motorway-trunk-2-navigation/line-color",       GradientColor(StyledHslSample(292, .49, .43)) },
-    { "bridge-oneway-arrow-blue-navigation",                 GradientColor(StyleNotSupport()) },
-    { "bridge-oneway-arrow-white-navigation",                GradientColor(StyleNotSupport()) },
-    
-    // transit - bridges
-    
-    { "bridge-rail-bg-white/line-color/0",                   GradientColor(Hsl(0, 0, 1)) },
-    { "bridge-rail-bg-white/line-color/1",                   GradientColor(Hsl(0, 0, 1)) },
-    { "bridge-rail/line-color",                              GradientColor(StyledHslSample(292, .44, .3)) },
-    { "bridge-rail-tracks/line-color",                       GradientColor(StyledHslSample(292, .44, .3)) },
-    
-    // buildings - extruded
-    
-    { "building-extrusion/fill-extrusion-color",             GradientColor(StyledHslSample(292, .49, .3)) },
-    
-    // Adminstrative boundaries - admin
-    
-    { "admin-2-boundary-bg/line-color",                      GradientColor(StyledHslSample(292, .44, .3)) },
-    { "admin-1-boundary-bg/line-color",                      GradientColor(StyledHslSample(292, .44, .3)) },
-    { "admin-0-boundary-bg/line-color",                      GradientColor(StyledHslSample(292, .44, .3)) },
-    
-    { "admin-2-boundary/line-color",                         GradientColor(StyledHslSample(292, .49, .58)) },
-    { "admin-1-boundary/line-color",                         GradientColor(StyledHslSample(292, .49, .58)) },
-    
-    { "admin-0-boundary/line-color",                         GradientColor(StyledHslSample(292, .44, .59)) },
-    { "admin-0-boundary-disputed/line-color",                GradientColor(StyledHslSample(292, .44, .59)) },
-    
-    // buildings - building labels
-    
-    { "building-entrance/text-color",                        GradientColor(StyledHslSample(292, .38, .72)) },
-    { "building-entrance/text-halo-color",                   GradientColor(StyledHslSample(292, .43, .38)) },
-    
-    { "building-number-label/text-color",                    GradientColor(StyledHslSample(292, .38, .72)) },
-    { "building-number-label/text-halo-color",               GradientColor(StyledHslSample(292, .43, .38)) },
-    
-    { "block-number-label/text-color",                       GradientColor(StyledHslSample(292, .49, .73)) },
-    { "block-number-label/text-halo-color",                  GradientColor(StyledHslSample(292, .48, .24)) },
-    
-    // road network - road lables
-    
-    { "road-intersection/text-color",                        GradientColor(StyledHslSample(230, .57, .64)) },
-    { "traffic-signal-navigation",                           GradientColor(StyleNotSupport()) },
-    
-    { "road-label-navigation/text-color",                    GradientColor(StyledHslSample(292, .49, .86)) },
-    { "road-label-navigation/text-halo-color",               GradientColor(StyledHslSample(292, .48, .24)) },
-    
-    { "road-number-shield-navigation",                       GradientColor(StyleNotSupport()) },
-    { "road-exit-shield-navigation",                         GradientColor(StyleNotSupport()) },
-    
-    // natural features - natrual labels
-    
-    { "waterway-label/text-color",                           GradientColor(StyledHslSample(292, .48, .54)) },
-    { "waterway-label/text-halo-color",                      GradientColor(StyledHslSample(292, .48, .24, .5)) },
-    
-    { "natural-line-label/text-color",                       GradientColor(StyledHslSample(292, .49, .73)) },
-    { "natural-line-label/text-halo-color",                  GradientColor(StyledHslSample(292, .48, .24)) },
-    
-    { "natural-point-label/text-color",                      GradientColor(StyledHslSample(292, .49, .73)) },
-    { "natural-point-label/text-halo-color",                 GradientColor(StyledHslSample(292, .48, .24)) },
-    
-    { "water-line-label/text-color",                         GradientColor(StyledHslSample(292, .48, .54)) },
-    { "water-line-label/text-halo-color",                    GradientColor(StyledHslSample(292, .48, .24, .5)) },
-    
-    { "water-point-label/text-color",                        GradientColor(StyledHslSample(292, .48, .54)) },
-    { "water-point-label/text-halo-color",                   GradientColor(StyledHslSample(292, .48, .24, .5)) },
-    
-    // Point of interest labels - poi labels
-    
-    { "poi-label/text-color",                                GradientColor(StyledHslSample(292, .49, .8)) },
-    { "poi-label/text-halo-color",                           GradientColor(StyledHslSample(292, .48, .24)) },
-    
-    // transit - transit lables
-    
-    { "airport-label/text-color",                            GradientColor(StyledHslSample(292, .49, .86)) },
-    { "airport-label/text-halo-color",                       GradientColor(StyledHslSample(292, .48, .24)) },
-    
-    // place labels - place labels
-    
-    { "settlement-subdivision-label/text-color",             GradientColor(StyledHslSample(292, .49, .74)) },
-    { "settlement-subdivision-label/text-halo-color",        GradientColor(StyledHslSample(292, .48, .24)) },
-    
-    { "settlement-minor-label/text-color/0",                 GradientColor(StyledHslSample(292, .49, .86)) },
-    { "settlement-minor-label/text-color/1",                 GradientColor(StyledHslSample(292, .49, .73)) },
-    { "settlement-minor-label/text-color/2",                 GradientColor(StyledHslSample(292, .49, .67)) },
-    { "settlement-minor-label/text-halo-color",              GradientColor(StyledHslSample(292, .48, .24)) },
-    
-    { "settlement-major-label/text-color/0",                 GradientColor(StyledHslSample(292, .49, .86)) },
-    { "settlement-major-label/text-color/1",                 GradientColor(StyledHslSample(292, .49, .73)) },
-    { "settlement-major-label/text-color/2",                 GradientColor(StyledHslSample(292, .49, .67)) },
-    { "settlement-major-label/text-halo-color",              GradientColor(StyledHslSample(292, .48, .24)) },
-    
-    { "state-label/text-color",                              GradientColor(StyledHslSample(292, .49, .86)) },
-    { "state-label/text-halo-color",                         GradientColor(StyledHslSample(292, .48, .24)) },
-    
-    { "country-label/text-color",                            GradientColor(StyledHslSample(292, .49, .59)) },
-    { "country-label/text-halo-color",                       GradientColor(StyledHslSample(292, .48, .24)) },
-    
-    { "continent-label/text-color",                          GradientColor(StyledHslSample(292, .49, .59)) },
-    { "continent-label/text-halo-color",                     GradientColor(StyledHslSample(292, .48, .24)) },
-
-};
+std::map<std::string, StyleColor> paletteColors;
 
 static std::atomic<int> needUpdate = { 0 } ;
 
 bool update() {
     if (needUpdate > 0) {
         needUpdate--;
-        for (auto it : palette::palleteColors) {
+        for (auto it : paletteColors) {
             it.second.update();
         }
         return true;
@@ -584,18 +450,175 @@ bool update() {
 }
 
 void setColorBase(const mbgl::Color& color) {
-    const Hsl base(color);
-    for (auto& it : palette::palleteColors) {
+    Hsla base;
+    base << color;
+
+    for (auto& it : paletteColors) {
         it.second = base;
     }
+
     needUpdate = 100;
 }
 
-mbgl::Color getColor(const std::string& uri) {
-    static mbgl::Color stub;
-    auto it = palette::palleteColors.find(uri);
-    if (it != palette::palleteColors.end()) return it->second;
-    else return stub;
+
+template <typename T>
+uint8_t clamp_css_byte(T i) {  // Clamp to integer 0 .. 255.
+    i = ::round(i);  // Seems to be what Chrome does (vs truncation).
+    return i < 0 ? 0 : i > 255 ? 255 : uint8_t(i);
+}
+
+template <typename T>
+float clamp_css_float(T f) {  // Clamp to float 0.0 .. 1.0.
+    return f < 0 ? 0 : f > 1 ? 1 : float(f);
+}
+
+float parseFloat(const std::string& str) {
+    return strtof(str.c_str(), nullptr);
+}
+
+int64_t parseInt(const std::string& str, uint8_t base = 10) {
+    return strtoll(str.c_str(), nullptr, base);
+}
+
+uint8_t parse_css_int(const std::string& str) {  // int or percentage.
+    if (str.length() && str.back() == '%') {
+        return clamp_css_byte(parseFloat(str) / 100.0f * 255.0f);
+    } else {
+        return clamp_css_byte(parseInt(str));
+    }
+}
+
+float parse_css_float(const std::string& str) {  // float or percentage.
+    if (str.length() && str.back() == '%') {
+        return clamp_css_float(parseFloat(str) / 100.0f);
+    } else {
+        return clamp_css_float(parseFloat(str));
+    }
+}
+
+std::vector<std::string> split(const std::string& s, char delim) {
+    std::vector<std::string> elems;
+    std::stringstream ss(s);
+    std::string item;
+    while (std::getline(ss, item, delim)) {
+        elems.push_back(item);
+    }
+    return elems;
+}
+
+void parseColorToPallete(const std::string& color) {
+    std::string str = color;
+    
+    // Remove all whitespace, not compliant, but should just be more accepting.
+    str.erase(std::remove(str.begin(), str.end(), ' '), str.end());
+    
+    // Convert to lowercase.
+    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+    
+    for (const auto& namedColor : csscolor::namedColors) {
+        if (str == namedColor.name) {
+            paletteColors[color] = StyleColor(csscolor::convert(namedColor.color));
+        }
+    }
+    
+    // #abc and #abc123 syntax.
+    if (str.length() && str.front() == '#') {
+        if (str.length() == 4) {
+            int64_t iv = parseInt(str.substr(1), 16);  // TODO(deanm): Stricter parsing.
+            if (!(iv >= 0 && iv <= 0xfff)) {
+                paletteColors[color] = StyleColor(mbgl::Color());
+            } else {
+                const mbgl::Color value = {
+                    static_cast<float>(((iv & 0xf00) >> 4) | ((iv & 0xf00) >> 8)),
+                    static_cast<float>((iv & 0xf0) | ((iv & 0xf0) >> 4)),
+                    static_cast<float>((iv & 0xf) | ((iv & 0xf) << 4)),
+                    1
+                };
+                paletteColors[color] = StyleColor(value);
+            }
+        } else if (str.length() == 7) {
+            int64_t iv = parseInt(str.substr(1), 16);  // TODO(deanm): Stricter parsing.
+            if (!(iv >= 0 && iv <= 0xffffff)) {
+                // Covers NaN.
+                paletteColors[color] = StyleColor(mbgl::Color());
+            } else {
+                const mbgl::Color value = {
+                    static_cast<float>((iv & 0xff0000) >> 16),
+                    static_cast<float>((iv & 0xff00) >> 8),
+                    static_cast<float>(iv & 0xff),
+                    1
+                };
+                paletteColors[color] = StyleColor(value);
+            }
+        }
+        
+        paletteColors[color] = StyleColor(mbgl::Color());
+    }
+    
+    size_t op = str.find_first_of('('), ep = str.find_first_of(')');
+    if (op != std::string::npos && ep + 1 == str.length()) {
+        const std::string fname = str.substr(0, op);
+        const std::vector<std::string> params = split(str.substr(op + 1, ep - (op + 1)), ',');
+        
+        float alpha = 1.0f;
+        
+        if (fname == "rgba" || fname == "rgb") {
+            if (fname == "rgba") {
+                if (params.size() != 4) {
+                    paletteColors[color] = StyleColor(mbgl::Color());
+                }
+                alpha = parse_css_float(params.back());
+            } else {
+                if (params.size() != 3) {
+                    paletteColors[color] = StyleColor(mbgl::Color());
+                }
+            }
+            
+            const mbgl::Color value = {
+                static_cast<float>(parse_css_int(params[0])),
+                static_cast<float>(parse_css_int(params[1])),
+                static_cast<float>(parse_css_int(params[2])),
+                alpha
+            };
+            
+            paletteColors[color] = StyleColor(value);
+        } else if (fname == "hsla" || fname == "hsl") {
+            if (fname == "hsla") {
+                if (params.size() != 4) {
+                    paletteColors[color] = StyleColor(mbgl::Color());
+                }
+                alpha = parse_css_float(params.back());
+            } else {
+                if (params.size() != 3) {
+                    paletteColors[color] = StyleColor(mbgl::Color());
+                }
+            }
+            
+            float h = parseFloat(params[0]) / 360.0f;
+            float i;
+            // Normalize the hue to [0..1[
+            h = std::modf(h, &i);
+            
+            // NOTE(deanm): According to the CSS spec s/l should only be
+            // percentages, but we don't bother and let float or percentage.
+            float s = parse_css_float(params[1]);
+            float l = parse_css_float(params[2]);
+            paletteColors[color] = StyleColor({ h, s, l, alpha });
+        }
+    }
+    
+    paletteColors[color] = StyleColor(mbgl::Color());
+}
+
+const mbgl::Color& getColor(const std::string& color) {
+    auto it = paletteColors.find(color);
+
+    if (it == paletteColors.end()) {
+        parseColorToPallete(color);
+        it = paletteColors.find(color);
+    }
+    
+    return it->second;
 }
 
 }
