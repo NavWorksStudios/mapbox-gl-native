@@ -252,13 +252,13 @@ GLFWView::GLFWView(bool fullscreen_, bool benchmark_, const mbgl::ResourceOption
     printf("================================================================================\n");
     printf("\n");
           
-    nav::style::loadAllImage(mbglPuckAssetsPath);
+    nav::style::texture::load(mbglPuckAssetsPath);
 }
 
 GLFWView::~GLFWView() {
     if (window) glfwDestroyWindow(window);
     glfwTerminate();
-    nav::style::releaseAllImage();
+    nav::style::texture::release();
 }
 
 void GLFWView::setMap(mbgl::Map *map_) {

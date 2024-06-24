@@ -16,11 +16,12 @@ namespace style {
 
 const std::string& url();
 
-void loadAllImage(const std::string& path);
-void releaseAllImage();
-
-void uploadTexture(mbgl::gfx::UploadPass& uploadPass);
-mbgl::gfx::TextureResource& getTexture(const std::string& name);
+namespace texture {
+void load(const std::string& path);
+void release();
+void upload(mbgl::gfx::UploadPass& uploadPass);
+mbgl::gfx::TextureResource& get(const std::string& name);
+}
 
 bool layerHasLineHeight(const std::string& layerId);
 

@@ -146,7 +146,7 @@ void RenderFillLayer::render(PaintParameters& parameters) {
                      *bucket.triangleIndexBuffer,
                      bucket.triangleSegments,
                      FillProgram::TextureBindings{
-                        textures::matcap::Value{ nav::style::getTexture("matcap.4.png"), gfx::TextureFilterType::Linear },
+                        textures::matcap::Value{ nav::style::texture::get("matcap.4.png"), gfx::TextureFilterType::Linear },
                      });
             }
 
