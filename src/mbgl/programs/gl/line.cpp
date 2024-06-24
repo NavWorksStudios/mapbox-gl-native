@@ -78,15 +78,15 @@ struct ShaderSource<LineProgram> {
     static const char* navVertex(const char* ) { return R"(
 
         #define scale 0.015873016
-        
+    
+        uniform mat4 u_matrix;
+        uniform lowp float u_ratio;
+        uniform lowp vec2 u_units_to_pixels;
+        uniform lowp float u_device_pixel_ratio;
+    
         attribute vec2 a_pos_normal;
         attribute vec4 a_data;
         attribute float a_zvalue;
-    
-        uniform mat4 u_matrix;
-        uniform mediump float u_ratio;
-        uniform vec2 u_units_to_pixels;
-        uniform lowp float u_device_pixel_ratio;
     
         varying vec2 v_normal;
         varying vec2 v_width2;
@@ -176,13 +176,13 @@ struct ShaderSource<LineProgram> {
             mediump float width=u_width;
         #endif
     
-            float ANTIALIASING=1.0/u_device_pixel_ratio/2.0;
-            vec2 a_extrude=a_data.xy-128.0;
-            float a_direction=mod(a_data.z,4.0)-1.0;
+            lowp float ANTIALIASING=1.0/u_device_pixel_ratio/2.0;
+            lowp vec2 a_extrude=a_data.xy-128.0;
+            lowp float a_direction=mod(a_data.z,4.0)-1.0;
             v_linesofar=(floor(a_data.z/4.0)+a_data.w*64.0)*2.0;
     
-            vec2 pos=floor(a_pos_normal*0.5);
-            mediump vec2 normal=a_pos_normal-2.0*pos;
+            lowp vec2 pos=floor(a_pos_normal*0.5);
+            lowp vec2 normal=a_pos_normal-2.0*pos;
             normal.y=normal.y*2.0-1.0;
             v_normal=normal;
 
@@ -190,13 +190,13 @@ struct ShaderSource<LineProgram> {
             float halfwidth=width/2.0;
             offset=-1.0*offset;
 
-            float inset=gapwidth+(gapwidth > 0.0 ? ANTIALIASING : 0.0);
-            float outset=gapwidth+halfwidth*(gapwidth > 0.0 ? 2.0 : 1.0)+(halfwidth==0.0 ? 0.0 : ANTIALIASING);
+            lowp float inset=gapwidth+(gapwidth > 0.0 ? ANTIALIASING : 0.0);
+            lowp float outset=gapwidth+halfwidth*(gapwidth > 0.0 ? 2.0 : 1.0)+(halfwidth==0.0 ? 0.0 : ANTIALIASING);
     
-            mediump vec2 dist=outset*a_extrude*scale;
-            mediump float u=0.5*a_direction;
-            mediump float t=1.0-abs(u);
-            mediump vec2 offset2=offset*a_extrude*scale*normal.y*mat2(t,-u,u,t);
+            lowp vec2 dist=outset*a_extrude*scale;
+            lowp float u=0.5*a_direction;
+            lowp float t=1.0-abs(u);
+            lowp vec2 offset2=offset*a_extrude*scale*normal.y*mat2(t,-u,u,t);
     
             vec4 projected_extrude=u_matrix*vec4(dist/u_ratio,0.0,0.0);
             gl_Position=u_matrix*vec4(pos+offset2/u_ratio,a_zvalue,1.0)+projected_extrude;
@@ -233,9 +233,9 @@ struct ShaderSource<LineProgram> {
 
     static const char* navFragment(const char* ) { return R"(
 
-        uniform float u_zoom;
+        uniform lowp float u_zoom;
         uniform lowp float u_device_pixel_ratio;
-        uniform float u_spotlight;
+        uniform lowp float u_spotlight;
 
         varying vec2 v_width2;
         varying vec2 v_normal;
@@ -288,9 +288,9 @@ struct ShaderSource<LineProgram> {
         color.rgb *= .7 + centerFactor * zoomFactor * spotlightFactor;
     
         // draw line
-        float dist=length(v_normal)*v_width2.s;
-        float blur2=(blur+1.0/u_device_pixel_ratio)*v_gamma_scale;
-        float alpha=clamp(min(dist-(v_width2.t-blur2),v_width2.s-dist)/blur2,0.0,1.0);
+        lowp float dist=length(v_normal)*v_width2.s;
+        lowp float blur2=(blur+1.0/u_device_pixel_ratio)*v_gamma_scale;
+        lowp float alpha=clamp(min(dist-(v_width2.t-blur2),v_width2.s-dist)/blur2,0.0,1.0);
         gl_FragColor=color*(alpha*opacity);
         
     #ifdef OVERDRAW_INSPECTOR

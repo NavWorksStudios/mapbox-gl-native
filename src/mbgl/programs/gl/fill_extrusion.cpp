@@ -77,16 +77,16 @@ struct ShaderSource<FillExtrusionProgram> {
     static const char* navVertex(const char* ) { return R"(
 
         uniform mat4 u_matrix;
-        uniform vec3 u_lightcolor;
+        uniform lowp vec3 u_lightcolor;
         uniform lowp vec3 u_lightpos;
         uniform lowp float u_lightintensity;
-        uniform float u_vertical_gradient;
+        uniform lowp float u_vertical_gradient;
         uniform lowp float u_opacity;
-        uniform float u_spotlight;
+        uniform lowp float u_spotlight;
         uniform bool u_rendering_reflection;
     
-        attribute vec2 a_pos;
-        attribute vec4 a_normal_ed;
+        attribute lowp vec2 a_pos;
+        attribute lowp vec4 a_normal_ed;
     
         varying vec3 v_pos;
         varying vec4 v_color;
@@ -134,7 +134,7 @@ struct ShaderSource<FillExtrusionProgram> {
         #endif
     
             // normal
-            vec3 normal=a_normal_ed.xyz;
+            lowp vec3 normal=a_normal_ed.xyz;
         
             // height
             //base=max(0.0,base);
@@ -205,8 +205,9 @@ struct ShaderSource<FillExtrusionProgram> {
     
     static const char* navFragment(const char* ) { return R"(
 
-        uniform float u_spotlight;
+        uniform lowp float u_spotlight;
         uniform bool u_rendering_reflection;
+        uniform lowp float u_render_time;
 
         varying vec3 v_pos;
         varying vec4 v_color;

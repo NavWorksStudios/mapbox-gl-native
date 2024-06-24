@@ -75,13 +75,14 @@ vec2 get_pattern_pos(const vec2 pixel_coord_upper,const vec2 pixel_coord_lower,c
     static const char* navVertex(const char* ) { return 
 R"(
 
+uniform mat4 u_matrix;
+uniform lowp vec3 u_camera_pos;
+uniform lowp float u_base;
+uniform mat4 u_normal_matrix;
+uniform lowp float u_render_time;
+
 attribute vec2 a_pos;
 attribute vec3 a_normal;
-uniform mat4 u_matrix;
-uniform vec3 u_camera_pos;
-uniform highp float u_base;
-uniform mat4 u_normal_matrix;
-uniform highp float u_render_time;
 
 //varying vec3 v_normal;
 varying vec3 v_camera_pos;
@@ -193,8 +194,8 @@ R"(
 uniform mat4 u_normal_matrix;
 uniform sampler2D u_matcap;
 uniform bool u_enable_matcap;
-uniform float u_spotlight;
-uniform highp float u_render_time;
+uniform lowp float u_spotlight;
+uniform lowp float u_render_time;
         
 varying vec3 v_pos;
 varying vec3 v_camera_pos;
@@ -230,13 +231,13 @@ vec3 color_flow(vec2 fragCoord) {
     lowp vec2 uv = (2. * fragCoord - resolution.xy) / resolution.y;
     lowp vec3 col = 0.15 * cos(time*31.+uv.xyx+vec3(1.0,2.0,4.0));
 
-    vec3 bubbles = vec3(0);
+    lowp vec3 bubbles = vec3(0);
     for(int i = 0; i < 10; i++){
-        float n = float(i);
-        float c = 2.*(n/14.-.5)*resolution.x/resolution.y;
-        vec2 p = vec2(c+cos(n+time*5.),sin(time*n/11.));
-        float r = 0.01*abs(sin(n*time));
-        float b = (sin(time*n)*11.+13.)/2.;
+        lowp float n = float(i);
+        lowp float c = 2.*(n/14.-.5)*resolution.x/resolution.y;
+        lowp vec2 p = vec2(c+cos(n+time*5.),sin(time*n/11.));
+        lowp float r = 0.01*abs(sin(n*time));
+        lowp float b = (sin(time*n)*11.+13.)/2.;
         
         bubbles += bubble(uv,p,r,b)/15.;
     }

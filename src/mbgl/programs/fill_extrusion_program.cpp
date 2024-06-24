@@ -42,6 +42,7 @@ FillExtrusionProgram::LayoutUniformValues FillExtrusionProgram::layoutUniformVal
         uniforms::vertical_gradient::Value( verticalGradient ),
         uniforms::spotlight::Value( nav::style::spotlight::value() ),
         uniforms::rendering_reflection::Value( renderingReflection ),
+        uniforms::render_time::Value( nav::style::rendertime::value() ),
     };
 }
 
@@ -76,7 +77,8 @@ FillExtrusionPatternProgram::layoutUniformValues(mat4 matrix,
         uniforms::lightintensity::Value( lightIntensity(light) ),
         uniforms::vertical_gradient::Value( verticalGradient ),
         uniforms::spotlight::Value( nav::style::spotlight::value() ),
-        uniforms::rendering_reflection::Value( renderingReflection )
+        uniforms::rendering_reflection::Value( renderingReflection ),
+        uniforms::render_time::Value( nav::style::rendertime::value() ),
     };
 }
 
