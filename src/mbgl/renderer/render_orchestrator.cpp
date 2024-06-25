@@ -309,6 +309,7 @@ std::unique_ptr<RenderTree> RenderOrchestrator::createRenderTree(
             RenderLayer& layer = orderedLayers[index];
             const auto* layerInfo = layer.baseImpl->getTypeInfo();
             const bool layerIsVisible = layer.baseImpl->visibility != style::VisibilityType::None;
+            // 判断当前zoom是否处于layer显示支持的zoom区间
             const bool zoomFitsLayer = layer.supportsZoom(zoomHistory.lastZoom);
             renderTreeParameters->has3D |= (layerInfo->pass3d == LayerTypeInfo::Pass3D::Required);
 
@@ -330,6 +331,7 @@ std::unique_ptr<RenderTree> RenderOrchestrator::createRenderTree(
             }
 
             // Handle layers without source.
+            // 不需要数据源的layer显示 - 目前只有background
             if (layerIsVisible && zoomFitsLayer && sourceImpl.get() == sourceImpls->at(0).get()) {
                 if (backgroundLayerAsColor && layer.baseImpl == layerImpls->front()) {
                     const auto& solidBackground = layer.getSolidBackground();

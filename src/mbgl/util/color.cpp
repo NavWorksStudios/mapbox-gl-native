@@ -7,7 +7,6 @@ namespace mbgl {
 
 optional<Color> Color::parse(const std::string& s) {
     auto css_color = CSSColorParser::parse(s);
-
     // Premultiply the color.
     if (css_color) {
         const float factor = css_color->a / 255;
@@ -15,7 +14,8 @@ optional<Color> Color::parse(const std::string& s) {
             css_color->r * factor,
             css_color->g * factor,
             css_color->b * factor,
-            css_color->a
+            css_color->a,
+            s.substr(0, 3) == "hsl"
         }};
     } else {
         return {};
