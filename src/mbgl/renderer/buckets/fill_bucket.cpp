@@ -146,7 +146,7 @@ void FillBucket::upload(gfx::UploadPass& uploadPass) {
 void FillBucket::nav_upload_external(const CanonicalTileID& canonical, const std::string& layerId, const std::string& sourceLayer) {
     if (hasData()) {
         const nav::layer::FillBucket param = {
-            {&canonical, nav::mb::layerRenderIndex(layerId), layerId.c_str(), sourceLayer.c_str()},
+            {&canonical, nav::layer::renderIndex(layerId), layerId.c_str(), sourceLayer.c_str()},
             {(const uint16_t*) vertices.data(), (int) vertices.elements()},
             {lines.data(), (int) lines.bytes() / 2},
             {triangles.data(), (int) triangles.bytes() / 2}

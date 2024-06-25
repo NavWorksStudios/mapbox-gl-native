@@ -75,7 +75,7 @@ public:
     virtual void updateVertices(
         const Placement&, bool /*updateOpacities*/, const TransformState&, const RenderTile&, std::set<uint32_t>&) {}
     
-    bool hasLineHeight { false };
+    float layerHeight { 0 };
 
 protected:
     Bucket() {

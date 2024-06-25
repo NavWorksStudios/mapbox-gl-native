@@ -27,7 +27,7 @@
 #include <utility>
 
 #include "mbgl/nav/nav_log.hpp"
-#include "mbgl/nav/nav_mb_layer.hpp"
+#include "mbgl/nav/nav_mb_style.hpp"
 
 namespace mbgl {
 
@@ -369,7 +369,7 @@ public:
 
     std::string getAccessToken() const {
         std::lock_guard<std::mutex> lock(cachedAccessTokenMutex);
-        return nav::mb::accessToken();
+        return nav::style::accessToken();
 //        return cachedAccessToken;
     }
 

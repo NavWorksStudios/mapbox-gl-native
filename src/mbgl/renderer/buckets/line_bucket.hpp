@@ -63,7 +63,7 @@ private:
 
     class Distances;
     void addCurrentVertex(const GeometryCoordinate& currentCoordinate,
-                          const int16_t z,
+                          float heightRatio,
                           double& distance,
                           const Point<double>& normal,
                           double endLeft,

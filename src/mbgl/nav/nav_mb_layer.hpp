@@ -9,14 +9,12 @@
 #include <string>
 
 namespace nav {
+namespace layer {
 
-namespace mb {
-
-const std::string& accessToken();
-void printLayerTable(const char* id, const char* sourceLayer, const char* sourceId, const char* type);
-bool filterLayerByType(const std::string& id);
-int layerRenderIndex(const std::string& id);
+void print(const char* id, const char* sourceLayer, const char* sourceId, const char* type);
+bool filter(const std::string& id);
+int renderIndex(const std::string& id);
+float getHeight(const std::string& layerId);
 
 }
-
 }

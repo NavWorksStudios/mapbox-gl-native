@@ -220,7 +220,7 @@ void Parser::parseLayers(const JSONValue& value) {
     }
 
     for (const auto& id : ids) {
-        if (!nav::mb::filterLayerByType(id)) {
+        if (!nav::layer::filter(id)) {
             continue;
         }
         
@@ -284,13 +284,13 @@ void Parser::parseLayer(const std::string& id, const JSONValue& value, std::uniq
         optional<std::unique_ptr<Layer>> converted = conversion::convert<std::unique_ptr<Layer>>(value, error);
         if (!converted) {
             Log::Warning(Event::ParseStyle, error.message);
-            nav::mb::printLayerTable(id.c_str(), "error", "null", "null");
+            nav::layer::print(id.c_str(), "error", "null", "null");
             return;
         }
         layer = std::move(*converted);
     }
     
-    nav::mb::printLayerTable(layer->getID().c_str(), layer->getTypeInfo()->type, layer->getSourceID().c_str(), layer->getSourceLayer().c_str());
+    nav::layer::print(layer->getID().c_str(), layer->getTypeInfo()->type, layer->getSourceID().c_str(), layer->getSourceLayer().c_str());
 }
 
 std::set<FontStack> Parser::fontStacks() const {

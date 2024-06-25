@@ -9,7 +9,7 @@
 #include <mbgl/clipper2/clipper.h>
 
 #include "mbgl/nav/nav_log.hpp"
-#include "mbgl/nav/nav_mb_style.hpp"
+#include "mbgl/nav/nav_mb_layer.hpp"
 
 namespace mbgl {
 
@@ -190,6 +190,8 @@ public:
         if(features.size() > 0) {
             for (auto & patternFeature : features) {
                 if(reversal) {
+                    assert(0);
+
                     const auto i = patternFeature.i;
                     std::unique_ptr<GeometryTileFeature> feature = std::move(patternFeature.feature);
                     const PatternLayerMap& patterns = patternFeature.patterns;
@@ -238,7 +240,7 @@ public:
                     const PatternLayerMap& patterns = patternFeature.patterns;
                     const GeometryCollection& geometries = feature->getGeometries();
 
-                    bucket->hasLineHeight = nav::style::layerHasLineHeight(bucketLeaderID);
+                    bucket->layerHeight = nav::layer::getHeight(bucketLeaderID);
                     bucket->addFeature(*feature, geometries, patternPositions, patterns, i, canonical);
                     featureIndex->insert(geometries, i, sourceLayerID, bucketLeaderID);
                 }

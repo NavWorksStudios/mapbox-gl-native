@@ -11,15 +11,9 @@
 #include <mutex>
 
 namespace nav {
+namespace layer {
 
-namespace mb {
-
-const std::string& accessToken() {
-    static std::string token = "pk.eyJ1Ijoibm90aGVvcmVtIiwiYSI6ImNsb3Y0cjVoaTBxY20yamxsb3pvNHI3MW0ifQ.ZEemHSq9LP1ScpWw6w9Z0g";
-    return token;
-}
-
-void printLayerTable(const char* id, const char* type, const char* source, const char* sourceLayer) {
+void print(const char* id, const char* type, const char* source, const char* sourceLayer) {
     nav::log::printf("{ \"%s\", { \"%s\", \"%s\", \"%s\", } }, ", id, type, source, sourceLayer);
 }
 
@@ -96,7 +90,7 @@ static const std::map<std::string, Source> layerIds = {
 };
 
 
-bool filterLayerByType(const std::string& id) {
+bool filter(const std::string& id) {
     return true;
 //    return layerIds.find(id) != layerIds.end();
 }
@@ -104,7 +98,7 @@ bool filterLayerByType(const std::string& id) {
 static std::map<std::string, int> layerRenderIndexs;
 static std::mutex l;
 
-int layerRenderIndex(const std::string& id) {
+int renderIndex(const std::string& id) {
     if (layerRenderIndexs.empty()) {
         std::lock_guard<std::mutex> lock(l);
         if (layerRenderIndexs.empty()) {
@@ -118,6 +112,44 @@ int layerRenderIndex(const std::string& id) {
     return layerRenderIndexs[id];
 }
 
+static std::map<std::string, float> layerHeights = {
+    { "bridge-path", 1.5 },
+    { "bridge-steps", 1.5 },
+    { "bridge-pedestrian", 1.5 },
+
+    { "bridge-minor-case-navigation", 2.0 },
+    { "bridge-minor-navigation", 2.0 },
+
+    { "bridge-secondary-tertiary-case-navigation", 2.0 },
+    { "bridge-secondary-tertiary-navigation", 2.0 },
+
+    { "bridge-street-case-navigation", 2.5 },
+    { "bridge-street-navigation", 2.5 },
+
+    { "bridge-primary-case-navigation", 2.5 },
+    { "bridge-primary-navigation", 2.5 },
+
+    { "bridge-major-link-case-navigation", 3.0 },
+    { "bridge-major-link-navigation", 3.0 },
+
+    { "bridge-motorway-trunk-case-navigation", 3.5 },
+    { "bridge-motorway-trunk-navigation", 3.5 },
+
+    { "bridge-major-link-2-case-navigation", 3.5 },
+    { "bridge-major-link-2-navigation", 3.5 },
+
+    { "bridge-motorway-trunk-2-case-navigation", 4.0 },
+    { "bridge-motorway-trunk-2-navigation", 4.0 },
+
+    { "bridge-rail-bg-white", 4.5 },
+    { "bridge-rail", 4.5 },
+};
+
+float getHeight(const std::string& layerId) {
+    auto it = layerHeights.find(layerId);
+    return it == layerHeights.end() ? 0 : it->second;
 }
 
+
+}
 }

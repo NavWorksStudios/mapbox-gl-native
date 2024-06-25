@@ -193,7 +193,7 @@ void FillExtrusionBucket::upload(gfx::UploadPass& uploadPass) {
 void FillExtrusionBucket::nav_upload_external(const CanonicalTileID& canonical, const std::string& layerId, const std::string& sourceLayer) {
     if (hasData()) {
         const nav::layer::ExtrusionBucket param = {
-            {&canonical, nav::mb::layerRenderIndex(layerId), layerId.c_str(), sourceLayer.c_str()},
+            {&canonical, nav::layer::renderIndex(layerId), layerId.c_str(), sourceLayer.c_str()},
             {(const uint16_t*) vertices.data(), (int) vertices.elements()},
             {triangles.data(), (int) triangles.bytes() / 2}
         };

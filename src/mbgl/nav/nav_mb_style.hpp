@@ -15,6 +15,7 @@ namespace nav {
 namespace style {
 
 const std::string& url();
+const std::string& accessToken();
 
 namespace texture {
 void load(const std::string& path);
@@ -22,8 +23,6 @@ void release();
 void upload(mbgl::gfx::UploadPass& uploadPass);
 mbgl::gfx::TextureResource& get(const std::string& name);
 }
-
-bool layerHasLineHeight(const std::string& layerId);
 
 namespace rendertime {
 double value();
@@ -47,7 +46,7 @@ void setViewMode(ViewMode mode);
 
 namespace palette {
 void setColorBase(const mbgl::Color& color);
-const mbgl::Color& getColor(const std::string& color);
+const mbgl::Color& getColor(const mbgl::Color& color);
 }
 
 bool update();
