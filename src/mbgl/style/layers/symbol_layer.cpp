@@ -699,13 +699,14 @@ void SymbolLayer::setIconColor(const PropertyValue<Color>& value) {
         baseImpl = std::move(impl_);
     };
     
-    setColor(value);
-    observer->onLayerChanged(*this);
-    
     if (value.isConstant()) {
         nav::style::palette::bind(value.asConstant(),
                                   [setColor](const mbgl::Color& color) { setColor(color); });
+    } else {
+        setColor(value);
     }
+    
+    observer->onLayerChanged(*this);
 }
 
 void SymbolLayer::setIconColorTransition(const TransitionOptions& options) {
@@ -762,14 +763,15 @@ void SymbolLayer::setIconHaloColor(const PropertyValue<Color>& value) {
         impl_->paint.template get<IconHaloColor>().value = value;
         baseImpl = std::move(impl_);
     };
-    
-    setColor(value);
-    observer->onLayerChanged(*this);
-    
+
     if (value.isConstant()) {
         nav::style::palette::bind(value.asConstant(),
                                   [setColor](const mbgl::Color& color) { setColor(color); });
+    } else {
+        setColor(value);
     }
+    
+    observer->onLayerChanged(*this);
 }
 
 void SymbolLayer::setIconHaloColorTransition(const TransitionOptions& options) {
@@ -961,14 +963,15 @@ void SymbolLayer::setTextHaloColor(const PropertyValue<Color>& value) {
         impl_->paint.template get<TextHaloColor>().value = value;
         baseImpl = std::move(impl_);
     };
-
-    setColor(value);
-    observer->onLayerChanged(*this);
     
     if (value.isConstant()) {
         nav::style::palette::bind(value.asConstant(),
                                   [setColor](const mbgl::Color& color) { setColor(color); });
+    } else {
+        setColor(value);
     }
+    
+    observer->onLayerChanged(*this);
 }
 
 void SymbolLayer::setTextHaloColorTransition(const TransitionOptions& options) {

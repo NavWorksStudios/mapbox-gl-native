@@ -110,13 +110,14 @@ void FillExtrusionLayer::setFillExtrusionColor(const PropertyValue<Color>& value
         baseImpl = std::move(impl_);
     };
     
-    setColor(value);
-    observer->onLayerChanged(*this);
-    
     if (value.isConstant()) {
         nav::style::palette::bind(value.asConstant(),
                                   [setColor](const mbgl::Color& color) { setColor(color); });
+    } else {
+        setColor(value);
     }
+    
+    observer->onLayerChanged(*this);
 }
 
 void FillExtrusionLayer::setFillExtrusionColorTransition(const TransitionOptions& options) {

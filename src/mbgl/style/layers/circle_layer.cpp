@@ -126,13 +126,14 @@ void CircleLayer::setCircleColor(const PropertyValue<Color>& value) {
         baseImpl = std::move(impl_);
     };
     
-    setColor(value);
-    observer->onLayerChanged(*this);
-    
     if (value.isConstant()) {
         nav::style::palette::bind(value.asConstant(),
                                   [setColor](const mbgl::Color& color) { setColor(color); });
+    } else {
+        setColor(value);
     }
+    
+    observer->onLayerChanged(*this);
 }
 
 void CircleLayer::setCircleColorTransition(const TransitionOptions& options) {
@@ -270,14 +271,15 @@ void CircleLayer::setCircleStrokeColor(const PropertyValue<Color>& value) {
         impl_->paint.template get<CircleStrokeColor>().value = value;
         baseImpl = std::move(impl_);
     };
-
-    setColor(value);
-    observer->onLayerChanged(*this);
     
     if (value.isConstant()) {
         nav::style::palette::bind(value.asConstant(),
                                   [setColor](const mbgl::Color& color) { setColor(color); });
+    } else {
+        setColor(value);
     }
+    
+    observer->onLayerChanged(*this);
 }
 
 void CircleLayer::setCircleStrokeColorTransition(const TransitionOptions& options) {

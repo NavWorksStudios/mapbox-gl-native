@@ -148,14 +148,15 @@ void FillLayer::setFillColor(const PropertyValue<Color>& value) {
         impl_->paint.template get<FillColor>().value = value;
         baseImpl = std::move(impl_);
     };
-    
-    setColor(value);
-    observer->onLayerChanged(*this);
-    
+
     if (value.isConstant()) {
         nav::style::palette::bind(value.asConstant(), 
                                   [setColor](const mbgl::Color& color) { setColor(color); });
+    } else {
+        setColor(value);
     }
+    
+    observer->onLayerChanged(*this);
 }
 
 void FillLayer::setFillColorTransition(const TransitionOptions& options) {
@@ -212,14 +213,15 @@ void FillLayer::setFillOutlineColor(const PropertyValue<Color>& value) {
         impl_->paint.template get<FillOutlineColor>().value = value;
         baseImpl = std::move(impl_);
     };
-    
-    setColor(value);
-    observer->onLayerChanged(*this);
-    
+
     if (value.isConstant()) {
         nav::style::palette::bind(value.asConstant(), 
                                   [setColor](const mbgl::Color& color) { setColor(color); });
+    } else {
+        setColor(value);
     }
+    
+    observer->onLayerChanged(*this);
 }
 
 void FillLayer::setFillOutlineColorTransition(const TransitionOptions& options) {
