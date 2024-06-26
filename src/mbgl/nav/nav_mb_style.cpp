@@ -215,6 +215,11 @@ struct Hsla {
         }
         
         rgba.a = a;
+        
+        assert(r >= 0. && r <= 1.);
+        assert(g >= 0. && g <= 1.);
+        assert(b >= 0. && b <= 1.);
+        assert(a >= 0. && a <= 1.);
     }
     
     void operator << (const mbgl::Color& rgba) {
@@ -251,6 +256,11 @@ struct Hsla {
         }
         
         a = rgba.a;
+        
+        assert(h >= 0. && h <= 360.);
+        assert(s >= 0. && s <= 1.);
+        assert(l >= 0. && l <= 1.);
+        assert(a >= 0. && a <= 1.);
     }
     
     void smoothto(const Hsla& to) {
@@ -281,16 +291,22 @@ public:
         aCoef = sample.a / SAMPLE_CENTER.a;
         
         if (std::isnan(lCoef)) lCoef = 0.5;
+        else if (lCoef < 0.) lCoef = 0.;
 
         stylize(base);
     }
     
     void stylize(const Hsla& baseColor) {
         if (stylizable) {
-            h = fmod(baseColor.h + hCoef, 360.);          // h [0,360]
+            h = fmod(baseColor.h + hCoef + 360., 360.);          // h [0,360]
             s = fmin(fmax(baseColor.s + sCoef, 0.), 1.);  // s [0,1]
             l = pow(baseColor.l, lCoef) * .8 + .1;        // l [0,1], result [.1,.9]
             a = fmin(fmax(baseColor.a * aCoef, 0.), 1.);  // a [0,1]
+            
+            assert(h >= 0. && h <= 360.);
+            assert(s >= 0. && s <= 1.);
+            assert(l >= 0. && l <= 1.);
+            assert(a >= 0. && a <= 1.);
         }
     }
 };
@@ -348,7 +364,7 @@ inline Hsla unwrap(const mbgl::Color& color) {
 enum { UPDATE_FRAME = 100 };
 std::atomic<int> needUpdate = { 0 };
 //Hsla colorBase = { 292., .92, .49, 1. };
-Hsla colorBase = { 100, .8, .5, 1. };
+Hsla colorBase = { 150, .9, .4, 1. };
 
 struct ColorBinding {
     GradientColor color;
