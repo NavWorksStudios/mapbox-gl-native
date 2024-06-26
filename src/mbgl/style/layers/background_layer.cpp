@@ -76,10 +76,20 @@ const PropertyValue<Color>& BackgroundLayer::getBackgroundColor() const {
 void BackgroundLayer::setBackgroundColor(const PropertyValue<Color>& value) {
     if (value == getBackgroundColor())
         return;
-    auto impl_ = mutableImpl();
-    impl_->paint.template get<BackgroundColor>().value = value;
-    baseImpl = std::move(impl_);
+    
+    auto setColor = [this] (const PropertyValue<Color>& value) {
+        auto impl_ = mutableImpl();
+        impl_->paint.template get<BackgroundColor>().value = value;
+        baseImpl = std::move(impl_);
+    };
+    
+    setColor(value);
     observer->onLayerChanged(*this);
+    
+    if (value.isConstant()) {
+        nav::style::palette::bind(value.asConstant(),
+                                  [setColor](const mbgl::Color& color) { setColor(color); });
+    }
 }
 
 void BackgroundLayer::setBackgroundColorTransition(const TransitionOptions& options) {

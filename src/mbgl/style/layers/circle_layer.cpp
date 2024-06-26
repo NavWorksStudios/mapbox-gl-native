@@ -119,10 +119,20 @@ const PropertyValue<Color>& CircleLayer::getCircleColor() const {
 void CircleLayer::setCircleColor(const PropertyValue<Color>& value) {
     if (value == getCircleColor())
         return;
-    auto impl_ = mutableImpl();
-    impl_->paint.template get<CircleColor>().value = value;
-    baseImpl = std::move(impl_);
+    
+    auto setColor = [this] (const PropertyValue<Color>& value) {
+        auto impl_ = mutableImpl();
+        impl_->paint.template get<CircleColor>().value = value;
+        baseImpl = std::move(impl_);
+    };
+    
+    setColor(value);
     observer->onLayerChanged(*this);
+    
+    if (value.isConstant()) {
+        nav::style::palette::bind(value.asConstant(),
+                                  [setColor](const mbgl::Color& color) { setColor(color); });
+    }
 }
 
 void CircleLayer::setCircleColorTransition(const TransitionOptions& options) {
@@ -254,10 +264,20 @@ const PropertyValue<Color>& CircleLayer::getCircleStrokeColor() const {
 void CircleLayer::setCircleStrokeColor(const PropertyValue<Color>& value) {
     if (value == getCircleStrokeColor())
         return;
-    auto impl_ = mutableImpl();
-    impl_->paint.template get<CircleStrokeColor>().value = value;
-    baseImpl = std::move(impl_);
+    
+    auto setColor = [this] (const PropertyValue<Color>& value) {
+        auto impl_ = mutableImpl();
+        impl_->paint.template get<CircleStrokeColor>().value = value;
+        baseImpl = std::move(impl_);
+    };
+
+    setColor(value);
     observer->onLayerChanged(*this);
+    
+    if (value.isConstant()) {
+        nav::style::palette::bind(value.asConstant(),
+                                  [setColor](const mbgl::Color& color) { setColor(color); });
+    }
 }
 
 void CircleLayer::setCircleStrokeColorTransition(const TransitionOptions& options) {

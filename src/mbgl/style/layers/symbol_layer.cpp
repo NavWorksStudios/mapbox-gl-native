@@ -692,10 +692,20 @@ const PropertyValue<Color>& SymbolLayer::getIconColor() const {
 void SymbolLayer::setIconColor(const PropertyValue<Color>& value) {
     if (value == getIconColor())
         return;
-    auto impl_ = mutableImpl();
-    impl_->paint.template get<IconColor>().value = value;
-    baseImpl = std::move(impl_);
+    
+    auto setColor = [this] (const PropertyValue<Color>& value) {
+        auto impl_ = mutableImpl();
+        impl_->paint.template get<IconColor>().value = value;
+        baseImpl = std::move(impl_);
+    };
+    
+    setColor(value);
     observer->onLayerChanged(*this);
+    
+    if (value.isConstant()) {
+        nav::style::palette::bind(value.asConstant(),
+                                  [setColor](const mbgl::Color& color) { setColor(color); });
+    }
 }
 
 void SymbolLayer::setIconColorTransition(const TransitionOptions& options) {
@@ -746,10 +756,20 @@ const PropertyValue<Color>& SymbolLayer::getIconHaloColor() const {
 void SymbolLayer::setIconHaloColor(const PropertyValue<Color>& value) {
     if (value == getIconHaloColor())
         return;
-    auto impl_ = mutableImpl();
-    impl_->paint.template get<IconHaloColor>().value = value;
-    baseImpl = std::move(impl_);
+    
+    auto setColor = [this] (const PropertyValue<Color>& value) {
+        auto impl_ = mutableImpl();
+        impl_->paint.template get<IconHaloColor>().value = value;
+        baseImpl = std::move(impl_);
+    };
+    
+    setColor(value);
     observer->onLayerChanged(*this);
+    
+    if (value.isConstant()) {
+        nav::style::palette::bind(value.asConstant(),
+                                  [setColor](const mbgl::Color& color) { setColor(color); });
+    }
 }
 
 void SymbolLayer::setIconHaloColorTransition(const TransitionOptions& options) {
@@ -935,10 +955,20 @@ const PropertyValue<Color>& SymbolLayer::getTextHaloColor() const {
 void SymbolLayer::setTextHaloColor(const PropertyValue<Color>& value) {
     if (value == getTextHaloColor())
         return;
-    auto impl_ = mutableImpl();
-    impl_->paint.template get<TextHaloColor>().value = value;
-    baseImpl = std::move(impl_);
+    
+    auto setColor = [this] (const PropertyValue<Color>& value) {
+        auto impl_ = mutableImpl();
+        impl_->paint.template get<TextHaloColor>().value = value;
+        baseImpl = std::move(impl_);
+    };
+
+    setColor(value);
     observer->onLayerChanged(*this);
+    
+    if (value.isConstant()) {
+        nav::style::palette::bind(value.asConstant(),
+                                  [setColor](const mbgl::Color& color) { setColor(color); });
+    }
 }
 
 void SymbolLayer::setTextHaloColorTransition(const TransitionOptions& options) {

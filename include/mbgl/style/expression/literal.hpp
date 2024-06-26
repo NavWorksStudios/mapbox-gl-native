@@ -3,7 +3,7 @@
 #include <mbgl/style/expression/expression.hpp>
 #include <mbgl/style/expression/parsing_context.hpp>
 #include <mbgl/style/conversion.hpp>
-
+#include "mbgl/nav/nav_mb_style.hpp"
 #include <memory>
 
 namespace mbgl {
@@ -12,7 +12,14 @@ namespace expression {
 
 class Literal : public Expression {
 public:
-    Literal(const Value& value_) : Expression(Kind::Literal, typeOf(value_)), value(value_) {}
+    Literal(const Value& value_) : Expression(Kind::Literal, typeOf(value_)), value(value_) {
+        if (value.is<Color>()) {
+            nav::style::palette::bind(value.get<Color>(),
+            [this](const mbgl::Color& color) {
+                value = color;
+            });
+        }
+    }
 
     Literal(const type::Array& type_, std::vector<Value> value_)
         : Expression(Kind::Literal, type_), value(std::move(value_)) {}

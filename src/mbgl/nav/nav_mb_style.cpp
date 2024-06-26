@@ -222,12 +222,12 @@ struct Hsla {
         const float& g = rgba.g;
         const float& b = rgba.b;
         
-        double maxVal = std::max(r, std::max(g, b));
-        double minVal = std::min(r, std::min(g, b));
-        double delta = maxVal - minVal;
+        float maxVal = std::max(r, std::max(g, b));
+        float minVal = std::min(r, std::min(g, b));
+        float delta = maxVal - minVal;
      
         l = (maxVal + minVal) / 2.0;
-        if (delta == 0) {
+        if (std::abs(delta) < std::numeric_limits<float>::epsilon()) {
             h = 0; // 无色彩
             s = 0; // 灰色
         } else {
@@ -279,6 +279,8 @@ public:
         sCoef = sample.s - SAMPLE_CENTER.s;
         lCoef = log2((sample.l - .1) / .8) / log2(SAMPLE_CENTER.l);
         aCoef = sample.a / SAMPLE_CENTER.a;
+        
+        if (std::isnan(lCoef)) lCoef = 0.5;
 
         stylize(base);
     }
@@ -332,7 +334,7 @@ public:
 namespace internal {
 
 inline bool isStyliable(const mbgl::Color& color) {
-    return !(fmod(color.a * 10000., 100.) > 0);
+    return !((int) fmod(color.a * 100000., 1000.) == 678);
 }
 
 inline Hsla unwrap(const mbgl::Color& color) {
@@ -385,10 +387,6 @@ void bind(const mbgl::Color& color, const std::function<void(const mbgl::Color& 
 }
 
 bool update() {
-    colorBase.h += .1;
-    if (colorBase.h > 360.) colorBase.h = .0;
-    setColorBase(colorBase);
-
     if (needUpdate > 0) {
         needUpdate--;
         for (auto it : paletteBindings) {
@@ -396,6 +394,17 @@ bool update() {
             assert(it.callback);
             it.callback(color);
         }
+        
+        if (needUpdate <= 0) {
+            colorBase.h += 1.;
+            if (colorBase.h > 360.) colorBase.h = .0;
+            
+            colorBase.s += .01;
+            if (colorBase.s > 1.0) colorBase.s = .1;
+            
+            setColorBase(colorBase);
+        }
+        
         return true;
     }
     
