@@ -103,20 +103,9 @@ const PropertyValue<Color>& FillExtrusionLayer::getFillExtrusionColor() const {
 void FillExtrusionLayer::setFillExtrusionColor(const PropertyValue<Color>& value) {
     if (value == getFillExtrusionColor())
         return;
-    
-    auto setColor = [this] (const PropertyValue<Color>& value) {
-        auto impl_ = mutableImpl();
-        impl_->paint.template get<FillExtrusionColor>().value = value;
-        baseImpl = std::move(impl_);
-    };
-    
-    if (value.isConstant()) {
-        nav::style::palette::bind(value.asConstant(),
-                                  [setColor](const mbgl::Color& color) { setColor(color); });
-    } else {
-        setColor(value);
-    }
-    
+    auto impl_ = mutableImpl();
+    impl_->paint.template get<FillExtrusionColor>().value = value;
+    baseImpl = std::move(impl_);
     observer->onLayerChanged(*this);
 }
 

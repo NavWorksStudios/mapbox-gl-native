@@ -142,20 +142,9 @@ const PropertyValue<Color>& FillLayer::getFillColor() const {
 void FillLayer::setFillColor(const PropertyValue<Color>& value) {
     if (value == getFillColor())
         return;
-    
-    auto setColor = [this] (const PropertyValue<Color>& value) {
-        auto impl_ = mutableImpl();
-        impl_->paint.template get<FillColor>().value = value;
-        baseImpl = std::move(impl_);
-    };
-
-    if (value.isConstant()) {
-        nav::style::palette::bind(value.asConstant(), 
-                                  [setColor](const mbgl::Color& color) { setColor(color); });
-    } else {
-        setColor(value);
-    }
-    
+    auto impl_ = mutableImpl();
+    impl_->paint.template get<FillColor>().value = value;
+    baseImpl = std::move(impl_);
     observer->onLayerChanged(*this);
 }
 
@@ -207,20 +196,9 @@ const PropertyValue<Color>& FillLayer::getFillOutlineColor() const {
 void FillLayer::setFillOutlineColor(const PropertyValue<Color>& value) {
     if (value == getFillOutlineColor())
         return;
-    
-    auto setColor = [this] (const PropertyValue<Color>& value) {
-        auto impl_ = mutableImpl();
-        impl_->paint.template get<FillOutlineColor>().value = value;
-        baseImpl = std::move(impl_);
-    };
-
-    if (value.isConstant()) {
-        nav::style::palette::bind(value.asConstant(), 
-                                  [setColor](const mbgl::Color& color) { setColor(color); });
-    } else {
-        setColor(value);
-    }
-    
+    auto impl_ = mutableImpl();
+    impl_->paint.template get<FillOutlineColor>().value = value;
+    baseImpl = std::move(impl_);
     observer->onLayerChanged(*this);
 }
 

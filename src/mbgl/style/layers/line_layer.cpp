@@ -179,20 +179,9 @@ const PropertyValue<Color>& LineLayer::getLineColor() const {
 void LineLayer::setLineColor(const PropertyValue<Color>& value) {
     if (value == getLineColor())
         return;
-    
-    auto setColor = [this] (const PropertyValue<Color>& value) {
-        auto impl_ = mutableImpl();
-        impl_->paint.template get<LineColor>().value = value;
-        baseImpl = std::move(impl_);
-    };
-
-    if (value.isConstant()) {
-        nav::style::palette::bind(value.asConstant(),
-                                  [setColor](const mbgl::Color& color) { setColor(color); });
-    } else {
-        setColor(value);
-    }
-    
+    auto impl_ = mutableImpl();
+    impl_->paint.template get<LineColor>().value = value;
+    baseImpl = std::move(impl_);
     observer->onLayerChanged(*this);
 }
 

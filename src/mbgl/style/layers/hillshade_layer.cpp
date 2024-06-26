@@ -76,20 +76,9 @@ const PropertyValue<Color>& HillshadeLayer::getHillshadeAccentColor() const {
 void HillshadeLayer::setHillshadeAccentColor(const PropertyValue<Color>& value) {
     if (value == getHillshadeAccentColor())
         return;
-    
-    auto setColor = [this] (const PropertyValue<Color>& value) {
-        auto impl_ = mutableImpl();
-        impl_->paint.template get<HillshadeAccentColor>().value = value;
-        baseImpl = std::move(impl_);
-    };
-    
-    if (value.isConstant()) {
-        nav::style::palette::bind(value.asConstant(),
-                                  [setColor](const mbgl::Color& color) { setColor(color); });
-    } else {
-        setColor(value);
-    }
-
+    auto impl_ = mutableImpl();
+    impl_->paint.template get<HillshadeAccentColor>().value = value;
+    baseImpl = std::move(impl_);
     observer->onLayerChanged(*this);
 }
 
@@ -141,20 +130,9 @@ const PropertyValue<Color>& HillshadeLayer::getHillshadeHighlightColor() const {
 void HillshadeLayer::setHillshadeHighlightColor(const PropertyValue<Color>& value) {
     if (value == getHillshadeHighlightColor())
         return;
-    
-    auto setColor = [this] (const PropertyValue<Color>& value) {
-        auto impl_ = mutableImpl();
-        impl_->paint.template get<HillshadeHighlightColor>().value = value;
-        baseImpl = std::move(impl_);
-    };
-    
-    if (value.isConstant()) {
-        nav::style::palette::bind(value.asConstant(),
-                                  [setColor](const mbgl::Color& color) { setColor(color); });
-    } else {
-        setColor(value);
-    }
-
+    auto impl_ = mutableImpl();
+    impl_->paint.template get<HillshadeHighlightColor>().value = value;
+    baseImpl = std::move(impl_);
     observer->onLayerChanged(*this);
 }
 
@@ -233,20 +211,9 @@ const PropertyValue<Color>& HillshadeLayer::getHillshadeShadowColor() const {
 void HillshadeLayer::setHillshadeShadowColor(const PropertyValue<Color>& value) {
     if (value == getHillshadeShadowColor())
         return;
-    
-    auto setColor = [this] (const PropertyValue<Color>& value) {
-        auto impl_ = mutableImpl();
-        impl_->paint.template get<HillshadeShadowColor>().value = value;
-        baseImpl = std::move(impl_);
-    };
-    
-    if (value.isConstant()) {
-        nav::style::palette::bind(value.asConstant(),
-                                  [setColor](const mbgl::Color& color) { setColor(color); });
-    } else {
-        setColor(value);
-    }
-
+    auto impl_ = mutableImpl();
+    impl_->paint.template get<HillshadeShadowColor>().value = value;
+    baseImpl = std::move(impl_);
     observer->onLayerChanged(*this);
 }
 
