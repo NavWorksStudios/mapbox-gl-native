@@ -343,9 +343,10 @@ inline Hsla unwrap(const mbgl::Color& color) {
 
 }
 
+enum { UPDATE_FRAME = 100 };
 std::atomic<int> needUpdate = { 0 };
 //Hsla colorBase = { 292., .92, .49, 1. };
-Hsla colorBase = { 292., .5, .5, 1. };
+Hsla colorBase = { 100, .8, .5, 1. };
 
 struct ColorBinding {
     GradientColor color;
@@ -353,16 +354,14 @@ struct ColorBinding {
     ColorBinding() = default;
     ColorBinding(const Stylizer& stylizer, const std::function<void(const mbgl::Color& color)>& callback) :
     color(stylizer), callback(callback) {
-        mbgl::Color rgb = color;
-        nav::log::i("Palette", "(%f,%f,%f,%f)", rgb.r, rgb.g, rgb.b, rgb.a);
-        callback(rgb);
+        callback(color);
     }
 };
 
 std::vector<ColorBinding> paletteBindings;
 
 void setColorBase(const Hsla& color) {
-    needUpdate = 100;
+    needUpdate = UPDATE_FRAME;
     colorBase = color;
     for (auto& it : paletteBindings) {
         it.color.stylize(colorBase);
@@ -370,7 +369,7 @@ void setColorBase(const Hsla& color) {
 }
 
 void setColorBase(const mbgl::Color& color) {
-    needUpdate = 100;
+    needUpdate = UPDATE_FRAME;
     colorBase = color;
     for (auto& it : paletteBindings) {
         it.color.stylize(colorBase);
@@ -378,12 +377,11 @@ void setColorBase(const mbgl::Color& color) {
 }
 
 void bind(const mbgl::Color& color, const std::function<void(const mbgl::Color& color)>& callback) {
-    nav::log::i("Palette", "bind (%f,%f,%f,%f)", color.r, color.g, color.b, color.a);
-//    if (internal::isStyliable(color)) {
+    if (internal::isStyliable(color)) {
         paletteBindings.emplace_back(Stylizer({colorBase, Hsla(color)}), callback);
-//    } else {
-//        paletteBindings.emplace_back(Stylizer({internal::unwrap(color)}), callback);
-//    }
+    } else {
+        paletteBindings.emplace_back(Stylizer({internal::unwrap(color)}), callback);
+    }
 }
 
 bool update() {
