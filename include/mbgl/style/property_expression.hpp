@@ -194,8 +194,11 @@ template <> struct PaleteBinding<mbgl::Color> {
     }
     
     void bind(Variant& variant) {
+        if (variant.is<mbgl::Color>())
         nav::style::palette::bind(variant.get<mbgl::Color>(), [&variant](const mbgl::Color& color) {
-            variant = color;
+            if (variant.is<mbgl::Color>()) {
+                variant = color;
+            }
         });
     }
 };
