@@ -352,8 +352,8 @@ struct ColorBinding {
     GradientColor color;
     std::function<void(const mbgl::Color& color)> callback;
     ColorBinding() = default;
-    ColorBinding(const Stylizer& stylizer, const std::function<void(const mbgl::Color& color)>& callback) :
-    color(stylizer), callback(callback) {
+    ColorBinding(const Stylizer& stylizer, const std::function<void(const mbgl::Color& color)>& cb) :
+    color(stylizer), callback(cb) {
         callback(color);
     }
 };
@@ -385,19 +385,20 @@ void bind(const mbgl::Color& color, const std::function<void(const mbgl::Color& 
 }
 
 bool update() {
-    
-    Hsla base = colorBase;
-    base.h = fmod(base.h + 1., 360.);
-    setColorBase(base);
+    colorBase.h += .1;
+    if (colorBase.h > 360.) colorBase.h = .0;
+    setColorBase(colorBase);
 
     if (needUpdate > 0) {
         needUpdate--;
         for (auto it : paletteBindings) {
             const auto& color = it.color.update();
+            assert(it.callback);
             it.callback(color);
         }
         return true;
     }
+    
     return false;
 }
 
