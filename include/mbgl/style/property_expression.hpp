@@ -7,6 +7,11 @@
 #include <mbgl/style/expression/find_zoom_curve.hpp>
 #include <mbgl/util/range.hpp>
 
+#include <mbgl/util/variant.hpp>
+#include <mbgl/style/undefined.hpp>
+#include "mbgl/nav/nav_mb_style.hpp"
+
+
 namespace mbgl {
 namespace style {
 
@@ -38,12 +43,16 @@ protected:
     bool isRuntimeConstant_;
 };
 
+
+template <typename T> struct PaleteBinding;
+
 template <class T>
 class PropertyExpression final : public PropertyExpressionBase {
 public:
     // Second parameter to be used only for conversions from legacy functions.
     PropertyExpression(std::unique_ptr<expression::Expression> expression_, optional<T> defaultValue_ = nullopt)
         : PropertyExpressionBase(std::move(expression_)), defaultValue(std::move(defaultValue_)) {
+        paletteBinding.bind(defaultValue);
     }
 
     T evaluate(const expression::EvaluationContext& context, T finalDefaultValue = T()) const {
@@ -165,7 +174,32 @@ public:
 
 private:
     optional<T> defaultValue;
+    PaleteBinding<T> paletteBinding;
 };
+
+template <typename T> struct PaleteBinding {
+    using Variant = variant<Undefined, T, PropertyExpression<T>>;
+    void bind(optional<T>&) { }
+    void bind(Variant&) { }
+};
+
+template <> struct PaleteBinding<mbgl::Color> {
+    using Variant = variant<Undefined, mbgl::Color, PropertyExpression<mbgl::Color>>;
+
+    void bind(optional<mbgl::Color>& value) {
+        if (value)
+        nav::style::palette::bind(value.value(), [&value](const mbgl::Color& color) {
+            value = color;
+        });
+    }
+    
+    void bind(Variant& variant) {
+        nav::style::palette::bind(variant.get<mbgl::Color>(), [&variant](const mbgl::Color& color) {
+            variant = color;
+        });
+    }
+};
+
 
 } // namespace style
 } // namespace mbgl

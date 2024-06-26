@@ -7,10 +7,7 @@
 #include "mbgl/nav/nav_mb_style.hpp"
 #include "mbgl/nav/nav_mb_layer.hpp"
 
-#include <mbgl/style/layers/background_layer.hpp>
-#include <mbgl/style/layers/fill_layer.hpp>
-#include <mbgl/style/layers/line_layer.hpp>
-#include <mbgl/style/layers/fill_extrusion_layer.hpp>
+#include <mbgl/style/image.hpp>
 #include <mbgl/util/io.hpp>
 
 #include "mbgl/nav/nav_log.hpp"
@@ -21,23 +18,12 @@ namespace style {
 
 const std::string& url() {
     static std::string url(
-                           
     // 主题模式
-//    "mapbox://styles/notheorem/clxonzrtz00k701qq00fj6rnh" // dark
+//    "mapbox://styles/notheorem/clxu5ehnm00ro01qqhhim0d4f" // dark
 //    "mapbox://styles/notheorem/clxrac32800o901qw94ryfkdz" // light
 
     // 色彩模式
-//    "mapbox://styles/notheorem/clxo7gf6000l301pf067zcqu9" // 蓝
-//    "mapbox://styles/notheorem/clxk5j3qw00av01qq93udh6bm" // 暗蓝
-//    "mapbox://styles/notheorem/clxo72llu00j101qqgeb55xlw" // 紫
-//    "mapbox://styles/notheorem/clxolet6000jx01qq4un34jep" // 红紫
-//    "mapbox://styles/notheorem/clxo6t3l800l501qma3lk7kku" // 玫红
-//    "mapbox://styles/notheorem/clxo70o4q00l701qmekyz04x5" // 绿
-//    "mapbox://styles/notheorem/clxo6ym3j00k501r2dgm7d26j" // 芥末绿
-    "mapbox://styles/notheorem/clxo77xld004501r0ae6s94fz" // 黄橙
-//    "mapbox://styles/notheorem/clxo6u08m00l601qme55bahbs" // 土黄
-//    "mapbox://styles/notheorem/clxo7bjja00kn01qrdm5k6o1a" // 白
-//    "mapbox://styles/notheorem/clxo7dspj00ko01qrhny81uem" // 黑
+    "mapbox://styles/notheorem/clxuokujq00fw01r07m42dsl3"
     );
     
     return url;
@@ -222,9 +208,10 @@ struct Hsla {
         } else {
             float q = l < 0.5 ? l * (1. + s) : l + s - l * s;
             float p = 2. * l - q;
-            r = hue_to_rgb(p, q, h + 1./3.);
-            g = hue_to_rgb(p, q, h);
-            b = hue_to_rgb(p, q, h - 1./3.);
+            float hh = h / 360.;
+            r = hue_to_rgb(p, q, hh + 1./3.);
+            g = hue_to_rgb(p, q, hh);
+            b = hue_to_rgb(p, q, hh - 1./3.);
         }
         
         rgba.a = a;
@@ -272,104 +259,148 @@ struct Hsla {
         l = value_smooth_to(l, to.l);
         a = value_smooth_to(a, to.a);
     }
-    
 };
 
-static const Hsla SAMPLE_CENTER(292./255., .5, .5, 1.);
+static const Hsla SAMPLE_CENTER = { 292., .5, .5, 1. };
+
+class Stylizer : public Hsla {
+    const bool stylizable;
+    float hCoef=0, sCoef=0, lCoef=0, aCoef=0;
+    
+public:
+    Stylizer() : stylizable(false) { }
+
+    Stylizer(const Hsla& fixed) : Hsla(fixed), stylizable(false) {
+        
+    }
+
+    Stylizer(const Hsla& base, const Hsla& sample) : stylizable(true) {
+        hCoef = sample.h - SAMPLE_CENTER.h;
+        sCoef = sample.s - SAMPLE_CENTER.s;
+        lCoef = log2((sample.l - .1) / .8) / log2(SAMPLE_CENTER.l);
+        aCoef = sample.a / SAMPLE_CENTER.a;
+
+        stylize(base);
+    }
+    
+    void stylize(const Hsla& baseColor) {
+        if (stylizable) {
+            h = fmod(baseColor.h + hCoef, 360.);          // h [0,360]
+            s = fmin(fmax(baseColor.s + sCoef, 0.), 1.);  // s [0,1]
+            l = pow(baseColor.l, lCoef) * .8 + .1;        // l [0,1], result [.1,.9]
+            a = fmin(fmax(baseColor.a * aCoef, 0.), 1.);  // a [0,1]
+        }
+    }
+};
 
 class Color {
     Hsla hsla;
     mbgl::Color rgba;
 
 public:
-    struct Stylizer {
-        float hCoef=0, sCoef=0, lCoef=0, aCoef=0;
-        
-        Stylizer() = default;
-
-        Stylizer(const Hsla& base, const Hsla& sample) {
-            hCoef = base.h - sample.h;
-            sCoef = sample.s - base.s;
-            lCoef = logf((sample.l - .1) / .8) / logf(base.l);
-            aCoef = sample.a;
-        }
-        
-        void stylize(const Hsla& base, Hsla& color) const {
-            color.h = fmod(base.h + hCoef, 360.);          // h [0,360]
-            color.s = fmin(fmax(base.s + sCoef, 0.), 1.);  // s [0,1]
-            color.l = pow(base.l, lCoef) * .8 + .1;        // l [0,1]
-            color.a = fmin(fmax(base.a * aCoef, 0.), 1.);  // a [0,1]
-        }
-    };
-
-    void smoothto(const Color& color) {
-        hsla.smoothto(color.hsla);
+    Color() = default;
+    
+    void set(const Hsla& color) {
+        hsla = color;
         hsla >> rgba;
     }
     
-    void stylize(const Hsla& base, const Stylizer& stylizer) {
-        stylizer.stylize(base, hsla);
+    const mbgl::Color& smoothto(const Hsla& color) {
+        hsla.smoothto(color);
         hsla >> rgba;
+        return rgba;
     }
-
-    inline const mbgl::Color& rgb() const { return rgba; }
-
+    
+    inline operator const mbgl::Color& () const { return rgba; }
 };
 
-
-class GradientColor : Color {
-    Color stylizedColor;
-    Color::Stylizer stylizer;
-
+class GradientColor : public Color {
+    Stylizer stylizer;
 public:
     GradientColor() = default;
-    GradientColor(const Color::Stylizer& stylizer) : stylizer(stylizer) { }
-    
-    inline void operator = (const Hsla& base) {
-        stylizedColor.stylize(base, stylizer);
+    GradientColor(const Stylizer& stylizer) : stylizer(stylizer) {
+        set(stylizer);
     }
-    
-    inline void update() { smoothto(stylizedColor); }
-    inline operator const mbgl::Color& () const { return rgb(); }
+    inline void stylize(const Hsla& base) {
+        stylizer.stylize(base);
+    }
+    inline const mbgl::Color& update() {
+        return smoothto(stylizer);
+    }
 };
 
+namespace internal {
 
-std::map<int32_t, GradientColor> paletteColors;
+inline bool isStyliable(const mbgl::Color& color) {
+    return !(fmod(color.a * 10000., 100.) > 0);
+}
 
-static std::atomic<int> needUpdate = { 0 } ;
+inline Hsla unwrap(const mbgl::Color& color) {
+    Hsla hsla(color);
+    if (hsla.a > 0.95) hsla.a = 1.;
+    return hsla;
+}
+
+}
+
+std::atomic<int> needUpdate = { 0 };
+//Hsla colorBase = { 292., .92, .49, 1. };
+Hsla colorBase = { 292., .5, .5, 1. };
+
+struct ColorBinding {
+    GradientColor color;
+    std::function<void(const mbgl::Color& color)> callback;
+    ColorBinding() = default;
+    ColorBinding(const Stylizer& stylizer, const std::function<void(const mbgl::Color& color)>& callback) :
+    color(stylizer), callback(callback) {
+        mbgl::Color rgb = color;
+        nav::log::i("Palette", "(%f,%f,%f,%f)", rgb.r, rgb.g, rgb.b, rgb.a);
+        callback(rgb);
+    }
+};
+
+std::vector<ColorBinding> paletteBindings;
+
+void setColorBase(const Hsla& color) {
+    needUpdate = 100;
+    colorBase = color;
+    for (auto& it : paletteBindings) {
+        it.color.stylize(colorBase);
+    }
+}
+
+void setColorBase(const mbgl::Color& color) {
+    needUpdate = 100;
+    colorBase = color;
+    for (auto& it : paletteBindings) {
+        it.color.stylize(colorBase);
+    }
+}
+
+void bind(const mbgl::Color& color, const std::function<void(const mbgl::Color& color)>& callback) {
+    nav::log::i("Palette", "bind (%f,%f,%f,%f)", color.r, color.g, color.b, color.a);
+//    if (internal::isStyliable(color)) {
+        paletteBindings.emplace_back(Stylizer({colorBase, Hsla(color)}), callback);
+//    } else {
+//        paletteBindings.emplace_back(Stylizer({internal::unwrap(color)}), callback);
+//    }
+}
 
 bool update() {
+    
+    Hsla base = colorBase;
+    base.h = fmod(base.h + 1., 360.);
+    setColorBase(base);
+
     if (needUpdate > 0) {
         needUpdate--;
-        for (auto it : paletteColors) {
-            it.second.update();
+        for (auto it : paletteBindings) {
+            const auto& color = it.color.update();
+            it.callback(color);
         }
         return true;
     }
     return false;
-}
-
-void setColorBase(const mbgl::Color& color) {
-    const Hsla base(color);
-
-    for (auto& it : paletteColors) {
-        it.second = base;
-    }
-
-    needUpdate = 100;
-}
-
-const mbgl::Color& getColor(const mbgl::Color& color) {
-    if (color.isHsl) {
-        const int32_t key = static_cast<int32_t>((color.r + color.g + color.b + color.a) * 100000000);
-        auto it = paletteColors.find(key);
-        if (it == paletteColors.end()) {
-            it = paletteColors.insert( {key, {Color::Stylizer(SAMPLE_CENTER, Hsla(color))}} ).first;
-        }
-        return it->second;
-    } else {
-        return color;
-    }
 }
 
 }

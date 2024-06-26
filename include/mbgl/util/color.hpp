@@ -13,8 +13,8 @@ namespace mbgl {
 class Color {
 public:
     Color() = default;
-    Color(float r_, float g_, float b_, float a_, bool isHsl_ = false)
-        : r(r_), g(g_), b(b_), a(a_), isHsl(isHsl_) {
+    Color(float r_, float g_, float b_, float a_)
+        : r(r_), g(g_), b(b_), a(a_) {
         assert(r_ >= 0.0f);
         assert(r_ <= 1.0f);
         assert(g_ >= 0.0f);
@@ -29,7 +29,6 @@ public:
     float g = 0.0f;
     float b = 0.0f;
     float a = 0.0f;
-    bool isHsl = false;
 
     static Color black() { return { 0.0f, 0.0f, 0.0f, 1.0f }; };
     static Color white() { return { 1.0f, 1.0f, 1.0f, 1.0f }; };

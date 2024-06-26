@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include <mbgl/style/image.hpp>
 #include <mbgl/gfx/texture.hpp>
 #include <mbgl/gfx/upload_pass.hpp>
 #include <mbgl/util/color.hpp>
@@ -46,7 +45,7 @@ void setViewMode(ViewMode mode);
 
 namespace palette {
 void setColorBase(const mbgl::Color& color);
-const mbgl::Color& getColor(const mbgl::Color& color);
+void bind(const mbgl::Color& color, const std::function<void(const mbgl::Color& color)>& callback);
 }
 
 bool update();

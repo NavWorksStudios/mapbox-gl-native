@@ -16,6 +16,7 @@ private:
         PropertyExpression<T>>;
 
     Value value;
+    PaleteBinding<T> paletteBinding;
 
     friend bool operator==(const PropertyValue& lhs,
                            const PropertyValue& rhs) {
@@ -31,7 +32,9 @@ public:
     PropertyValue() = default;
 
     PropertyValue(T constant)
-        : value(std::move(constant)) {}
+        : value(std::move(constant)) {
+            paletteBinding.bind(value);
+        }
 
     PropertyValue(PropertyExpression<T> expression)
         : value(std::move(expression)) {}

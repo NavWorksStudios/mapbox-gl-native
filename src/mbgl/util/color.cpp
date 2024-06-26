@@ -14,8 +14,7 @@ optional<Color> Color::parse(const std::string& s) {
             css_color->r * factor,
             css_color->g * factor,
             css_color->b * factor,
-            css_color->a,
-            s.substr(0, 3) == "hsl"
+            css_color->a
         }};
     } else {
         return {};
