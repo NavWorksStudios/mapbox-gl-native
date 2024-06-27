@@ -208,6 +208,7 @@ Layer* Style::Impl::addLayer(std::unique_ptr<Layer> layer, const optional<std::s
 
     layer->setObserver(this);
     Layer* result = layers.add(std::move(layer), before);
+    result->baseImpl->bindPaintColorToPalette();
     observer->onUpdate();
 
     return result;

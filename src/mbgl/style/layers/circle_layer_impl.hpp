@@ -13,9 +13,10 @@ public:
 
     bool hasLayoutDifference(const Layer::Impl&) const override;
     void stringifyLayout(rapidjson::Writer<rapidjson::StringBuffer>&) const override;
+    void bindPaintColorToPalette() const override;
 
     CircleLayoutProperties::Unevaluated layout;
-    CirclePaintProperties::Transitionable paint;
+    mutable CirclePaintProperties::Transitionable paint;
 
     DECLARE_LAYER_TYPE_INFO;
 };

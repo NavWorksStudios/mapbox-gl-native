@@ -364,7 +364,7 @@ inline Hsla unwrap(const mbgl::Color& color) {
 enum { UPDATE_FRAME = 100 };
 std::atomic<int> needUpdate = { UPDATE_FRAME };
 //Hsla colorBase = { 292., .92, .49, 1. };
-Hsla colorBase = { 250, .8, 1., 1. };
+Hsla colorBase = { 20, .5, .5, 1. };
 
 struct ColorBinding {
     GradientColor color;

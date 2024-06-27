@@ -11,5 +11,9 @@ bool FillExtrusionLayer::Impl::hasLayoutDifference(const Layer::Impl& other) con
            paint.hasDataDrivenPropertyDifference(impl.paint);
 }
 
+void FillExtrusionLayer::Impl::bindPaintColorToPalette() const {
+    bindToPalette(paint.get<FillExtrusionColor>().value);
+}
+
 } // namespace style
 } // namespace mbgl

@@ -10,6 +10,9 @@
 #include <string>
 #include <limits>
 
+#include <mbgl/style/property_value.hpp>
+#include "mbgl/nav/nav_mb_style.hpp"
+
 namespace mbgl {
 
 namespace style {
@@ -44,6 +47,8 @@ public:
 
     // Populates the given \a fontStack with fonts being used by the layer.
     virtual void populateFontStack(std::set<FontStack>& fontStack) const;
+    
+    virtual void bindPaintColorToPalette() const { }
 
     std::string id;
     std::string source;
@@ -55,6 +60,18 @@ public:
 
 protected:
     Impl(const Impl&) = default;
+    
+    mutable bool paletteBinded = false;
+    
+    void bindToPalette(PropertyValue<Color>& value) const {
+        paletteBinded = true;
+        if (value.isConstant()) {
+            nav::style::palette::bind(value.asConstant(), [&value](const Color& color) {
+                value = color;
+            });
+        }
+    }
+
 };
 
 // To be used in the inherited classes.

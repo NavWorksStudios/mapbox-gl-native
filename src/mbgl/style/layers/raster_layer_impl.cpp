@@ -7,5 +7,9 @@ bool RasterLayer::Impl::hasLayoutDifference(const Layer::Impl&) const {
     return false;
 }
 
+void RasterLayer::Impl::bindPaintColorToPalette() const {
+    
+}
+
 } // namespace style
 } // namespace mbgl

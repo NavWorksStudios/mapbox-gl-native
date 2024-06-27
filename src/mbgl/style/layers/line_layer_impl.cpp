@@ -12,5 +12,9 @@ bool LineLayer::Impl::hasLayoutDifference(const Layer::Impl& other) const {
            paint.hasDataDrivenPropertyDifference(impl.paint);
 }
 
+void LineLayer::Impl::bindPaintColorToPalette() const {
+    bindToPalette(paint.get<LineColor>().value);
+}
+
 } // namespace style
 } // namespace mbgl

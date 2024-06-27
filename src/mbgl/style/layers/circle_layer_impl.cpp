@@ -10,5 +10,10 @@ bool CircleLayer::Impl::hasLayoutDifference(const Layer::Impl& other) const {
            paint.hasDataDrivenPropertyDifference(impl.paint);
 }
 
+void CircleLayer::Impl::bindPaintColorToPalette() const {
+    bindToPalette(paint.get<CircleColor>().value);
+    bindToPalette(paint.get<CircleStrokeColor>().value);
+}
+
 } // namespace style
 } // namespace mbgl

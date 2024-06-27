@@ -11,5 +11,9 @@ bool HeatmapLayer::Impl::hasLayoutDifference(const Layer::Impl& other) const {
            paint.hasDataDrivenPropertyDifference(impl.paint);
 }
 
+void HeatmapLayer::Impl::bindPaintColorToPalette() const {
+    
+}
+
 } // namespace style
 } // namespace mbgl
