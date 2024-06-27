@@ -43,12 +43,5 @@ void SymbolLayer::Impl::populateFontStack(std::set<FontStack>& fontStack) const 
         });
 }
 
-void SymbolLayer::Impl::bindPaintColorToPalette() const {
-    bindToPalette(paint.get<IconColor>().value);
-    bindToPalette(paint.get<IconHaloColor>().value);
-    bindToPalette(paint.get<TextColor>().value);
-    bindToPalette(paint.get<TextHaloColor>().value);
-}
-
 } // namespace style
 } // namespace mbgl

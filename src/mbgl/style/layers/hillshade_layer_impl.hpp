@@ -13,9 +13,8 @@ public:
 
     bool hasLayoutDifference(const Layer::Impl&) const override;
     void stringifyLayout(rapidjson::Writer<rapidjson::StringBuffer>&) const override;
-    void bindPaintColorToPalette() const override;
 
-    mutable HillshadePaintProperties::Transitionable paint;
+    HillshadePaintProperties::Transitionable paint;
 
     DECLARE_LAYER_TYPE_INFO;
 };

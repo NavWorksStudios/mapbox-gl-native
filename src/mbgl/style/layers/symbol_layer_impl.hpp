@@ -135,10 +135,9 @@ public:
     bool hasLayoutDifference(const Layer::Impl&) const override;
     void stringifyLayout(rapidjson::Writer<rapidjson::StringBuffer>&) const override;
     void populateFontStack(std::set<FontStack>& fontStack) const final;
-    void bindPaintColorToPalette() const override;
 
     SymbolLayoutProperties::Unevaluated layout;
-    mutable SymbolPaintProperties::Transitionable paint;
+    SymbolPaintProperties::Transitionable paint;
 
     DECLARE_LAYER_TYPE_INFO;
 

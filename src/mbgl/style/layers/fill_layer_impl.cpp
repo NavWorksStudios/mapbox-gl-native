@@ -11,10 +11,5 @@ bool FillLayer::Impl::hasLayoutDifference(const Layer::Impl& other) const {
            paint.hasDataDrivenPropertyDifference(impl.paint);
 }
 
-void FillLayer::Impl::bindPaintColorToPalette() const {
-    bindToPalette(paint.get<FillColor>().value);
-    bindToPalette(paint.get<FillOutlineColor>().value);
-}
-
 } // namespace style
 } // namespace mbgl

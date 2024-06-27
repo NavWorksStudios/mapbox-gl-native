@@ -13,10 +13,9 @@ public:
 
     bool hasLayoutDifference(const Layer::Impl&) const override;
     void stringifyLayout(rapidjson::Writer<rapidjson::StringBuffer>&) const override;
-    void bindPaintColorToPalette() const override;
 
     FillLayoutProperties::Unevaluated layout;
-    mutable FillPaintProperties::Transitionable paint;
+    FillPaintProperties::Transitionable paint;
 
     DECLARE_LAYER_TYPE_INFO;
 };
