@@ -78,6 +78,7 @@ private:
     mutable optional<mapbox::util::recursive_wrapper<Transitioning<Value>>> prior;
     TimePoint begin;
     TimePoint end;
+public:
     Value value;
 };
 

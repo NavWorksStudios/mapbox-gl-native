@@ -257,7 +257,7 @@ std::unique_ptr<RenderTree> RenderOrchestrator::createRenderTree(
     for (RenderLayer& layer : orderedLayers) {
         const std::string& id = layer.getID();
         const bool layerAddedOrChanged = layerDiff.added.count(id) || layerDiff.changed.count(id);
-        if (layerAddedOrChanged || zoomChanged || layer.hasTransition() || layer.hasCrossfade()) {
+        if (layerAddedOrChanged || zoomChanged || layer.hasTransition() || layer.hasCrossfade() || nav::style::palette::changed()) {
             auto previousMask = layer.evaluatedProperties->constantsMask();
             layer.evaluate(evaluationParameters);
             if (previousMask != layer.evaluatedProperties->constantsMask()) {

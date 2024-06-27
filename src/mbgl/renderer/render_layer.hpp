@@ -131,6 +131,14 @@ protected:
     void addRenderPassesFromTiles();
 
     const LayerRenderData* getRenderDataForPass(const RenderTile&, RenderPass) const;
+    
+    void bindToPalette(style::PropertyValue<Color>& value) const {
+        if (value.isConstant()) {
+            nav::style::palette::bind(value.asConstant(), [&value](const Color& color) {
+                value = color;
+            });
+        }
+    }
 
 protected:
     // Stores current set of tiles to be rendered for this layer.

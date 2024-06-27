@@ -364,7 +364,7 @@ inline Hsla unwrap(const mbgl::Color& color) {
 enum { UPDATE_FRAME = 100 };
 std::atomic<int> needUpdate = { UPDATE_FRAME };
 //Hsla colorBase = { 292., .92, .49, 1. };
-Hsla colorBase = { 20, .5, .5, 1. };
+Hsla colorBase = { 0, .9, .9, 1. };
 
 struct ColorBinding {
     GradientColor color;
@@ -411,10 +411,10 @@ bool update() {
             it.callback(color);
         }
         
-        if (needUpdate < 1) {
-            colorBase.h += 1.; if (colorBase.h > 360.) colorBase.h = .0;
-            colorBase.s += .01; if (colorBase.s > 1.0) colorBase.s = .1;
-            colorBase.l += .02; if (colorBase.l > 1.0) colorBase.l = .1;
+        if (needUpdate < 100) {
+            colorBase.h += 2.; if (colorBase.h > 360.) colorBase.h = .0;
+//            colorBase.s += .01; if (colorBase.s > 1.0) colorBase.s = .1;
+//            colorBase.l += .02; if (colorBase.l > 1.0) colorBase.l = .1;
             
             setColorBase(colorBase);
             nav::log::i("palette", "basecolor hsla(%f,%f,%f,%f)", colorBase.h, colorBase.s, colorBase.l, colorBase.a);
@@ -424,6 +424,10 @@ bool update() {
     }
     
     return false;
+}
+
+bool changed() {
+    return (needUpdate > 0);
 }
 
 }
