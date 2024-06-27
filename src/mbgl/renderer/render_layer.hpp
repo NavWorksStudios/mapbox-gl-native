@@ -136,7 +136,7 @@ protected:
     
     void bindToPalette(style::PropertyValue<Color>& value) const {
         if (value.isConstant()) {
-            nav::style::palette::bind((int64_t) this, value.asConstant(), 
+            nav::style::palette::bind((void*) this, value.asConstant(), 
             [&value](const Color& color) {
                 value = color;
             });

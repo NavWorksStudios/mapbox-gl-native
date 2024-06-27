@@ -339,8 +339,9 @@ public:
     GradientColor(const Stylizer& stylizer) : stylizer(stylizer) {
         set(stylizer);
     }
-    inline void stylize(const Hsla& base) {
+    inline void stylize(const Hsla& base, bool smooth) {
         stylizer.stylize(base);
+        if (!smooth) set(stylizer);
     }
     inline const mbgl::Color& update() {
         return smoothto(stylizer);
@@ -364,14 +365,14 @@ inline Hsla unwrap(const mbgl::Color& color) {
 enum { UPDATE_FRAME = 100 };
 std::atomic<int> needUpdate = { UPDATE_FRAME };
 //Hsla colorBase = { 292., .92, .49, 1. };
-Hsla colorBase = { 0, .9, .9, 1. };
+Hsla colorBase = { 0, 1., .6, 1. };
 
 struct ColorBinding {
-    int64_t tag;
+    void* tag;
     GradientColor color;
     std::function<void(const mbgl::Color& color)> callback;
     ColorBinding() = default;
-    ColorBinding(int64_t tag, const Stylizer& stylizer, const std::function<void(const mbgl::Color& color)>& cb) :
+    ColorBinding(void* tag, const Stylizer& stylizer, const std::function<void(const mbgl::Color& color)>& cb) :
     tag(tag), color(stylizer), callback(cb) {
         callback(color);
     }
@@ -379,23 +380,23 @@ struct ColorBinding {
 
 std::vector<ColorBinding> paletteBindings;
 
-void setColorBase(const Hsla& color) {
+void setColorBase(const Hsla& color, bool smooth) {
     needUpdate = UPDATE_FRAME;
     colorBase = color;
     for (auto& it : paletteBindings) {
-        it.color.stylize(colorBase);
+        it.color.stylize(colorBase, smooth);
     }
 }
 
-void setColorBase(const mbgl::Color& color) {
+void setColorBase(const mbgl::Color& color, bool smooth) {
     needUpdate = UPDATE_FRAME;
     colorBase = color;
     for (auto& it : paletteBindings) {
-        it.color.stylize(colorBase);
+        it.color.stylize(colorBase, smooth);
     }
 }
 
-void bind(int64_t tag, const mbgl::Color& color, const std::function<void(const mbgl::Color& color)>& callback) {
+void bind(void* tag, const mbgl::Color& color, const std::function<void(const mbgl::Color& color)>& callback) {
     if (internal::isStyliable(color)) {
         paletteBindings.emplace_back(tag, Stylizer({colorBase, Hsla(color)}), callback);
     } else {
@@ -417,7 +418,7 @@ bool update() {
 //            colorBase.s += .01; if (colorBase.s > 1.0) colorBase.s = .1;
 //            colorBase.l += .02; if (colorBase.l > 1.0) colorBase.l = .1;
             
-            setColorBase(colorBase);
+            setColorBase(colorBase, false);
             nav::log::i("palette", "basecolor hsla(%f,%f,%f,%f)", colorBase.h, colorBase.s, colorBase.l, colorBase.a);
         }
         
