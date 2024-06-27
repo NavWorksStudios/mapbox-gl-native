@@ -19,10 +19,94 @@ struct ShaderSource<SymbolIconProgram> {
     static constexpr const auto vertexOffset = 50455;
     static constexpr const auto fragmentOffset = 53204;
     
-    static const char* navVertex(const char* shaderSource, size_t preludeOffset) { return shaderSource + preludeOffset; }
-    static const char* navVertex(const char* shaderSource) { return shaderSource + vertexOffset; }
-    static const char* navFragment(const char* shaderSource, size_t preludeOffset) { return shaderSource + preludeOffset; }
-    static const char* navFragment(const char* shaderSource) { return shaderSource + fragmentOffset; }
+//    static const char* navVertex(const char* shaderSource, size_t preludeOffset) { return shaderSource + preludeOffset; }
+//    static const char* navVertex(const char* shaderSource) { return shaderSource + vertexOffset; }
+//    static const char* navFragment(const char* shaderSource, size_t preludeOffset) { return shaderSource + preludeOffset; }
+//    static const char* navFragment(const char* shaderSource) { return shaderSource + fragmentOffset; }
+    
+    static const char* navVertex(const char* , size_t ) { return R"(
+
+    #ifdef GL_ES
+    precision highp float;
+    #else
+    #if !defined(lowp)
+    #define lowp
+    #endif
+    #if !defined(mediump)
+    #define mediump
+    #endif
+    #if !defined(highp)
+    #define highp
+    #endif
+    #endif
+    vec2 unpack_float(const float packedValue) {int packedIntValue=int(packedValue);int v0=packedIntValue/256;return vec2(v0,packedIntValue-v0*256);}vec2 unpack_opacity(const float packedOpacity) {int intOpacity=int(packedOpacity)/2;return vec2(float(intOpacity)/127.0,mod(packedOpacity,2.0));}vec4 decode_color(const vec2 encodedColor) {return vec4(unpack_float(encodedColor[0])/255.0,unpack_float(encodedColor[1])/255.0
+    );}float unpack_mix_vec2(const vec2 packedValue,const float t) {return mix(packedValue[0],packedValue[1],t);}vec4 unpack_mix_color(const vec4 packedColors,const float t) {vec4 minColor=decode_color(vec2(packedColors[0],packedColors[1]));vec4 maxColor=decode_color(vec2(packedColors[2],packedColors[3]));return mix(minColor,maxColor,t);}vec2 get_pattern_pos(const vec2 pixel_coord_upper,const vec2 pixel_coord_lower,const vec2 pattern_size,const float tile_units_to_pixels,const vec2 pos) {vec2 offset=mod(mod(mod(pixel_coord_upper,pattern_size)*256.0,pattern_size)*256.0+pixel_coord_lower,pattern_size);return (tile_units_to_pixels*pos+offset)/pattern_size;}
+
+    )"; }
+
+
+    static const char* navVertex(const char* ) { return R"(
+
+    const float PI=3.141592653589793;attribute vec4 a_pos_offset;attribute vec4 a_data;attribute vec4 a_pixeloffset;attribute vec3 a_projected_pos;attribute float a_fade_opacity;uniform bool u_is_size_zoom_constant;uniform bool u_is_size_feature_constant;uniform highp float u_size_t;uniform highp float u_size;uniform highp float u_camera_to_center_distance;uniform highp float u_pitch;uniform bool u_rotate_symbol;uniform highp float u_aspect_ratio;uniform float u_fade_change;uniform mat4 u_matrix;uniform mat4 u_label_plane_matrix;uniform mat4 u_coord_matrix;uniform bool u_is_text;uniform bool u_pitch_with_map;uniform vec2 u_texsize;varying vec2 v_tex;varying float v_fade_opacity;
+    #ifndef HAS_UNIFORM_u_opacity
+    uniform lowp float u_opacity_t;attribute lowp vec2 a_opacity;varying lowp float opacity;
+    #else
+    uniform lowp float u_opacity;
+    #endif
+    void main() {
+    #ifndef HAS_UNIFORM_u_opacity
+    opacity=unpack_mix_vec2(a_opacity,u_opacity_t);
+    #else
+    lowp float opacity=u_opacity;
+    #endif
+    vec2 a_pos=a_pos_offset.xy;vec2 a_offset=a_pos_offset.zw;vec2 a_tex=a_data.xy;vec2 a_size=a_data.zw;float a_size_min=floor(a_size[0]*0.5);vec2 a_pxoffset=a_pixeloffset.xy;vec2 a_minFontScale=a_pixeloffset.zw/256.0;highp float segment_angle=-a_projected_pos[2];float size;if (!u_is_size_zoom_constant && !u_is_size_feature_constant) {size=mix(a_size_min,a_size[1],u_size_t)/128.0;} else if (u_is_size_zoom_constant && !u_is_size_feature_constant) {size=a_size_min/128.0;} else {size=u_size;}vec4 projectedPoint=u_matrix*vec4(a_pos,0,1);highp float camera_to_anchor_distance=projectedPoint.w;highp float distance_ratio=u_pitch_with_map ?
+    camera_to_anchor_distance/u_camera_to_center_distance :
+    u_camera_to_center_distance/camera_to_anchor_distance;highp float perspective_ratio=clamp(0.5+0.5*distance_ratio,0.0,4.0);size*=perspective_ratio;float fontScale=u_is_text ? size/24.0 : size;highp float symbol_rotation=0.0;if (u_rotate_symbol) {vec4 offsetProjectedPoint=u_matrix*vec4(a_pos+vec2(1,0),0,1);vec2 a=projectedPoint.xy/projectedPoint.w;vec2 b=offsetProjectedPoint.xy/offsetProjectedPoint.w;symbol_rotation=atan((b.y-a.y)/u_aspect_ratio,b.x-a.x);}highp float angle_sin=sin(segment_angle+symbol_rotation);highp float angle_cos=cos(segment_angle+symbol_rotation);mat2 rotation_matrix=mat2(angle_cos,-1.0*angle_sin,angle_sin,angle_cos);vec4 projected_pos=u_label_plane_matrix*vec4(a_projected_pos.xy,0.0,1.0);gl_Position=u_coord_matrix*vec4(projected_pos.xy/projected_pos.w+rotation_matrix*(a_offset/32.0*max(a_minFontScale,fontScale)+a_pxoffset/16.0),0.0,1.0);v_tex=a_tex/u_texsize;vec2 fade_opacity=unpack_opacity(a_fade_opacity);float fade_change=fade_opacity[1] > 0.5 ? u_fade_change :-u_fade_change;v_fade_opacity=max(0.0,min(1.0,fade_opacity[0]+fade_change));}
+
+    )"; }
+
+
+    static const char* navFragment(const char* , size_t ) { return R"(
+
+    #ifdef GL_ES
+    precision mediump float;
+    #else
+    #if !defined(lowp)
+    #define lowp
+    #endif
+    #if !defined(mediump)
+    #define mediump
+    #endif
+    #if !defined(highp)
+    #define highp
+    #endif
+    #endif
+
+    )"; }
+
+
+    static const char* navFragment(const char* ) { return R"(
+
+    uniform sampler2D u_texture;varying vec2 v_tex;varying float v_fade_opacity;
+    #ifndef HAS_UNIFORM_u_opacity
+    varying lowp float opacity;
+    #else
+    uniform lowp float u_opacity;
+    #endif
+    void main() {
+    #ifdef HAS_UNIFORM_u_opacity
+    lowp float opacity=u_opacity;
+    #endif
+    lowp float alpha=opacity*v_fade_opacity;gl_FragColor=texture2D(u_texture,v_tex)*alpha;
+    #ifdef OVERDRAW_INSPECTOR
+    gl_FragColor=vec4(1.0);
+    #endif
+    }
+
+    )"; }
+
+    
+    
 };
 
 constexpr const char* ShaderSource<SymbolIconProgram>::name;
