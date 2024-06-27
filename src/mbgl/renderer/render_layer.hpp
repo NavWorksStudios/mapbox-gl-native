@@ -3,11 +3,13 @@
 #include <mbgl/layout/layout.hpp>
 #include <mbgl/renderer/render_pass.hpp>
 #include <mbgl/renderer/render_source.hpp>
+#include <mbgl/style/property_value.hpp>
 #include <mbgl/style/layer_properties.hpp>
 #include <mbgl/tile/geometry_tile_data.hpp>
 #include <mbgl/util/mat4.hpp>
 #include <memory>
 #include <string>
+#include "mbgl/nav/nav_mb_style.hpp"
 
 namespace mbgl {
 
@@ -134,7 +136,8 @@ protected:
     
     void bindToPalette(style::PropertyValue<Color>& value) const {
         if (value.isConstant()) {
-            nav::style::palette::bind(value.asConstant(), [&value](const Color& color) {
+            nav::style::palette::bind((int64_t) this, value.asConstant(), 
+            [&value](const Color& color) {
                 value = color;
             });
         }

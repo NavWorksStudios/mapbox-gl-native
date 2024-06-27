@@ -367,11 +367,12 @@ std::atomic<int> needUpdate = { UPDATE_FRAME };
 Hsla colorBase = { 0, .9, .9, 1. };
 
 struct ColorBinding {
+    int64_t tag;
     GradientColor color;
     std::function<void(const mbgl::Color& color)> callback;
     ColorBinding() = default;
-    ColorBinding(const Stylizer& stylizer, const std::function<void(const mbgl::Color& color)>& cb) :
-    color(stylizer), callback(cb) {
+    ColorBinding(int64_t tag, const Stylizer& stylizer, const std::function<void(const mbgl::Color& color)>& cb) :
+    tag(tag), color(stylizer), callback(cb) {
         callback(color);
     }
 };
@@ -394,11 +395,11 @@ void setColorBase(const mbgl::Color& color) {
     }
 }
 
-void bind(const mbgl::Color& color, const std::function<void(const mbgl::Color& color)>& callback) {
+void bind(int64_t tag, const mbgl::Color& color, const std::function<void(const mbgl::Color& color)>& callback) {
     if (internal::isStyliable(color)) {
-        paletteBindings.emplace_back(Stylizer({colorBase, Hsla(color)}), callback);
+        paletteBindings.emplace_back(tag, Stylizer({colorBase, Hsla(color)}), callback);
     } else {
-        paletteBindings.emplace_back(Stylizer({internal::unwrap(color)}), callback);
+        paletteBindings.emplace_back(tag, Stylizer({internal::unwrap(color)}), callback);
     }
 }
 
