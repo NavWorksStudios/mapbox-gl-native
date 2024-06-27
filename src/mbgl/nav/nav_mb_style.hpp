@@ -45,7 +45,7 @@ void setViewMode(ViewMode mode);
 
 namespace palette {
 void setColorBase(const mbgl::Color& color, bool smooth=true);
-void bind(void* tag, const mbgl::Color& color, const std::function<void(const mbgl::Color& color)>& callback);
+void bind(const std::string& uri, const mbgl::Color& color, const std::function<void(const mbgl::Color& color)>& callback);
 bool changed();
 }
 

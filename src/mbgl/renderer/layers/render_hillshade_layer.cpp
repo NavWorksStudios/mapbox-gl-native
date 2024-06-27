@@ -30,9 +30,9 @@ inline const HillshadeLayer::Impl& impl_cast(const Immutable<style::Layer::Impl>
 RenderHillshadeLayer::RenderHillshadeLayer(Immutable<style::HillshadeLayer::Impl> _impl)
     : RenderLayer(makeMutable<HillshadeLayerProperties>(std::move(_impl))),
       unevaluated(impl_cast(baseImpl).paint.untransitioned()) {
-    bindToPalette(unevaluated.get<HillshadeAccentColor>().value);
-    bindToPalette(unevaluated.get<HillshadeHighlightColor>().value);
-    bindToPalette(unevaluated.get<HillshadeShadowColor>().value);
+    bindToPalette("/hill-shade-accent-color", unevaluated.get<HillshadeAccentColor>().value);
+    bindToPalette("/hill-shade-highlight-color", unevaluated.get<HillshadeHighlightColor>().value);
+    bindToPalette("/hill-shade-shadow-color", unevaluated.get<HillshadeShadowColor>().value);
 }
 
 RenderHillshadeLayer::~RenderHillshadeLayer() = default;

@@ -14,7 +14,7 @@ class Literal : public Expression {
 public:
     Literal(const Value& value_) : Expression(Kind::Literal, typeOf(value_)), value(value_) {
         if (value.is<Color>()) {
-            nav::style::palette::bind((void*) this, value.get<Color>(),
+            nav::style::palette::bind("/literal", value.get<Color>(),
             [this](const mbgl::Color& color) {
                 value = color;
             });

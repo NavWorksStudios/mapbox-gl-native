@@ -23,14 +23,14 @@ const std::string& url() {
 //    "mapbox://styles/notheorem/clxrac32800o901qw94ryfkdz" // light
 
     // 色彩模式
-    "mapbox://styles/notheorem/clxuokujq00fw01r07m42dsl3"
+    "mapbox://styles/navworks/clxx105i700yr01po4zbn2jc1"
     );
     
     return url;
 }
 
 const std::string& accessToken() {
-    static std::string token = "pk.eyJ1Ijoibm90aGVvcmVtIiwiYSI6ImNsb3Y0cjVoaTBxY20yamxsb3pvNHI3MW0ifQ.ZEemHSq9LP1ScpWw6w9Z0g";
+    static std::string token = "pk.eyJ1IjoibmF2d29ya3MiLCJhIjoiY2x4eDBycWRjMTJ4ZTJqb2U0M2dtcjAzOSJ9.oVUOlMJgFG_00HklciyBnQ";
     return token;
 }
 
@@ -271,7 +271,7 @@ struct Hsla {
     }
 };
 
-static const Hsla SAMPLE_CENTER = { 292., .5, .5, 1. };
+static const Hsla SAMPLE_CENTER = { 200., .5, .5, 1. };
 
 class Stylizer : public Hsla {
     const bool stylizable;
@@ -368,12 +368,12 @@ std::atomic<int> needUpdate = { UPDATE_FRAME };
 Hsla colorBase = { 0, 1., .6, 1. };
 
 struct ColorBinding {
-    void* tag;
+    std::string uri;
     GradientColor color;
     std::function<void(const mbgl::Color& color)> callback;
     ColorBinding() = default;
-    ColorBinding(void* tag, const Stylizer& stylizer, const std::function<void(const mbgl::Color& color)>& cb) :
-    tag(tag), color(stylizer), callback(cb) {
+    ColorBinding(const std::string& uri, const Stylizer& stylizer, const std::function<void(const mbgl::Color& color)>& cb) :
+    uri(uri), color(stylizer), callback(cb) {
         callback(color);
     }
 };
@@ -396,11 +396,11 @@ void setColorBase(const mbgl::Color& color, bool smooth) {
     }
 }
 
-void bind(void* tag, const mbgl::Color& color, const std::function<void(const mbgl::Color& color)>& callback) {
+void bind(const std::string& uri, const mbgl::Color& color, const std::function<void(const mbgl::Color& color)>& callback) {
     if (internal::isStyliable(color)) {
-        paletteBindings.emplace_back(tag, Stylizer({colorBase, Hsla(color)}), callback);
+        paletteBindings.emplace_back(uri, Stylizer({colorBase, Hsla(color)}), callback);
     } else {
-        paletteBindings.emplace_back(tag, Stylizer({internal::unwrap(color)}), callback);
+        paletteBindings.emplace_back(uri, Stylizer({internal::unwrap(color)}), callback);
     }
 }
 
@@ -413,8 +413,8 @@ bool update() {
             it.callback(color);
         }
         
-        if (needUpdate < 100) {
-            colorBase.h += 2.; if (colorBase.h > 360.) colorBase.h = .0;
+        if (needUpdate < 90) {
+            colorBase.h += 1.; if (colorBase.h > 360.) colorBase.h = .0;
 //            colorBase.s += .01; if (colorBase.s > 1.0) colorBase.s = .1;
 //            colorBase.l += .02; if (colorBase.l > 1.0) colorBase.l = .1;
             

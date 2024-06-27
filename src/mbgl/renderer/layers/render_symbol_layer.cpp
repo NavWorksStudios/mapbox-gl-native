@@ -300,10 +300,10 @@ inline const SymbolLayer::Impl& impl_cast(const Immutable<style::Layer::Impl>& i
 RenderSymbolLayer::RenderSymbolLayer(Immutable<style::SymbolLayer::Impl> _impl)
     : RenderLayer(makeMutable<SymbolLayerProperties>(std::move(_impl))),
       unevaluated(impl_cast(baseImpl).paint.untransitioned()) {
-    bindToPalette(unevaluated.get<IconColor>().value);
-    bindToPalette(unevaluated.get<IconHaloColor>().value);
-    bindToPalette(unevaluated.get<TextColor>().value);
-    bindToPalette(unevaluated.get<TextHaloColor>().value);
+    bindToPalette("/icon-color", unevaluated.get<IconColor>().value);
+    bindToPalette("/icon-halo-color", unevaluated.get<IconHaloColor>().value);
+    bindToPalette("/text-color", unevaluated.get<TextColor>().value);
+    bindToPalette("/text-halo-color", unevaluated.get<TextHaloColor>().value);
 }
 
 RenderSymbolLayer::~RenderSymbolLayer() = default;

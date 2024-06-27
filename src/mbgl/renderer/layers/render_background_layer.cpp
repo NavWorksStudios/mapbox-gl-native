@@ -27,7 +27,7 @@ inline const BackgroundLayer::Impl& impl_cast(const Immutable<style::Layer::Impl
 RenderBackgroundLayer::RenderBackgroundLayer(Immutable<style::BackgroundLayer::Impl> _impl)
     : RenderLayer(makeMutable<BackgroundLayerProperties>(std::move(_impl))),
       unevaluated(impl_cast(baseImpl).paint.untransitioned()) {
-    bindToPalette(unevaluated.get<BackgroundColor>().value);
+    bindToPalette("/background-color", unevaluated.get<BackgroundColor>().value);
 }
 
 RenderBackgroundLayer::~RenderBackgroundLayer() = default;

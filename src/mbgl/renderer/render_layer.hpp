@@ -134,9 +134,11 @@ protected:
 
     const LayerRenderData* getRenderDataForPass(const RenderTile&, RenderPass) const;
     
-    void bindToPalette(style::PropertyValue<Color>& value) const {
+    void bindToPalette(const std::string& target, style::PropertyValue<Color>& value) const {
         if (value.isConstant()) {
-            nav::style::palette::bind((void*) this, value.asConstant(), 
+            std::string uri(baseImpl->id);
+            uri += target;
+            nav::style::palette::bind(uri, value.asConstant(),
             [&value](const Color& color) {
                 value = color;
             });

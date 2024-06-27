@@ -227,7 +227,7 @@ std::unique_ptr<RenderTree> RenderOrchestrator::createRenderTree(
 
     // Create render layers for newly added layers.
     for (const auto& entry : layerDiff.added) {
-        auto renderLayer = LayerManager::get()->createRenderLayer(entry.second);
+        auto renderLayer = LayerManager::get()->createRenderLayer(entry.second);        
         renderLayer->transition(transitionParameters);
         renderLayers.emplace(entry.first, std::move(renderLayer));
     }
