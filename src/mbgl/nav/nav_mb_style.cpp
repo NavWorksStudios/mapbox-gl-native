@@ -417,6 +417,7 @@ bool update() {
             colorBase.l += .02; if (colorBase.l > 1.0) colorBase.l = .1;
             
             setColorBase(colorBase);
+            nav::log::i("palette", "basecolor hsla(%f,%f,%f,%f)", colorBase.h, colorBase.s, colorBase.l, colorBase.a);
         }
         
         return true;
