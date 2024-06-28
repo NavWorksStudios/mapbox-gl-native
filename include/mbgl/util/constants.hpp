@@ -46,11 +46,13 @@ constexpr float ONE_EM = 24.0f;
 
 constexpr uint8_t DEFAULT_PREFETCH_ZOOM_DELTA = 4;
 
-constexpr uint64_t DEFAULT_MAX_CACHE_SIZE = 2000 * 1024 * 1024;
+constexpr uint64_t DEFAULT_MAX_CACHE_SIZE = 1000 * 1024 * 1024; // 50 * 1024 * 1024
 
 // Default ImageManager's cache size for images added via onStyleImageMissing API.
 // Average sprite size with 1.0 pixel ratio is ~2kB, 8kB for pixel ratio of 2.0.
-constexpr std::size_t DEFAULT_ON_DEMAND_IMAGES_CACHE_SIZE = 100 * 8192;
+constexpr std::size_t DEFAULT_ON_DEMAND_IMAGES_CACHE_SIZE = 10 * 1024 * 1024; // 100 * 8192;
+
+constexpr bool DIRECT_DATABASE_FOR_DEBUG = true;
 
 constexpr Duration DEFAULT_TRANSITION_DURATION = Milliseconds(300);
 constexpr Seconds CLOCK_SKEW_RETRY_TIMEOUT { 30 };

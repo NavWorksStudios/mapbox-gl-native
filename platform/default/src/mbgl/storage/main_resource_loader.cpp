@@ -93,6 +93,8 @@ public:
                         res.priorModified = response.modified;
                         res.priorExpires = response.expires;
                         res.priorEtag = response.etag;
+                        
+                        if (util::DIRECT_DATABASE_FOR_DEBUG) return;
                     }
 
                     tasks[req] = requestFromNetwork(res, std::move(tasks[req]));

@@ -192,9 +192,15 @@ void DatabaseFileSource::forward(const Resource& res, const Response& response, 
 }
 
 bool DatabaseFileSource::canRequest(const Resource& resource) const {
-    return resource.hasLoadingMethod(Resource::LoadingMethod::Cache) &&
-           resource.url.rfind(mbgl::util::ASSET_PROTOCOL, 0) == std::string::npos &&
-           resource.url.rfind(mbgl::util::FILE_PROTOCOL, 0) == std::string::npos;
+    if (util::DIRECT_DATABASE_FOR_DEBUG) {
+        return resource.hasLoadingMethod(Resource::LoadingMethod::Cache | Resource::LoadingMethod::All) &&
+               resource.url.rfind(mbgl::util::ASSET_PROTOCOL, 0) == std::string::npos &&
+               resource.url.rfind(mbgl::util::FILE_PROTOCOL, 0) == std::string::npos;
+    } else {
+        return resource.hasLoadingMethod(Resource::LoadingMethod::Cache) &&
+               resource.url.rfind(mbgl::util::ASSET_PROTOCOL, 0) == std::string::npos &&
+               resource.url.rfind(mbgl::util::FILE_PROTOCOL, 0) == std::string::npos;
+    }
 }
 
 void DatabaseFileSource::setDatabasePath(const std::string& path, std::function<void()> callback) {
