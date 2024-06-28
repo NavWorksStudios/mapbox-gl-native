@@ -329,6 +329,8 @@ std::pair<bool, uint64_t> OfflineDatabase::putInternal(const Resource& resource,
                 compressed ? compressedData : response.data ? *response.data : "",
                 compressed);
     }
+    
+    assert(inserted);
 
     if (stats) {
         updateAmbientCacheSize(*stats);
