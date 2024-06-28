@@ -76,7 +76,7 @@ struct ShaderSource<FillExtrusionProgram> {
     
     static const char* navVertex(const char* ) { return R"(
 
-        uniform mat4 u_matrix;
+        uniform highp mat4 u_matrix;
         uniform lowp vec3 u_lightcolor;
         uniform lowp vec3 u_lightpos;
         uniform lowp float u_lightintensity;
@@ -85,7 +85,7 @@ struct ShaderSource<FillExtrusionProgram> {
         uniform lowp float u_spotlight;
         uniform bool u_rendering_reflection;
     
-        attribute lowp vec2 a_pos;
+        attribute highp vec2 a_pos;
         attribute lowp vec4 a_normal_ed;
     
         varying vec3 v_pos;
@@ -166,7 +166,7 @@ struct ShaderSource<FillExtrusionProgram> {
             if (u_rendering_reflection) {
                 base=-base;
                 height=-height;
-                v_color *= u_opacity * .2;
+                v_color *= u_opacity * .1;
             } else {
                 v_color *= u_opacity * (1. + .2 * u_spotlight);
             }
@@ -229,10 +229,11 @@ struct ShaderSource<FillExtrusionProgram> {
             //
             lowp float top = 0.;
             lowp float bottom = 0.;
-            if (v_v_factor.x > 1. - v_edge_ratio[1]) { // 上边缘
+            if (v_v_factor.x > .999) {
+                top = .5; // 楼顶
+            } else if (v_v_factor.x > 1. - v_edge_ratio[1]) { // 上边缘
                 top = (v_v_factor.x + v_edge_ratio[1] - 1.) / v_edge_ratio[1];
-            }
-            if (v_v_factor.x < v_edge_ratio[0]) { // 下边缘
+            } else if (v_v_factor.x < v_edge_ratio[0]) { // 下边缘
                 bottom = (v_edge_ratio[0] - v_v_factor.x) / v_edge_ratio[0];
             }
             lowp float edgeFactor = pow(max(top, bottom), 3.);
