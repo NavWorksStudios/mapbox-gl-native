@@ -171,11 +171,33 @@ float hue_to_rgb(float p, float q, float t) {
     return p;
 }
 
-float value_smooth_to(float from, float to) {
-    if (from > to) {
-        return fmax(from - fmax((from - to) * 0.1, 0.02), to);
-    } else if (from < to) {
-        return fmin(from + fmax((to - from) * 0.1, 0.02), to);
+template <int MAX> float value_smooth_to(float from, float to) {
+    constexpr float HALF = MAX * 0.5;
+    constexpr float MIX_RATIO = 0.02;
+    constexpr float MIX_RATIO_BOTTOM = 0.002;
+    constexpr float MIX_BOTTOM = MAX * MIX_RATIO_BOTTOM;
+
+    float delta = to - from;
+    if (fabs(delta) > HALF) {
+        if (to < from) { // to is a small value
+            // from -> MAX -> to, then delta > 0
+            delta = (to + MAX) - from;
+        } else { // to is a big value
+            // to <- 0 <- from, then delta < 0
+            delta = (to - MAX) - from;
+        }
+    }
+    
+    if (delta > 0) {
+        delta = fmax(delta * MIX_RATIO, MIX_BOTTOM);
+        float value = from + delta;
+        if (value > MAX) value -= MAX;
+        return value;
+    } else if (delta < 0) {
+        delta = fmin(delta * MIX_RATIO, -MIX_BOTTOM);
+        float value = from + delta;
+        if (value < 0) value += MAX;
+        return value;
     } else {
         return to;
     }
@@ -264,10 +286,10 @@ struct Hsla {
     }
     
     void smoothto(const Hsla& to) {
-        h = value_smooth_to(h, to.h);
-        s = value_smooth_to(s, to.s);
-        l = value_smooth_to(l, to.l);
-        a = value_smooth_to(a, to.a);
+        h = value_smooth_to<360>(h, to.h);
+        s = value_smooth_to<1>(s, to.s);
+        l = value_smooth_to<1>(l, to.l);
+        a = value_smooth_to<1>(a, to.a);
     }
 };
 
@@ -287,21 +309,23 @@ public:
     Stylizer(const Hsla& base, const Hsla& sample) : stylizable(true) {
         hCoef = sample.h - SAMPLE_CENTER.h;
         sCoef = sample.s - SAMPLE_CENTER.s;
-        lCoef = log2((sample.l - .1) / .8) / log2(SAMPLE_CENTER.l);
+        lCoef = log2(sample.l) / log2(SAMPLE_CENTER.l);
         aCoef = sample.a / SAMPLE_CENTER.a;
         
-        if (std::isnan(lCoef)) lCoef = 0.5;
-        else if (lCoef < 0.) lCoef = 0.;
+        assert(!std::isnan(hCoef));
+        assert(!std::isnan(sCoef));
+        assert(!std::isnan(lCoef));
+        assert(!std::isnan(aCoef));
 
         stylize(base);
     }
     
     void stylize(const Hsla& baseColor) {
         if (stylizable) {
-            h = fmod(baseColor.h + hCoef + 360., 360.);          // h [0,360]
-            s = fmin(fmax(baseColor.s + sCoef, 0.), 1.);  // s [0,1]
-            l = pow(baseColor.l, lCoef) * .8 + .1;        // l [0,1], result [.1,.9]
-            a = fmin(fmax(baseColor.a * aCoef, 0.), 1.);  // a [0,1]
+            h = fmod(baseColor.h + hCoef + 360., 360.);     // h [0,360]
+            s = fmin(fmax(baseColor.s + sCoef, 0.), 1.);    // s [0,1]
+            l = pow(baseColor.l, lCoef);                    // l [0,1]
+            a = fmin(fmax(baseColor.a * aCoef, 0.), 1.);    // a [0,1]
             
             assert(h >= 0. && h <= 360.);
             assert(s >= 0. && s <= 1.);
@@ -312,10 +336,10 @@ public:
 };
 
 class Color {
+public:
     Hsla hsla;
     mbgl::Color rgba;
 
-public:
     Color() = default;
     
     void set(const Hsla& color) {
@@ -333,18 +357,19 @@ public:
 };
 
 class GradientColor : public Color {
-    Stylizer stylizer;
 public:
+    Stylizer stylizer;
+
     GradientColor() = default;
     GradientColor(const Stylizer& stylizer) : stylizer(stylizer) {
         set(stylizer);
     }
-    inline void stylize(const Hsla& base, bool smooth) {
+    inline void stylize(const Hsla& base) {
         stylizer.stylize(base);
-        if (!smooth) set(stylizer);
     }
     inline const mbgl::Color& update() {
-        return smoothto(stylizer);
+        smoothto(stylizer);
+        return *this;
     }
 };
 
@@ -365,7 +390,7 @@ inline Hsla unwrap(const mbgl::Color& color) {
 enum { UPDATE_FRAME = 100 };
 std::atomic<int> needUpdate = { UPDATE_FRAME };
 //Hsla colorBase = { 292., .92, .49, 1. };
-Hsla colorBase = { 0, 1., .6, 1. };
+Hsla colorBase = { 0, 1., .4, 1. };
 
 struct ColorBinding {
     std::string uri;
@@ -380,19 +405,19 @@ struct ColorBinding {
 
 std::vector<ColorBinding> paletteBindings;
 
-void setColorBase(const Hsla& color, bool smooth) {
+void setColorBase(const Hsla& color) {
     needUpdate = UPDATE_FRAME;
     colorBase = color;
     for (auto& it : paletteBindings) {
-        it.color.stylize(colorBase, smooth);
+        it.color.stylize(colorBase);
     }
 }
 
-void setColorBase(const mbgl::Color& color, bool smooth) {
+void setColorBase(const mbgl::Color& color) {
     needUpdate = UPDATE_FRAME;
     colorBase = color;
     for (auto& it : paletteBindings) {
-        it.color.stylize(colorBase, smooth);
+        it.color.stylize(colorBase);
     }
 }
 
@@ -407,19 +432,22 @@ void bind(const std::string& uri, const mbgl::Color& color, const std::function<
 bool update() {
     if (needUpdate > 0) {
         needUpdate--;
-        for (auto it : paletteBindings) {
-            const auto& color = it.color.update();
-            assert(it.callback);
-            it.callback(color);
-        }
         
         if (needUpdate < 90) {
-            colorBase.h += 1.; if (colorBase.h > 360.) colorBase.h = .0;
-//            colorBase.s += .01; if (colorBase.s > 1.0) colorBase.s = .1;
-//            colorBase.l += .02; if (colorBase.l > 1.0) colorBase.l = .1;
+            static float h = 0;
+            static float l = 0;
             
-            setColorBase(colorBase, false);
-            nav::log::i("palette", "basecolor hsla(%f,%f,%f,%f)", colorBase.h, colorBase.s, colorBase.l, colorBase.a);
+            h += 6.;
+            l += .1;
+            
+            colorBase.h = fmod(h, 360.);
+            colorBase.l = .4 + fabs(fmod(l, 1.) - .5) * .6;
+            
+            setColorBase(colorBase);
+        }
+        
+        for (auto& it : paletteBindings) {
+            it.callback(it.color.update());
         }
         
         return true;

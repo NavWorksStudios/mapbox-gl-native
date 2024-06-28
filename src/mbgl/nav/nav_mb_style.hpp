@@ -44,7 +44,7 @@ enum ViewMode : int8_t {
 void setViewMode(ViewMode mode);
 
 namespace palette {
-void setColorBase(const mbgl::Color& color, bool smooth=true);
+void setColorBase(const mbgl::Color& color);
 void bind(const std::string& uri, const mbgl::Color& color, const std::function<void(const mbgl::Color& color)>& callback);
 bool changed();
 }
