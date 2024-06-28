@@ -113,36 +113,36 @@ int renderIndex(const std::string& id) {
 }
 
 static std::map<std::string, float> layerHeights = {
-    { "bridge-path", 1.5 },
-    { "bridge-steps", 1.5 },
-    { "bridge-pedestrian", 1.5 },
+    { "bridge-path", 2.0 },
+    { "bridge-steps", 2.0 },
+    { "bridge-pedestrian", 2.0 },
 
-    { "bridge-minor-case-navigation", 2.0 },
-    { "bridge-minor-navigation", 2.0 },
+    { "bridge-minor-case-navigation", 3.0 },
+    { "bridge-minor-navigation", 3.0 },
 
-    { "bridge-secondary-tertiary-case-navigation", 2.0 },
-    { "bridge-secondary-tertiary-navigation", 2.0 },
+    { "bridge-secondary-tertiary-case-navigation", 3.0 },
+    { "bridge-secondary-tertiary-navigation", 3.0 },
 
-    { "bridge-street-case-navigation", 2.5 },
-    { "bridge-street-navigation", 2.5 },
+    { "bridge-street-case-navigation", 3.5 },
+    { "bridge-street-navigation", 3.5 },
 
-    { "bridge-primary-case-navigation", 2.5 },
-    { "bridge-primary-navigation", 2.5 },
+    { "bridge-primary-case-navigation", 3.5 },
+    { "bridge-primary-navigation", 3.5 },
 
-    { "bridge-major-link-case-navigation", 3.0 },
-    { "bridge-major-link-navigation", 3.0 },
+    { "bridge-major-link-case-navigation", 4.0 },
+    { "bridge-major-link-navigation", 4.0 },
 
-    { "bridge-motorway-trunk-case-navigation", 3.5 },
-    { "bridge-motorway-trunk-navigation", 3.5 },
+    { "bridge-motorway-trunk-case-navigation", 4.5 },
+    { "bridge-motorway-trunk-navigation", 4.5 },
 
-    { "bridge-major-link-2-case-navigation", 3.5 },
-    { "bridge-major-link-2-navigation", 3.5 },
+    { "bridge-major-link-2-case-navigation", 4.5 },
+    { "bridge-major-link-2-navigation", 4.5 },
 
-    { "bridge-motorway-trunk-2-case-navigation", 4.0 },
-    { "bridge-motorway-trunk-2-navigation", 4.0 },
+    { "bridge-motorway-trunk-2-case-navigation", 5.0 },
+    { "bridge-motorway-trunk-2-navigation", 5.0 },
 
-    { "bridge-rail-bg-white", 4.5 },
-    { "bridge-rail", 4.5 },
+    { "bridge-rail-bg-white", 5.5 },
+    { "bridge-rail", 5.5 },
 };
 
 float getHeight(const std::string& layerId) {

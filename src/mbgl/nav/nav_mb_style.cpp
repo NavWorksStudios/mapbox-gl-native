@@ -421,11 +421,27 @@ void setColorBase(const mbgl::Color& color) {
     }
 }
 
+Hsla customize(const std::string& uri, const Hsla& color) {
+    Hsla hsla = color;
+    if (uri.find("road") != std::string::npos) {
+        hsla.s = 0.0;
+        hsla.l = hsla.l > 0.5 ? 0.3 : 0.7;
+    } else if (uri.find("bridge") != std::string::npos) {
+        hsla.s = 0.0;
+        hsla.l = hsla.l > 0.5 ? 0.2 : 0.8;
+    } else if (uri.find("tunnel") != std::string::npos) {
+        hsla.l = hsla.l * (hsla.l > 0.5 ? 0.4 : 0.6);
+    }
+    return hsla;
+}
+
 void bind(const std::string& uri, const mbgl::Color& color, const std::function<void(const mbgl::Color& color)>& callback) {
     if (internal::isStyliable(color)) {
-        paletteBindings.emplace_back(uri, Stylizer({colorBase, Hsla(color)}), callback);
+        Hsla hsla = customize(uri, Hsla(color));
+        paletteBindings.emplace_back(uri, Stylizer({colorBase, hsla}), callback);
     } else {
-        paletteBindings.emplace_back(uri, Stylizer({internal::unwrap(color)}), callback);
+        Hsla hsla = customize(uri, {internal::unwrap(color)});
+        paletteBindings.emplace_back(uri, Stylizer(hsla), callback);
     }
 }
 
