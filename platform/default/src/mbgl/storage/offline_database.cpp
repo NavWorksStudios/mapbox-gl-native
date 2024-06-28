@@ -83,7 +83,7 @@ void OfflineDatabase::changePath(const std::string& path_) {
     initialize();
 }
 
-void OfflineDatabase::cleanup() {
+void OfflineDatabase::cleanup() { assert(0);
     // Deleting these SQLite objects may result in exceptions
     try {
         statements.clear();
@@ -148,7 +148,7 @@ void OfflineDatabase::handleError(const char* action) {
     }
 }
 
-void OfflineDatabase::removeExisting() {
+void OfflineDatabase::removeExisting() { assert(0);
     Log::Warning(Event::Database, "Removing existing incompatible offline database");
 
     statements.clear();
@@ -157,7 +157,7 @@ void OfflineDatabase::removeExisting() {
     util::deleteFile(path);
 }
 
-void OfflineDatabase::removeOldCacheTable() {
+void OfflineDatabase::removeOldCacheTable() { assert(0);
     assert(db);
     checkFlags();
 
@@ -212,7 +212,7 @@ void OfflineDatabase::migrateToVersion6() {
     transaction.commit();
 }
 
-void OfflineDatabase::vacuum() {
+void OfflineDatabase::vacuum() { assert(0);
     assert(db);
     checkFlags();
 
@@ -329,8 +329,6 @@ std::pair<bool, uint64_t> OfflineDatabase::putInternal(const Resource& resource,
                 compressed ? compressedData : response.data ? *response.data : "",
                 compressed);
     }
-    
-    assert(inserted);
 
     if (stats) {
         updateAmbientCacheSize(*stats);
