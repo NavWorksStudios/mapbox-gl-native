@@ -193,7 +193,7 @@ void DatabaseFileSource::forward(const Resource& res, const Response& response, 
 
 bool DatabaseFileSource::canRequest(const Resource& resource) const {
     if (util::DIRECT_DATABASE_FOR_DEBUG) {
-        return resource.hasLoadingMethod(Resource::LoadingMethod::Cache | Resource::LoadingMethod::All) &&
+        return resource.hasLoadingMethod(Resource::LoadingMethod::All) &&
                resource.url.rfind(mbgl::util::ASSET_PROTOCOL, 0) == std::string::npos &&
                resource.url.rfind(mbgl::util::FILE_PROTOCOL, 0) == std::string::npos;
     } else {

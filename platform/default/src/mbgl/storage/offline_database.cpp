@@ -83,7 +83,7 @@ void OfflineDatabase::changePath(const std::string& path_) {
     initialize();
 }
 
-void OfflineDatabase::cleanup() { assert(0);
+void OfflineDatabase::cleanup() {
     // Deleting these SQLite objects may result in exceptions
     try {
         statements.clear();
@@ -424,8 +424,6 @@ bool OfflineDatabase::putResource(const Resource& resource,
         notModifiedQuery.bind(3, response.mustRevalidate);
         notModifiedQuery.bind(4, resource.url);
         notModifiedQuery.run();
-        
-        nav::log::w("OfflineDatabase", "putResource error %d,%d,%d", resource.url.c_str());
         return false;
     }
 
@@ -626,7 +624,6 @@ bool OfflineDatabase::putTile(const Resource::TileData& tile,
         notModifiedQuery.bind(8, tile.z);
         notModifiedQuery.run();
         
-        nav::log::w("OfflineDatabase", "putTile error %d/%d/%d", (int)tile.z, (int)tile.x, (int)tile.y);
         return false;
     }
 

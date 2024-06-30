@@ -94,7 +94,8 @@ public:
                         res.priorExpires = response.expires;
                         res.priorEtag = response.etag;
                         
-                        if (util::DIRECT_DATABASE_FOR_DEBUG) return;
+                        if (util::DIRECT_DATABASE_FOR_DEBUG &&
+                            res.kind != Resource::Kind::Style) return;
                     }
 
                     tasks[req] = requestFromNetwork(res, std::move(tasks[req]));
