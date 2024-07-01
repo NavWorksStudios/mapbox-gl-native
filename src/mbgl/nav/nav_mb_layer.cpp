@@ -24,6 +24,7 @@ struct Source {
 };
 
 static const std::map<std::string, Source> layerIds = {
+#if 0
     { "land", { "background", "", "", } },
     { "national-park", { "fill", "composite", "landuse_overlay", } },
     { "landuse", { "fill", "composite", "landuse", } },
@@ -79,20 +80,23 @@ static const std::map<std::string, Source> layerIds = {
     { "natural-point-label", { "symbol", "composite", "natural_label", } },
     { "water-line-label", { "symbol", "composite", "natural_label", } },
     { "water-point-label", { "symbol", "composite", "natural_label", } },
+#endif
     { "poi-label", { "symbol", "composite", "poi_label", } },
+#if 0
     { "airport-label", { "symbol", "composite", "airport_label", } },
     { "settlement-subdivision-label", { "symbol", "composite", "place_label", } },
     { "settlement-minor-label", { "symbol", "composite", "place_label", } },
     { "settlement-major-label", { "symbol", "composite", "place_label", } },
     { "state-label", { "symbol", "composite", "place_label", } },
     { "country-label", { "symbol", "composite", "place_label", } },
-    { "continent-label", { "symbol", "composite", "natural_label", } }, 
+    { "continent-label", { "symbol", "composite", "natural_label", } },
+#endif
 };
 
 
 bool filter(const std::string& id) {
-    return true;
-//    return layerIds.find(id) != layerIds.end();
+//    return true;
+    return layerIds.find(id) != layerIds.end();
 }
 
 static std::map<std::string, int> layerRenderIndexs;

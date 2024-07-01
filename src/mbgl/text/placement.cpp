@@ -709,6 +709,11 @@ void Placement::updateLayerBuckets(const RenderLayer& layer, const TransformStat
         if (!item.sortKeyRange || item.sortKeyRange->isFirstRange()) {
             item.bucket.get().updateVertices(*this, updateOpacities, state, item.tile, seenCrossTileIDs);
         }
+        else {
+            // no need sort, so no need dy-update
+            int i = 0;
+            i++;
+        }
     }
 }
 
@@ -911,6 +916,19 @@ void Placement::updateBucketOpacities(SymbolBucket& bucket,
             true);
 
     for (SymbolInstance& symbolInstance : bucket.symbolInstances) {
+        
+        // 判断symbolInstance是否超过可视距离
+        //        continue;
+        if(symbolInstance.distanceToCenter == 0)
+            symbolInstance.distanceToCenter = 800 + std::rand() % 400;
+        
+        const vec3f& carmeraPos = state.getCameraPosition();
+        if(carmeraPos[0] || carmeraPos[1] || carmeraPos[2]) {
+            
+        }
+//        const Anchor& symbolAnchor = symbolInstance.anchor
+
+        
         bool isDuplicate = seenCrossTileIDs.count(symbolInstance.crossTileID) > 0;
 
         auto it = opacities.find(symbolInstance.crossTileID);
@@ -925,29 +943,44 @@ void Placement::updateBucketOpacities(SymbolBucket& bucket,
 
         if (symbolInstance.hasText()) {
             size_t textOpacityVerticesSize = 0u;
-            const auto& opacityVertex = SymbolSDFTextProgram::opacityVertex(opacityState.text.placed, opacityState.text.opacity);
+//            const auto& opacityVertex = SymbolSDFTextProgram::opacityVertex(opacityState.text.placed, opacityState.text.opacity);
+            const auto& opacityVertex = symbolInstance.distanceToCenter > 1000 ? SymbolSDFTextProgram::opacityVertex(false, 0) :
+                SymbolSDFTextProgram::opacityVertex(opacityState.text.placed, opacityState.text.opacity);
             if (symbolInstance.placedRightTextIndex) {
                 textOpacityVerticesSize += symbolInstance.rightJustifiedGlyphQuadsSize * 4;
                 PlacedSymbol& placed = bucket.text.placedSymbols[*symbolInstance.placedRightTextIndex];
-                placed.hidden = opacityState.isHidden();
+//                placed.hidden = opacityState.isHidden();
+                // #*#
+                placed.hidden = symbolInstance.distanceToCenter > 1000 ? true : opacityState.isHidden();
+                placed.hidden = true;
             }
             if (symbolInstance.placedCenterTextIndex && !symbolInstance.singleLine) {
                 textOpacityVerticesSize += symbolInstance.centerJustifiedGlyphQuadsSize * 4;
                 PlacedSymbol& placed = bucket.text.placedSymbols[*symbolInstance.placedCenterTextIndex];
-                placed.hidden = opacityState.isHidden();
+//                placed.hidden = opacityState.isHidden();
+                // #*#
+                placed.hidden = symbolInstance.distanceToCenter > 1000 ? true : opacityState.isHidden();
+                placed.hidden = true;
             }
             if (symbolInstance.placedLeftTextIndex && !symbolInstance.singleLine) {
                 textOpacityVerticesSize += symbolInstance.leftJustifiedGlyphQuadsSize * 4;
                 PlacedSymbol& placed = bucket.text.placedSymbols[*symbolInstance.placedLeftTextIndex];
-                placed.hidden = opacityState.isHidden();
+//                placed.hidden = opacityState.isHidden();
+                // #*#
+                placed.hidden = symbolInstance.distanceToCenter > 1000 ? true : opacityState.isHidden();
+                placed.hidden = true;
             }
             if (symbolInstance.placedVerticalTextIndex) {
                 textOpacityVerticesSize += symbolInstance.verticalGlyphQuadsSize * 4;
-                bucket.text.placedSymbols[*symbolInstance.placedVerticalTextIndex].hidden = opacityState.isHidden();
+                PlacedSymbol& placed = bucket.text.placedSymbols[*symbolInstance.placedVerticalTextIndex];
+//                placed.hidden = opacityState.isHidden();
+                // #*#
+                placed.hidden = symbolInstance.distanceToCenter > 1000 ? true : opacityState.isHidden();
+                placed.hidden = true;
             }
 
             bucket.text.opacityVertices.extend(textOpacityVerticesSize, opacityVertex);
-
+            // #*# 与hidden无关
             style::TextWritingModeType previousOrientation = style::TextWritingModeType::Horizontal;
             if (bucket.allowVerticalPlacement) {
                 auto prevOrientation = placedOrientations.find(symbolInstance.crossTileID);
@@ -956,7 +989,8 @@ void Placement::updateBucketOpacities(SymbolBucket& bucket,
                     markUsedOrientation(bucket, prevOrientation->second, symbolInstance);
                 }
             }
-
+            
+            // #*# 与hidden无关
             auto prevOffset = variableOffsets.find(symbolInstance.crossTileID);
             if (prevOffset != variableOffsets.end()) {
                 markUsedJustification(bucket, prevOffset->second.anchor, symbolInstance, previousOrientation);
@@ -964,23 +998,31 @@ void Placement::updateBucketOpacities(SymbolBucket& bucket,
         }
         if (symbolInstance.hasIcon()) {
             size_t iconOpacityVerticesSize = 0u;
-            const auto& opacityVertex =
+//            const auto& opacityVertex =
+//                SymbolIconProgram::opacityVertex(opacityState.icon.placed, opacityState.icon.opacity);
+            const auto& opacityVertex = symbolInstance.distanceToCenter > 1000 ? SymbolIconProgram::opacityVertex(false, 0) :
                 SymbolIconProgram::opacityVertex(opacityState.icon.placed, opacityState.icon.opacity);
             auto& iconBuffer = symbolInstance.hasSdfIcon() ? bucket.sdfIcon : bucket.icon;
             
             if (symbolInstance.placedIconIndex) {
                 iconOpacityVerticesSize += symbolInstance.iconQuadsSize * 4;
-                iconBuffer.placedSymbols[*symbolInstance.placedIconIndex].hidden = opacityState.isHidden();
+//                iconBuffer.placedSymbols[*symbolInstance.placedIconIndex].hidden = opacityState.isHidden();
+                iconBuffer.placedSymbols[*symbolInstance.placedIconIndex].hidden
+                    = symbolInstance.distanceToCenter > 1000 ? true : opacityState.isHidden();
             }
 
             if (symbolInstance.placedVerticalIconIndex) {
                 iconOpacityVerticesSize += symbolInstance.iconQuadsSize * 4;
-                iconBuffer.placedSymbols[*symbolInstance.placedVerticalIconIndex].hidden = opacityState.isHidden();
+//                iconBuffer.placedSymbols[*symbolInstance.placedVerticalIconIndex].hidden = opacityState.isHidden();
+                iconBuffer.placedSymbols[*symbolInstance.placedVerticalIconIndex].hidden
+                    = symbolInstance.distanceToCenter > 1000 ? true : opacityState.isHidden();
             }
 
             iconBuffer.opacityVertices.extend(iconOpacityVerticesSize, opacityVertex);
         }
+        
 
+        // #*# 与hidden无关
         auto updateIconCollisionBox = [&](const auto& feature, const bool placed, const Point<float>& shift) {
             if (feature.alongLine) {
                 return;
