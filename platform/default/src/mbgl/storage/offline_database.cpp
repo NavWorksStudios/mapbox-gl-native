@@ -148,7 +148,9 @@ void OfflineDatabase::handleError(const char* action) {
     }
 }
 
-void OfflineDatabase::removeExisting() { assert(0);
+void OfflineDatabase::removeExisting() {
+    if (util::DIRECT_DATABASE_FOR_DEBUG) return;
+        
     Log::Warning(Event::Database, "Removing existing incompatible offline database");
 
     statements.clear();
@@ -157,7 +159,9 @@ void OfflineDatabase::removeExisting() { assert(0);
     util::deleteFile(path);
 }
 
-void OfflineDatabase::removeOldCacheTable() { assert(0);
+void OfflineDatabase::removeOldCacheTable() {
+    if (util::DIRECT_DATABASE_FOR_DEBUG) return;
+    
     assert(db);
     checkFlags();
 
@@ -212,7 +216,7 @@ void OfflineDatabase::migrateToVersion6() {
     transaction.commit();
 }
 
-void OfflineDatabase::vacuum() { assert(0);
+void OfflineDatabase::vacuum() {
     assert(db);
     checkFlags();
 
@@ -736,6 +740,8 @@ std::exception_ptr OfflineDatabase::invalidateAmbientCache() try {
 }
 
 std::exception_ptr OfflineDatabase::clearAmbientCache() try {
+    if (util::DIRECT_DATABASE_FOR_DEBUG) return nullptr;
+    
     checkFlags();
 
     // clang-format off
@@ -948,6 +954,8 @@ OfflineDatabase::updateMetadata(const int64_t regionID, const OfflineRegionMetad
 }
 
 std::exception_ptr OfflineDatabase::deleteRegion(OfflineRegion&& region) try {
+    if (util::DIRECT_DATABASE_FOR_DEBUG) return nullptr;
+
     checkFlags();
 
     {

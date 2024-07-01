@@ -27,10 +27,13 @@ public:
           onlineFileSource(std::move(onlineFileSource_)) {}
 
     void request(AsyncRequest* req, const Resource& resource, const ActorRef<FileSourceRequest>& ref) {
-        auto callback = [ref](const Response& res) { ref.invoke(&FileSourceRequest::setResponse, res); };
+        // 通知结果回调
+        auto callback = [ref](const Response& res) {
+            ref.invoke(&FileSourceRequest::setResponse, res);
+        };
 
-        auto requestFromNetwork = [=](const Resource& res,
-                                      std::unique_ptr<AsyncRequest> parent) -> std::unique_ptr<AsyncRequest> {
+        // 触发网络发送回调
+        auto requestFromNetwork = [=](const Resource& res, std::unique_ptr<AsyncRequest> parent) -> std::unique_ptr<AsyncRequest> {
             if (!onlineFileSource || !onlineFileSource->canRequest(resource)) {
                 return parent;
             }
@@ -60,16 +63,17 @@ public:
         // the sources were able to request a resource.
         const std::size_t tasksSize = tasks.size();
 
+        // 瀑布流资源请求，请求资源后尽早返回。
         // Waterfall resource request processing and return early once resource was requested.
-        if (assetFileSource && assetFileSource->canRequest(resource)) {
+        if (assetFileSource && assetFileSource->canRequest(resource)) { // "asset://"
             // Asset request
             tasks[req] = assetFileSource->request(resource, callback);
-        } else if (localFileSource && localFileSource->canRequest(resource)) {
+        } else if (localFileSource && localFileSource->canRequest(resource)) { // "file://"
             // Local file request
             tasks[req] = localFileSource->request(resource, callback);
-        } else if (databaseFileSource && databaseFileSource->canRequest(resource)) {
+        } else if (databaseFileSource && databaseFileSource->canRequest(resource)) { // LoadingMethod::Cache / All for debug
             // Try cache only request if needed.
-            if (resource.loadingMethod == Resource::LoadingMethod::CacheOnly) {
+            if (resource.loadingMethod == Resource::LoadingMethod::CacheOnly) { // 只从cache加载
                 tasks[req] = databaseFileSource->request(resource, callback);
             } else {
                 // Cache request with fallback to network with cache control
@@ -94,20 +98,21 @@ public:
                         res.priorExpires = response.expires;
                         res.priorEtag = response.etag;
                         
-                        if (util::DIRECT_DATABASE_FOR_DEBUG &&
-                            res.kind != Resource::Kind::Style) return;
+                        if (util::DIRECT_DATABASE_FOR_DEBUG) {
+                            if (res.kind != Resource::Kind::Style) return;
+                        }
                     }
 
                     tasks[req] = requestFromNetwork(res, std::move(tasks[req]));
                 });
             }
-        } else if (auto networkReq = requestFromNetwork(resource, nullptr)) {
+        } else if (auto networkReq = requestFromNetwork(resource, nullptr)) { // 所有路径没有，最后走网络
             // Get from the online file source
             tasks[req] = std::move(networkReq);
         }
 
         // If no new tasks were added, notify client that request cannot be processed.
-        if (tasks.size() == tasksSize) {
+        if (tasks.size() == tasksSize) { // 任务列表没有新增
             Response response;
             response.noContent = true;
             response.error =

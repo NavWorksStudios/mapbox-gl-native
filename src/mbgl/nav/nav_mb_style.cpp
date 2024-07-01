@@ -171,11 +171,11 @@ float hue_to_rgb(float p, float q, float t) {
     return p;
 }
 
-template <int MAX> float value_smooth_to(float from, float to) {
+template <int MAX> float mix(float from, float to, const float ratio) {
     constexpr float HALF = MAX * 0.5;
-    constexpr float MIX_RATIO = 0.02;
-    constexpr float MIX_RATIO_BOTTOM = 0.002;
-    constexpr float MIX_BOTTOM = MAX * MIX_RATIO_BOTTOM;
+    const float MIX_RATIO = ratio;
+    const float MIX_RATIO_BOTTOM = ratio * .1;
+    const float MIX_BOTTOM = MAX * MIX_RATIO_BOTTOM;
 
     float delta = to - from;
     if (fabs(delta) > HALF) {
@@ -285,11 +285,15 @@ struct Hsla {
         assert(a >= 0. && a <= 1.);
     }
     
+    void mix(const Hsla& to, float ratio) {
+        h = palette::mix<360>(h, to.h, ratio);
+        s = palette::mix<1>(s, to.s, ratio);
+        l = palette::mix<1>(l, to.l, ratio);
+        a = palette::mix<1>(a, to.a, ratio);
+    }
+    
     void smoothto(const Hsla& to) {
-        h = value_smooth_to<360>(h, to.h);
-        s = value_smooth_to<1>(s, to.s);
-        l = value_smooth_to<1>(l, to.l);
-        a = value_smooth_to<1>(a, to.a);
+        mix(to, .02);
     }
 };
 
@@ -373,20 +377,6 @@ public:
     }
 };
 
-namespace internal {
-
-inline bool isStyliable(const mbgl::Color& color) {
-    return !((int) fmod(color.a * 100000., 1000.) == 678);
-}
-
-inline Hsla unwrap(const mbgl::Color& color) {
-    Hsla hsla(color);
-    if (hsla.a > 0.95) hsla.a = 1.;
-    return hsla;
-}
-
-}
-
 enum { UPDATE_FRAME = 100 };
 std::atomic<int> needUpdate = { UPDATE_FRAME };
 //Hsla colorBase = { 292., .92, .49, 1. };
@@ -421,28 +411,50 @@ void setColorBase(const mbgl::Color& color) {
     }
 }
 
-Hsla customize(const std::string& uri, const Hsla& color) {
+
+namespace internal {
+
+inline bool isStyliable(const mbgl::Color& color) {
+    return !((int) fmod(color.a * 100000., 1000.) == 678);
+}
+
+inline Hsla unwrap(const mbgl::Color& color) {
+    Hsla hsla(color);
+    if (hsla.a > 0.95) hsla.a = 1.;
+    return hsla;
+}
+
+Hsla lightenAllRoads(const std::string& uri, const Hsla& color) {
     Hsla hsla = color;
-    if (uri.find("road") != std::string::npos) {
-        hsla.s = 0.0;
-        hsla.l = hsla.l > 0.5 ? 0.3 : 0.7;
-    } else if (uri.find("bridge") != std::string::npos) {
-        hsla.s = 0.0;
-        hsla.l = hsla.l > 0.5 ? 0.2 : 0.8;
-    } else if (uri.find("tunnel") != std::string::npos) {
-        hsla.l = hsla.l * (hsla.l > 0.5 ? 0.4 : 0.6);
+    if (uri.find("case") == std::string::npos) {
+        if (uri.find("path") != std::string::npos ||
+            uri.find("steps") != std::string::npos ||
+            uri.find("pedestrian") != std::string::npos) {
+            hsla.a = .0005;
+        } else if (uri.find("road") != std::string::npos) {
+            hsla.s = 0.0;
+            hsla.l *= hsla.l > 0.5 ? 0.7 : 1.2;
+        } else if (uri.find("bridge") != std::string::npos) {
+            hsla.s = 0.0;
+            hsla.l *= hsla.l > 0.5 ? 0.6 : 1.3;
+        } else if (uri.find("tunnel") != std::string::npos) {
+            hsla.l *= hsla.l > 0.5 ? 0.9 : 1.1;
+        }
     }
     return hsla;
 }
 
+}
+
 void bind(const std::string& uri, const mbgl::Color& color, const std::function<void(const mbgl::Color& color)>& callback) {
     if (internal::isStyliable(color)) {
-        Hsla hsla = customize(uri, Hsla(color));
+        Hsla hsla = internal::lightenAllRoads(uri, Hsla(color));
         paletteBindings.emplace_back(uri, Stylizer({colorBase, hsla}), callback);
     } else {
-        Hsla hsla = customize(uri, {internal::unwrap(color)});
+        Hsla hsla = internal::lightenAllRoads(uri, {internal::unwrap(color)});
         paletteBindings.emplace_back(uri, Stylizer(hsla), callback);
     }
+
 }
 
 bool update() {

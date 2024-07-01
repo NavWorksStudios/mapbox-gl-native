@@ -571,36 +571,43 @@ OnlineFileSource::~OnlineFileSource() = default;
 std::unique_ptr<AsyncRequest> OnlineFileSource::request(const Resource& resource, Callback callback) {
     Resource res = resource;
 
+    const char* kindstr = "";
+
     switch (resource.kind) {
         case Resource::Kind::Unknown:
         case Resource::Kind::Image:
+            kindstr = "Unknown / Image";
             break;
 
         case Resource::Kind::Style:
-            res.url =
-                mbgl::util::mapbox::normalizeStyleURL(impl->getAPIBaseURL(), resource.url, impl->getAccessToken());
+            kindstr = "Style";
+            res.url = mbgl::util::mapbox::normalizeStyleURL(impl->getAPIBaseURL(), resource.url, impl->getAccessToken());
             break;
 
         case Resource::Kind::Source:
+            kindstr = "Source";
             res.url = util::mapbox::normalizeSourceURL(impl->getAPIBaseURL(), resource.url, impl->getAccessToken());
             break;
 
         case Resource::Kind::Glyphs:
+            kindstr = "Glyphs";
             res.url = util::mapbox::normalizeGlyphsURL(impl->getAPIBaseURL(), resource.url, impl->getAccessToken());
             break;
 
         case Resource::Kind::SpriteImage:
         case Resource::Kind::SpriteJSON:
+            kindstr = "SpriteImage / SpriteJSON";
             res.url = util::mapbox::normalizeSpriteURL(impl->getAPIBaseURL(), resource.url, impl->getAccessToken());
             break;
 
         case Resource::Kind::Tile:
+            kindstr = "Tile";
             res.url = util::mapbox::normalizeTileURL(impl->getAPIBaseURL(), resource.url, impl->getAccessToken());
             break;
     }
     
-    nav::log::w("OnlineFileSource", "[%d]http[%s]", (int)resource.kind, res.url.c_str());
-
+    static int counter = 1;
+    nav::log::w("OnlineFileSource", "[%s] http request ==================== %d\n%s\n", kindstr, counter++, res.url.c_str());
     return impl->request(std::move(callback), std::move(res));
 }
 

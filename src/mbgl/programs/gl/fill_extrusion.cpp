@@ -168,7 +168,7 @@ struct ShaderSource<FillExtrusionProgram> {
                 height=-height;
                 v_color *= u_opacity * .1;
             } else {
-                v_color *= u_opacity * (1. + .2 * u_spotlight);
+                v_color *= u_opacity * (.8 + .2 * u_spotlight);
             }
 
             // position
@@ -238,14 +238,17 @@ struct ShaderSource<FillExtrusionProgram> {
             }
             lowp float edgeFactor = pow(max(top, bottom), 3.);
     
-            // 距离屏幕中心点越近，越透明
-            // u_spotlight[0,1]
-            // u_spotlight ∈ 0，centerFactor[1,1]
-            // u_spotlight ∈ 1，centerFactor[0,1]
-            //
-            const lowp float radius = 1000000.;
-            lowp float distance = pow(v_pos.x,2.) + pow(v_pos.y,2.);
-            lowp float centerFactor = clamp(distance/radius, 1.-u_spotlight, 1.);
+            lowp float centerFactor = 1.;
+            if (u_spotlight > 0.) {
+                // 距离屏幕中心点越近，越透明
+                // u_spotlight[0,1]
+                // u_spotlight ∈ 0，centerFactor[1,1]
+                // u_spotlight ∈ 1，centerFactor[0,1]
+                //
+                const lowp float radius = 1000000.;
+                lowp float distance = pow(v_pos.x,2.) + pow(v_pos.y,2.);
+                centerFactor = clamp(distance/radius, 1.-u_spotlight, 1.);
+            }
 
             gl_FragColor.xyz = v_color.xyz * (edgeFactor  + centerFactor) * .7; // [0,2] * .7
             gl_FragColor.a = v_color.a * centerFactor;
