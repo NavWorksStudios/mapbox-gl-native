@@ -923,28 +923,31 @@ void Placement::updateBucketOpacities(SymbolBucket& bucket,
 
     for (SymbolInstance& symbolInstance : bucket.symbolInstances) {
         
-        // 判断symbolInstance是否超过可视距离
-        const vec3f& carmeraPos = state.getCameraPosition();
-        mat4 tileMat4 = {};
-        state.matrixFor(tileMat4, tile.id);
-        
-        const Anchor& symbolAnchor = symbolInstance.anchor;
-        vec4 pos = {{ symbolAnchor.point.x, symbolAnchor.point.y, 0, 1 }};
-        matrix::transformMat4(pos, pos, tileMat4);
-        
-        symbolInstance.distanceToCenter = std::sqrt(std::pow(pos[0]-carmeraPos[0], 2) +
-                                                    std::pow(pos[1]-carmeraPos[1], 2) +
-                                                    std::pow(pos[2]-carmeraPos[2], 2));
-        
-        // 根据相机角度pitch计算视界倍数
-        float distanceSwitch = 4;
-        float pitch = state.getPitch() * util::RAD2DEG;
-        if(pitch >= 70) distanceSwitch = 4.0;
-        else if(pitch <= 50) distanceSwitch = 2.0;
-        else {
-            distanceSwitch = 2.0 + (pitch - 50) * 0.1;
+        float distanceSwitch = 4.0;
+        symbolInstance.distanceToCenter = 0.0;
+        if(curUpdateLayerID == "poi-label") {
+            // 判断symbolInstance是否超过可视距离
+            const vec3f& carmeraPos = state.getCameraPosition();
+            mat4 tileMat4 = {};
+            state.matrixFor(tileMat4, tile.id);
+            
+            const Anchor& symbolAnchor = symbolInstance.anchor;
+            vec4 pos = {{ symbolAnchor.point.x, symbolAnchor.point.y, 0, 1 }};
+            matrix::transformMat4(pos, pos, tileMat4);
+            
+            symbolInstance.distanceToCenter = std::sqrt(std::pow(pos[0]-carmeraPos[0], 2) +
+                                                        std::pow(pos[1]-carmeraPos[1], 2) +
+                                                        std::pow(pos[2]-carmeraPos[2], 2));
+            
+            // 根据相机角度pitch计算视界倍数
+            float pitch = state.getPitch() * util::RAD2DEG;
+            if(pitch >= 70) distanceSwitch = 4.0;
+            else if(pitch <= 50) distanceSwitch = 2.0;
+            else {
+                distanceSwitch = 2.0 + (pitch - 50) * 0.1;
+            }
+            distanceSwitch = distanceSwitch * 1000.0;
         }
-        distanceSwitch = distanceSwitch * 1000.0;
         
         bool isDuplicate = seenCrossTileIDs.count(symbolInstance.crossTileID) > 0;
 
