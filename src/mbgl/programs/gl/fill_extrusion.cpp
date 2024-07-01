@@ -151,10 +151,11 @@ struct ShaderSource<FillExtrusionProgram> {
                 directional *= ((1.0 - u_vertical_gradient) + (u_vertical_gradient * vertical_factor));
             }
     
+            directional*=2.;
+    
             // ambient light
-            color += vec4(0.03,0.03,0.03,1.0);
-//            vec4 ambientlight=vec4(0.03,0.03,0.03,1.0);
-//            color+=ambientlight;
+            vec4 ambientlight=vec4(0.03,0.03,0.03,1.0);
+            color+=ambientlight;
 
             // mix color with directional light
             v_color.r=clamp(color.r*directional*u_lightcolor.r, 0.3*(1.0-u_lightcolor.r), 1.0);
@@ -166,7 +167,7 @@ struct ShaderSource<FillExtrusionProgram> {
             if (u_rendering_reflection) {
                 base=-base;
                 height=-height;
-                v_color *= u_opacity * .1;
+                v_color *= u_opacity * .15;
             } else {
                 v_color *= u_opacity * (.8 + .2 * u_spotlight);
             }
