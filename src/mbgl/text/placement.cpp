@@ -936,21 +936,16 @@ void Placement::updateBucketOpacities(SymbolBucket& bucket,
                                                     std::pow(pos[1]-carmeraPos[1], 2) +
                                                     std::pow(pos[2]-carmeraPos[2], 2));
         
+        // 根据相机角度pitch计算视界倍数
         float distanceSwitch = 4;
-        if(state.getPitch() >= 70) distanceSwitch = 4.0;
-        else if(state.getPitch() <= 50) distanceSwitch = 2.0;
+        float pitch = state.getPitch() * util::RAD2DEG;
+        if(pitch >= 70) distanceSwitch = 4.0;
+        else if(pitch <= 50) distanceSwitch = 2.0;
         else {
-            distanceSwitch = 2.0 + (state.getPitch() - 50) * 0.1;
+            distanceSwitch = 2.0 + (pitch - 50) * 0.1;
         }
         distanceSwitch = distanceSwitch * 1000.0;
         
-        int count = 0;
-        if(symbolInstance.distanceToCenter > distanceSwitch) {
-            count++;
-        }
-        else {
-            count--;
-        }
         bool isDuplicate = seenCrossTileIDs.count(symbolInstance.crossTileID) > 0;
 
         auto it = opacities.find(symbolInstance.crossTileID);
