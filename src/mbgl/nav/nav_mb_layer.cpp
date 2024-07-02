@@ -30,13 +30,12 @@ static const std::map<std::string, Source> layerIds = {
     { "hillshade", { "fill", "composite", "hillshade", } },
     
     { "waterway", { "line", "composite", "waterway", } },
-    
     { "water", { "fill", "composite", "water", } },
-    
+    { "water-depth", { "fill", "composite", "depth", } },
     { "land-structure-polygon", { "fill", "composite", "structure", } },
     { "land-structure-line", { "line", "composite", "structure", } },
-    { "aeroway-polygon", { "fill", "composite", "aeroway", } },
     
+    { "aeroway-polygon", { "fill", "composite", "aeroway", } },
     { "aeroway-line", { "line", "composite", "aeroway", } },
     
     { "tunnel-path-trail", { "line", "composite", "road", } },
@@ -44,43 +43,112 @@ static const std::map<std::string, Source> layerIds = {
     { "tunnel-path", { "line", "composite", "road", } },
     { "tunnel-steps", { "line", "composite", "road", } },
     { "tunnel-pedestrian", { "line", "composite", "road", } },
-    { "tunnel-simple", { "line", "composite", "road", } },
+    { "tunnel-minor-case-navigation", { "line", "composite", "road", } },
+    { "tunnel-street-case-navigation", { "line", "composite", "road", } },
+    { "tunnel-secondary-tertiary-case-navigation", { "line", "composite", "road", } },
+    { "tunnel-primary-case-navigation", { "line", "composite", "road", } },
+    { "tunnel-major-link-case-navigation", { "line", "composite", "road", } },
+    { "tunnel-motorway-trunk-case-navigation", { "line", "composite", "road", } },
+    { "tunnel-construction-navigation", { "line", "composite", "road", } },
+    { "tunnel-minor-navigation", { "line", "composite", "road", } },
+    { "tunnel-major-link-navigation", { "line", "composite", "road", } },
+    { "tunnel-street-navigation", { "line", "composite", "road", } },
+    { "tunnel-street-low-navigation", { "line", "composite", "road", } },
+    { "tunnel-secondary-tertiary-navigation", { "line", "composite", "road", } },
+    { "tunnel-primary-navigation", { "line", "composite", "road", } },
+    { "tunnel-motorway-trunk-navigation", { "line", "composite", "road", } },
+    { "tunnel-oneway-arrow-blue-navigation", { "symbol", "composite", "road", } },
+    { "tunnel-oneway-arrow-white-navigation", { "symbol", "composite", "road", } },
     
     { "road-path-trail", { "line", "composite", "road", } },
     { "road-path-cycleway-piste", { "line", "composite", "road", } },
     { "road-path", { "line", "composite", "road", } },
     { "road-steps", { "line", "composite", "road", } },
     { "road-pedestrian", { "line", "composite", "road", } },
-    { "road-simple", { "line", "composite", "road", } },
+    { "turning-feature-outline-navigation", { "circle", "composite", "road", } },
+    
+    { "road-minor-case-navigation", { "line", "composite", "road", } },
+    { "road-street-case-navigation", { "line", "composite", "road", } },
+    { "road-secondary-tertiary-case-navigation", { "line", "composite", "road", } },
+    { "road-primary-case-navigation", { "line", "composite", "road", } },
+    { "road-major-link-case-navigation", { "line", "composite", "road", } },
+    { "road-motorway-trunk-case-navigation", { "line", "composite", "road", } },
+    { "road-construction-navigation", { "line", "composite", "road", } },
+    { "road-minor-navigation", { "line", "composite", "road", } },
+    { "road-major-link-navigation", { "line", "composite", "road", } },
+    { "road-street-navigation", { "line", "composite", "road", } },
+    { "road-street-low-navigation", { "line", "composite", "road", } },
+    { "road-secondary-tertiary-navigation", { "line", "composite", "road", } },
+    { "road-primary-navigation", { "line", "composite", "road", } },
+    { "road-motorway-trunk-case-low-navigation", { "line", "composite", "road", } },
+    { "road-motorway-trunk-navigation", { "line", "composite", "road", } },
+    { "level-crossing-navigation", { "symbol", "composite", "road", } },
+    { "road-oneway-arrow-blue-navigation", { "symbol", "composite", "road", } },
+    { "road-oneway-arrow-white-navigation", { "symbol", "composite", "road", } },
+    { "turning-feature-navigation", { "circle", "composite", "road", } },
+    
+    { "crosswalks", { "symbol", "composite", "structure", } },
     { "road-rail", { "line", "composite", "road", } },
     { "road-rail-tracks", { "line", "composite", "road", } },
-    
     { "bridge-path-trail", { "line", "composite", "road", } },
     { "bridge-path-cycleway-piste", { "line", "composite", "road", } },
     { "bridge-path", { "line", "composite", "road", } },
     { "bridge-steps", { "line", "composite", "road", } },
     { "bridge-pedestrian", { "line", "composite", "road", } },
-    { "bridge-case-simple", { "line", "composite", "road", } },
-    { "bridge-simple", { "line", "composite", "road", } },
+    { "bridge-minor-case-navigation", { "line", "composite", "road", } },
+    { "bridge-street-case-navigation", { "line", "composite", "road", } },
+    { "bridge-secondary-tertiary-case-navigation", { "line", "composite", "road", } },
+    { "bridge-primary-case-navigation", { "line", "composite", "road", } },
+    { "bridge-major-link-case-navigation", { "line", "composite", "road", } },
+    { "bridge-motorway-trunk-case-navigation", { "line", "composite", "road", } },
+    { "bridge-construction-navigation", { "line", "composite", "road", } },
+    { "bridge-minor-navigation", { "line", "composite", "road", } },
+    { "bridge-major-link-navigation", { "line", "composite", "road", } },
+    { "bridge-street-navigation", { "line", "composite", "road", } },
+    { "bridge-street-low-navigation", { "line", "composite", "road", } },
+    { "bridge-secondary-tertiary-navigation", { "line", "composite", "road", } },
+    { "bridge-primary-navigation", { "line", "composite", "road", } },
+    { "bridge-motorway-trunk-navigation", { "line", "composite", "road", } },
+    { "bridge-major-link-2-case-navigation", { "line", "composite", "road", } },
+    { "bridge-motorway-trunk-2-case-navigation", { "line", "composite", "road", } },
+    { "bridge-major-link-2-navigation", { "line", "composite", "road", } },
+    { "bridge-motorway-trunk-2-navigation", { "line", "composite", "road", } },
+    { "bridge-oneway-arrow-blue-navigation", { "symbol", "composite", "road", } },
+    { "bridge-oneway-arrow-white-navigation", { "symbol", "composite", "road", } },
     { "bridge-rail", { "line", "composite", "road", } },
     { "bridge-rail-tracks", { "line", "composite", "road", } },
     
     { "building-extrusion", { "fill-extrusion", "composite", "building", } },
     
+    { "admin-2-boundary-bg", { "line", "composite", "admin", } },
     { "admin-1-boundary-bg", { "line", "composite", "admin", } },
     { "admin-0-boundary-bg", { "line", "composite", "admin", } },
+    { "admin-2-boundary", { "line", "composite", "admin", } },
     { "admin-1-boundary", { "line", "composite", "admin", } },
     { "admin-0-boundary", { "line", "composite", "admin", } },
-    { "admin-0-boundary-disputed", { "line", "composite", "admin", } },
     
-    { "road-label-simple", { "symbol", "composite", "road", } },
+    { "building-entrance", { "symbol", "composite", "structure", } },
+    { "building-number-label", { "symbol", "composite", "housenum_label", } },
+    { "block-number-label", { "symbol", "composite", "place_label", } },
+    
+    { "road-intersection", { "symbol", "composite", "road", } },
+    { "traffic-signal-navigation", { "error", "null", "null", } },
+    { "road-label-navigation", { "symbol", "composite", "road", } },
+    { "road-number-shield-navigation", { "symbol", "composite", "road", } },
+    { "road-exit-shield-navigation", { "symbol", "composite", "motorway_junction", } },
+    
+    { "path-pedestrian-label", { "symbol", "composite", "road", } },
     { "waterway-label", { "symbol", "composite", "natural_label", } },
     { "natural-line-label", { "symbol", "composite", "natural_label", } },
     { "natural-point-label", { "symbol", "composite", "natural_label", } },
     { "water-line-label", { "symbol", "composite", "natural_label", } },
     { "water-point-label", { "symbol", "composite", "natural_label", } },
+    
     { "poi-label", { "symbol", "composite", "poi_label", } },
+    
+    { "transit-label", { "symbol", "composite", "transit_stop_label", } },
     { "airport-label", { "symbol", "composite", "airport_label", } },
+    
     { "settlement-subdivision-label", { "symbol", "composite", "place_label", } },
     { "settlement-minor-label", { "symbol", "composite", "place_label", } },
     { "settlement-major-label", { "symbol", "composite", "place_label", } },
@@ -91,8 +159,8 @@ static const std::map<std::string, Source> layerIds = {
 
 
 bool filter(const std::string& id) {
-    return true;
-//    return layerIds.find(id) != layerIds.end();
+//    return true;
+    return layerIds.find(id) != layerIds.end();
 }
 
 static std::map<std::string, int> layerRenderIndexs;
