@@ -307,9 +307,9 @@ std::vector<OverscaledTileID> tileCover(bool log, const TransformState& state, u
         
         tileNum += ids.size();
         if (i++ > 60) {
-            static char buf[256];
+            static char buf[1024];
             char* p = buf;
-            memset(p, ' ', 256);
+            memset(p, ' ', 1024);
             for (auto id : ids) {
                 sprintf(p, "%d,", id.overscaledZ);
                 p += id.overscaledZ > 9 ? 3 : 2;
