@@ -30,7 +30,7 @@ const std::string& url() {
 }
 
 const std::string& accessToken() {
-    static std::string token = "pk.eyJ1IjoibmF2d29ya3MiLCJhIjoiY2x4eDBycWRjMTJ4ZTJqb2U0M2dtcjAzOSJ9.oVUOlMJgFG_00HklciyBnQ";
+    static std::string token = "pk.eyJ1IjoibmF2d29ya3MiLCJhIjoiY2x5M3U3MG96MDF5ZjJsb2lsMXZsczUxayJ9.Mnts5N9BU9OBsRb8fHauBQ";
     return token;
 }
 
@@ -426,11 +426,16 @@ inline Hsla unwrap(const mbgl::Color& color) {
 
 Hsla lightenAllRoads(const std::string& uri, const Hsla& color) {
     Hsla hsla = color;
-    if (uri.find("case") == std::string::npos) {
+    
+    if (uri.find("water") != std::string::npos) {
+
+    } else if (uri.find("building-extrusion") != std::string::npos) {
+
+    } else if (uri.find("case") == std::string::npos) {
         if (uri.find("path") != std::string::npos ||
             uri.find("steps") != std::string::npos ||
             uri.find("pedestrian") != std::string::npos) {
-            hsla.a = .0005;
+
         } else if (uri.find("road") != std::string::npos) {
             hsla.s = 0.0;
             hsla.l *= hsla.l > 0.5 ? 0.7 : 1.2;
@@ -441,6 +446,7 @@ Hsla lightenAllRoads(const std::string& uri, const Hsla& color) {
             hsla.l *= hsla.l > 0.5 ? 0.9 : 1.1;
         }
     }
+
     return hsla;
 }
 
@@ -469,7 +475,7 @@ bool update() {
             l += .1;
             
             colorBase.h = fmod(h, 360.);
-            colorBase.l = .4 + fabs(fmod(l, 1.) - .5) * .6;
+            colorBase.l = .4 + fabs(fmod(l, 1.) - .5) * .4;
             
             setColorBase(colorBase);
         }
