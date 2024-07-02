@@ -471,8 +471,8 @@ bool update() {
             static float h = 0;
             static float l = 0;
             
-            h += 6.;
-            l += .1;
+            h += 1.;
+            l += .02;
             
             colorBase.h = fmod(h, 360.);
             colorBase.l = .4 + fabs(fmod(l, 1.) - .5) * .4;

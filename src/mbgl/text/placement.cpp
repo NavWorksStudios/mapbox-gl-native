@@ -712,8 +712,6 @@ void Placement::updateLayerBuckets(const RenderLayer& layer, const TransformStat
         }
         else {
             // no need sort, so no need dy-update
-            int i = 0;
-            i++;
         }
     }
 }
