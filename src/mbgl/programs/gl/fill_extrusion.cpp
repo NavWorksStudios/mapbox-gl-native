@@ -151,7 +151,7 @@ struct ShaderSource<FillExtrusionProgram> {
                 directional *= ((1.0 - u_vertical_gradient) + (u_vertical_gradient * vertical_factor));
             }
     
-            directional*=2.;
+            directional*=(1.+u_spotlight);
     
             // ambient light
             vec4 ambientlight=vec4(0.03,0.03,0.03,1.0);
