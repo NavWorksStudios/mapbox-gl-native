@@ -84,11 +84,8 @@ uniform lowp float u_render_time;
 attribute vec2 a_pos;
 attribute vec3 a_normal;
 
-//varying vec3 v_normal;
 varying vec3 v_camera_pos;
 varying vec3 v_pos;
-//varying vec2 v_uv;
-//varying highp float u_render_time;
 
 #ifndef HAS_UNIFORM_u_color
     uniform lowp float u_color_t;
@@ -192,7 +189,6 @@ precision mediump float;
 R"(
 
 uniform mat4 u_normal_matrix;
-uniform sampler2D u_matcap;
 uniform bool u_enable_matcap;
 uniform lowp float u_spotlight;
 uniform lowp float u_render_time;
@@ -213,36 +209,34 @@ varying vec2 v_uv;
 #else
     uniform lowp float u_opacity;
 #endif
-        
 
-vec2 matcap(vec3 eye, vec3 normal) {
-    vec3 reflected = reflect(eye, normal);
-    float m = 2.8284271247461903 * sqrt( reflected.z+1.0 );
-    return reflected.xy / m + 0.5;
-}
         
-float bubble(vec2 uv, vec2 C, float r, float b) {
-    return clamp(1./clamp(length(uv-C)-r,0.,1.)/5.,0.,b);
+float spot_light(vec2 uv, vec2 C, float r, float b) {
+    return clamp(.2 / clamp(length(uv-C)-r, 0., 1.), 0., b) / 15.;
 }
         
 vec3 color_flow(vec2 fragCoord) {
     const lowp vec2 resolution = vec2(1800, 720);
-    lowp float time = u_render_time / 100. + 123.;
-    lowp vec2 uv = (2. * fragCoord - resolution.xy) / resolution.y;
-    lowp vec3 col = 0.15 * cos(time*31.+uv.xyx+vec3(1.0,2.0,4.0));
+    lowp float time = u_render_time * .01;
 
-    lowp vec3 bubbles = vec3(0);
+    lowp vec2 uv = (2. * fragCoord - resolution.xy) / resolution.y;
+    lowp vec3 rgb = cos(time * 31. + uv.xyx + vec3(1.0,2.0,4.0)) *.3;
+
+    lowp vec3 spots;
     for(int i = 0; i < 10; i++){
         lowp float n = float(i);
-        lowp float c = 2.*(n/14.-.5)*resolution.x/resolution.y;
-        lowp vec2 p = vec2(c+cos(n+time*5.),sin(time*n/11.));
-        lowp float r = 0.01*abs(sin(n*time));
-        lowp float b = (sin(time*n)*11.+13.)/2.;
+        lowp float s = sin(n * time);
+
+        lowp float c = 2. * (n/14.-.5) * resolution.x / resolution.y;
+        lowp vec2 p = vec2(c + cos(n + time * 5.), sin(time * n / 11.));
+
+        lowp float r = abs(0.01 * s);
+        lowp float b = (s * 11. + 13.) / 2.;
         
-        bubbles += bubble(uv,p,r,b)/15.;
+        spots += spot_light(uv, p, r, b);
     }
     
-    return col+bubbles;
+    return rgb + spots;
 }
         
 void main() {
@@ -255,13 +249,16 @@ void main() {
     lowp float opacity=u_opacity;
 #endif
 
-    const lowp float radius = 1500000.;
-    lowp float distance = pow(v_pos.x,2.) + pow(v_pos.y,2.);
-    lowp float centerFactor = clamp(distance/radius, 1.-u_spotlight, 1.);
-    centerFactor = pow(1. - centerFactor, 3.);
-
-    gl_FragColor.xyz = mix(color.rgb, color_flow(gl_FragCoord.xy) * 1.5, centerFactor); // 距离屏幕中心点越近，越亮
-    gl_FragColor.a = color.a * opacity;
+    if (u_spotlight > 0.) {
+        const lowp float radius = 1500000.;
+        lowp float distance = pow(v_pos.x,2.) + pow(v_pos.y,2.);
+        lowp float centerFactor = clamp(distance/radius, 1.-u_spotlight, 1.);
+        centerFactor = pow(1. - centerFactor, 3.) * .8;
+        gl_FragColor.xyz = mix(color.rgb, color_flow(gl_FragCoord.xy), centerFactor) * opacity; // 距离屏幕中心点越近，越亮
+        gl_FragColor.a = color.a * opacity;
+    } else {
+        gl_FragColor = color * opacity;
+    }
         
 #ifdef OVERDRAW_INSPECTOR
     gl_FragColor=vec4(1.0);
