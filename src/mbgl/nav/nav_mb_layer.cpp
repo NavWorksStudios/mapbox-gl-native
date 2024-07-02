@@ -86,7 +86,7 @@ static const std::map<std::string, Source> layerIds = {
     { "settlement-major-label", { "symbol", "composite", "place_label", } },
     { "state-label", { "symbol", "composite", "place_label", } },
     { "country-label", { "symbol", "composite", "place_label", } },
-    { "continent-label", { "symbol", "composite", "natural_label", } }, 
+    { "continent-label", { "symbol", "composite", "natural_label", } },
 };
 
 

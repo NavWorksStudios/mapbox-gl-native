@@ -704,12 +704,22 @@ void Placement::commit() {
 }
 
 void Placement::updateLayerBuckets(const RenderLayer& layer, const TransformState& state, bool updateOpacities) const {
+    setCurUpdateLayerId(layer.getID());
     std::set<uint32_t> seenCrossTileIDs;
     for (const auto& item : layer.getPlacementData()) {
         if (!item.sortKeyRange || item.sortKeyRange->isFirstRange()) {
             item.bucket.get().updateVertices(*this, updateOpacities, state, item.tile, seenCrossTileIDs);
         }
+        else {
+            // no need sort, so no need dy-update
+            int i = 0;
+            i++;
+        }
     }
+}
+
+void Placement::setCurUpdateLayerId(const std::string& layerID) const{
+     curUpdateLayerID = layerID;
 }
 
 namespace {
@@ -883,6 +893,7 @@ bool Placement::updateBucketDynamicVertices(SymbolBucket& bucket, const Transfor
 
 void Placement::updateBucketOpacities(SymbolBucket& bucket,
                                       const TransformState& state,
+                                      const RenderTile& tile,
                                       std::set<uint32_t>& seenCrossTileIDs) const {
     if (bucket.hasTextData()) bucket.text.opacityVertices.clear();
     if (bucket.hasIconData()) bucket.icon.opacityVertices.clear();
@@ -911,6 +922,33 @@ void Placement::updateBucketOpacities(SymbolBucket& bucket,
             true);
 
     for (SymbolInstance& symbolInstance : bucket.symbolInstances) {
+        
+        float distanceSwitch = 4.0;
+        symbolInstance.distanceToCenter = 0.0;
+        if(curUpdateLayerID == "poi-label") {
+            // 判断symbolInstance是否超过可视距离
+            const vec3f& carmeraPos = state.getCameraPosition();
+            mat4 tileMat4 = {};
+            state.matrixFor(tileMat4, tile.id);
+            
+            const Anchor& symbolAnchor = symbolInstance.anchor;
+            vec4 pos = {{ symbolAnchor.point.x, symbolAnchor.point.y, 0, 1 }};
+            matrix::transformMat4(pos, pos, tileMat4);
+            
+            symbolInstance.distanceToCenter = std::sqrt(std::pow(pos[0]-carmeraPos[0], 2) +
+                                                        std::pow(pos[1]-carmeraPos[1], 2) +
+                                                        std::pow(pos[2]-carmeraPos[2], 2));
+            
+            // 根据相机角度pitch计算视界倍数
+            float pitch = state.getPitch() * util::RAD2DEG;
+            if(pitch >= 70) distanceSwitch = 4.0;
+            else if(pitch <= 50) distanceSwitch = 2.0;
+            else {
+                distanceSwitch = 2.0 + (pitch - 50) * 0.1;
+            }
+            distanceSwitch = distanceSwitch * 1000.0;
+        }
+        
         bool isDuplicate = seenCrossTileIDs.count(symbolInstance.crossTileID) > 0;
 
         auto it = opacities.find(symbolInstance.crossTileID);
@@ -925,7 +963,9 @@ void Placement::updateBucketOpacities(SymbolBucket& bucket,
 
         if (symbolInstance.hasText()) {
             size_t textOpacityVerticesSize = 0u;
-            const auto& opacityVertex = SymbolSDFTextProgram::opacityVertex(opacityState.text.placed, opacityState.text.opacity);
+//            const auto& opacityVertex = SymbolSDFTextProgram::opacityVertex(opacityState.text.placed, opacityState.text.opacity);
+            const auto& opacityVertex = symbolInstance.distanceToCenter > distanceSwitch ? SymbolSDFTextProgram::opacityVertex(false, 0) :
+                SymbolSDFTextProgram::opacityVertex(opacityState.text.placed, opacityState.text.opacity);
             if (symbolInstance.placedRightTextIndex) {
                 textOpacityVerticesSize += symbolInstance.rightJustifiedGlyphQuadsSize * 4;
                 PlacedSymbol& placed = bucket.text.placedSymbols[*symbolInstance.placedRightTextIndex];
@@ -943,11 +983,12 @@ void Placement::updateBucketOpacities(SymbolBucket& bucket,
             }
             if (symbolInstance.placedVerticalTextIndex) {
                 textOpacityVerticesSize += symbolInstance.verticalGlyphQuadsSize * 4;
-                bucket.text.placedSymbols[*symbolInstance.placedVerticalTextIndex].hidden = opacityState.isHidden();
+                PlacedSymbol& placed = bucket.text.placedSymbols[*symbolInstance.placedVerticalTextIndex];
+                placed.hidden = opacityState.isHidden();
             }
 
             bucket.text.opacityVertices.extend(textOpacityVerticesSize, opacityVertex);
-
+            
             style::TextWritingModeType previousOrientation = style::TextWritingModeType::Horizontal;
             if (bucket.allowVerticalPlacement) {
                 auto prevOrientation = placedOrientations.find(symbolInstance.crossTileID);
@@ -956,7 +997,7 @@ void Placement::updateBucketOpacities(SymbolBucket& bucket,
                     markUsedOrientation(bucket, prevOrientation->second, symbolInstance);
                 }
             }
-
+            
             auto prevOffset = variableOffsets.find(symbolInstance.crossTileID);
             if (prevOffset != variableOffsets.end()) {
                 markUsedJustification(bucket, prevOffset->second.anchor, symbolInstance, previousOrientation);
@@ -964,7 +1005,9 @@ void Placement::updateBucketOpacities(SymbolBucket& bucket,
         }
         if (symbolInstance.hasIcon()) {
             size_t iconOpacityVerticesSize = 0u;
-            const auto& opacityVertex =
+//            const auto& opacityVertex =
+//                SymbolIconProgram::opacityVertex(opacityState.icon.placed, opacityState.icon.opacity);
+            const auto& opacityVertex = symbolInstance.distanceToCenter > distanceSwitch ? SymbolIconProgram::opacityVertex(false, 0) :
                 SymbolIconProgram::opacityVertex(opacityState.icon.placed, opacityState.icon.opacity);
             auto& iconBuffer = symbolInstance.hasSdfIcon() ? bucket.sdfIcon : bucket.icon;
             
@@ -980,7 +1023,7 @@ void Placement::updateBucketOpacities(SymbolBucket& bucket,
 
             iconBuffer.opacityVertices.extend(iconOpacityVerticesSize, opacityVertex);
         }
-
+        
         auto updateIconCollisionBox = [&](const auto& feature, const bool placed, const Point<float>& shift) {
             if (feature.alongLine) {
                 return;
