@@ -921,9 +921,15 @@ void Placement::updateBucketOpacities(SymbolBucket& bucket,
 
     for (SymbolInstance& symbolInstance : bucket.symbolInstances) {
         
-        float distanceSwitch = 4.0;
+        float distanceSwitch = 3.0;
         symbolInstance.distanceToCenter = 0.0;
-        if(curUpdateLayerID == "poi-label") {
+        if(curUpdateLayerID == "poi-label" ||
+           curUpdateLayerID == "transit-label" ||
+           curUpdateLayerID == "airport-label" ||
+           curUpdateLayerID == "traffic-signal-navigation" ||
+           curUpdateLayerID == "road-label-navigation" ||
+           curUpdateLayerID == "road-number-shield-navigation" ||
+           curUpdateLayerID == "road-exit-shield-navigation") {
             // 判断symbolInstance是否超过可视距离
             const vec3f& carmeraPos = state.getCameraPosition();
             mat4 tileMat4 = {};
@@ -939,10 +945,10 @@ void Placement::updateBucketOpacities(SymbolBucket& bucket,
             
             // 根据相机角度pitch计算视界倍数
             float pitch = state.getPitch() * util::RAD2DEG;
-            if(pitch >= 70) distanceSwitch = 4.0;
-            else if(pitch <= 50) distanceSwitch = 2.0;
+            if(pitch >= 70) distanceSwitch = 3.0;
+            else if(pitch <= 50) distanceSwitch = 1.0;
             else {
-                distanceSwitch = 2.0 + (pitch - 50) * 0.1;
+                distanceSwitch = 1.0 + (pitch - 50) * 0.1;
             }
             distanceSwitch = distanceSwitch * 1000.0;
         }
