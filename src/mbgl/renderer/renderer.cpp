@@ -10,23 +10,26 @@
 namespace mbgl {
 
 struct Renderer::CreatePipeline {
-    void commit(Renderer* renderer, std::shared_ptr<UpdateParameters> updateParameters, std::function<void(std::unique_ptr<RenderTree>)> notify) {
-        renderer->doCreateRenderTree(updateParameters, notify);
+    void commit(Renderer* renderer, std::shared_ptr<UpdateParameters> updateParameters, 
+                std::function<void()> onUpdate,
+                std::function<void(std::unique_ptr<mbgl::RenderTree>)> onFinish) {
+        onUpdate();
+        renderer->doCreateRenderTree(updateParameters, onFinish);
     }
 };
 
 struct Renderer::PreparePipeline {
-    void commit(std::unique_ptr<RenderTree> renderTree, std::function<void(std::unique_ptr<RenderTree>)> notify) {
+    void commit(std::unique_ptr<RenderTree> renderTree, std::function<void(std::unique_ptr<RenderTree>)> onFinish) {
         renderTree->prepare();
-        notify(std::move(renderTree));
+        onFinish(std::move(renderTree));
     }
 };
 
 Renderer::Renderer(gfx::RendererBackend& backend, float pixelRatio_, const optional<std::string>& localFontFamily_) : 
     impl(std::make_unique<Impl>(backend, pixelRatio_, localFontFamily_)) {
         auto priority = [] () { platform::setCurrentThreadPriority(1.0); };
-        createPipeline = std::make_unique<util::Thread<CreatePipeline>>(priority, "Render Pipeline - Create");
-        preparePipeline = std::make_unique<util::Thread<PreparePipeline>>(priority, "Render Pipeline - Prepare");
+        createPipeline = std::make_unique<util::Thread<CreatePipeline>>(priority, "RenderPipeline-Create");
+        preparePipeline = std::make_unique<util::Thread<PreparePipeline>>(priority, "RenderPipeline-Prepare");
     }
 
 Renderer::~Renderer() {
@@ -46,15 +49,17 @@ void Renderer::setObserver(RendererObserver* observer) {
     impl->orchestrator.setObserver(observer);
 }
 
-void Renderer::doCreateRenderTree(std::shared_ptr<UpdateParameters> updateParameters, std::function<void(std::unique_ptr<RenderTree>)> notify) {
+void Renderer::doCreateRenderTree(std::shared_ptr<UpdateParameters> updateParameters, std::function<void(std::unique_ptr<RenderTree>)> onFinish) {
     if (auto renderTree = impl->orchestrator.createRenderTree(updateParameters)) {
-        preparePipeline->actor().invoke(&PreparePipeline::commit, std::move(renderTree), notify);
+        preparePipeline->actor().invoke(&PreparePipeline::commit, std::move(renderTree), onFinish);
     }
 }
 
-void Renderer::prepare(std::shared_ptr<UpdateParameters> updateParameters, std::function<void(std::unique_ptr<RenderTree>)> notify) {
+void Renderer::prepare(std::shared_ptr<UpdateParameters> updateParameters, 
+                       std::function<void()> onUpdate,
+                       std::function<void(std::unique_ptr<mbgl::RenderTree>)> onFinish) {
     assert(updateParameters);
-    createPipeline->actor().invoke(&CreatePipeline::commit, this, updateParameters, notify);
+    createPipeline->actor().invoke(&CreatePipeline::commit, this, updateParameters, onUpdate, onFinish);
 }
 
 void Renderer::render(std::unique_ptr<mbgl::RenderTree> renderTree) {

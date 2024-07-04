@@ -27,6 +27,7 @@ public:
     virtual ~TileRenderData();
     const gfx::Texture& getGlyphAtlasTexture() const;
     const gfx::Texture& getIconAtlasTexture() const;
+    bool atlasTextureAvailable() const;
     // To be implemented for concrete tile types.
     virtual optional<ImagePosition> getPattern(const std::string&) const;
     virtual const LayerRenderData* getLayerRenderData(const style::Layer::Impl&) const;

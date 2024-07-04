@@ -27,7 +27,7 @@ void GLFWRendererFrontend::update(std::shared_ptr<mbgl::UpdateParameters> params
     glfwView.invalidate();
 }
 
-void GLFWRendererFrontend::prepare(std::function<void(std::unique_ptr<mbgl::RenderTree>)> notify) {
+void GLFWRendererFrontend::prepare(std::function<void()> onUpdate, std::function<void(std::unique_ptr<mbgl::RenderTree>)> onFinish) {
     assert(renderer);
 
     if (!updateParameters) return;
@@ -37,7 +37,7 @@ void GLFWRendererFrontend::prepare(std::function<void(std::unique_ptr<mbgl::Rend
     // Copy the shared pointer here so that the parameters aren't destroyed while `render(...)` is
     // still using them.
     auto updateParameters_ = updateParameters;
-    renderer->prepare(updateParameters_, notify);
+    renderer->prepare(updateParameters_, onUpdate, onFinish);
 
     updateParameters->transformState.notifyProjectionTransform();
 }

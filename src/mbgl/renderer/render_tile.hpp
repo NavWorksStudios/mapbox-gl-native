@@ -58,6 +58,7 @@ public:
     optional<ImagePosition> getPattern(const std::string& pattern) const;
     const gfx::Texture& getGlyphAtlasTexture() const;
     const gfx::Texture& getIconAtlasTexture() const;
+    bool atlasTextureAvailable() const;
 
     void upload(gfx::UploadPass&) const;
     void prepare(const SourcePrepareParameters&);

@@ -19,7 +19,7 @@ public:
     void setObserver(mbgl::RendererObserver&) override;
 
     void update(std::shared_ptr<mbgl::UpdateParameters>) override;
-    void prepare(std::function<void(std::unique_ptr<mbgl::RenderTree>)> notify);
+    void prepare(std::function<void()> onUpdate, std::function<void(std::unique_ptr<mbgl::RenderTree>)> onFinish);
     void render(std::unique_ptr<mbgl::RenderTree> renderTree);
     
     mbgl::Renderer* getRenderer();

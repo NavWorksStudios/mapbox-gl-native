@@ -22,6 +22,10 @@ const gfx::Texture& TileRenderData::getIconAtlasTexture() const {
     return *atlasTextures->icon;
 }
 
+bool TileRenderData::atlasTextureAvailable() const {
+    return (atlasTextures && atlasTextures->glyph && atlasTextures->icon);
+}
+
 optional<ImagePosition> TileRenderData::getPattern(const std::string&) const {
     assert(false);
     return nullopt;

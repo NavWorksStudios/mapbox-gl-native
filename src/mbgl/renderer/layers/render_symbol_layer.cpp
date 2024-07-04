@@ -420,6 +420,8 @@ void RenderSymbolLayer::render(PaintParameters& parameters) {
     };
 
     for (const RenderTile& tile : *renderTiles) {
+        if (!tile.atlasTextureAvailable()) continue;
+        
         const LayerRenderData* renderData = getRenderDataForPass(tile, parameters.pass);
         if (!renderData) {
             continue;

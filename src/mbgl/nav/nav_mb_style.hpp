@@ -50,6 +50,7 @@ bool changed();
 }
 
 bool update();
+bool needUpdate();
 
 }
 }

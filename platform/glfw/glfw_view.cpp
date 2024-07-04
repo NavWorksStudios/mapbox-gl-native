@@ -1027,9 +1027,16 @@ void GLFWView::run() {
                     dirty = false;
                     
                     const double started = glfwGetTime();
-                    rendererFrontend->prepare([this, started] (std::unique_ptr<mbgl::RenderTree> renderTree) {
+                    rendererFrontend->prepare(
+                    [this] {
+                        nav::style::update();
+                        if (animateRouteCallback) animateRouteCallback(map);
+                        updateAnimatedAnnotations();
+                        if (freeCameraDemoPhase >= 0.0) updateFreeCameraDemo();
+                    },
+                    [this, started] (std::unique_ptr<mbgl::RenderTree> renderTree) {
                         preparedRenderTree = std::move(renderTree);
-                        prepareReporter.report("Prepare", 1000 * (glfwGetTime() - started));
+                        prepareReporter.report("PrepareFps", 1000 * (glfwGetTime() - started));
                         
                         glfwPostEmptyEvent();
                     });
@@ -1037,19 +1044,10 @@ void GLFWView::run() {
 
                 if (preparedRenderTree) {                    
                     const double started = glfwGetTime();
-                    
-                    bool needUpdate = nav::style::update();
-                    if (animateRouteCallback) animateRouteCallback(map);
-                    updateAnimatedAnnotations();
-
                     mbgl::gfx::BackendScope scope { getRendererBackend() };
                     rendererFrontend->render(std::move(preparedRenderTree));
-
-                    if (freeCameraDemoPhase >= 0.0) updateFreeCameraDemo();
-                    
-                    if (needUpdate || benchmark) invalidate();
-                    
-                    renderReporter.report("Render", 1000 * (glfwGetTime() - started));
+                    if (nav::style::needUpdate() || benchmark) invalidate();
+                    renderReporter.report("RenderFps", 1000 * (glfwGetTime() - started));
                 }
             }
         }

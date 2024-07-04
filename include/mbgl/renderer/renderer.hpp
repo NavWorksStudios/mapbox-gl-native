@@ -52,7 +52,8 @@ public:
     void setObserver(RendererObserver*);
     
     void prepare(std::shared_ptr<UpdateParameters> updateParameters,
-                 std::function<void(std::unique_ptr<mbgl::RenderTree>)> notify);
+                 std::function<void()> onUpdate,
+                 std::function<void(std::unique_ptr<mbgl::RenderTree>)> onFinish);
     
     void render(std::unique_ptr<mbgl::RenderTree> renderTree);
 
@@ -118,7 +119,7 @@ private:
     
 private:
     void doCreateRenderTree(std::shared_ptr<UpdateParameters> updateParameters,
-                            std::function<void(std::unique_ptr<RenderTree>)> notify);
+                            std::function<void(std::unique_ptr<RenderTree>)> onFinish);
     
     struct CreatePipeline;
     struct PreparePipeline;

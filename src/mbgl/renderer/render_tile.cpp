@@ -91,6 +91,11 @@ const gfx::Texture& RenderTile::getIconAtlasTexture() const {
     return renderData->getIconAtlasTexture();
 }
 
+bool RenderTile::atlasTextureAvailable() const {
+    assert(renderData);
+    return renderData->atlasTextureAvailable();
+}
+
 void RenderTile::upload(gfx::UploadPass& uploadPass) const {
     assert(renderData);
     renderData->upload(uploadPass);

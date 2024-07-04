@@ -105,6 +105,8 @@ void RenderLineLayer::render(PaintParameters& parameters) {
             continue;
         }
         auto& bucket = static_cast<LineBucket&>(*renderData->bucket);
+        if (!bucket.vertexBuffer.has_value() || !bucket.indexBuffer.has_value()) continue;
+        
         const auto& evaluated = getEvaluated<LineLayerProperties>(renderData->layerProperties);
         const auto& crossfade = getCrossfade<LineLayerProperties>(renderData->layerProperties);
 

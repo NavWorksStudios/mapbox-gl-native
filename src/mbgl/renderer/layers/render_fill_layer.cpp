@@ -87,6 +87,8 @@ void RenderFillLayer::render(PaintParameters& parameters) {
                 continue;
             }
             auto& bucket = static_cast<FillBucket&>(*renderData->bucket);
+            if (!bucket.lineIndexBuffer.has_value()) continue;
+            
             const auto& evaluated = getEvaluated<FillLayerProperties>(renderData->layerProperties);
 
             auto draw = [&] (auto& programInstance,
