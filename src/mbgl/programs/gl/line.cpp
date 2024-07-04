@@ -273,19 +273,21 @@ struct ShaderSource<LineProgram> {
         lowp float opacity=u_opacity;
     #endif
     
-        // zoom越小，会亮一些 [1, 1.44]
-        lowp float zoomFactor = 1. + (22. - u_zoom) * .02;
+        if (color.a > .5) {
+            // zoom越小，会亮一些 [1, 1.44]
+            lowp float zoomFactor = 1. + (22. - u_zoom) * .02;
 
-        // 距离屏幕中心点越近，越亮 [1, 0]
-        lowp float radius = 1000000. * (1. - .7 * u_spotlight); // 聚光灯点亮后，将范围缩小为30%
-        lowp float distance = pow(v_pos.x,2.) + pow(v_pos.y,2.);
-        lowp float centerFactor = min(distance/radius, 1.);
-        centerFactor = pow(1. - centerFactor, 2.);
-    
-        // 默认 + 开灯提亮 [.8, 1.6]
-        lowp float spotlightFactor = .8 + .6 * u_spotlight;
+            // 距离屏幕中心点越近，越亮 [1, 0]
+            lowp float radius = 1000000. * (1. - .7 * u_spotlight); // 聚光灯点亮后，将范围缩小为30%
+            lowp float distance = pow(v_pos.x,2.) + pow(v_pos.y,2.);
+            lowp float centerFactor = min(distance/radius, 1.);
+            centerFactor = pow(1. - centerFactor, 2.);
+        
+            // 默认 + 开灯提亮 [.8, 1.6]
+            lowp float spotlightFactor = .8 + .6 * u_spotlight;
 
-        color.rgb *= .7 + centerFactor * zoomFactor * spotlightFactor;
+            color.rgb *= .7 + centerFactor * zoomFactor * spotlightFactor;
+        }
     
         // draw line
         lowp float dist=length(v_normal)*v_width2.s;
