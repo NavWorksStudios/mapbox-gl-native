@@ -380,7 +380,7 @@ public:
 enum { UPDATE_FRAME = 100 };
 std::atomic<int> needUpdate = { UPDATE_FRAME };
 //Hsla colorBase = { 292., .92, .49, 1. };
-Hsla colorBase = { 0, 1., .4, 1. };
+Hsla colorBase = { 0, .5, .6, 1. };
 
 struct ColorBinding {
     std::string uri;
@@ -469,13 +469,13 @@ bool update() {
         
         if (needUpdate < 90) {
             static float h = 0;
-            static float l = 0;
+//            static float l = 0;
             
             h += 1.;
-            l += .02;
+//            l += .02;
             
             colorBase.h = fmod(h, 360.);
-            colorBase.l = .4 + fabs(fmod(l, 1.) - .5) * .4;
+//            colorBase.l = .4 + fabs(fmod(l, 1.) - .5) * .4;
             
             setColorBase(colorBase);
         }
@@ -496,14 +496,19 @@ bool changed() {
 
 }
 
+static bool isNeedUpdate = false;
 
 bool update() {
-    bool needUpdate = false;
+    isNeedUpdate = false;
     rendertime::timestamp.update();
-    needUpdate |= spotlight::toggle.update();
-    needUpdate |= landscape::toggle.update();
-    needUpdate |= palette::update();
-    return needUpdate;
+    isNeedUpdate |= spotlight::toggle.update();
+    isNeedUpdate |= landscape::toggle.update();
+    isNeedUpdate |= palette::update();
+    return isNeedUpdate;
+}
+
+bool needUpdate() {
+    return isNeedUpdate;
 }
 
 
