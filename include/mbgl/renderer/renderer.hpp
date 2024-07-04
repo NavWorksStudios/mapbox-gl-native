@@ -1,9 +1,11 @@
 #pragma once
 
 #include <mbgl/renderer/query.hpp>
+#include <mbgl/renderer/render_tree.hpp>
 #include <mbgl/annotation/annotation.hpp>
 #include <mbgl/util/geo.hpp>
 #include <mbgl/util/geojson.hpp>
+#include <mbgl/util/thread.hpp>
 
 #include <functional>
 #include <memory>
@@ -48,6 +50,11 @@ public:
     void markContextLost();
 
     void setObserver(RendererObserver*);
+    
+    void prepare(std::shared_ptr<UpdateParameters> updateParameters,
+                 std::function<void(std::unique_ptr<mbgl::RenderTree>)> notify);
+    
+    void render(std::unique_ptr<mbgl::RenderTree> renderTree);
 
     void render(const std::shared_ptr<UpdateParameters>&);
 
@@ -108,6 +115,15 @@ public:
 private:
     class Impl;
     std::unique_ptr<Impl> impl;
+    
+private:
+    void doCreateRenderTree(std::shared_ptr<UpdateParameters> updateParameters,
+                            std::function<void(std::unique_ptr<RenderTree>)> notify);
+    
+    struct CreatePipeline;
+    struct PreparePipeline;
+    std::unique_ptr<util::Thread<CreatePipeline>> createPipeline;
+    std::unique_ptr<util::Thread<PreparePipeline>> preparePipeline;
 };
 
 } // namespace mbgl

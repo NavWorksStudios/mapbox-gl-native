@@ -5,13 +5,34 @@
 #include <mbgl/renderer/render_tree.hpp>
 #include <mbgl/gfx/backend_scope.hpp>
 #include <mbgl/annotation/annotation_manager.hpp>
+#include <mbgl/util/platform.hpp>
 
 namespace mbgl {
 
-Renderer::Renderer(gfx::RendererBackend& backend, float pixelRatio_, const optional<std::string>& localFontFamily_)
-    : impl(std::make_unique<Impl>(backend, pixelRatio_, localFontFamily_)) {}
+struct Renderer::CreatePipeline {
+    void commit(Renderer* renderer, std::shared_ptr<UpdateParameters> updateParameters, std::function<void(std::unique_ptr<RenderTree>)> notify) {
+        renderer->doCreateRenderTree(updateParameters, notify);
+    }
+};
+
+struct Renderer::PreparePipeline {
+    void commit(std::unique_ptr<RenderTree> renderTree, std::function<void(std::unique_ptr<RenderTree>)> notify) {
+        renderTree->prepare();
+        notify(std::move(renderTree));
+    }
+};
+
+Renderer::Renderer(gfx::RendererBackend& backend, float pixelRatio_, const optional<std::string>& localFontFamily_) : 
+    impl(std::make_unique<Impl>(backend, pixelRatio_, localFontFamily_)) {
+        auto priority = [] () { platform::setCurrentThreadPriority(1.0); };
+        createPipeline = std::make_unique<util::Thread<CreatePipeline>>(priority, "Render Pipeline - Create");
+        preparePipeline = std::make_unique<util::Thread<PreparePipeline>>(priority, "Render Pipeline - Prepare");
+    }
 
 Renderer::~Renderer() {
+    createPipeline.reset();
+    preparePipeline.reset();
+    
     gfx::BackendScope guard { impl->backend };
     impl.reset();
 }
@@ -23,6 +44,21 @@ void Renderer::markContextLost() {
 void Renderer::setObserver(RendererObserver* observer) {
     impl->setObserver(observer);
     impl->orchestrator.setObserver(observer);
+}
+
+void Renderer::doCreateRenderTree(std::shared_ptr<UpdateParameters> updateParameters, std::function<void(std::unique_ptr<RenderTree>)> notify) {
+    if (auto renderTree = impl->orchestrator.createRenderTree(updateParameters)) {
+        preparePipeline->actor().invoke(&PreparePipeline::commit, std::move(renderTree), notify);
+    }
+}
+
+void Renderer::prepare(std::shared_ptr<UpdateParameters> updateParameters, std::function<void(std::unique_ptr<RenderTree>)> notify) {
+    assert(updateParameters);
+    createPipeline->actor().invoke(&CreatePipeline::commit, this, updateParameters, notify);
+}
+
+void Renderer::render(std::unique_ptr<mbgl::RenderTree> renderTree) {
+    impl->render(*renderTree);
 }
 
 void Renderer::render(const std::shared_ptr<UpdateParameters>& updateParameters) {

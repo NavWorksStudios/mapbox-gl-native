@@ -6,6 +6,7 @@
 #include <mbgl/util/optional.hpp>
 #include <mbgl/util/run_loop.hpp>
 #include <mbgl/util/timer.hpp>
+#include <mbgl/renderer/render_tree.hpp>
 #if defined(MBGL_RENDER_BACKEND_OPENGL) && !defined(MBGL_LAYER_CUSTOM_DISABLE_ALL)
 #include <mbgl/style/layers/location_indicator_layer.hpp>
 #endif
@@ -82,8 +83,6 @@ private:
     static void onWindowFocus(GLFWwindow *window, int focused);
 
     // Internal
-    void report(float duration);
-
     mbgl::Color makeRandomColor() const;
     mbgl::Point<double> makeRandomPoint() const;
     static std::unique_ptr<mbgl::style::Image> makeImage(const std::string& id, int width, int height, float pixelRatio);
@@ -185,7 +184,10 @@ private:
     mbgl::util::Timer frameTick;
 
     GLFWwindow *window = nullptr;
+    
     bool dirty = false;
+    std::unique_ptr<mbgl::RenderTree> preparedRenderTree;
+    
     mbgl::optional<std::string> featureID;
     std::unique_ptr<mbgl::MapSnapshotter> snapshotter;
     std::unique_ptr<SnapshotObserver> snapshotterObserver;

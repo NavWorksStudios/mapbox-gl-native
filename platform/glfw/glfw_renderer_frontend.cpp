@@ -27,21 +27,25 @@ void GLFWRendererFrontend::update(std::shared_ptr<mbgl::UpdateParameters> params
     glfwView.invalidate();
 }
 
-void GLFWRendererFrontend::render() {
+void GLFWRendererFrontend::prepare(std::function<void(std::unique_ptr<mbgl::RenderTree>)> notify) {
     assert(renderer);
-    
+
     if (!updateParameters) return;
-    
-    mbgl::gfx::BackendScope guard { glfwView.getRendererBackend(), mbgl::gfx::BackendScope::ScopeType::Implicit };
 
     // onStyleImageMissing might be called during a render. The user implemented method
     // could trigger a call to MGLRenderFrontend#update which overwrites `updateParameters`.
     // Copy the shared pointer here so that the parameters aren't destroyed while `render(...)` is
     // still using them.
     auto updateParameters_ = updateParameters;
-    renderer->render(updateParameters_);
-    
+    renderer->prepare(updateParameters_, notify);
+
     updateParameters->transformState.notifyProjectionTransform();
+}
+
+void GLFWRendererFrontend::render(std::unique_ptr<mbgl::RenderTree> renderTree) {
+    assert(renderer);
+    mbgl::gfx::BackendScope guard { glfwView.getRendererBackend(), mbgl::gfx::BackendScope::ScopeType::Implicit };
+    renderer->render(std::move(renderTree));
 }
 
 mbgl::Renderer* GLFWRendererFrontend::getRenderer() {

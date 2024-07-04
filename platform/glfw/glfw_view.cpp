@@ -990,37 +990,73 @@ void GLFWView::onWindowFocus(GLFWwindow *window, int focused) {
     }
 }
 
+struct Reporter {
+    int frameCounter = 0;
+    float frameCost = 0;
+    double lastReported = 0;
+    
+    void report(const char* tag, float duration) {
+        frameCounter++;
+        frameCost += duration;
+
+        const double currentTime = glfwGetTime();
+        if (currentTime - lastReported >= 1) {
+            frameCost /= frameCounter;
+            mbgl::Log::Info(mbgl::Event::OpenGL, "%s : Fps:%d (Avg-Cost:%6.2fms, Max-Fps:%6.2f)",
+                            tag,
+                            frameCounter,
+                            frameCost,
+                            1000 / frameCost);
+
+            frameCounter = 0;
+            frameCost = 0;
+            lastReported = currentTime;
+        }
+    }
+} prepareReporter, renderReporter;
+
 void GLFWView::run() {
     auto callback = [&] {
         if (window && glfwWindowShouldClose(window)) {
             runLoop.stop();
         } else {
-            glfwPollEvents();
+            glfwPollEvents(); // waiting for glfwPostEmptyEvent
+            
+            if (rendererFrontend) {
+                if (dirty) {
+                    dirty = false;
+                    
+                    const double started = glfwGetTime();
+                    rendererFrontend->prepare([this, started] (std::unique_ptr<mbgl::RenderTree> renderTree) {
+                        preparedRenderTree = std::move(renderTree);
+                        prepareReporter.report("Prepare", 1000 * (glfwGetTime() - started));
+                        
+                        glfwPostEmptyEvent();
+                    });
+                }
 
-            if (dirty && rendererFrontend) {
-                dirty = false;
-                
-                const double started = glfwGetTime();
+                if (preparedRenderTree) {                    
+                    const double started = glfwGetTime();
+                    
+                    bool needUpdate = nav::style::update();
+                    if (animateRouteCallback) animateRouteCallback(map);
+                    updateAnimatedAnnotations();
 
-                if (nav::style::update()) invalidate();
+                    mbgl::gfx::BackendScope scope { getRendererBackend() };
+                    rendererFrontend->render(std::move(preparedRenderTree));
 
-                if (animateRouteCallback) animateRouteCallback(map);
-
-                updateAnimatedAnnotations();
-
-                mbgl::gfx::BackendScope scope { getRendererBackend() };
-
-                rendererFrontend->render();
-
-                if (freeCameraDemoPhase >= 0.0) updateFreeCameraDemo();
-
-                report(1000 * (glfwGetTime() - started));
-
-                if (benchmark) invalidate();
+                    if (freeCameraDemoPhase >= 0.0) updateFreeCameraDemo();
+                    
+                    if (needUpdate || benchmark) invalidate();
+                    
+                    renderReporter.report("Render", 1000 * (glfwGetTime() - started));
+                }
             }
         }
     };
 
+    // start a render looper with callback execution
+    // glfwPollEvents will wait for redraw event from glfwPostEmptyEvent
     frameTick.start(mbgl::Duration::zero(), mbgl::Milliseconds(1000 / 60), callback);
 
 #if defined(__APPLE__)
@@ -1043,29 +1079,6 @@ mbgl::Size GLFWView::getSize() const {
 void GLFWView::invalidate() {
     dirty = true;
     glfwPostEmptyEvent();
-}
-
-void GLFWView::report(float duration) {
-    // Frame timer
-    static int frameCounter = 0;
-    static float frameCost = 0;
-    static double lastReported = 0;
-    
-    frameCounter++;
-    frameCost += duration;
-
-    const double currentTime = glfwGetTime();
-    if (currentTime - lastReported >= 1) {
-        frameCost /= frameCounter;
-        mbgl::Log::Info(mbgl::Event::OpenGL, "Fps:%d (Avg-Cost:%6.2fms, Max-Fps:%6.2f)",
-                        frameCounter,
-                        frameCost,
-                        1000 / frameCost);
-
-        frameCounter = 0;
-        frameCost = 0;
-        lastReported = currentTime;
-    }
 }
 
 void GLFWView::setChangeStyleCallback(std::function<void()> callback) {

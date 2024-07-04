@@ -2,6 +2,7 @@
 
 #include "glfw_view.hpp"
 #include <mbgl/renderer/renderer_frontend.hpp>
+#include <mbgl/renderer/render_tree.hpp>
 
 #include <memory>
 
@@ -18,7 +19,8 @@ public:
     void setObserver(mbgl::RendererObserver&) override;
 
     void update(std::shared_ptr<mbgl::UpdateParameters>) override;
-    void render();
+    void prepare(std::function<void(std::unique_ptr<mbgl::RenderTree>)> notify);
+    void render(std::unique_ptr<mbgl::RenderTree> renderTree);
     
     mbgl::Renderer* getRenderer();
 
