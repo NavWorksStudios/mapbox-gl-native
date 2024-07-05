@@ -159,8 +159,8 @@ static const std::map<std::string, Source> layerIds = {
 
 
 bool filter(const std::string& id) {
-//    return true;
-    return layerIds.find(id) != layerIds.end();
+    return true;
+//    return layerIds.find(id) != layerIds.end();
 }
 
 static std::map<std::string, int> layerRenderIndexs;
