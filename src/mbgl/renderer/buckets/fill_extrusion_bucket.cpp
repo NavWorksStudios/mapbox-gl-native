@@ -129,7 +129,8 @@ void FillExtrusionBucket::addFeature(const GeometryTileFeature& feature,
                     vertices.emplace_back(FillExtrusionProgram::layoutVertex(p2, perp12.x, perp12.y, 0, 0, edgeDistance));
                     vertices.emplace_back(FillExtrusionProgram::layoutVertex(p2, perp12.x, perp12.y, 0, 1, edgeDistance));
                     
-                    if (nav_insideTile8192(p1) || nav_insideTile8192(p2)) {
+                    if (nav_insideTile8192(p1) || nav_insideTile8192(p2))
+                    {
                         // ┌──────┐
                         // │ 0  1 │ Counter-Clockwise winding order.
                         // │      │ Triangle 1: 0 => 2 => 1

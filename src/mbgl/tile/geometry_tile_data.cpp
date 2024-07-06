@@ -111,13 +111,13 @@ void nav_clipTile8192(GeometryCollection& polygons) {
     Clipper2Lib::Paths64 polygonsPath;
     for (const auto& polygon : polygons) {
         Clipper2Lib::Path64 polygonPath;
-        for(const auto& coordinate : polygon) {
-            polygonPath.push_back(Clipper2Lib::Point64(coordinate.x, coordinate.y));
+        for(const auto& point : polygon) {
+            polygonPath.emplace_back(point.x, point.y);
         }
         polygonsPath.emplace_back(polygonPath);
     }
     
-    polygonsPath = Clipper2Lib::Intersect(polygonsPath, tilePath, Clipper2Lib::FillRule::EvenOdd);
+    polygonsPath = Clipper2Lib::Intersect(tilePath, polygonsPath, Clipper2Lib::FillRule::NonZero);
     
     polygons.clear();
     
