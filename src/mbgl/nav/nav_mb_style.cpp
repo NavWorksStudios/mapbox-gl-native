@@ -440,10 +440,10 @@ Hsla lightenAllRoads(const std::string& uri, const Hsla& color) {
             uri.find("pedestrian") != std::string::npos) {
 
         } else if (uri.find("road") != std::string::npos) {
-            hsla.s = 0.0;
+            hsla.s = 0.3    ;
             hsla.l *= hsla.l > 0.5 ? 0.7 : 1.2;
         } else if (uri.find("bridge") != std::string::npos) {
-            hsla.s = 0.0;
+            hsla.s = 0.2;
             hsla.l *= hsla.l > 0.5 ? 0.6 : 1.3;
         } else if (uri.find("tunnel") != std::string::npos) {
             hsla.l *= hsla.l > 0.5 ? 0.9 : 1.1;
@@ -472,13 +472,16 @@ bool update() {
         
         if (needUpdate < 90) {
             static float h = 0;
+            static float s = 0;
             static float l = 0;
             
             h += 1.;
+            s += .02;
             l += .02;
             
             colorBase.h = fmod(h, 360.);
-            colorBase.l = .6 + fabs(fmod(l, 1.) - .5) * .2;
+            colorBase.s = .2 + fabs(fmod(s, 1.8) - .9) * .8;
+            colorBase.l = .4 + fabs(fmod(l, 1.) - .5) * .6;
             
             setColorBase(colorBase);
         }
