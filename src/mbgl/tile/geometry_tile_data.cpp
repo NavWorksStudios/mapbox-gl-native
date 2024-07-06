@@ -3,6 +3,7 @@
 
 #include <mapbox/geometry/wagyu/wagyu.hpp>
 #include <mbgl/math/clamp.hpp>
+#include <mbgl/clipper2/clipper.h>
 
 namespace mbgl {
 
@@ -97,6 +98,36 @@ void limitHoles(GeometryCollection& polygon, uint32_t maxHoles) {
                              return std::fabs(signedArea(a)) > std::fabs(signedArea(b));
                          });
         polygon.resize(1 + maxHoles);
+    }
+}
+
+bool nav_insideTile8192(const GeometryCoordinate& point) {
+    return (point.x>0 && point.x<8192 && point.y>0 && point.y<8192);
+}
+
+const static Clipper2Lib::Paths64 tilePath = { Clipper2Lib::MakePath({0, 0, 8192, 0, 8192, 8192, 0, 8192}) };
+
+void nav_clipTile8192(GeometryCollection& polygons) {
+    Clipper2Lib::Paths64 polygonsPath;
+    for (const auto& polygon : polygons) {
+        Clipper2Lib::Path64 polygonPath;
+        for(const auto& coordinate : polygon) {
+            polygonPath.push_back(Clipper2Lib::Point64(coordinate.x, coordinate.y));
+        }
+        polygonsPath.emplace_back(polygonPath);
+    }
+    
+    polygonsPath = Clipper2Lib::Intersect(polygonsPath, tilePath, Clipper2Lib::FillRule::EvenOdd);
+    
+    polygons.clear();
+    
+    for (const auto& polygonPath : polygonsPath) {
+        GeometryCoordinates polygon;
+        for (const auto& point : polygonPath) {
+            polygon.emplace_back(point.x, point.y);
+        }
+        polygon.push_back(polygon[0]);
+        polygons.emplace_back(polygon);
     }
 }
 

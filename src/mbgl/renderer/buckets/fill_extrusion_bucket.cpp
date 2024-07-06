@@ -61,6 +61,8 @@ void FillExtrusionBucket::addFeature(const GeometryTileFeature& feature,
     for (auto& polygon : classifyRings(geometry)) {
         // Optimize polygons with many interior rings for earcut tesselation.
         limitHoles(polygon, 500);
+        
+        nav_clipTile8192(polygon);
 
         std::size_t totalVertices = 0;
 
@@ -88,7 +90,7 @@ void FillExtrusionBucket::addFeature(const GeometryTileFeature& feature,
 
         assert(triangleIndex + (5 * (totalVertices - 1) + 1) <= std::numeric_limits<uint16_t>::max());
 
-        // for all side surface
+        // for all of the side surface
         for (const auto& ring : polygon) {
             std::size_t nVertices = ring.size();
 
@@ -127,16 +129,21 @@ void FillExtrusionBucket::addFeature(const GeometryTileFeature& feature,
                     vertices.emplace_back(FillExtrusionProgram::layoutVertex(p2, perp12.x, perp12.y, 0, 0, edgeDistance));
                     vertices.emplace_back(FillExtrusionProgram::layoutVertex(p2, perp12.x, perp12.y, 0, 1, edgeDistance));
                     
-                    // ┌──────┐
-                    // │ 0  1 │ Counter-Clockwise winding order.
-                    // │      │ Triangle 1: 0 => 2 => 1
-                    // │ 2  3 │ Triangle 2: 1 => 2 => 3
-                    // └──────┘
-                    triangles.emplace_back(triangleIndex, triangleIndex + 2, triangleIndex + 1);
-                    triangles.emplace_back(triangleIndex + 1, triangleIndex + 2, triangleIndex + 3);
-                    
-                    reflectionTriangles.emplace_back(triangleIndex, triangleIndex + 1, triangleIndex + 2);
-                    reflectionTriangles.emplace_back(triangleIndex + 1, triangleIndex + 3, triangleIndex + 2);
+                    if (nav_insideTile8192(p1) || nav_insideTile8192(p2)) {
+                        // ┌──────┐
+                        // │ 0  1 │ Counter-Clockwise winding order.
+                        // │      │ Triangle 1: 0 => 2 => 1
+                        // │ 2  3 │ Triangle 2: 1 => 2 => 3
+                        // └──────┘
+                        
+                        // Counter-Clockwise winding order.
+                        triangles.emplace_back(triangleIndex, triangleIndex + 2, triangleIndex + 1);
+                        triangles.emplace_back(triangleIndex + 1, triangleIndex + 2, triangleIndex + 3);
+
+                        // Reflection with clockwise winding order.
+                        reflectionTriangles.emplace_back(triangleIndex, triangleIndex + 1, triangleIndex + 2);
+                        reflectionTriangles.emplace_back(triangleIndex + 1, triangleIndex + 3, triangleIndex + 2);
+                    }
                     
                     triangleIndex += 4;
                     triangleSegment.vertexLength += 4;
@@ -145,7 +152,7 @@ void FillExtrusionBucket::addFeature(const GeometryTileFeature& feature,
             }
         }
 
-        // earcut for the top surface
+        // for the top surface with earcut
         std::vector<uint32_t> indices = mapbox::earcut(polygon);
 
         std::size_t nIndices = indices.size();
