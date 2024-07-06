@@ -173,11 +173,14 @@ float hue_to_rgb(float p, float q, float t) {
 
 template <int MAX> float mix(float from, float to, const float ratio) {
     constexpr float HALF = MAX * 0.5;
+    constexpr float PRECISION = MAX * 0.001;
     const float MIX_RATIO = ratio;
     const float MIX_RATIO_BOTTOM = ratio * .1;
     const float MIX_BOTTOM = MAX * MIX_RATIO_BOTTOM;
 
     float delta = to - from;
+    if (fabs(delta) < PRECISION) return to;
+    
     if (fabs(delta) > HALF) {
         if (to < from) { // to is a small value
             // from -> MAX -> to, then delta > 0
@@ -380,7 +383,7 @@ public:
 enum { UPDATE_FRAME = 100 };
 std::atomic<int> needUpdate = { UPDATE_FRAME };
 //Hsla colorBase = { 292., .92, .49, 1. };
-Hsla colorBase = { 0, 1., .4, 1. };
+Hsla colorBase = { 0, .7, .9, 1. };
 
 struct ColorBinding {
     std::string uri;
@@ -475,7 +478,7 @@ bool update() {
             l += .02;
             
             colorBase.h = fmod(h, 360.);
-            colorBase.l = .4 + fabs(fmod(l, 1.) - .5) * .4;
+            colorBase.l = .6 + fabs(fmod(l, 1.) - .5) * .2;
             
             setColorBase(colorBase);
         }
