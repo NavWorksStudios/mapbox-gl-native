@@ -232,7 +232,7 @@ struct ShaderSource<FillExtrusionProgram> {
             lowp float top = 0.;
             lowp float bottom = 0.;
             if (v_v_factor.x > .99999) {
-                top = .4; // 楼顶
+                top = .8; // 楼顶
             } else if (v_v_factor.x > 1. - v_edge_ratio[1]) { // 上边缘
                 top = (v_v_factor.x + v_edge_ratio[1] - 1.) / v_edge_ratio[1];
             } else if (v_v_factor.x < v_edge_ratio[0]) { // 下边缘
@@ -252,7 +252,7 @@ struct ShaderSource<FillExtrusionProgram> {
                 centerFactor = clamp(distance/radius, 1.-u_spotlight, 1.);
             }
 
-            gl_FragColor.xyz = v_color.xyz * (edgeFactor + centerFactor) * .7; // [0,2] * .7
+            gl_FragColor.xyz = v_color.xyz * (edgeFactor * .6 + centerFactor * .4);
             gl_FragColor.a = v_color.a * centerFactor;
         
         #ifdef OVERDRAW_INSPECTOR

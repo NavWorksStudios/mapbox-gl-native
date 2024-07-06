@@ -220,7 +220,7 @@ vec3 color_flow(vec2 fragCoord) {
     lowp float time = u_render_time * .01;
 
     lowp vec2 uv = (2. * fragCoord - resolution.xy) / resolution.y;
-    lowp vec3 rgb = cos(time * 31. + uv.xyx + vec3(1.0,2.0,4.0)) *.5;
+    lowp vec3 rgb = cos(time * 31. + uv.xyx + vec3(1.0,2.0,4.0)) *.15;
 
     lowp vec3 spots;
     for(int i = 0; i < 10; i++){
