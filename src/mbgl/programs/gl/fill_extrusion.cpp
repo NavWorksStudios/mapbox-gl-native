@@ -178,8 +178,8 @@ struct ShaderSource<FillExtrusionProgram> {
             v_pos=gl_Position.xyz;
             
             lowp float tall=abs(height-base);
-            v_edge_ratio=vec2(8./tall,12./tall); // 上下边缘比例
-            v_v_factor=vec2(h?1.:0.,0); // h ? top or bottom
+            v_edge_ratio=vec2(8./tall,12./tall);    // 上下边缘比例
+            v_v_factor=vec2(h ? 1. : 0.,0);         // h ? top or bottom
         }
         
     )"; }
@@ -216,6 +216,7 @@ struct ShaderSource<FillExtrusionProgram> {
         varying lowp vec2 v_v_factor;
 
         void main() {
+
             // 建筑物上下边缘渐变描边增强
             //
             // |-----| 1.0
@@ -230,8 +231,8 @@ struct ShaderSource<FillExtrusionProgram> {
             //
             lowp float top = 0.;
             lowp float bottom = 0.;
-            if (v_v_factor.x > .999) {
-                top = .5; // 楼顶
+            if (v_v_factor.x > .99999) {
+                top = .4; // 楼顶
             } else if (v_v_factor.x > 1. - v_edge_ratio[1]) { // 上边缘
                 top = (v_v_factor.x + v_edge_ratio[1] - 1.) / v_edge_ratio[1];
             } else if (v_v_factor.x < v_edge_ratio[0]) { // 下边缘
@@ -251,9 +252,9 @@ struct ShaderSource<FillExtrusionProgram> {
                 centerFactor = clamp(distance/radius, 1.-u_spotlight, 1.);
             }
 
-            gl_FragColor.xyz = v_color.xyz * (edgeFactor  + centerFactor) * .7; // [0,2] * .7
+            gl_FragColor.xyz = v_color.xyz * (edgeFactor + centerFactor) * .7; // [0,2] * .7
             gl_FragColor.a = v_color.a * centerFactor;
-    
+        
         #ifdef OVERDRAW_INSPECTOR
             gl_FragColor=vec4(1.0);
         #endif
