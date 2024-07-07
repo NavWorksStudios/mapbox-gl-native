@@ -287,7 +287,7 @@ struct Hsla {
     }
     
     void smoothto(const Hsla& to) {
-        mix(to, .2);
+        mix(to, .05);
     }
 };
 
