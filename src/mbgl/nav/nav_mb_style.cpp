@@ -469,7 +469,7 @@ bool update() {
             
             colorBase.h = fmod(h, 360.);
             colorBase.s = .4 + .6 * fabs(fmod(s, 1.) - .5) / .5;
-            colorBase.l = .2 + .8 * fabs(fmod(l, 1.) - .5) / .5;
+            colorBase.l = .2 + .6 * fabs(fmod(l, 1.) - .5) / .5;
             
             setColorBase(colorBase);
         }
