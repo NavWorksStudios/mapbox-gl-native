@@ -171,41 +171,30 @@ float hue_to_rgb(float p, float q, float t) {
     return p;
 }
 
-template <int MAX> float mix(float from, float to, const float ratio) {
-    constexpr float HALF = MAX * 0.5;
-    constexpr float PRECISION = MAX * 0.0002;
-
-    float delta = to - from;
-    
-    // direction to gradient in loop
-    if (fabs(delta) > HALF) {
-        if (to < from) {
-            //  ... max,min ...
-            //    |         |
-            // from    ->   to
-            // from -> to + MAX
-            delta += MAX;
+template <int MAX> float mix(float a, float b, const float ratio) {
+    float dis = fabs(a - b);
+    if (dis < MAX * 0.002) {
+        return b;
+    } else if (dis > MAX * 0.5) {
+        if (a > b) {
+            // ... max,min ...
+            //   |         |
+            //   a    ->   b
+            //   a -> b + MAX
+            b += MAX;
         } else {
-            //  ... max,min ...
-            //    |         |
-            //   to   <-    from
-            // from -> to - MAX
-            delta -= MAX;
+            // ... max,min ...
+            //   |         |
+            //   b   <-    a
+            //   a -> b - MAX
+            b -= MAX;
         }
     }
     
-    float gradient = delta * ratio;
-
-    if (fabs(gradient) > PRECISION) { // big enough to gradient
-        float value = from + gradient;
-
-        if (value > MAX) value -= MAX;
-        else if (value < 0) value += MAX;
-
-        return value;
-    } else {
-        return to;
-    }
+    float value = a * (1. - ratio) + b * ratio;
+    if (value > MAX) value -= MAX;
+    else if (value < 0) value += MAX;
+    return value;
 }
 
 
@@ -298,7 +287,7 @@ struct Hsla {
     }
     
     void smoothto(const Hsla& to) {
-        mix(to, .02);
+        mix(to, .2);
     }
 };
 
@@ -311,15 +300,15 @@ class Stylizer : public Hsla {
 public:
     Stylizer() : stylizable(false) { }
 
-    Stylizer(const Hsla& fixed) : Hsla(fixed), stylizable(false) {
+    Stylizer(const Hsla& color) : Hsla(color), stylizable(false) {
         
     }
 
-    Stylizer(const Hsla& base, const Hsla& sample) : stylizable(true) {
-        hCoef = sample.h - SAMPLE_CENTER.h;
-        sCoef = sample.s - SAMPLE_CENTER.s;
-        lCoef = log2(sample.l) / log2(SAMPLE_CENTER.l);
-        aCoef = sample.a / SAMPLE_CENTER.a;
+    Stylizer(const Hsla& color, const Hsla& base) : stylizable(true) {
+        hCoef = color.h - SAMPLE_CENTER.h;
+        sCoef = color.s - SAMPLE_CENTER.s;
+        lCoef = log2(color.l) / log2(SAMPLE_CENTER.l);
+        aCoef = color.a / SAMPLE_CENTER.a;
         
         assert(!std::isnan(hCoef));
         assert(!std::isnan(sCoef));
@@ -370,12 +359,15 @@ public:
     Stylizer stylizer;
 
     GradientColor() = default;
+    
     GradientColor(const Stylizer& stylizer) : stylizer(stylizer) {
         set(stylizer);
     }
+    
     inline void stylize(const Hsla& base) {
         stylizer.stylize(base);
     }
+    
     inline const mbgl::Color& update() {
         smoothto(stylizer);
         return *this;
@@ -385,7 +377,7 @@ public:
 enum { UPDATE_FRAME = 100 };
 std::atomic<int> needUpdate = { UPDATE_FRAME };
 //Hsla colorBase = { 292., .92, .49, 1. };
-Hsla colorBase = { 0, .7, .9, 1. };
+Hsla colorBase = { 0, 1., .5, 1. };
 
 struct ColorBinding {
     std::string uri;
@@ -419,14 +411,8 @@ void setColorBase(const mbgl::Color& color) {
 
 namespace internal {
 
-inline bool isStyliable(const mbgl::Color& color) {
-    return !((int) fmod(color.a * 100000., 1000.) == 678);
-}
-
-inline Hsla unwrap(const mbgl::Color& color) {
-    Hsla hsla(color);
-    if (hsla.a > 0.95) hsla.a = 1.;
-    return hsla;
+inline bool isStyliable(const std::string& uri, const mbgl::Color& color) {
+    return true;
 }
 
 Hsla lightenAllRoads(const std::string& uri, const Hsla& color) {
@@ -458,11 +444,11 @@ Hsla lightenAllRoads(const std::string& uri, const Hsla& color) {
 }
 
 void bind(const std::string& uri, const mbgl::Color& color, const std::function<void(const mbgl::Color& color)>& callback) {
-    if (internal::isStyliable(color)) {
-        Hsla hsla = internal::lightenAllRoads(uri, Hsla(color));
-        paletteBindings.emplace_back(uri, Stylizer({colorBase, hsla}), callback);
+    const Hsla hsla = internal::lightenAllRoads(uri, color);
+
+    if (internal::isStyliable(uri, color)) {
+        paletteBindings.emplace_back(uri, Stylizer(hsla, colorBase), callback);
     } else {
-        Hsla hsla = internal::lightenAllRoads(uri, {internal::unwrap(color)});
         paletteBindings.emplace_back(uri, Stylizer(hsla), callback);
     }
 
@@ -472,18 +458,18 @@ bool update() {
     if (needUpdate > 0) {
         needUpdate--;
         
-        if (needUpdate < 90) {
+        if (needUpdate < 60) {
             static float h = 0;
             static float s = 0;
             static float l = 0;
             
-            h += 1.;
-            s += .02;
-            l += .02;
+            h += 18.;
+            s += .1;
+            l += .05;
             
             colorBase.h = fmod(h, 360.);
-            colorBase.s = .2 + fabs(fmod(s, 1.8) - .9) * .8;
-            colorBase.l = .4 + fabs(fmod(l, 1.) - .5) * .6;
+            colorBase.s = .4 + .6 * fabs(fmod(s, 1.) - .5) / .5;
+            colorBase.l = .2 + .8 * fabs(fmod(l, 1.) - .5) / .5;
             
             setColorBase(colorBase);
         }
