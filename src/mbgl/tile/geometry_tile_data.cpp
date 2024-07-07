@@ -101,8 +101,14 @@ void limitHoles(GeometryCollection& polygon, uint32_t maxHoles) {
     }
 }
 
-bool nav_insideTile8192(const GeometryCoordinate& point) {
-    return (point.x>0 && point.x<8192 && point.y>0 && point.y<8192);
+bool nav_isTileClippingSide8192(const GeometryCoordinate& a, const GeometryCoordinate& b) {
+    if (a.x == b.x) {
+        return (a.x == 0 || a.x == 8192);
+    } else if (a.y == b.y) {
+        return (a.y == 0 || a.y == 8192);
+    } else {
+        return false;
+    }
 }
 
 const static Clipper2Lib::Paths64 tilePath = { Clipper2Lib::MakePath({0, 0, 8192, 0, 8192, 8192, 0, 8192}) };
@@ -110,24 +116,34 @@ const static Clipper2Lib::Paths64 tilePath = { Clipper2Lib::MakePath({0, 0, 8192
 void nav_clipTile8192(GeometryCollection& polygons) {
     Clipper2Lib::Paths64 polygonsPath;
     for (const auto& polygon : polygons) {
+        if (!polygon.size()) continue;
+        
         Clipper2Lib::Path64 polygonPath;
+        
         for(const auto& point : polygon) {
             polygonPath.emplace_back(point.x, point.y);
         }
-        polygonsPath.emplace_back(polygonPath);
+        
+        if (polygonPath.size()) polygonsPath.emplace_back(polygonPath);
     }
-    
-    polygonsPath = Clipper2Lib::Intersect(tilePath, polygonsPath, Clipper2Lib::FillRule::NonZero);
-    
+
     polygons.clear();
+
+    polygonsPath = Clipper2Lib::Intersect(polygonsPath, tilePath, Clipper2Lib::FillRule::NonZero);
     
     for (const auto& polygonPath : polygonsPath) {
+        if (!polygonPath.size()) continue;
+        
         GeometryCoordinates polygon;
+
+        const auto& head = polygonPath[polygonPath.size() - 1];
+        polygon.emplace_back(head.x, head.y);
+
         for (const auto& point : polygonPath) {
             polygon.emplace_back(point.x, point.y);
         }
-        polygon.push_back(polygon[0]);
-        polygons.emplace_back(polygon);
+        
+        if (polygon.size()) polygons.emplace_back(polygon);
     }
 }
 

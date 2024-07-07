@@ -129,8 +129,7 @@ void FillExtrusionBucket::addFeature(const GeometryTileFeature& feature,
                     vertices.emplace_back(FillExtrusionProgram::layoutVertex(p2, perp12.x, perp12.y, 0, 0, edgeDistance));
                     vertices.emplace_back(FillExtrusionProgram::layoutVertex(p2, perp12.x, perp12.y, 0, 1, edgeDistance));
                     
-                    if (nav_insideTile8192(p1) || nav_insideTile8192(p2))
-                    {
+                    if (!nav_isTileClippingSide8192(p1, p2)) {
                         // ┌──────┐
                         // │ 0  1 │ Counter-Clockwise winding order.
                         // │      │ Triangle 1: 0 => 2 => 1
@@ -162,11 +161,11 @@ void FillExtrusionBucket::addFeature(const GeometryTileFeature& feature,
         // for all top surface
         for (std::size_t i = 0; i < nIndices; i += 3) {
             // Counter-Clockwise winding order.
-            triangles.emplace_back(flatIndices[indices[i]], flatIndices[indices[i + 2]],
-                                   flatIndices[indices[i + 1]]);
-            
-            reflectionTriangles.emplace_back(flatIndices[indices[i]], flatIndices[indices[i + 2]],
-                                             flatIndices[indices[i + 1]]);
+            triangles.emplace_back(flatIndices[indices[i]], flatIndices[indices[i + 2]], flatIndices[indices[i + 1]]);
+
+            // Reflection with counter-clockwise winding order.
+            // 逆时针方向，因为，如果能看到顶面，一定是从内部看到背面。所以是正常顺序
+            reflectionTriangles.emplace_back(flatIndices[indices[i]], flatIndices[indices[i + 2]], flatIndices[indices[i + 1]]);
         }
 
         triangleSegment.vertexLength += totalVertices;
