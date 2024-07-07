@@ -173,33 +173,35 @@ float hue_to_rgb(float p, float q, float t) {
 
 template <int MAX> float mix(float from, float to, const float ratio) {
     constexpr float HALF = MAX * 0.5;
-    constexpr float PRECISION = MAX * 0.001;
-    const float MIX_RATIO = ratio;
-    const float MIX_RATIO_BOTTOM = ratio * .1;
-    const float MIX_BOTTOM = MAX * MIX_RATIO_BOTTOM;
+    constexpr float PRECISION = MAX * 0.0002;
 
     float delta = to - from;
-    if (fabs(delta) < PRECISION) return to;
     
+    // direction to gradient in loop
     if (fabs(delta) > HALF) {
-        if (to < from) { // to is a small value
-            // from -> MAX -> to, then delta > 0
-            delta = (to + MAX) - from;
-        } else { // to is a big value
-            // to <- 0 <- from, then delta < 0
-            delta = (to - MAX) - from;
+        if (to < from) {
+            //  ... max,min ...
+            //    |         |
+            // from    ->   to
+            // from -> to + MAX
+            delta += MAX;
+        } else {
+            //  ... max,min ...
+            //    |         |
+            //   to   <-    from
+            // from -> to - MAX
+            delta -= MAX;
         }
     }
     
-    if (delta > 0) {
-        delta = fmax(delta * MIX_RATIO, MIX_BOTTOM);
-        float value = from + delta;
+    float gradient = delta * ratio;
+
+    if (fabs(gradient) > PRECISION) { // big enough to gradient
+        float value = from + gradient;
+
         if (value > MAX) value -= MAX;
-        return value;
-    } else if (delta < 0) {
-        delta = fmin(delta * MIX_RATIO, -MIX_BOTTOM);
-        float value = from + delta;
-        if (value < 0) value += MAX;
+        else if (value < 0) value += MAX;
+
         return value;
     } else {
         return to;
@@ -440,10 +442,10 @@ Hsla lightenAllRoads(const std::string& uri, const Hsla& color) {
             uri.find("pedestrian") != std::string::npos) {
 
         } else if (uri.find("road") != std::string::npos) {
-            hsla.s = 0.3    ;
+            hsla.s = 0.2;
             hsla.l *= hsla.l > 0.5 ? 0.7 : 1.2;
         } else if (uri.find("bridge") != std::string::npos) {
-            hsla.s = 0.2;
+            hsla.s = 0.1;
             hsla.l *= hsla.l > 0.5 ? 0.6 : 1.3;
         } else if (uri.find("tunnel") != std::string::npos) {
             hsla.l *= hsla.l > 0.5 ? 0.9 : 1.1;
