@@ -218,7 +218,7 @@ GLFWView::GLFWView(bool fullscreen_, bool benchmark_, const mbgl::ResourceOption
     printf("- Press `N` to reset north\n");
     printf("- Press `R` to enable the route demo\n");
     printf("- Press `E` to insert an example building extrusion layer\n");
-    printf("- Press `O` to toggle online connectivity\n");
+    printf("- Press `O` to w\n");
     printf("- Press `Z` to cycle through north orientations\n");
     printf("- Press `X` to cycle through the viewport modes\n");
     printf("- Press `I` to delete existing database and re-initialize\n");
@@ -348,7 +348,7 @@ void GLFWView::onKey(int key, int action, int mods) {
             addRandomCustomPointAnnotations(1);
             break;
         case GLFW_KEY_L:
-            addRandomLineAnnotations(1);
+            addLineAnnotations({20.0, 20.0});
             break;
         case GLFW_KEY_A: {
             // XXX Fix precision loss in flyTo:
@@ -391,6 +391,8 @@ void GLFWView::onKey(int key, int action, int mods) {
             const auto& geometry = route.get<mapbox::geometry::geometry<double>>();
             const auto& lineString = geometry.get<mapbox::geometry::line_string<double>>();
             routeDistance = ruler.lineDistance(lineString);
+            
+            addLineAnnotations({20.0, 20.0});
 
             animateRouteCallback = [this, route](mbgl::Map* routeMap) {
                 const auto& geometry = route.get<mapbox::geometry::geometry<double>>();
@@ -416,6 +418,8 @@ void GLFWView::onKey(int key, int action, int mods) {
                 mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
                 puck->setLocation(toArray(mapCenter));
                 puck->setBearing(mbgl::style::Rotation(bearing));
+                
+                updateLineAnnotations({20.0, 20.0});
             };
             
             toggleLocationIndicatorLayer(true);
@@ -685,13 +689,23 @@ void GLFWView::addRandomPointAnnotations(int count) {
     }
 }
 
-void GLFWView::addRandomLineAnnotations(int count) {
-    for (int i = 0; i < count; ++i) {
-        mbgl::LineString<double> lineString;
-        for (int j = 0; j < 3; ++j) {
-            lineString.push_back(makeRandomPoint());
-        }
-        annotationIDs.push_back(map->addAnnotation(mbgl::LineAnnotation { lineString, 1.0f, 2.0f, { makeRandomColor() } }));
+void GLFWView::addLineAnnotations(const mbgl::LatLng& tagPosition) {
+    
+    mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
+    mbgl::LineString<double> lineString;
+    lineString.push_back({ mapCenter.longitude(), mapCenter.latitude() });
+    lineString.push_back({ tagPosition.longitude(), tagPosition.latitude() });
+    annotationIDs.push_back(map->addAnnotation(mbgl::LineAnnotation { lineString, 1.0f, 3.0f, { makeRandomColor() } }));
+}
+
+void GLFWView::updateLineAnnotations(const mbgl::LatLng& tagPosition) {
+    
+    mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
+    mbgl::LineString<double> lineString;
+    lineString.push_back({ mapCenter.longitude(), mapCenter.latitude() });
+    lineString.push_back({ tagPosition.longitude(), tagPosition.latitude() });
+    if(annotationIDs.size() > 0) {
+        map->updateAnnotation(annotationIDs[0], mbgl::LineAnnotation { lineString, 1.0f, 3.0f, { makeRandomColor() } });
     }
 }
 
