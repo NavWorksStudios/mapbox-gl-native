@@ -90,28 +90,24 @@ void FillExtrusionBucket::addFeature(const GeometryTileFeature& feature,
 
         assert(triangleIndex + (5 * (totalVertices - 1) + 1) <= std::numeric_limits<uint16_t>::max());
 
-        // for all of the side surface
         for (const auto& ring : polygon) {
             std::size_t nVertices = ring.size();
+            if (nVertices == 0) continue;
 
-            if (nVertices == 0)
-                continue;
-
+            const size_t flatBegin = flatIndices.size();
             std::size_t edgeDistance = 0;
-
+            
+            // 1. all of the wall surface within this ring
             for (std::size_t i = 0; i < nVertices; i++) {
-                
-                // 1. [top/bottom surface]
-                // pick this point as the [top/bottom surface]
-                // with the normal value (0,0,1)
+                // [roof vertex]
+                // pick this point as a [roof vertex] with the normal value (0,0,1)
                 const auto& p1 = ring[i];
                 vertices.emplace_back(FillExtrusionProgram::layoutVertex(p1, 0, 0, 1, 1, edgeDistance));
                 flatIndices.emplace_back(triangleIndex);
                 triangleIndex += 1;
-
-                // 2. [side suface]
-                // pick this and the previous point together to make a [side suface]
-                // with the normal value (perp.x, perp.y, 0)
+                
+                // [wall suface]
+                // pick this and the previous point together to make a [wall suface] with the normal value (perp.x, perp.y, 0)
                 if (i != 0) {
                     const auto& p2 = ring[(i-1)];
                     const auto d1 = convertPoint<double>(p1);
@@ -120,16 +116,17 @@ void FillExtrusionBucket::addFeature(const GeometryTileFeature& feature,
                     
                     const auto edgeLength = util::dist<int16_t>(d1, d2);
                     if (edgeDistance + edgeLength > std::numeric_limits<int16_t>::max()) edgeDistance = 0;
-
+                    
                     vertices.emplace_back(FillExtrusionProgram::layoutVertex(p1, perp12.x, perp12.y, 0, 0, edgeDistance));
                     vertices.emplace_back(FillExtrusionProgram::layoutVertex(p1, perp12.x, perp12.y, 0, 1, edgeDistance));
-
+                    
                     edgeDistance += edgeLength;
-
+                    
                     vertices.emplace_back(FillExtrusionProgram::layoutVertex(p2, perp12.x, perp12.y, 0, 0, edgeDistance));
                     vertices.emplace_back(FillExtrusionProgram::layoutVertex(p2, perp12.x, perp12.y, 0, 1, edgeDistance));
                     
-                    if (!nav_isTileClippingSide8192(p1, p2)) {
+                    if (!nav_isTileClippingSide8192(p1, p2))
+                    {
                         // ┌──────┐
                         // │ 0  1 │ Counter-Clockwise winding order.
                         // │      │ Triangle 1: 0 => 2 => 1
@@ -139,37 +136,52 @@ void FillExtrusionBucket::addFeature(const GeometryTileFeature& feature,
                         // Counter-Clockwise winding order.
                         triangles.emplace_back(triangleIndex, triangleIndex + 2, triangleIndex + 1);
                         triangles.emplace_back(triangleIndex + 1, triangleIndex + 2, triangleIndex + 3);
-
+                        
                         // Reflection with clockwise winding order.
                         reflectionTriangles.emplace_back(triangleIndex, triangleIndex + 1, triangleIndex + 2);
                         reflectionTriangles.emplace_back(triangleIndex + 1, triangleIndex + 3, triangleIndex + 2);
+                        
+                        triangleSegment.indexLength += 6;
                     }
                     
                     triangleIndex += 4;
                     triangleSegment.vertexLength += 4;
-                    triangleSegment.indexLength += 6;
                 }
             }
+            
+            // 2. the roof surface within this ring
+            // [roof surface]
+            struct Collection {
+                Collection(const GeometryCoordinates& points) : points(points) { }
+                std::reference_wrapper<const GeometryCoordinates> points;
+                size_t size() const { return 1; }
+                const GeometryCoordinates& operator [] (size_t) const { return points; }
+                bool empty() const { return false; }
+            };
+            
+            std::vector<uint32_t> indices = mapbox::earcut(Collection(ring));
+            
+            std::size_t nIndices = indices.size();
+            assert(nIndices % 3 == 0);
+            
+            // for all top surface
+            for (std::size_t i = 0; i < nIndices; i += 3) {
+                // Counter-Clockwise winding order.
+                triangles.emplace_back(flatIndices[flatBegin + indices[i]],
+                                       flatIndices[flatBegin + indices[i + 2]],
+                                       flatIndices[flatBegin + indices[i + 1]]);
+                
+                // Reflection with counter-clockwise winding order.
+                // 逆时针方向，因为，如果能看到顶面，一定是从内部看到背面。所以是正常顺序
+                reflectionTriangles.emplace_back(flatIndices[flatBegin + indices[i]],
+                                                 flatIndices[flatBegin + indices[i + 2]],
+                                                 flatIndices[flatBegin + indices[i + 1]]);
+            }
+
+            triangleSegment.indexLength += nIndices;
         }
-
-        // for the top surface with earcut
-        std::vector<uint32_t> indices = mapbox::earcut(polygon);
-
-        std::size_t nIndices = indices.size();
-        assert(nIndices % 3 == 0);
-
-        // for all top surface
-        for (std::size_t i = 0; i < nIndices; i += 3) {
-            // Counter-Clockwise winding order.
-            triangles.emplace_back(flatIndices[indices[i]], flatIndices[indices[i + 2]], flatIndices[indices[i + 1]]);
-
-            // Reflection with counter-clockwise winding order.
-            // 逆时针方向，因为，如果能看到顶面，一定是从内部看到背面。所以是正常顺序
-            reflectionTriangles.emplace_back(flatIndices[indices[i]], flatIndices[indices[i + 2]], flatIndices[indices[i + 1]]);
-        }
-
+        
         triangleSegment.vertexLength += totalVertices;
-        triangleSegment.indexLength += nIndices;
     }
 
     for (auto& pair : paintPropertyBinders) {
