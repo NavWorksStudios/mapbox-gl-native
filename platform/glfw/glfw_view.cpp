@@ -218,7 +218,7 @@ GLFWView::GLFWView(bool fullscreen_, bool benchmark_, const mbgl::ResourceOption
     printf("- Press `N` to reset north\n");
     printf("- Press `R` to enable the route demo\n");
     printf("- Press `E` to insert an example building extrusion layer\n");
-    printf("- Press `O` to w\n");
+    printf("- Press `O` to toggle online connectivity\n");
     printf("- Press `Z` to cycle through north orientations\n");
     printf("- Press `X` to cycle through the viewport modes\n");
     printf("- Press `I` to delete existing database and re-initialize\n");
@@ -695,6 +695,7 @@ void GLFWView::addLineAnnotations(const mbgl::LatLng& tagPosition) {
     mbgl::LineString<double> lineString;
     lineString.push_back({ mapCenter.longitude(), mapCenter.latitude() });
     lineString.push_back({ tagPosition.longitude(), tagPosition.latitude() });
+    annotationIDs.clear();
     annotationIDs.push_back(map->addAnnotation(mbgl::LineAnnotation { lineString, 1.0f, 3.0f, { makeRandomColor() } }));
 }
 
