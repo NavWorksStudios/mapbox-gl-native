@@ -163,6 +163,9 @@ void TilePyramid::update(const std::vector<Immutable<style::LayerProperties>>& l
             *bounds, zoomRange.min, std::min(tileZoom, static_cast<int32_t>(zoomRange.max)));
     }
     auto createTileFn = [&](const OverscaledTileID& tileID) -> Tile* {
+        nav::log::i("TilePyramid", "%p createTile (z:%d,x:%d,y:%d) tiles-size(%d)",
+                    this, (int)tileID.canonical.z, (int)tileID.canonical.x, (int)tileID.canonical.y, (int)tiles.size());
+        
         if (tileRange && !tileRange->contains(tileID.canonical)) {
             return nullptr;
         }
@@ -223,6 +226,8 @@ void TilePyramid::update(const std::vector<Immutable<style::LayerProperties>>& l
     // Remove stale tiles. This goes through the (sorted!) tiles map and retain set in lockstep
     // and removes items from tiles that don't have the corresponding key in the retain set.
     {
+//        nav::log::i("TilePyramid", "%p Remove stale tiles tiles-size(%d) retain-size(%d)", this, (int)tiles.size(), (int)retain.size());
+        
         auto tilesIt = tiles.begin();
         auto retainIt = retain.begin();
         while (tilesIt != tiles.end()) {

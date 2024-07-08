@@ -48,10 +48,12 @@ GeometryTileWorker::GeometryTileWorker(ActorRef<GeometryTileWorker> self_,
       mode(mode_),
       pixelRatio(pixelRatio_),
       showCollisionBoxes(showCollisionBoxes_) {
-          
-      }
+    nav::log::i("GeometryTileWorker", "constructor (z:%d,x:%d,y:%d)", (int)id.canonical.z, (int)id.canonical.x, (int)id.canonical.y);
+}
 
-GeometryTileWorker::~GeometryTileWorker() = default;
+GeometryTileWorker::~GeometryTileWorker() {
+    nav::log::i("GeometryTileWorker", "destructor (z:%d,x:%d,y:%d)", (int)id.canonical.z, (int)id.canonical.x, (int)id.canonical.y);
+}
 
 /*
    GeometryTileWorker is a state machine. This is its transition diagram.
