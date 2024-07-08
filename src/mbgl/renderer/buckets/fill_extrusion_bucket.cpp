@@ -61,7 +61,8 @@ void FillExtrusionBucket::addFeature(const GeometryTileFeature& feature,
     for (auto& polygon : classifyRings(geometry)) {
         // Optimize polygons with many interior rings for earcut tesselation.
         limitHoles(polygon, 500);
-        
+
+        const bool hasHole = polygon.size() > 1;
         nav_clipTile8192(polygon);
 
         std::size_t totalVertices = 0;
@@ -76,6 +77,7 @@ void FillExtrusionBucket::addFeature(const GeometryTileFeature& feature,
 
         std::vector<uint32_t> flatIndices;
         flatIndices.reserve(totalVertices);
+        std::vector<uint32_t> flatRingIndices;
 
         std::size_t startVertices = vertices.elements();
 
@@ -91,10 +93,11 @@ void FillExtrusionBucket::addFeature(const GeometryTileFeature& feature,
         assert(triangleIndex + (5 * (totalVertices - 1) + 1) <= std::numeric_limits<uint16_t>::max());
 
         for (const auto& ring : polygon) {
+            flatRingIndices.emplace_back(flatIndices.size());
+            
             std::size_t nVertices = ring.size();
             if (nVertices == 0) continue;
 
-            const size_t flatBegin = flatIndices.size();
             std::size_t edgeDistance = 0;
             
             // 1. all of the wall surface within this ring
@@ -148,37 +151,54 @@ void FillExtrusionBucket::addFeature(const GeometryTileFeature& feature,
                     triangleSegment.vertexLength += 4;
                 }
             }
+        }
+        
+        {
+            if (canonical.z == 16 && canonical.x == 19294 && canonical.y == 24643 && index == 8) {
+                ;
+            }
             
             // 2. the roof surface within this ring
             // [roof surface]
-            struct Collection {
-                Collection(const GeometryCoordinates& points) : points(points) { }
-                std::reference_wrapper<const GeometryCoordinates> points;
-                size_t size() const { return 1; }
-                const GeometryCoordinates& operator [] (size_t) const { return points; }
-                bool empty() const { return false; }
+            auto addFlatSurface = [&] (const std::vector<uint32_t>& indices, size_t baseIndex) {
+                std::size_t nIndices = indices.size();
+                assert(nIndices % 3 == 0);
+                
+                // for all top surface
+                for (std::size_t i = 0; i < nIndices; i += 3) {
+                    // Counter-Clockwise winding order.
+                    triangles.emplace_back(flatIndices[baseIndex + indices[i]],
+                                           flatIndices[baseIndex + indices[i + 2]],
+                                           flatIndices[baseIndex + indices[i + 1]]);
+                    
+                    // Reflection with counter-clockwise winding order.
+                    // 逆时针方向，因为，如果能看到顶面，一定是从内部看到背面。所以是正常顺序
+                    reflectionTriangles.emplace_back(flatIndices[baseIndex + indices[i]],
+                                                     flatIndices[baseIndex + indices[i + 2]],
+                                                     flatIndices[baseIndex + indices[i + 1]]);
+                }
+
+                triangleSegment.indexLength += nIndices;
             };
             
-            std::vector<uint32_t> indices = mapbox::earcut(Collection(ring));
-            
-            std::size_t nIndices = indices.size();
-            assert(nIndices % 3 == 0);
-            
-            // for all top surface
-            for (std::size_t i = 0; i < nIndices; i += 3) {
-                // Counter-Clockwise winding order.
-                triangles.emplace_back(flatIndices[flatBegin + indices[i]],
-                                       flatIndices[flatBegin + indices[i + 2]],
-                                       flatIndices[flatBegin + indices[i + 1]]);
+            if (hasHole || polygon.size() == 1) {
+                std::vector<uint32_t> indices = mapbox::earcut(polygon);
+                addFlatSurface(indices, 0);
+            } else {
+                struct Collection {
+                    Collection(const GeometryCoordinates& points) : points(points) { }
+                    std::reference_wrapper<const GeometryCoordinates> points;
+                    size_t size() const { return 1; }
+                    const GeometryCoordinates& operator [] (size_t) const { return points; }
+                    bool empty() const { return false; }
+                };
                 
-                // Reflection with counter-clockwise winding order.
-                // 逆时针方向，因为，如果能看到顶面，一定是从内部看到背面。所以是正常顺序
-                reflectionTriangles.emplace_back(flatIndices[flatBegin + indices[i]],
-                                                 flatIndices[flatBegin + indices[i + 2]],
-                                                 flatIndices[flatBegin + indices[i + 1]]);
+                auto it = flatRingIndices.begin();
+                for (auto& ring : polygon) {
+                    std::vector<uint32_t> indices = mapbox::earcut(Collection(ring));
+                    addFlatSurface(indices, *it++);
+                }
             }
-
-            triangleSegment.indexLength += nIndices;
         }
         
         triangleSegment.vertexLength += totalVertices;
