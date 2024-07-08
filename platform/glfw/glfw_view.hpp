@@ -91,7 +91,8 @@ private:
     void nextOrientation();
 
     void addRandomPointAnnotations(int count);
-    void addRandomLineAnnotations(int count);
+    void addLineAnnotations(const mbgl::LatLng& tagPosition);
+    void updateLineAnnotations(const mbgl::LatLng& tagPosition);
     void addRandomShapeAnnotations(int count);
     void addRandomCustomPointAnnotations(int count);
     void addAnimatedAnnotation();
