@@ -1155,14 +1155,14 @@ void GLFWView::toggleLocationIndicatorLayer(bool visibility) {
         puckLayer->setLocation(toArray(puckLocation));
         puckLayer->setAccuracyRadius(15);
         puckLayer->setAccuracyRadiusColor(
-            premultiply(mbgl::Color{0.0, 1.0, 0.0, 0.2})); // Note: these must be fed premultiplied
+            premultiply(mbgl::Color{0.95, 0.95, 0.95, 0.0})); // Note: these must be fed premultiplied
 
         puckLayer->setBearingTransition(mbgl::style::TransitionOptions(mbgl::Duration::zero(), mbgl::Duration::zero()));
         puckLayer->setBearing(mbgl::style::Rotation(0.0));
-        puckLayer->setAccuracyRadiusBorderColor(premultiply(mbgl::Color{0.0, 1.0, 0.2, 0.4}));
+        puckLayer->setAccuracyRadiusBorderColor(premultiply(mbgl::Color{0.95, 0.95, 0.95, 0.0}));
         puckLayer->setTopImageSize(0.18);
         puckLayer->setBearingImageSize(0.26);
-        puckLayer->setShadowImageSize(0.2);
+        puckLayer->setShadowImageSize(0.5);
         puckLayer->setImageTiltDisplacement(7.0f); // set to 0 for a "flat" puck
         puckLayer->setPerspectiveCompensation(0.9);
 
