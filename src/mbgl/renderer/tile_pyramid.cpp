@@ -163,8 +163,11 @@ void TilePyramid::update(const std::vector<Immutable<style::LayerProperties>>& l
             *bounds, zoomRange.min, std::min(tileZoom, static_cast<int32_t>(zoomRange.max)));
     }
     auto createTileFn = [&](const OverscaledTileID& tileID) -> Tile* {
-        nav::log::i("TilePyramid", "%p createTile (z:%d,x:%d,y:%d) tiles-size(%d)",
-                    this, (int)tileID.canonical.z, (int)tileID.canonical.x, (int)tileID.canonical.y, (int)tiles.size());
+
+        nav::log::i("TilePyramid", "%p createTile o:%d w:%d (z:%d,x:%d,y:%d) tiles-size(%d)",
+                    this,
+                    (int)tileID.overscaledZ, (int)tileID.wrap,
+                    (int)tileID.canonical.z, (int)tileID.canonical.x, (int)tileID.canonical.y, (int)tiles.size());
         
         if (tileRange && !tileRange->contains(tileID.canonical)) {
             return nullptr;

@@ -154,11 +154,7 @@ void FillExtrusionBucket::addFeature(const GeometryTileFeature& feature,
         }
         
         {
-            if (canonical.z == 16 && canonical.x == 19294 && canonical.y == 24643 && index == 8) {
-                ;
-            }
-            
-            // 2. the roof surface within this ring
+            // 2. the roof surface within flat indices
             // [roof surface]
             auto addFlatSurface = [&] (const std::vector<uint32_t>& indices, size_t baseIndex) {
                 std::size_t nIndices = indices.size();
