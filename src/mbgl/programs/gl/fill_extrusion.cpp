@@ -88,7 +88,7 @@ struct ShaderSource<FillExtrusionProgram> {
         attribute highp vec2 a_pos;
         attribute lowp vec4 a_normal_ed;
     
-        varying vec3 v_pos;
+        varying vec2 v_pos;
         varying vec4 v_color;
         varying lowp vec2 v_edge_ratio;
         varying lowp vec2 v_v_factor;
@@ -140,6 +140,10 @@ struct ShaderSource<FillExtrusionProgram> {
             //base=max(0.0,base);
             height=max(base,height);
             bool h=mod(normal.x,2.0)>0.0;
+    
+            // position
+            gl_Position=u_matrix*vec4(a_pos, h?height:base, 1.);
+            v_pos=gl_Position.xy;
         
             // directional light
             float colorvalue = color.r*0.2126 + color.g*0.7152 + color.b*0.0722;
@@ -151,7 +155,10 @@ struct ShaderSource<FillExtrusionProgram> {
                 directional *= ((1.0 - u_vertical_gradient) + (u_vertical_gradient * vertical_factor));
             }
     
-            directional*=(1.+u_spotlight);
+            const lowp float radius = 500000.;
+            lowp float distance = pow(v_pos.x,2.) + pow(v_pos.y,2.);
+            lowp float centerFactor = 1. - min(distance/radius, 1.);
+            directional*=(1.+u_spotlight+centerFactor);
     
             // ambient light
             vec4 ambientlight=vec4(0.03,0.03,0.03,1.0);
@@ -171,11 +178,6 @@ struct ShaderSource<FillExtrusionProgram> {
             } else {
                 v_color *= u_opacity * (.8 + .2 * u_spotlight);
             }
-
-            // position
-            gl_Position=u_matrix*vec4(a_pos, h?height:base, 1.);
-        
-            v_pos=gl_Position.xyz;
             
             lowp float tall=abs(height-base);
             v_edge_ratio=vec2(8./tall,12./tall);    // 上下边缘比例
@@ -210,7 +212,7 @@ struct ShaderSource<FillExtrusionProgram> {
         uniform bool u_rendering_reflection;
         uniform lowp float u_render_time;
 
-        varying vec3 v_pos;
+        varying vec2 v_pos;
         varying vec4 v_color;
         varying lowp vec2 v_edge_ratio;
         varying lowp vec2 v_v_factor;
@@ -252,7 +254,7 @@ struct ShaderSource<FillExtrusionProgram> {
                 centerFactor = clamp(distance/radius, 1.-u_spotlight, 1.);
             }
 
-            gl_FragColor.xyz = v_color.xyz * (edgeFactor * .6 + centerFactor * .4);
+            gl_FragColor.rgb = v_color.rgb * (edgeFactor * .6 + centerFactor * .4);
             gl_FragColor.a = v_color.a * centerFactor;
         
         #ifdef OVERDRAW_INSPECTOR
