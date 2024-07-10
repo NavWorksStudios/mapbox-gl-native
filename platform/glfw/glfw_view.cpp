@@ -284,6 +284,7 @@ void GLFWView::onKey(int key, int action, int mods) {
         if (key != GLFW_KEY_R/* || key != GLFW_KEY_S*/) {
             animateRouteCallback = nullptr;
             toggleLocationIndicatorLayer(false);
+            hideCurrentLineAnnotations();
             nav::style::setViewMode(nav::style::ViewMode::Normal);
         }
 
@@ -691,12 +692,28 @@ void GLFWView::addRandomPointAnnotations(int count) {
 
 void GLFWView::addLineAnnotations(const mbgl::LatLng& tagPosition) {
     
+    hideCurrentLineAnnotations();
+    
     mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
     mbgl::LineString<double> lineString;
     lineString.push_back({ mapCenter.longitude(), mapCenter.latitude() });
     lineString.push_back({ tagPosition.longitude(), tagPosition.latitude() });
-    annotationIDs.clear();
-    annotationIDs.push_back(map->addAnnotation(mbgl::LineAnnotation { lineString, 1.0f, 3.0f, { makeRandomColor() } }));
+    if(annotationIDs.size() > 0) {
+        map->updateAnnotation(annotationIDs[0], mbgl::LineAnnotation { lineString, 1.0f, 3.0f, { makeRandomColor() } });
+    }
+    else {
+        annotationIDs.push_back(map->addAnnotation(mbgl::LineAnnotation { lineString, 1.0f, 3.0f, { makeRandomColor() } }));
+    }
+}
+
+void GLFWView::hideCurrentLineAnnotations() {
+    if(annotationIDs.size() > 0) {
+        mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
+        mbgl::LineString<double> lineString;
+        lineString.push_back({ mapCenter.longitude(), mapCenter.latitude() });
+        lineString.push_back({ mapCenter.longitude(), mapCenter.latitude() });
+        map->updateAnnotation(annotationIDs[0], mbgl::LineAnnotation { lineString, 1.0f, 3.0f, { {0.0,0.0,0.0,0.0} } });
+    }
 }
 
 void GLFWView::updateLineAnnotations(const mbgl::LatLng& tagPosition) {
@@ -1170,11 +1187,11 @@ void GLFWView::toggleLocationIndicatorLayer(bool visibility) {
         puckLayer->setLocation(toArray(puckLocation));
         puckLayer->setAccuracyRadius(15);
         puckLayer->setAccuracyRadiusColor(
-            premultiply(mbgl::Color{0.95, 0.95, 0.95, 0.0})); // Note: these must be fed premultiplied
+            premultiply(mbgl::Color{0.95, 0.95, 0.95, 0})); // Note: these must be fed premultiplied
 
         puckLayer->setBearingTransition(mbgl::style::TransitionOptions(mbgl::Duration::zero(), mbgl::Duration::zero()));
         puckLayer->setBearing(mbgl::style::Rotation(0.0));
-        puckLayer->setAccuracyRadiusBorderColor(premultiply(mbgl::Color{0.95, 0.95, 0.95, 0.0}));
+        puckLayer->setAccuracyRadiusBorderColor(premultiply(mbgl::Color{0.95, 0.95, 0.95, 0}));
         puckLayer->setTopImageSize(0.18);
         puckLayer->setBearingImageSize(0.26);
         puckLayer->setShadowImageSize(0.5);
