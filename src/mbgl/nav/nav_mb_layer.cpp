@@ -218,6 +218,20 @@ float getHeight(const std::string& layerId) {
     return it == layerHeights.end() ? 0 : it->second;
 }
 
+std::string parsing_uri;
+
+const std::string& parsingUri() {
+    return parsing_uri;
+}
+
+ParsingUriSpace::ParsingUriSpace(const std::string& tag) : uri_len(parsing_uri.size()) {
+    parsing_uri.append("/");
+    parsing_uri.append(tag);
+}
+
+ParsingUriSpace::~ParsingUriSpace() {
+    parsing_uri.resize(uri_len);
+}
 
 }
 }

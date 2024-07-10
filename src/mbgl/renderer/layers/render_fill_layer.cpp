@@ -36,8 +36,8 @@ inline const FillLayer::Impl& impl_cast(const Immutable<style::Layer::Impl>& imp
 RenderFillLayer::RenderFillLayer(Immutable<style::FillLayer::Impl> _impl)
     : RenderLayer(makeMutable<FillLayerProperties>(std::move(_impl))),
       unevaluated(impl_cast(baseImpl).paint.untransitioned()) {
-      bindToPalette("/fill-color", unevaluated.get<FillColor>().value);
-      bindToPalette("/fill-outline-color", unevaluated.get<FillOutlineColor>().value);
+      bindToPalette("fill-color", unevaluated.get<FillColor>().value);
+      bindToPalette("fill-outline-color", unevaluated.get<FillOutlineColor>().value);
 }
 
 RenderFillLayer::~RenderFillLayer() = default;

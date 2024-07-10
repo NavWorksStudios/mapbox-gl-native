@@ -9,7 +9,9 @@
 #include <mbgl/util/mat4.hpp>
 #include <memory>
 #include <string>
-#include "mbgl/nav/nav_mb_style.hpp"
+
+#include "mbgl/nav/nav_mb_layer.hpp"
+#include "mbgl/nav/nav_mb_palette.hpp"
 
 namespace mbgl {
 
@@ -134,11 +136,10 @@ protected:
 
     const LayerRenderData* getRenderDataForPass(const RenderTile&, RenderPass) const;
     
-    void bindToPalette(const std::string& target, style::PropertyValue<Color>& value) const {
+    void bindToPalette(const std::string& tag, style::PropertyValue<Color>& value) const {
         if (value.isConstant()) {
-            std::string uri(baseImpl->id);
-            uri += target;
-            nav::style::palette::bind(uri, value.asConstant(),
+            nav::layer::ParsingUriSpace space(tag + "/constant");
+            nav::palette::bind(nav::layer::parsingUri(), value.asConstant(),
             [&value](const Color& color) {
                 value = color;
             });

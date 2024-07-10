@@ -12,9 +12,21 @@ namespace nav {
 namespace layer {
 
 void print(const char* id, const char* sourceLayer, const char* sourceId, const char* type);
+
 bool filter(const std::string& id);
+
 int renderIndex(const std::string& id);
 float getHeight(const std::string& layerId);
+
+
+const std::string& parsingUri();
+
+struct ParsingUriSpace {
+    ParsingUriSpace(const std::string& tag);
+    ~ParsingUriSpace();
+private:
+    const size_t uri_len;
+};
 
 }
 }

@@ -92,6 +92,9 @@ ParseResult ParsingContext::parse(const Convertible& value,
                          errors,
                          std::move(expected_),
                          scope);
+    
+    nav::layer::ParsingUriSpace space("[" + util::toString(index_) + "]");
+    
     return child.parse(value, typeAnnotationOption);
 }
 
@@ -101,6 +104,9 @@ ParseResult ParsingContext::parse(const Convertible& value, std::size_t index_, 
                          errors,
                          std::move(expected_),
                          std::make_shared<detail::Scope>(bindings, scope));
+    
+    nav::layer::ParsingUriSpace space("[" + util::toString(index_) + "]");
+    
     return child.parse(value);
 }
 
@@ -168,6 +174,8 @@ ParseResult ParsingContext::parse(const Convertible& value,
             return ParseResult();
         }
         
+        nav::layer::ParsingUriSpace space(op->c_str());
+
         auto parseFunction = expressionRegistry.find(op->c_str());
         if (parseFunction != expressionRegistry.end()) {
             parsed = parseFunction->second(value, *this);

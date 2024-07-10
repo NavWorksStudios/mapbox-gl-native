@@ -3,8 +3,11 @@
 #include <mbgl/style/expression/expression.hpp>
 #include <mbgl/style/expression/parsing_context.hpp>
 #include <mbgl/style/conversion.hpp>
-#include "mbgl/nav/nav_mb_style.hpp"
+
 #include <memory>
+
+#include "mbgl/nav/nav_mb_palette.hpp"
+#include "mbgl/nav/nav_mb_layer.hpp"
 
 namespace mbgl {
 namespace style {
@@ -14,7 +17,8 @@ class Literal : public Expression {
 public:
     Literal(const Value& value_) : Expression(Kind::Literal, typeOf(value_)), value(value_) {
         if (value.is<Color>()) {
-            nav::style::palette::bind("/literal", value.get<Color>(),
+            nav::layer::ParsingUriSpace space("literal");
+            nav::palette::bind(nav::layer::parsingUri(), value.get<Color>(),
             [this](const mbgl::Color& color) {
                 value = color;
             });

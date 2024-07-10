@@ -156,6 +156,8 @@ void Layer::setObserver(LayerObserver* observer_) {
 }
 
 optional<conversion::Error> Layer::setProperty(const std::string& name, const conversion::Convertible& value) {
+    nav::layer::ParsingUriSpace space(name);
+    
     using namespace conversion;
     optional<Error> error = setPropertyInternal(name, value);
     if (!error) return error; // Successfully set by the derived class implementation.
