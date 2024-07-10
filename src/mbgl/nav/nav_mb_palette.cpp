@@ -138,7 +138,7 @@ struct Hsla {
 };
 
 class GradientColor : public Hsla, public mbgl::Color {
-    bool isNeedsupdate = false;
+    bool isNeedsupdate = true;
     Hsla target;
 
 public:
@@ -167,14 +167,14 @@ public:
     inline bool needsUpdate() const { return isNeedsupdate; }
 };
 
-GradientColor colorBase = GradientColor({ 0, 1., .5, 1. });
+GradientColor themeBaseColor = GradientColor({ 0., .5, .5, 1. });
 
 void setColorBase(const mbgl::Color& color) {
-    colorBase.smoothTo(color);
+    themeBaseColor.smoothTo(color);
 }
 
 const mbgl::Color& getColorBase() {
-    return colorBase;
+    return themeBaseColor;
 }
 
 bool enableShaderPalette(const std::string& id) {
@@ -247,15 +247,17 @@ public:
 };
 
 std::vector<ColorBinding> paletteBindings;
+bool somebodyNeedsUpdate = false;
 
 void bind(const std::string& uri, const mbgl::Color& color, const Binding& callback) {
     nav::log::i("Palette", "bind uri %s", uri.c_str());
 
-    static const auto prefixColorProperty = [] (const std::string& uri, const Hsla& color) {
+    static const auto prefixColor = [] (const std::string& uri, const Hsla& color) {
         Hsla hsla = color;
         
-        if (uri.find("water-depth") != std::string::npos || 
-            uri.find("hillshade") != std::string::npos) {
+        if (uri.find("water-depth") != std::string::npos) {
+            hsla.s = 0;
+        } else if(uri.find("hillshade") != std::string::npos) {
             hsla.s = 0;
         } else if (uri.find("building-extrusion") != std::string::npos) {
 
@@ -278,11 +280,10 @@ void bind(const std::string& uri, const mbgl::Color& color, const Binding& callb
         return hsla;
     };
 
-    const Hsla hsla = prefixColorProperty(uri, color);
+    const Hsla hsla = prefixColor(uri, color);
     
     static const auto isFixed = [] (const std::string& uri, const mbgl::Color& color) {
-        if (uri.find("water-depth") != std::string::npos ||
-            uri.find("hillshade") != std::string::npos) {
+        if (uri.find("water-depth") != std::string::npos || uri.find("hillshade") != std::string::npos) {
             return true;
         } else {
             return false;
@@ -292,18 +293,21 @@ void bind(const std::string& uri, const mbgl::Color& color, const Binding& callb
     const bool fixed = isFixed(uri, color);
     ColorBinding binding(uri, Stylizer(hsla, fixed), callback);
     paletteBindings.emplace_back(binding);
+    
+    somebodyNeedsUpdate = true;
 }
 
 bool update() {
-    if (colorBase.needsUpdate()) {
-        colorBase.update();
+    if (somebodyNeedsUpdate || themeBaseColor.needsUpdate()) {
+        somebodyNeedsUpdate = false;
+        themeBaseColor.update();
 
         for (auto& it : paletteBindings) {
-            it.notify(colorBase);
+            it.notify(themeBaseColor);
         }
     }
     
-    return colorBase.needsUpdate();
+    return themeBaseColor.needsUpdate();
 }
 
 bool demo() {
@@ -325,7 +329,7 @@ bool demo() {
         color.l = .2 + .6 * fabs(fmod(l, 2.) - 1.) / 1.;
         color.a = 1.;
 
-        colorBase.smoothTo(color);
+        themeBaseColor.smoothTo(color);
     }
     
     return true;

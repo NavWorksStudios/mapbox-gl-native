@@ -167,7 +167,7 @@ void setViewMode(ViewMode mode) {
     }
 }
 
-bool isNeedUpdate = false;
+bool isNeedUpdate = true;
 
 bool update() {
     bool oncemore = false;
