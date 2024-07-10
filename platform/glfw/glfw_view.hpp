@@ -93,7 +93,7 @@ private:
     void addRandomPointAnnotations(int count);
     void addLineAnnotations(const mbgl::LatLng& tagPosition);
     void hideCurrentLineAnnotations();
-    void updateLineAnnotations(const mbgl::LatLng& tagPosition);
+    void updateLineAnnotations(const mbgl::LatLng& orgPosition, const mbgl::LatLng& tagPosition);
     void addRandomShapeAnnotations(int count);
     void addRandomCustomPointAnnotations(int count);
     void addAnimatedAnnotation();

@@ -281,8 +281,8 @@ void GLFWView::onKey(GLFWwindow *window, int key, int /*scancode*/, int action, 
 
 void GLFWView::onKey(int key, int action, int mods) {
     if (action == GLFW_RELEASE) {
-        if (key != GLFW_KEY_R/* || key != GLFW_KEY_S*/) {
-            animateRouteCallback = nullptr;
+        if (key != GLFW_KEY_R && key == GLFW_KEY_SPACE) {
+            // animateRouteCallback = nullptr;
             toggleLocationIndicatorLayer(false);
             hideCurrentLineAnnotations();
             nav::style::setViewMode(nav::style::ViewMode::Normal);
@@ -414,13 +414,23 @@ void GLFWView::onKey(int key, int action, int mods) {
                 
                 bearing = *camera.bearing + (easing / 40);
                 
-                routeMap->jumpTo(mbgl::CameraOptions().withCenter(center).withZoom(18).withBearing(bearing).withPitch(60.0));
-
-                mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
-                puck->setLocation(toArray(mapCenter));
-                puck->setBearing(mbgl::style::Rotation(bearing));
-                
-                updateLineAnnotations({20.0, 20.0});
+                if(puckFollowsCameraCenter) {
+                    routeMap->jumpTo(mbgl::CameraOptions().withCenter(center).withZoom(18).withBearing(bearing).withPitch(60.0));
+                    mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
+                    puck->setLocation(toArray(mapCenter));
+                    puck->setBearing(mbgl::style::Rotation(bearing));
+                    updateLineAnnotations(mapCenter, {20.0, 20.0});
+                }
+                else {
+                    puck->setLocation(toArray({point.x, point.y}));
+                    puck->setBearing(mbgl::style::Rotation(bearing));
+                    updateLineAnnotations({point.y, point.x}, {20.0, 20.0});
+//                    routeMap->jumpTo(mbgl::CameraOptions().withCenter(center).withZoom(18).withBearing(bearing).withPitch(60.0));
+//                    mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
+//                    puck->setLocation(toArray(mapCenter));
+//                    puck->setBearing(mbgl::style::Rotation(bearing));
+//                    updateLineAnnotations(mapCenter, {20.0, 20.0});
+                }
             };
             
             toggleLocationIndicatorLayer(true);
@@ -716,11 +726,10 @@ void GLFWView::hideCurrentLineAnnotations() {
     }
 }
 
-void GLFWView::updateLineAnnotations(const mbgl::LatLng& tagPosition) {
+void GLFWView::updateLineAnnotations(const mbgl::LatLng& orgPosition, const mbgl::LatLng& tagPosition) {
     
-    mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
     mbgl::LineString<double> lineString;
-    lineString.push_back({ mapCenter.longitude(), mapCenter.latitude() });
+    lineString.push_back({ orgPosition.longitude(), orgPosition.latitude() });
     lineString.push_back({ tagPosition.longitude(), tagPosition.latitude() });
     if(annotationIDs.size() > 0) {
         map->updateAnnotation(annotationIDs[0], mbgl::LineAnnotation { lineString, 1.0f, 3.0f, { makeRandomColor() } });
@@ -951,6 +960,10 @@ void GLFWView::onMouseMove(double x, double y) {
         const double dy = y - _mouseHistory[0].coord.y;
         if (dx || dy) {
             map->moveBy(mbgl::ScreenCoordinate { dx, dy });
+            
+            if(puck && puckFollowsCameraCenter) {
+                puckFollowsCameraCenter = false;
+            }
         }
     }
     
@@ -973,10 +986,10 @@ void GLFWView::onMouseMove(double x, double y) {
     
 
 #if defined(MBGL_RENDER_BACKEND_OPENGL) && !defined(MBGL_LAYER_CUSTOM_DISABLE_ALL)
-    if (puck && puckFollowsCameraCenter) {
-        mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
-        puck->setLocation(toArray(mapCenter));
-    }
+//    if (puck && puckFollowsCameraCenter) {
+//        mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
+//        puck->setLocation(toArray(mapCenter));
+//    }
 #endif
 
     auto &style = map->getStyle();
