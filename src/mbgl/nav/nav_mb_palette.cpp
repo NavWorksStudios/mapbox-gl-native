@@ -200,7 +200,7 @@ public:
             lcoef = color.l;
             acoef = color.a;
         } else {
-            static const Hsla SAMPLE_CENTER = { 200., .5, .5, 1. };
+            static const Hsla SAMPLE_CENTER = { 0., .5, .5, 1. };
             
             hcoef = color.h - SAMPLE_CENTER.h;
             scoef = color.s - SAMPLE_CENTER.s;
@@ -283,7 +283,8 @@ void bind(const std::string& uri, const mbgl::Color& color, const Binding& callb
     const Hsla hsla = prefixColor(uri, color);
     
     static const auto isFixed = [] (const std::string& uri, const mbgl::Color& color) {
-        if (uri.find("water-depth") != std::string::npos || uri.find("hillshade") != std::string::npos) {
+        if (uri.find("water-depth") != std::string::npos || 
+            uri.find("hillshade") != std::string::npos) {
             return true;
         } else {
             return false;
@@ -295,19 +296,6 @@ void bind(const std::string& uri, const mbgl::Color& color, const Binding& callb
     paletteBindings.emplace_back(binding);
     
     somebodyNeedsUpdate = true;
-}
-
-bool update() {
-    if (somebodyNeedsUpdate || themeBaseColor.needsUpdate()) {
-        somebodyNeedsUpdate = false;
-        themeBaseColor.update();
-
-        for (auto& it : paletteBindings) {
-            it.notify(themeBaseColor);
-        }
-    }
-    
-    return themeBaseColor.needsUpdate();
 }
 
 bool demo() {
@@ -333,6 +321,21 @@ bool demo() {
     }
     
     return true;
+}
+
+bool update() {
+    if (somebodyNeedsUpdate || themeBaseColor.needsUpdate()) {
+        somebodyNeedsUpdate = false;
+        themeBaseColor.update();
+
+        for (auto& it : paletteBindings) {
+            it.notify(themeBaseColor);
+        }
+    }
+    
+    if (demo()) return true;
+
+    return themeBaseColor.needsUpdate();
 }
 
 }

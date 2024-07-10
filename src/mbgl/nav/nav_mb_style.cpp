@@ -18,7 +18,6 @@ namespace nav {
 namespace palette {
 
 bool update();
-bool demo();
 
 }
 
@@ -170,15 +169,13 @@ void setViewMode(ViewMode mode) {
 bool isNeedUpdate = true;
 
 bool update() {
-    bool oncemore = false;
-
     rendertime::timestamp.update();
+
+    bool oncemore = false;
 
     oncemore |= spotlight::toggle.update();
     oncemore |= landscape::toggle.update();
-    
     oncemore |= nav::palette::update();
-    oncemore |= nav::palette::demo();
     
     return isNeedUpdate = oncemore;
 }
