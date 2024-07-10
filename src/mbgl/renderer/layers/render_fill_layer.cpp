@@ -36,8 +36,10 @@ inline const FillLayer::Impl& impl_cast(const Immutable<style::Layer::Impl>& imp
 RenderFillLayer::RenderFillLayer(Immutable<style::FillLayer::Impl> _impl)
     : RenderLayer(makeMutable<FillLayerProperties>(std::move(_impl))),
       unevaluated(impl_cast(baseImpl).paint.untransitioned()) {
-      bindToPalette(baseImpl->id, "fill-color", unevaluated.get<FillColor>().value);
-      bindToPalette(baseImpl->id, "fill-outline-color", unevaluated.get<FillOutlineColor>().value);
+    bindToPalette(baseImpl->id, "fill-color", unevaluated.get<FillColor>().value);
+    bindToPalette(baseImpl->id, "fill-outline-color", unevaluated.get<FillOutlineColor>().value);
+
+    enableShaderPalette = nav::palette::enableShaderPalette(baseImpl->id);
 }
 
 RenderFillLayer::~RenderFillLayer() = default;
@@ -104,11 +106,11 @@ void RenderFillLayer::render(PaintParameters& parameters) {
                                                   evaluated.get<FillTranslateAnchor>(),
                                                   parameters.state)
                         ),
-                        uniforms::normal_matrix::Value(tile.normalMatrix),
-                        uniforms::camera_pos::Value(parameters.state.getCameraPosition()),
                         uniforms::world::Value( parameters.backend.getDefaultRenderable().getSize() ),
                         uniforms::spotlight::Value( nav::style::spotlight::value() ),
                         uniforms::render_time::Value(nav::style::rendertime::value()),
+                        uniforms::enable_palette::Value(enableShaderPalette),
+                        uniforms::palette_color::Value(nav::palette::getColorBase()),
                     },
                     paintPropertyBinders,
                     evaluated,

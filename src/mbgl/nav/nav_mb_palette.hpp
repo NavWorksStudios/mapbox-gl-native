@@ -16,6 +16,9 @@ using Binding = std::function<void(const mbgl::Color& color)>;
 
 void setColorBase(const mbgl::Color& color);
 const mbgl::Color& getColorBase();
+
+bool enableShaderPalette(const std::string& id);
+
 void bind(const std::string& uri, const mbgl::Color& color, const Binding& binding);
 
 }

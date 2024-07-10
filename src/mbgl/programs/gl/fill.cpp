@@ -76,16 +76,10 @@ vec2 get_pattern_pos(const vec2 pixel_coord_upper,const vec2 pixel_coord_lower,c
 R"(
 
 uniform mat4 u_matrix;
-uniform lowp vec3 u_camera_pos;
 uniform lowp float u_base;
-uniform mat4 u_normal_matrix;
-uniform lowp float u_render_time;
 
 attribute vec2 a_pos;
-attribute vec3 a_normal;
-
-varying vec3 v_camera_pos;
-varying vec3 v_pos;
+varying vec2 v_pos;
 
 #ifndef HAS_UNIFORM_u_color
     uniform lowp float u_color_t;
@@ -155,13 +149,8 @@ void main() {
     mediump float width=u_width;
 #endif
        
-    v_camera_pos = u_camera_pos;
     gl_Position=u_matrix*vec4(a_pos, u_base, 1);
-        
-//    v_normal = normalize((u_normal_matrix * vec4(0., 0., 1., 0.0)).xyz);
-    v_pos = gl_Position.xyz;
-//    v_camera_pos = normalize(u_camera_pos - vec3(a_pos,u_base));
-//    v_uv = matcap(v_camera_pos, v_normal).xy;
+    v_pos = gl_Position.xy;
 }
 
 )"; }
@@ -188,15 +177,12 @@ precision mediump float;
     static const char* navFragment(const char* ) { return
 R"(
 
-uniform mat4 u_normal_matrix;
-uniform bool u_enable_matcap;
 uniform lowp float u_spotlight;
 uniform lowp float u_render_time;
+uniform bool u_enable_palette;
+uniform lowp vec4 u_palette_color;
         
-varying vec3 v_pos;
-varying vec3 v_camera_pos;
-varying vec3 v_normal;
-varying vec2 v_uv;
+varying vec2 v_pos;
 
 #ifndef HAS_UNIFORM_u_color
     varying highp vec4 color;
@@ -254,10 +240,16 @@ void main() {
         lowp float distance = pow(v_pos.x,2.) + pow(v_pos.y,2.);
         lowp float centerFactor = clamp(distance/radius, 1.-u_spotlight, 1.);
         centerFactor = pow(1. - centerFactor, 3.) * .8;
-        gl_FragColor.xyz = mix(color.rgb, color_flow(gl_FragCoord.xy), centerFactor) * opacity; // 距离屏幕中心点越近，越亮
+        gl_FragColor.rgb = mix(color.rgb, color_flow(gl_FragCoord.xy), centerFactor) * opacity; // 距离屏幕中心点越近，越亮
         gl_FragColor.a = color.a * opacity;
     } else {
         gl_FragColor = color * opacity;
+    }
+
+    if (u_enable_palette) {
+        gl_FragColor.r = u_palette_color.r * gl_FragColor.r / 3.;
+        gl_FragColor.g = u_palette_color.g * gl_FragColor.g / 3.;
+        gl_FragColor.b = u_palette_color.b * gl_FragColor.b / 3.;
     }
         
 #ifdef OVERDRAW_INSPECTOR

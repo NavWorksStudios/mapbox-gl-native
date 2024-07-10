@@ -177,6 +177,15 @@ const mbgl::Color& getColorBase() {
     return colorBase;
 }
 
+bool enableShaderPalette(const std::string& id) {
+    static std::map<std::string, bool> layerIds = {
+        { "water-depth", true },
+        { "hillshade", true },
+    };
+
+    return layerIds.find(id) != layerIds.end();
+}
+
 class Stylizer {
     bool fixed = false;
     float hcoef=0, scoef=0, lcoef=0, acoef=0;
@@ -241,7 +250,7 @@ std::vector<ColorBinding> paletteBindings;
 
 void bind(const std::string& uri, const mbgl::Color& color, const Binding& callback) {
     nav::log::i("Palette", "bind uri %s", uri.c_str());
-    
+
     static const auto prefixColorProperty = [] (const std::string& uri, const Hsla& color) {
         Hsla hsla = color;
         

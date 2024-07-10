@@ -31,6 +31,8 @@ private:
 
     // Paint properties
     style::FillPaintProperties::Unevaluated unevaluated;
+    
+    bool enableShaderPalette = false;
 };
 
 } // namespace mbgl
