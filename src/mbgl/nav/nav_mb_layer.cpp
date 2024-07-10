@@ -224,12 +224,12 @@ const std::string& parsingUri() {
     return parsing_uri;
 }
 
-ParsingUriSpace::ParsingUriSpace(const std::string& tag) : uri_len(parsing_uri.size()) {
+ParsingUriDomain::ParsingUriDomain(const std::string& tag) : uri_len(parsing_uri.size()) {
     parsing_uri.append("/");
     parsing_uri.append(tag);
 }
 
-ParsingUriSpace::~ParsingUriSpace() {
+ParsingUriDomain::~ParsingUriDomain() {
     parsing_uri.resize(uri_len);
 }
 

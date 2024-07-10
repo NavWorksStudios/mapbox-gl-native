@@ -223,7 +223,7 @@ void Parser::parseLayers(const JSONValue& value) {
             continue;
         }
         
-        nav::layer::ParsingUriSpace space(id);
+        nav::layer::ParsingUriDomain domain(id);
         auto it = layersMap.find(id);
         parseLayer(it->first,
                    it->second.first,

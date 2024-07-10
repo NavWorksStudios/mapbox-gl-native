@@ -17,7 +17,7 @@ class Literal : public Expression {
 public:
     Literal(const Value& value_) : Expression(Kind::Literal, typeOf(value_)), value(value_) {
         if (value.is<Color>()) {
-            nav::layer::ParsingUriSpace space("literal");
+            nav::layer::ParsingUriDomain domain("literal");
             nav::palette::bind(nav::layer::parsingUri(), value.get<Color>(),
             [this](const mbgl::Color& color) {
                 value = color;

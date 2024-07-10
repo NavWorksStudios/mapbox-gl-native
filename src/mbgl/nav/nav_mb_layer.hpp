@@ -21,9 +21,9 @@ float getHeight(const std::string& layerId);
 
 const std::string& parsingUri();
 
-struct ParsingUriSpace {
-    ParsingUriSpace(const std::string& tag);
-    ~ParsingUriSpace();
+struct ParsingUriDomain {
+    ParsingUriDomain(const std::string& tag);
+    ~ParsingUriDomain();
 private:
     const size_t uri_len;
 };

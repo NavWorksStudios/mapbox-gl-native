@@ -45,8 +45,8 @@ inline const style::CircleLayer::Impl& impl_cast(const Immutable<style::Layer::I
 RenderCircleLayer::RenderCircleLayer(Immutable<style::CircleLayer::Impl> _impl)
     : RenderLayer(makeMutable<CircleLayerProperties>(std::move(_impl))),
       unevaluated(impl_cast(baseImpl).paint.untransitioned()) {
-    bindToPalette("circle-color", unevaluated.get<CircleColor>().value);
-    bindToPalette("circle-stroke-color", unevaluated.get<CircleStrokeColor>().value);
+    bindToPalette(baseImpl->id, "circle-color", unevaluated.get<CircleColor>().value);
+    bindToPalette(baseImpl->id, "circle-stroke-color", unevaluated.get<CircleStrokeColor>().value);
 }
 
 void RenderCircleLayer::transition(const TransitionParameters& parameters) {
