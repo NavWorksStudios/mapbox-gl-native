@@ -947,9 +947,8 @@ void Placement::updateBucketOpacities(SymbolBucket& bucket,
             float pitch = state.getPitch() * util::RAD2DEG;
             if(pitch >= 70) distanceSwitch = 3.0;
             else if(pitch <= 50) distanceSwitch = 1.0;
-            else {
-                distanceSwitch = 1.0 + (pitch - 50) * 0.1;
-            }
+            else distanceSwitch = 1.0 + (pitch - 50) * 0.1;
+
             distanceSwitch = distanceSwitch * 1000.0;
         }
         
