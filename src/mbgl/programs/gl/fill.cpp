@@ -243,8 +243,8 @@ void main() {
         gl_FragColor.rgb = mix(color.rgb, color_flow(gl_FragCoord.xy), centerFactor) * opacity; // 距离屏幕中心点越近，越亮
         gl_FragColor.a = color.a * opacity;
     } else if (u_enable_palette) {
-        lowp float ratio = (color.r + color.g + color.b) / (u_palette_color.r + u_palette_color.g + u_palette_color.b);
-        gl_FragColor.rgb = u_palette_color.rgb * ratio;
+        float light = (color.r + color.g + color.b) / (u_palette_color.r + u_palette_color.g + u_palette_color.b);
+        gl_FragColor.rgb = u_palette_color.rgb * light;
         gl_FragColor.a = color.a;
         gl_FragColor *= opacity;
     } else {
