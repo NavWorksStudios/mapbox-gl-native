@@ -254,10 +254,8 @@ void bind(const std::string& uri, const mbgl::Color& color, const Binding& callb
     static const auto prefixColorProperty = [] (const std::string& uri, const Hsla& color) {
         Hsla hsla = color;
         
-        if (uri.find("water-depth") != std::string::npos) {
-            hsla.s = 0;
-            hsla.a *= .1;
-        } else if (uri.find("hillshade") != std::string::npos) {
+        if (uri.find("water-depth") != std::string::npos || 
+            uri.find("hillshade") != std::string::npos) {
             hsla.s = 0;
         } else if (uri.find("building-extrusion") != std::string::npos) {
 
