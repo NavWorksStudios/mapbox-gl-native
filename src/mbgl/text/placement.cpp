@@ -925,7 +925,8 @@ void Placement::updateBucketOpacities(SymbolBucket& bucket,
         symbolInstance.distanceToCenter = 0.0;
         if(curUpdateLayerID == "poi-label" ||
            curUpdateLayerID == "transit-label" ||
-           curUpdateLayerID == "airport-label" ||
+           curUpdateLayerID == "transit-label" ||
+           curUpdateLayerID == "crosswalk" ||
            curUpdateLayerID == "traffic-signal-navigation" ||
            curUpdateLayerID == "road-label-navigation" ||
            curUpdateLayerID == "road-number-shield-navigation" ||
