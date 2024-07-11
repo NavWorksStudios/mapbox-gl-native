@@ -167,7 +167,7 @@ struct ShaderSource<FillExtrusionProgram> {
             if (u_rendering_reflection) {
                 base=-base;
                 height=-height;
-                v_color*=u_opacity * .1;
+                v_color*=u_opacity * .06;
             } else {
                 v_color*=u_opacity * (.8 + .2 * u_spotlight);
             }
@@ -175,7 +175,7 @@ struct ShaderSource<FillExtrusionProgram> {
             // position
             gl_Position=u_matrix*vec4(a_pos, h?height:base, 1.);
             lowp float distance = pow(gl_Position.x,2.)+pow(gl_Position.y,2.)+pow(gl_Position.z,2.);
-            lowp float ratio = min(distance/50000000.,1.);
+            lowp float ratio = min(distance/30000000.,1.);
             v_distance_ratio = vec2(distance,ratio);
     
             v_color*=1.-v_distance_ratio.y;
@@ -234,11 +234,11 @@ struct ShaderSource<FillExtrusionProgram> {
             //
             lowp float top = 0.;
             lowp float bottom = 0.;
-            if (v_height_ratio.x > .99999) {
-                top = .8; // 楼顶
-            } else if (v_height_ratio.x > 1. - v_edge_ratio[1]) { // 上边缘
+            if (v_height_ratio.x > .99999) {                            // 楼顶
+                top = .8;
+            } else if (v_height_ratio.x > 1. - v_edge_ratio[1]) {       // 上边缘
                 top = (v_height_ratio.x + v_edge_ratio[1] - 1.) / v_edge_ratio[1];
-            } else if (v_height_ratio.x < v_edge_ratio[0]) { // 下边缘
+            } else if (v_height_ratio.x < v_edge_ratio[0]) {            // 下边缘
                 bottom = (v_edge_ratio[0] - v_height_ratio.x) / v_edge_ratio[0];
             }
             lowp float edgeFactor = pow(max(top, bottom), 3.);
@@ -249,7 +249,7 @@ struct ShaderSource<FillExtrusionProgram> {
             // u_spotlight>0，centerFactor[0,1]
             lowp float centerFactor = u_spotlight>0. ? clamp(v_distance_ratio.y,1.-u_spotlight,1.) : 1.;
 
-            gl_FragColor.rgb = v_color.rgb * (edgeFactor * .6 + centerFactor * .4);
+            gl_FragColor.rgb = v_color.rgb * (edgeFactor*.5+centerFactor*.5);
             gl_FragColor.a = v_color.a * centerFactor;
         
         #ifdef OVERDRAW_INSPECTOR
