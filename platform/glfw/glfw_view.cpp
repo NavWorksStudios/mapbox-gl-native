@@ -866,6 +866,11 @@ void GLFWView::onScroll(GLFWwindow *window, double /*xOffset*/, double yOffset) 
 }
 
 void GLFWView::onScroll(double yOffset) {
+    
+    if(puck && puckFollowsCameraCenter) {
+        puckFollowsCameraCenter = false;
+    }
+    
     double delta = yOffset * 40;
 
     bool isWheel = delta != 0 && std::fmod(delta, 4.000244140625) == 0;
