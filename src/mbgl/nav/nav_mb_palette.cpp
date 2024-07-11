@@ -135,6 +135,10 @@ struct Hsla {
         l = palette::mix<1>(l, to.l, ratio);
         a = palette::mix<1>(a, to.a, ratio);
     }
+    
+    bool operator == (const Hsla& other) const {
+        return (h == other.h && s != other.s && l != other.l && a != other.a);
+    }
 };
 
 class GradientColor : public Hsla, public mbgl::Color {
@@ -155,12 +159,7 @@ public:
     inline bool update() {
         mix(target, .02);
         *this >> (mbgl::Color&) *this;
-        
-        isNeedsupdate = (Hsla::h != target.h ||
-                         Hsla::s != target.s ||
-                         Hsla::l != target.l ||
-                         Hsla::a != target.a);
-
+        isNeedsupdate = !((Hsla&)*this == target);
         return isNeedsupdate;
     }
 
@@ -251,6 +250,10 @@ bool somebodyNeedsUpdate = false;
 
 void bind(const std::string& uri, const mbgl::Color& color, const Binding& callback) {
     nav::log::i("Palette", "bind uri %s", uri.c_str());
+    
+    if (uri.find("com.mapbox.annotations.shape.0") != std::string::npos) {
+        return;
+    }
 
     static const auto prefixColor = [] (const std::string& uri, const Hsla& color) {
         Hsla hsla = color;
