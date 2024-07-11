@@ -199,7 +199,7 @@ public:
             lcoef = color.l;
             acoef = color.a;
         } else {
-            static const Hsla SAMPLE_CENTER = { 0., .5, .5, 1. };
+            static const Hsla SAMPLE_CENTER = { 200., .5, .5, 1. };
             
             hcoef = color.h - SAMPLE_CENTER.h;
             scoef = color.s - SAMPLE_CENTER.s;
@@ -303,7 +303,7 @@ void bind(const std::string& uri, const mbgl::Color& color, const Binding& callb
 
 bool demo() {
     static int counter = 0;
-    if (counter++ > 50) {
+    if (counter++ > 40) {
         counter = 0;
 
         static float h = 0;
@@ -316,8 +316,8 @@ bool demo() {
 
         Hsla color;
         color.h = fmod(h, 360.);
-        color.s = .0 + .9 * fabs(fmod(s, 1.) - .5) / .5;
-        color.l = .2 + .6 * fabs(fmod(l, 2.) - 1.) / 1.;
+        color.s = .5 + .3 * fabs(fmod(s, 1.) - .5) / .5;
+        color.l = .3 + .5 * fabs(fmod(l, 2.) - 1.) / 1.;
         color.a = 1.;
 
         themeBaseColor.smoothTo(color);

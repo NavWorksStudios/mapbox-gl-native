@@ -77,9 +77,13 @@ R"(
 
 uniform mat4 u_matrix;
 uniform lowp float u_base;
+uniform lowp vec4 u_palette_color;
+uniform lowp float u_palette_lightness;
+uniform lowp float u_visible_distance;
 
 attribute vec2 a_pos;
-varying vec2 v_pos;
+
+varying lowp vec2 v_distance_to_camera;
 
 #ifndef HAS_UNIFORM_u_color
     uniform lowp float u_color_t;
@@ -150,7 +154,15 @@ void main() {
 #endif
        
     gl_Position=u_matrix*vec4(a_pos, u_base, 1);
-    v_pos = gl_Position.xy;
+
+    lowp float distance = pow(gl_Position.x,2.)+pow(gl_Position.y,2.);
+    lowp float visibility = 1.-min(distance*200./u_visible_distance, 1.);
+    v_distance_to_camera = vec2(distance,visibility);
+
+    if (u_palette_lightness > 0.) {
+        lowp float lightness = (color.r+color.g+color.b) / u_palette_lightness;
+        color = vec4(u_palette_color.rgb*lightness, color.a);
+    }
 }
 
 )"; }
@@ -179,10 +191,8 @@ R"(
 
 uniform lowp float u_spotlight;
 uniform lowp float u_render_time;
-uniform bool u_enable_palette;
-uniform lowp vec4 u_palette_color;
         
-varying vec2 v_pos;
+varying lowp vec2 v_distance_to_camera;
 
 #ifndef HAS_UNIFORM_u_color
     varying highp vec4 color;
@@ -236,17 +246,11 @@ void main() {
 #endif
 
     if (u_spotlight > 0.) {
-        const lowp float radius = 1500000.;
-        lowp float distance = pow(v_pos.x,2.) + pow(v_pos.y,2.);
-        lowp float centerFactor = clamp(distance/radius, 1.-u_spotlight, 1.);
-        centerFactor = pow(1. - centerFactor, 3.) * .8;
-        gl_FragColor.rgb = mix(color.rgb, color_flow(gl_FragCoord.xy), centerFactor) * opacity; // 距离屏幕中心点越近，越亮
+        // 距离屏幕中心点越近，越亮
+        lowp float film = clamp(v_distance_to_camera.y, 0., u_spotlight);
+        film = pow(film, 3.) * .8;
+        gl_FragColor.rgb = mix(color.rgb, color_flow(gl_FragCoord.xy), film) * opacity;
         gl_FragColor.a = color.a * opacity;
-    } else if (u_enable_palette) {
-        lowp float light = (color.r + color.g + color.b) / (u_palette_color.r + u_palette_color.g + u_palette_color.b);
-        gl_FragColor.rgb = u_palette_color.rgb * light;
-        gl_FragColor.a = color.a;
-        gl_FragColor *= opacity;
     } else {
         gl_FragColor = color * opacity;
     }

@@ -41,7 +41,8 @@ class LineProgram : public Program<
         uniforms::ratio,
         uniforms::units_to_pixels,
         uniforms::device_pixel_ratio,
-        uniforms::spotlight>,
+        uniforms::spotlight,
+        uniforms::visible_distance>,
     TypeList<>,
     style::LinePaintProperties>
 {

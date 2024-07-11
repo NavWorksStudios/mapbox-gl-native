@@ -4,6 +4,8 @@
 #include <mbgl/gfx/backend_scope.hpp>
 #include <mbgl/renderer/update_parameters.hpp>
 
+#include "mbgl/nav/nav_mb_style.hpp"
+
 GLFWRendererFrontend::GLFWRendererFrontend(std::unique_ptr<mbgl::Renderer> renderer_, GLFWView& glfwView_)
     : glfwView(glfwView_)
     , renderer(std::move(renderer_)) {
@@ -33,6 +35,8 @@ void GLFWRendererFrontend::render() {
     if (!updateParameters) return;
     
     mbgl::gfx::BackendScope guard { glfwView.getRendererBackend(), mbgl::gfx::BackendScope::ScopeType::Implicit };
+    
+    nav::style::visabledistance::update(updateParameters->transformState.getZoom());
 
     // onStyleImageMissing might be called during a render. The user implemented method
     // could trigger a call to MGLRenderFrontend#update which overwrites `updateParameters`.

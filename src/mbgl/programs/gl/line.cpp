@@ -83,6 +83,7 @@ struct ShaderSource<LineProgram> {
         uniform lowp float u_ratio;
         uniform lowp vec2 u_units_to_pixels;
         uniform lowp float u_device_pixel_ratio;
+        uniform lowp float u_visible_distance;
     
         attribute vec2 a_pos_normal;
         attribute vec4 a_data;
@@ -92,7 +93,7 @@ struct ShaderSource<LineProgram> {
         varying vec2 v_width2;
         varying float v_gamma_scale;
         varying highp float v_linesofar;
-        varying vec3 v_pos;
+        varying lowp vec2 v_distance_to_camera;
         
         #ifndef HAS_UNIFORM_u_color
             uniform lowp float u_color_t;
@@ -206,7 +207,15 @@ struct ShaderSource<LineProgram> {
             v_gamma_scale=extrude_length_without_perspective/extrude_length_with_perspective;
             v_width2=vec2(outset,inset);
     
-            v_pos = gl_Position.xyz;
+            lowp float distance2D = pow(gl_Position.x,2.)+pow(gl_Position.y,2.);
+            lowp float distance3D = distance2D+pow(gl_Position.z,2.);
+            if (distance3D > u_visible_distance) {
+                gl_Position.x = 1.e100;
+                return;
+            }
+
+            lowp float ratio = 1. - distance3D/u_visible_distance;
+            v_distance_to_camera = vec2(distance2D,ratio);
         }
 
     )"; }
@@ -237,10 +246,10 @@ struct ShaderSource<LineProgram> {
         uniform lowp float u_device_pixel_ratio;
         uniform lowp float u_spotlight;
 
-        varying vec2 v_width2;
-        varying vec2 v_normal;
-        varying float v_gamma_scale;
-        varying vec3 v_pos;
+        varying lowp vec2 v_width2;
+        varying lowp vec2 v_normal;
+        varying lowp float v_gamma_scale;
+        varying lowp vec2 v_distance_to_camera;
     
     #ifndef HAS_UNIFORM_u_color
         varying highp vec4 color;
@@ -279,9 +288,8 @@ struct ShaderSource<LineProgram> {
 
             // 距离屏幕中心点越近，越亮 [1, 0]
             lowp float radius = 1000000. * (1. - .7 * u_spotlight); // 聚光灯点亮后，将范围缩小为30%
-            lowp float distance = pow(v_pos.x,2.) + pow(v_pos.y,2.);
-            lowp float centerFactor = min(distance/radius, 1.);
-            centerFactor = pow(1. - centerFactor, 2.);
+            lowp float centerFactor = min(v_distance_to_camera.x/radius, 1.);
+            centerFactor = pow(1.-centerFactor, 2.);
         
             // 默认 + 开灯提亮 [.8, 1.6]
             lowp float spotlightFactor = .8 + .6 * u_spotlight;
@@ -294,7 +302,9 @@ struct ShaderSource<LineProgram> {
         lowp float blur2=(blur+1.0/u_device_pixel_ratio)*v_gamma_scale;
         lowp float alpha=clamp(min(dist-(v_width2.t-blur2),v_width2.s-dist)/blur2,0.0,1.0);
         gl_FragColor=color*(alpha*opacity);
-        
+    
+        gl_FragColor *= v_distance_to_camera.y;
+
     #ifdef OVERDRAW_INSPECTOR
         gl_FragColor=vec4(1.0);
     #endif

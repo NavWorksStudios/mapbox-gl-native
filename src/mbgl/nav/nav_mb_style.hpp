@@ -35,6 +35,11 @@ namespace landscape {
 float value();
 }
 
+namespace visabledistance {
+void update(float zoom);
+float value();
+}
+
 enum ViewMode : int8_t {
     Landscape,
     Normal,

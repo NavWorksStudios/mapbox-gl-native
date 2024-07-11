@@ -144,6 +144,20 @@ float value() {
 
 }
 
+namespace visabledistance {
+
+float distance = 0.;
+
+void update(float zoom) {
+    distance = pow(2., zoom) * 80.;
+}
+
+float value() {
+    return distance;
+}
+
+}
+
 void setViewMode(ViewMode mode) {
     switch (mode) {
         case Landscape:

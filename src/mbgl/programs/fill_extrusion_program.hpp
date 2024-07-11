@@ -26,7 +26,6 @@ MBGL_DEFINE_UNIFORM_VECTOR(float, 3, lightcolor);
 MBGL_DEFINE_UNIFORM_SCALAR(float,    lightintensity);
 MBGL_DEFINE_UNIFORM_SCALAR(float,    vertical_gradient);
 MBGL_DEFINE_UNIFORM_SCALAR(float,    height_factor);
-MBGL_DEFINE_UNIFORM_SCALAR(bool,     rendering_reflection);
 } // namespace uniforms
 
 using FillExtrusionLayoutAttributes = TypeList<
@@ -42,7 +41,8 @@ using FillExtrusionUniforms = TypeList<
     uniforms::vertical_gradient,
     uniforms::spotlight,
     uniforms::rendering_reflection,
-    uniforms::render_time>;
+    uniforms::render_time,
+    uniforms::visible_distance>;
 
 using FillExtrusionPatternUniforms = TypeList<
     uniforms::matrix,
@@ -59,7 +59,8 @@ using FillExtrusionPatternUniforms = TypeList<
     uniforms::vertical_gradient,
     uniforms::spotlight,
     uniforms::rendering_reflection,
-    uniforms::render_time>;
+    uniforms::render_time,
+    uniforms::visible_distance>;
 
 class FillExtrusionProgram : public Program<
     FillExtrusionProgram,

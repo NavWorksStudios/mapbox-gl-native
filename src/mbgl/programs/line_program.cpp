@@ -32,6 +32,7 @@ Values makeValuesForLine(const style::LinePaintProperties::PossiblyEvaluated& pr
         uniforms::units_to_pixels::Value({ {1.0f / pixelsToGLUnits[0], 1.0f / pixelsToGLUnits[1]} }),
         uniforms::device_pixel_ratio::Value( pixelRatio ),
         uniforms::spotlight::Value( nav::style::spotlight::value() ),
+        uniforms::visible_distance::Value( nav::style::visabledistance::value() * 4. ),
         std::forward<Args>(args)...
     };
 }

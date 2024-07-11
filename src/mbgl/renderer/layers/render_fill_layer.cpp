@@ -99,6 +99,7 @@ void RenderFillLayer::render(PaintParameters& parameters) {
                              auto&& textureBindings) {
                 const auto& paintPropertyBinders = bucket.paintPropertyBinders.at(getID());
 
+                const auto& color = nav::palette::getColorBase();
                 const auto allUniformValues = programInstance.computeAllUniformValues(
                     FillProgram::LayoutUniformValues {
                         uniforms::matrix::Value(
@@ -108,9 +109,10 @@ void RenderFillLayer::render(PaintParameters& parameters) {
                         ),
                         uniforms::world::Value( parameters.backend.getDefaultRenderable().getSize() ),
                         uniforms::spotlight::Value( nav::style::spotlight::value() ),
-                        uniforms::render_time::Value(nav::style::rendertime::value()),
-                        uniforms::enable_palette::Value(enableShaderPalette),
-                        uniforms::palette_color::Value(nav::palette::getColorBase()),
+                        uniforms::render_time::Value( nav::style::rendertime::value() ),
+                        uniforms::palette_color::Value( color ),
+                        uniforms::palette_lightness::Value( enableShaderPalette ? color.r+color.g+color.b : 0 ),
+                        uniforms::visible_distance::Value( nav::style::visabledistance::value() ),
                     },
                     paintPropertyBinders,
                     evaluated,

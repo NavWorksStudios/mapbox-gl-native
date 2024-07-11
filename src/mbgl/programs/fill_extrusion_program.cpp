@@ -45,6 +45,7 @@ FillExtrusionProgram::LayoutUniformValues FillExtrusionProgram::layoutUniformVal
         uniforms::spotlight::Value( nav::style::spotlight::value() ),
         uniforms::rendering_reflection::Value( renderingReflection ),
         uniforms::render_time::Value( nav::style::rendertime::value() ),
+        uniforms::visible_distance::Value( nav::style::visabledistance::value() ),
     };
 }
 
@@ -81,6 +82,7 @@ FillExtrusionPatternProgram::layoutUniformValues(mat4 matrix,
         uniforms::spotlight::Value( nav::style::spotlight::value() ),
         uniforms::rendering_reflection::Value( renderingReflection ),
         uniforms::render_time::Value( nav::style::rendertime::value() ),
+        uniforms::visible_distance::Value( nav::style::visabledistance::value() ),
     };
 }
 
