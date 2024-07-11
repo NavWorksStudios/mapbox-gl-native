@@ -88,10 +88,10 @@ struct ShaderSource<FillExtrusionProgram> {
         attribute highp vec2 a_pos;
         attribute lowp vec4 a_normal_ed;
     
-        varying vec2 v_pos;
-        varying vec4 v_color;
+        varying lowp vec4 v_color;
+        varying lowp vec2 v_distance_ratio;
         varying lowp vec2 v_edge_ratio;
-        varying lowp vec2 v_v_factor;
+        varying lowp vec2 v_height_ratio;
                 
         #ifndef HAS_UNIFORM_u_base
         uniform lowp float u_base_t;
@@ -151,19 +151,7 @@ struct ShaderSource<FillExtrusionProgram> {
                 directional *= ((1.0 - u_vertical_gradient) + (u_vertical_gradient * vertical_factor));
             }
     
-            // position
-            if (u_rendering_reflection) {
-                base=-base;
-                height=-height;
-            }
-            gl_Position=u_matrix*vec4(a_pos, h?height:base, 1.);
-            v_pos=gl_Position.xy;
-    
-            // light
-            const lowp float radius = 500000.;
-            lowp float distance = pow(v_pos.x,2.) + pow(v_pos.y,2.);
-            lowp float centerFactor = 1. - min(distance/radius, 1.);
-            directional*=(1.+u_spotlight+centerFactor);
+            directional*=(1.+u_spotlight);
     
             // ambient light
 //            vec4 ambientlight=vec4(0.03,0.03,0.03,1.0);
@@ -177,14 +165,24 @@ struct ShaderSource<FillExtrusionProgram> {
 
             // reflection
             if (u_rendering_reflection) {
-                v_color *= u_opacity * .1;
+                base=-base;
+                height=-height;
+                v_color*=u_opacity * .1;
             } else {
-                v_color *= u_opacity * (.8 + .2 * u_spotlight);
+                v_color*=u_opacity * (.8 + .2 * u_spotlight);
             }
+    
+            // position
+            gl_Position=u_matrix*vec4(a_pos, h?height:base, 1.);
+            lowp float distance = pow(gl_Position.x,2.)+pow(gl_Position.y,2.)+pow(gl_Position.z,2.);
+            lowp float ratio = min(distance/50000000.,1.);
+            v_distance_ratio = vec2(distance,ratio);
+    
+            v_color*=1.-v_distance_ratio.y;
             
             lowp float tall=abs(height-base);
             v_edge_ratio=vec2(8./tall,12./tall);    // 上下边缘比例
-            v_v_factor=vec2(h?1.:0.,0);             // h ? top or bottom
+            v_height_ratio=vec2(h?1.:0.,0);       // h ? top or bottom
         }
         
     )"; }
@@ -215,10 +213,10 @@ struct ShaderSource<FillExtrusionProgram> {
         uniform bool u_rendering_reflection;
         uniform lowp float u_render_time;
 
-        varying vec2 v_pos;
-        varying vec4 v_color;
+        varying lowp vec4 v_color;
+        varying lowp vec2 v_distance_ratio;
         varying lowp vec2 v_edge_ratio;
-        varying lowp vec2 v_v_factor;
+        varying lowp vec2 v_height_ratio;
 
         void main() {
 
@@ -236,26 +234,20 @@ struct ShaderSource<FillExtrusionProgram> {
             //
             lowp float top = 0.;
             lowp float bottom = 0.;
-            if (v_v_factor.x > .99999) {
+            if (v_height_ratio.x > .99999) {
                 top = .8; // 楼顶
-            } else if (v_v_factor.x > 1. - v_edge_ratio[1]) { // 上边缘
-                top = (v_v_factor.x + v_edge_ratio[1] - 1.) / v_edge_ratio[1];
-            } else if (v_v_factor.x < v_edge_ratio[0]) { // 下边缘
-                bottom = (v_edge_ratio[0] - v_v_factor.x) / v_edge_ratio[0];
+            } else if (v_height_ratio.x > 1. - v_edge_ratio[1]) { // 上边缘
+                top = (v_height_ratio.x + v_edge_ratio[1] - 1.) / v_edge_ratio[1];
+            } else if (v_height_ratio.x < v_edge_ratio[0]) { // 下边缘
+                bottom = (v_edge_ratio[0] - v_height_ratio.x) / v_edge_ratio[0];
             }
             lowp float edgeFactor = pow(max(top, bottom), 3.);
     
-            lowp float centerFactor = 1.;
-            if (u_spotlight > 0.) {
-                // 距离屏幕中心点越近，越透明
-                // u_spotlight[0,1]
-                // u_spotlight ∈ 0，centerFactor[1,1]
-                // u_spotlight ∈ 1，centerFactor[0,1]
-                //
-                const lowp float radius = 1000000.;
-                lowp float distance = pow(v_pos.x,2.) + pow(v_pos.y,2.);
-                centerFactor = clamp(distance/radius, 1.-u_spotlight, 1.);
-            }
+            // 距离屏幕中心点越近，越透明
+            // u_spotlight[0,1]
+            // u_spotlight=0，centerFactor=1
+            // u_spotlight>0，centerFactor[0,1]
+            lowp float centerFactor = u_spotlight>0. ? clamp(v_distance_ratio.y,1.-u_spotlight,1.) : 1.;
 
             gl_FragColor.rgb = v_color.rgb * (edgeFactor * .6 + centerFactor * .4);
             gl_FragColor.a = v_color.a * centerFactor;
