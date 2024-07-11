@@ -293,10 +293,12 @@ void GLFWView::onKey(int key, int action, int mods) {
                 if(!routePaused) {
                     routePaused = true;
                     puckFollowsCameraCenter = true;
+                    nav::style::setViewMode(nav::style::ViewMode::Normal);
                 }
                 else { // routePaused == true
                     routePaused = false;
                     puckFollowsCameraCenter = true;
+                    nav::style::setViewMode(nav::style::ViewMode::Spotlight);
                 }
             }
         }
@@ -410,6 +412,8 @@ void GLFWView::onKey(int key, int action, int mods) {
 
             animateRouteCallback = [this, route](mbgl::Map* routeMap) {
                 // 导航模式暂停时，不处理任何逻辑直接返回
+                if(puck == nullptr)
+                    return;
                 if(routePaused)
                     return;
                 
@@ -723,10 +727,10 @@ void GLFWView::addLineAnnotations(const mbgl::LatLng& tagPosition) {
     lineString.push_back({ mapCenter.longitude(), mapCenter.latitude() });
     lineString.push_back({ tagPosition.longitude(), tagPosition.latitude() });
     if(annotationIDs.size() > 0) {
-        map->updateAnnotation(annotationIDs[0], mbgl::LineAnnotation { lineString, 1.0f, 3.0f, { makeRandomColor() } });
+        map->updateAnnotation(annotationIDs[0], mbgl::LineAnnotation { lineString, 1.0f, 3.0f, { mbgl::Color::red() } });
     }
     else {
-        annotationIDs.push_back(map->addAnnotation(mbgl::LineAnnotation { lineString, 1.0f, 3.0f, { makeRandomColor() } }));
+        annotationIDs.push_back(map->addAnnotation(mbgl::LineAnnotation { lineString, 1.0f, 3.0f, { mbgl::Color::red() } }));
     }
 }
 
@@ -746,7 +750,7 @@ void GLFWView::updateLineAnnotations(const mbgl::LatLng& orgPosition, const mbgl
     lineString.push_back({ orgPosition.longitude(), orgPosition.latitude() });
     lineString.push_back({ tagPosition.longitude(), tagPosition.latitude() });
     if(annotationIDs.size() > 0) {
-        map->updateAnnotation(annotationIDs[0], mbgl::LineAnnotation { lineString, 1.0f, 3.0f, { makeRandomColor() } });
+        map->updateAnnotation(annotationIDs[0], mbgl::LineAnnotation { lineString, 1.0f, 3.0f, { mbgl::Color::red() } });
     }
 }
 
@@ -867,8 +871,8 @@ void GLFWView::onScroll(GLFWwindow *window, double /*xOffset*/, double yOffset) 
 
 void GLFWView::onScroll(double yOffset) {
     
-    if(puck && puckFollowsCameraCenter) {
-        puckFollowsCameraCenter = false;
+    if(puck && puckFollowsCameraCenter && !routePaused) {
+        return;
     }
     
     double delta = yOffset * 40;
@@ -983,6 +987,7 @@ void GLFWView::onMouseMove(double x, double y) {
             
             if(puck && puckFollowsCameraCenter) {
                 puckFollowsCameraCenter = false;
+                nav::style::setViewMode(nav::style::ViewMode::Normal);
             }
         }
     }
@@ -1228,7 +1233,7 @@ void GLFWView::toggleLocationIndicatorLayer(bool visibility) {
         puckLayer->setAccuracyRadiusBorderColor(premultiply(mbgl::Color{0.95, 0.95, 0.95, 0}));
         puckLayer->setTopImageSize(0.18);
         puckLayer->setBearingImageSize(0.26);
-        puckLayer->setShadowImageSize(0.5);
+        puckLayer->setShadowImageSize(0.2);
         puckLayer->setImageTiltDisplacement(7.0f); // set to 0 for a "flat" puck
         puckLayer->setPerspectiveCompensation(0.9);
 
