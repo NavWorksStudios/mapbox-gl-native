@@ -576,6 +576,7 @@ void GLFWView::onKey(int key, int action, int mods) {
             toggleLocationIndicatorLayer(false);
             hideCurrentLineAnnotations();
             puck = nullptr;
+            animateRouteCallback = nullptr;
         } break;
         case GLFW_KEY_Y: {
             freeCameraDemoPhase = 0;
