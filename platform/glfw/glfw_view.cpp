@@ -281,11 +281,26 @@ void GLFWView::onKey(GLFWwindow *window, int key, int /*scancode*/, int action, 
 
 void GLFWView::onKey(int key, int action, int mods) {
     if (action == GLFW_RELEASE) {
-        if (key != GLFW_KEY_R && key == GLFW_KEY_SPACE) {
+        /*
+         * 优先处理空格键对于导航模式的控制
+         * 1. 非导航模式：无任何操作
+         * 2. 导航模式 - 运行状态：导航暂停&相机回归屏幕中心
+         * 3. 导航模式 - 暂停状态：导航恢复&相机回归屏幕中心
+         */
+        if (key == GLFW_KEY_SPACE) {
             // animateRouteCallback = nullptr;
-            toggleLocationIndicatorLayer(false);
-            hideCurrentLineAnnotations();
-            nav::style::setViewMode(nav::style::ViewMode::Normal);
+            if (puck != nullptr) {
+                if(!routePaused) {
+                    routePaused = true;
+                    puckFollowsCameraCenter = true;
+                    nav::style::setViewMode(nav::style::ViewMode::Normal);
+                }
+                else { // routePaused == true
+                    routePaused = false;
+                    puckFollowsCameraCenter = true;
+                    nav::style::setViewMode(nav::style::ViewMode::Spotlight);
+                }
+            }
         }
 
         switch (key) {
@@ -396,6 +411,12 @@ void GLFWView::onKey(int key, int action, int mods) {
             addLineAnnotations({20.0, 20.0});
 
             animateRouteCallback = [this, route](mbgl::Map* routeMap) {
+                // 导航模式暂停时，不处理任何逻辑直接返回
+                if(puck == nullptr)
+                    return;
+                if(routePaused)
+                    return;
+                
                 const auto& geometry = route.get<mapbox::geometry::geometry<double>>();
                 const auto& lineString = geometry.get<mapbox::geometry::line_string<double>>();
                 
@@ -422,14 +443,9 @@ void GLFWView::onKey(int key, int action, int mods) {
                     updateLineAnnotations(mapCenter, {20.0, 20.0});
                 }
                 else {
-                    puck->setLocation(toArray({point.x, point.y}));
+                    puck->setLocation(toArray({point.y, point.x}));
                     puck->setBearing(mbgl::style::Rotation(bearing));
                     updateLineAnnotations({point.y, point.x}, {20.0, 20.0});
-//                    routeMap->jumpTo(mbgl::CameraOptions().withCenter(center).withZoom(18).withBearing(bearing).withPitch(60.0));
-//                    mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
-//                    puck->setLocation(toArray(mapCenter));
-//                    puck->setBearing(mbgl::style::Rotation(bearing));
-//                    updateLineAnnotations(mapCenter, {20.0, 20.0});
                 }
             };
             
@@ -558,6 +574,9 @@ void GLFWView::onKey(int key, int action, int mods) {
         } break;
         case GLFW_KEY_G: {
             toggleLocationIndicatorLayer(false);
+            hideCurrentLineAnnotations();
+            puck = nullptr;
+            animateRouteCallback = nullptr;
         } break;
         case GLFW_KEY_Y: {
             freeCameraDemoPhase = 0;
@@ -709,10 +728,10 @@ void GLFWView::addLineAnnotations(const mbgl::LatLng& tagPosition) {
     lineString.push_back({ mapCenter.longitude(), mapCenter.latitude() });
     lineString.push_back({ tagPosition.longitude(), tagPosition.latitude() });
     if(annotationIDs.size() > 0) {
-        map->updateAnnotation(annotationIDs[0], mbgl::LineAnnotation { lineString, 1.0f, 3.0f, { makeRandomColor() } });
+        map->updateAnnotation(annotationIDs[0], mbgl::LineAnnotation { lineString, 1.0f, 3.0f, { mbgl::Color::red() } });
     }
     else {
-        annotationIDs.push_back(map->addAnnotation(mbgl::LineAnnotation { lineString, 1.0f, 3.0f, { makeRandomColor() } }));
+        annotationIDs.push_back(map->addAnnotation(mbgl::LineAnnotation { lineString, 1.0f, 3.0f, { mbgl::Color::red() } }));
     }
 }
 
@@ -732,7 +751,7 @@ void GLFWView::updateLineAnnotations(const mbgl::LatLng& orgPosition, const mbgl
     lineString.push_back({ orgPosition.longitude(), orgPosition.latitude() });
     lineString.push_back({ tagPosition.longitude(), tagPosition.latitude() });
     if(annotationIDs.size() > 0) {
-        map->updateAnnotation(annotationIDs[0], mbgl::LineAnnotation { lineString, 1.0f, 3.0f, { makeRandomColor() } });
+        map->updateAnnotation(annotationIDs[0], mbgl::LineAnnotation { lineString, 1.0f, 3.0f, { mbgl::Color::red() } });
     }
 }
 
@@ -852,6 +871,11 @@ void GLFWView::onScroll(GLFWwindow *window, double /*xOffset*/, double yOffset) 
 }
 
 void GLFWView::onScroll(double yOffset) {
+    
+    if(puck && puckFollowsCameraCenter && !routePaused) {
+        return;
+    }
+    
     double delta = yOffset * 40;
 
     bool isWheel = delta != 0 && std::fmod(delta, 4.000244140625) == 0;
@@ -873,11 +897,12 @@ void GLFWView::onScroll(double yOffset) {
         map->scaleBy(scale, _mouseHistory[0].coord);
     }
 
+    // #*# 需要改造
 #if defined(MBGL_RENDER_BACKEND_OPENGL) && !defined(MBGL_LAYER_CUSTOM_DISABLE_ALL)
-    if (puck && puckFollowsCameraCenter) {
-        mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
-        puck->setLocation(toArray(mapCenter));
-    }
+//    if (puck && puckFollowsCameraCenter) {
+//        mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
+//        puck->setLocation(toArray(mapCenter));
+//    }
 #endif
 }
 
@@ -963,6 +988,7 @@ void GLFWView::onMouseMove(double x, double y) {
             
             if(puck && puckFollowsCameraCenter) {
                 puckFollowsCameraCenter = false;
+                nav::style::setViewMode(nav::style::ViewMode::Normal);
             }
         }
     }
@@ -986,6 +1012,7 @@ void GLFWView::onMouseMove(double x, double y) {
     
 
 #if defined(MBGL_RENDER_BACKEND_OPENGL) && !defined(MBGL_LAYER_CUSTOM_DISABLE_ALL)
+    // #*#目前逻辑没啥用
 //    if (puck && puckFollowsCameraCenter) {
 //        mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
 //        puck->setLocation(toArray(mapCenter));
@@ -1207,7 +1234,7 @@ void GLFWView::toggleLocationIndicatorLayer(bool visibility) {
         puckLayer->setAccuracyRadiusBorderColor(premultiply(mbgl::Color{0.95, 0.95, 0.95, 0}));
         puckLayer->setTopImageSize(0.18);
         puckLayer->setBearingImageSize(0.26);
-        puckLayer->setShadowImageSize(0.5);
+        puckLayer->setShadowImageSize(0.2);
         puckLayer->setImageTiltDisplacement(7.0f); // set to 0 for a "flat" puck
         puckLayer->setPerspectiveCompensation(0.9);
 
@@ -1233,15 +1260,12 @@ void GLFWView::toggleLocationIndicatorLayer(bool visibility) {
         puck->setLocation(toArray(puckLocation));
         puck->setVisibility(mbgl::style::VisibilityType(mbgl::style::VisibilityType::Visible));
         puckFollowsCameraCenter = true;
+        routePaused = false;
     } else {
-        if (puckFollowsCameraCenter) {
-            puck->setVisibility(mbgl::style::VisibilityType(mbgl::style::VisibilityType::None));
-            puckFollowsCameraCenter = false;
-        } else {
-            mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
-            puck->setLocation(toArray(mapCenter));
-            puckFollowsCameraCenter = true;
-        }
+        puck->setLocation(toArray(puckLocation));
+        puck->setVisibility(mbgl::style::VisibilityType(mbgl::style::VisibilityType::None));
+        puckFollowsCameraCenter = true;
+        routePaused = true;
     }
 #endif
 }
@@ -1250,11 +1274,14 @@ using Nanoseconds = std::chrono::nanoseconds;
 
 void GLFWView::onWillStartRenderingFrame() {
 #if defined(MBGL_RENDER_BACKEND_OPENGL) && !defined(MBGL_LAYER_LOCATION_INDICATOR_DISABLE_ALL)
-    puck = static_cast<mbgl::style::LocationIndicatorLayer *>(map->getStyle().getLayer("puck"));
-    if (puck) {
-        uint64_t ns = mbgl::Clock::now().time_since_epoch().count();
-        const double bearing = double(ns % 2000000000) / 2000000000.0 * 360.0;
-        puck->setBearing(mbgl::style::Rotation(bearing));
-    }
+//    puck = static_cast<mbgl::style::LocationIndicatorLayer *>(map->getStyle().getLayer("puck"));
+//    if (puck) {
+//        // #*# 导航箭头方向
+//        if(!routePaused) {
+//            uint64_t ns = mbgl::Clock::now().time_since_epoch().count();
+//            const double bearing = double(ns % 2000000000) / 2000000000.0 * 360.0;
+//            puck->setBearing(mbgl::style::Rotation(bearing));
+//        }
+//    }
 #endif
 }
