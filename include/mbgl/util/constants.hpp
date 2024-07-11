@@ -39,6 +39,7 @@ constexpr double MIN_ZOOM = 0.0;
 constexpr double MAX_ZOOM = 25.5;
 constexpr float  MIN_ZOOM_F = MIN_ZOOM;
 constexpr float  MAX_ZOOM_F = MAX_ZOOM;
+constexpr uint8_t DEFAULT_MIN_ZOOM = 2;
 constexpr uint8_t DEFAULT_MAX_ZOOM = 22;
 
 // ONE_EM constant used to go between "em" units used in style spec and "points" used internally for layout.

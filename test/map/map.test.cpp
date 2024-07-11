@@ -419,7 +419,7 @@ TEST(Map, DefaultBoundOptions) {
     EXPECT_TRUE(bounds.maxZoom);
     EXPECT_TRUE(bounds.bounds);
 
-    EXPECT_EQ(*bounds.minZoom, util::MIN_ZOOM);
+    EXPECT_EQ(*bounds.minZoom, util::DEFAULT_MIN_ZOOM);
     EXPECT_EQ(*bounds.maxZoom, util::DEFAULT_MAX_ZOOM);
     EXPECT_EQ(*bounds.bounds, LatLngBounds());
 }

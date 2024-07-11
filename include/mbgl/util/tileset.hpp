@@ -25,7 +25,7 @@ public:
     optional<LatLngBounds> bounds;
 
     Tileset(std::vector<std::string> tiles_ = std::vector<std::string>(),
-            Range<uint8_t> zoomRange_ = {0, util::DEFAULT_MAX_ZOOM},
+            Range<uint8_t> zoomRange_ = {util::DEFAULT_MIN_ZOOM, util::DEFAULT_MAX_ZOOM},
             std::string attribution_ = {},
             Scheme scheme_ = Scheme::XYZ,
             DEMEncoding encoding_ = DEMEncoding::Mapbox)

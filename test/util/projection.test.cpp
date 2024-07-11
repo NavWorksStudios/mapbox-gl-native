@@ -11,7 +11,7 @@ TEST(Projection, Boundaries) {
     LatLng sw { -90.0, -180.0 };
     LatLng ne { 90.0, 180.0 };
 
-    const double minScale = std::pow(2, 0);
+    const double minScale = std::pow(2, util::DEFAULT_MIN_ZOOM);
     const double maxScale = std::pow(2, util::DEFAULT_MAX_ZOOM);
 
     Point<double> projected {};
