@@ -144,7 +144,7 @@ float value() {
 
 }
 
-namespace visabledistance {
+namespace distance {
 
 float distance = 0.;
 
@@ -152,7 +152,7 @@ void update(float zoom) {
     distance = pow(2., zoom) * 80.;
 }
 
-float value() {
+float clipping() {
     return distance;
 }
 

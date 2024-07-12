@@ -69,13 +69,13 @@ MBGL_DEFINE_UNIFORM_SCALAR(float, scale_b);
 MBGL_DEFINE_UNIFORM_SCALAR(float, tile_units_to_pixels);
 MBGL_DEFINE_UNIFORM_SCALAR(float, overscale_factor);
 
+MBGL_DEFINE_UNIFORM_SCALAR(bool, render_reflection);
+MBGL_DEFINE_UNIFORM_SCALAR(float, clipping_distance);
 
 MBGL_DEFINE_UNIFORM_SCALAR(float, spotlight);
 MBGL_DEFINE_UNIFORM_SCALAR(float, render_time);
-MBGL_DEFINE_UNIFORM_SCALAR(bool, rendering_reflection);
 MBGL_DEFINE_UNIFORM_SCALAR(Color, palette_color);
 MBGL_DEFINE_UNIFORM_SCALAR(float, palette_lightness);
-MBGL_DEFINE_UNIFORM_SCALAR(float, visible_distance);
 
 } // namespace uniforms
 } // namespace mbgl

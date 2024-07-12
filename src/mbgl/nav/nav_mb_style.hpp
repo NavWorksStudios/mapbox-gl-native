@@ -35,9 +35,9 @@ namespace landscape {
 float value();
 }
 
-namespace visabledistance {
+namespace distance {
 void update(float zoom);
-float value();
+float clipping();
 }
 
 enum ViewMode : int8_t {

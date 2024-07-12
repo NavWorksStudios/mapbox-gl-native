@@ -40,9 +40,9 @@ using FillExtrusionUniforms = TypeList<
     uniforms::lightintensity,
     uniforms::vertical_gradient,
     uniforms::spotlight,
-    uniforms::rendering_reflection,
+    uniforms::render_reflection,
     uniforms::render_time,
-    uniforms::visible_distance>;
+    uniforms::clipping_distance>;
 
 using FillExtrusionPatternUniforms = TypeList<
     uniforms::matrix,
@@ -58,9 +58,9 @@ using FillExtrusionPatternUniforms = TypeList<
     uniforms::lightintensity,
     uniforms::vertical_gradient,
     uniforms::spotlight,
-    uniforms::rendering_reflection,
+    uniforms::render_reflection,
     uniforms::render_time,
-    uniforms::visible_distance>;
+    uniforms::clipping_distance>;
 
 class FillExtrusionProgram : public Program<
     FillExtrusionProgram,

@@ -83,14 +83,15 @@ struct ShaderSource<FillExtrusionProgram> {
         uniform lowp float u_vertical_gradient;
         uniform lowp float u_opacity;
         uniform lowp float u_spotlight;
-        uniform bool u_rendering_reflection;
-        uniform lowp float u_visible_distance;
+        uniform bool u_render_reflection;
+        uniform lowp float u_clipping_distance;
     
         attribute highp vec2 a_pos;
         attribute lowp vec4 a_normal_ed;
     
+        varying lowp vec2 v_pos;
         varying lowp vec4 v_color;
-        varying lowp vec2 v_distance_to_camera;
+        varying lowp vec2 v_clipping;
         varying lowp vec2 v_edge_ratio;
         varying lowp vec2 v_height_ratio;
                 
@@ -134,6 +135,8 @@ struct ShaderSource<FillExtrusionProgram> {
             highp vec4 color=u_color;
         #endif
     
+            // ----------------------------- vertex position -----------------------------
+    
             // normal
             lowp vec3 normal=a_normal_ed.xyz;
         
@@ -143,23 +146,28 @@ struct ShaderSource<FillExtrusionProgram> {
             bool h=mod(normal.x,2.0)>0.0;
 
             // position
-            if (u_rendering_reflection) {
+            if (u_render_reflection) {
                 gl_Position=u_matrix*vec4(a_pos,h?-height:-base,1.);
             } else {
                 gl_Position=u_matrix*vec4(a_pos,h?height:base,1.);
             }
 
-            // distance to canmera
-            lowp float distance = pow(gl_Position.x,2.)+pow(gl_Position.y,2.)+pow(gl_Position.z,2.);
-            if (u_rendering_reflection) distance *= 4.;
-            if (distance > u_visible_distance) {
-                gl_Position.x = 1.e100;
+            // clipping
+            lowp float distance=pow(gl_Position.x,2.)+pow(gl_Position.z,2.);
+            if (u_render_reflection) distance*=3.;
+            if (distance > u_clipping_distance) {
+                gl_Position.x=1.e100;
                 return;
             }
     
-            // visibility
-            lowp float visiblity = 1.-distance/u_visible_distance;
-            v_distance_to_camera = vec2(distance,visiblity);
+            v_pos=gl_Position.xy;
+    
+            // 上下边缘比例
+            lowp float tall=abs(height-base);
+            v_edge_ratio=vec2(8./tall,12./tall);
+            v_height_ratio=vec2(h?1.:0.,0); // h ? top or bottom
+    
+            // ----------------------------- vertex color -----------------------------
 
             // directional light
             float colorvalue = color.r*0.2126 + color.g*0.7152 + color.b*0.0722;
@@ -182,17 +190,14 @@ struct ShaderSource<FillExtrusionProgram> {
             v_color.b=clamp(color.b*directional*u_lightcolor.b, 0.3*(1.0-u_lightcolor.b), 1.0);
             v_color.a=1.0;
 
-            visiblity = (visiblity>0.5) ? 1. : visiblity/0.5; // 仅对远近透明控制
-    
-            if (u_rendering_reflection) {
-                v_color *= u_opacity * visiblity * .2;
+            // fadeout by distance
+            lowp float fadeout = max(1.-distance/u_clipping_distance, 0.);
+            fadeout = (fadeout>0.5) ? 1. : fadeout/0.5;
+            if (u_render_reflection) {
+                v_color *= u_opacity * fadeout * .1;
             } else {
-                v_color *= u_opacity * visiblity * (.8 + .2 * u_spotlight);
+                v_color *= u_opacity * fadeout * (.8 + .2 * u_spotlight);
             }
-            
-            lowp float tall=abs(height-base);
-            v_edge_ratio=vec2(8./tall, 12./tall);    // 上下边缘比例
-            v_height_ratio=vec2(h?1.:0., 0);         // h ? top or bottom
         }
         
     )"; }
@@ -220,11 +225,12 @@ struct ShaderSource<FillExtrusionProgram> {
     static const char* navFragment(const char* ) { return R"(
 
         uniform lowp float u_spotlight;
-        uniform bool u_rendering_reflection;
+        uniform bool u_render_reflection;
         uniform lowp float u_render_time;
 
+        varying lowp vec2 v_pos;
         varying lowp vec4 v_color;
-        varying lowp vec2 v_distance_to_camera;
+        varying lowp vec2 v_clipping;
         varying lowp vec2 v_edge_ratio;
         varying lowp vec2 v_height_ratio;
 
@@ -244,7 +250,7 @@ struct ShaderSource<FillExtrusionProgram> {
             //
             lowp float top = 0.;
             lowp float bottom = 0.;
-            if (v_height_ratio.x > .99999) {                            // 楼顶
+            if (v_height_ratio.x > .9999) {                             // 楼顶
                 top = .8;
             } else if (v_height_ratio.x > 1. - v_edge_ratio[1]) {       // 上边缘
                 top = (v_height_ratio.x + v_edge_ratio[1] - 1.) / v_edge_ratio[1];
@@ -252,15 +258,20 @@ struct ShaderSource<FillExtrusionProgram> {
                 bottom = (v_edge_ratio[0] - v_height_ratio.x) / v_edge_ratio[0];
             }
 
-            lowp float edgeFactor = pow(max(top, bottom), 3.);
+            lowp float edgeFactor = pow(max(top,bottom),3.);
     
-            // 距离屏幕中心点越近，越透明
-            // u_spotlight[0,1]
-            // u_spotlight=0，centerFactor=1
-            // u_spotlight>0，centerFactor[0,1]
-            lowp float centerFactor = (u_spotlight>0.) ? 1.-clamp(v_distance_to_camera.y, 0., u_spotlight) : 1.;
+            lowp float centerFactor = 1.;
+            if (u_spotlight > 0.) {
+                // 距离屏幕中心点越近，越透明
+                // u_spotlight[0,1]
+                // u_spotlight=0，centerFactor[1,1]
+                // u_spotlight>1，centerFactor[0,1]
+                //
+                lowp float distance = pow(v_pos.x,2.) + pow(v_pos.y,2.);
+                centerFactor = clamp(distance/5000000., 1.-u_spotlight, 1.);
+            }
 
-            gl_FragColor.rgb = v_color.rgb * (edgeFactor*.5 + centerFactor*.5);
+            gl_FragColor.rgb = v_color.rgb * (edgeFactor*.5 + centerFactor*.5 + .1);
             gl_FragColor.a = v_color.a * centerFactor;
         
         #ifdef OVERDRAW_INSPECTOR

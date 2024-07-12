@@ -43,9 +43,9 @@ FillExtrusionProgram::LayoutUniformValues FillExtrusionProgram::layoutUniformVal
         uniforms::lightintensity::Value( lightIntensity(light) ),
         uniforms::vertical_gradient::Value( verticalGradient ),
         uniforms::spotlight::Value( nav::style::spotlight::value() ),
-        uniforms::rendering_reflection::Value( renderingReflection ),
+        uniforms::render_reflection::Value( renderingReflection ),
         uniforms::render_time::Value( nav::style::rendertime::value() ),
-        uniforms::visible_distance::Value( nav::style::visabledistance::value() ),
+        uniforms::clipping_distance::Value( nav::style::distance::clipping() ),
     };
 }
 
@@ -80,9 +80,9 @@ FillExtrusionPatternProgram::layoutUniformValues(mat4 matrix,
         uniforms::lightintensity::Value( lightIntensity(light) ),
         uniforms::vertical_gradient::Value( verticalGradient ),
         uniforms::spotlight::Value( nav::style::spotlight::value() ),
-        uniforms::rendering_reflection::Value( renderingReflection ),
+        uniforms::render_reflection::Value( renderingReflection ),
         uniforms::render_time::Value( nav::style::rendertime::value() ),
-        uniforms::visible_distance::Value( nav::style::visabledistance::value() ),
+        uniforms::clipping_distance::Value( nav::style::distance::clipping() ),
     };
 }
 

@@ -112,7 +112,6 @@ void RenderFillLayer::render(PaintParameters& parameters) {
                         uniforms::render_time::Value( nav::style::rendertime::value() ),
                         uniforms::palette_color::Value( color ),
                         uniforms::palette_lightness::Value( enableShaderPalette ? color.r+color.g+color.b : 0 ),
-                        uniforms::visible_distance::Value( nav::style::visabledistance::value() ),
                     },
                     paintPropertyBinders,
                     evaluated,
