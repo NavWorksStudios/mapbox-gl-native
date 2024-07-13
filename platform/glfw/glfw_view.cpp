@@ -416,6 +416,13 @@ void GLFWView::onKey(int key, int action, int mods) {
                     return;
                 if(routePaused)
                     return;
+                if(!puckFollowsCameraCenter) {
+                    if(notFollowCounter++>150) {
+                        notFollowCounter = 0;
+                        puckFollowsCameraCenter = true;
+                        nav::style::setViewMode(nav::style::ViewMode::Spotlight);
+                    }
+                }
                 
                 const auto& geometry = route.get<mapbox::geometry::geometry<double>>();
                 const auto& lineString = geometry.get<mapbox::geometry::line_string<double>>();
