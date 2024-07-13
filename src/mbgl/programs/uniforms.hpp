@@ -76,6 +76,7 @@ MBGL_DEFINE_UNIFORM_SCALAR(float, spotlight);
 MBGL_DEFINE_UNIFORM_SCALAR(float, render_time);
 MBGL_DEFINE_UNIFORM_SCALAR(Color, palette_color);
 MBGL_DEFINE_UNIFORM_SCALAR(float, palette_lightness);
+MBGL_DEFINE_UNIFORM_SCALAR(bool, enable_water_effect);
 
 } // namespace uniforms
 } // namespace mbgl

@@ -40,6 +40,7 @@ RenderFillLayer::RenderFillLayer(Immutable<style::FillLayer::Impl> _impl)
     bindToPalette(baseImpl->id, "fill-outline-color", unevaluated.get<FillOutlineColor>().value);
 
     enableShaderPalette = nav::palette::enableShaderPalette(baseImpl->id);
+    enableWaterEffect = (baseImpl->id == "water");
 }
 
 RenderFillLayer::~RenderFillLayer() = default;
@@ -111,7 +112,8 @@ void RenderFillLayer::render(PaintParameters& parameters) {
                         uniforms::spotlight::Value( nav::style::spotlight::value() ),
                         uniforms::render_time::Value( nav::style::rendertime::value() ),
                         uniforms::palette_color::Value( color ),
-                        uniforms::palette_lightness::Value( enableShaderPalette ? color.r+color.g+color.b : 0 ),
+                        uniforms::palette_lightness::Value( enableShaderPalette ? (color.r+color.g+color.b)/3. : 0 ),
+                        uniforms::enable_water_effect::Value( enableWaterEffect ),
                     },
                     paintPropertyBinders,
                     evaluated,
@@ -152,7 +154,7 @@ void RenderFillLayer::render(PaintParameters& parameters) {
                      *bucket.triangleIndexBuffer,
                      bucket.triangleSegments,
                      FillProgram::TextureBindings{
-                        textures::matcap::Value{ nav::style::texture::get("matcap.4.png"), gfx::TextureFilterType::Linear },
+                        textures::gray_noise::Value{ nav::style::texture::get("gray_noise_medium"), gfx::TextureFilterType::Linear },
                      });
             }
 
