@@ -271,7 +271,7 @@ struct ShaderSource<FillExtrusionProgram> {
         varying lowp float v_centerFactor;
 
         void main() {
-            lowp float lighten = 0.;
+            lowp float lighten;
             if (v_height>.9999) {
                 // 楼顶 镜面反射
                 lighten = .5 + v_specular;
@@ -281,6 +281,8 @@ struct ShaderSource<FillExtrusionProgram> {
             } else if (v_height<v_bottom_edge) {
                 // 下边缘 发光
                 lighten = (v_bottom_edge-v_height) / v_bottom_edge;
+            } else {
+                lighten = (1. - v_centerFactor) * .5;
             }
             lighten = pow(lighten,3.);
 
