@@ -89,7 +89,6 @@ struct ShaderSource<FillExtrusionProgram> {
         attribute highp vec2 a_pos;
         attribute lowp vec4 a_normal_ed;
     
-        varying lowp vec3 v_pos;
         varying lowp vec4 v_color;
 
         varying lowp float v_top_edge;
@@ -158,13 +157,11 @@ struct ShaderSource<FillExtrusionProgram> {
             // clipping
             lowp float distance=pow(gl_Position.x,2.)+pow(gl_Position.z,2.);
             if (u_render_reflection) distance*=3.;
-            if (distance > u_clipping_distance) {
+            if (distance>u_clipping_distance) {
                 gl_Position.x=1.e100;
                 return;
             }
-    
-            v_pos=gl_Position.xyz;
-    
+
             // ----------------------------- vertex color -----------------------------
 
             // directional light
@@ -194,7 +191,7 @@ struct ShaderSource<FillExtrusionProgram> {
             if (u_render_reflection) {
                 v_color *= u_opacity * fadeout * .1;
             } else {
-                v_color *= u_opacity * fadeout * (.8 + .2 * u_spotlight);
+                v_color *= u_opacity * fadeout * (.6 + .4 * u_spotlight);
             }
     
             // ----------------------------- rendering detail -----------------------------
@@ -213,24 +210,21 @@ struct ShaderSource<FillExtrusionProgram> {
             v_bottom_edge=8./tall;
             v_height=h?1.:0.;
     
-            // 楼顶镜面反射
-            const vec3 cameraPos = vec3(0.,500.,0.);
-            const vec3 lightPos = vec3(0.,3000.,1500.);
-            const lowp float specular = 1.; // 镜面强度
-            const lowp float shininess = 1.; // 反射率
-            vec3 lightDir=normalize(lightPos-v_pos);
-            vec3 viewDir=normalize(cameraPos-v_pos);
-            vec3 reflectDir=reflect(-lightDir, vec3(0.,1.,0.)); // reflect (genType I, genType N),返回反射向量
+            // 镜面反射
+            const vec3 cameraPos=vec3(0.,500.,0.);
+            const vec3 lightPos=vec3(0.,500.,1000.);
+            const lowp float specular=.5; // 镜面强度
+            const lowp float shininess=1.; // 反射率
+            lowp vec3 lightDir=normalize(lightPos-gl_Position.xyz);
+            lowp vec3 viewDir=normalize(cameraPos-gl_Position.xyz);
+            lowp vec3 reflectDir=reflect(-lightDir,vec3(0.,1.,0.)); // reflect (genType I, genType N),返回反射向量
             v_specular=specular*pow(max(dot(viewDir,reflectDir),0.0),shininess); // power(max(0,dot(N,H)),shininess)
     
             // 距离屏幕中心点越近，越透明
             // u_spotlight[0,1]
             // u_spotlight=0，centerFactor[1,1]
             // u_spotlight>1，centerFactor[0,1]
-            v_centerFactor=1.;
-            if (u_spotlight>0.) {
-                v_centerFactor = clamp(distance/1000000., 1.-u_spotlight, 1.);
-            }
+            v_centerFactor = u_spotlight>0. ? clamp(distance/8000000., 1.-u_spotlight, 1.) : 1.;
         }
         
     )"; }
@@ -257,11 +251,6 @@ struct ShaderSource<FillExtrusionProgram> {
     
     static const char* navFragment(const char* ) { return R"(
 
-        uniform lowp float u_spotlight;
-        uniform bool u_render_reflection;
-        uniform lowp float u_render_time;
-
-        varying lowp vec3 v_pos;
         varying lowp vec4 v_color;
 
         varying lowp float v_top_edge;
@@ -271,28 +260,27 @@ struct ShaderSource<FillExtrusionProgram> {
         varying lowp float v_centerFactor;
 
         void main() {
-            lowp float lighten;
+            lowp float brighten;
             if (v_height>.9999) {
                 // 楼顶 镜面反射
-                lighten = .5 + v_specular;
+                brighten = .5 + v_specular;
             } else if (v_height>v_top_edge) {
                 // 上边缘 发光
-                lighten = (v_height-v_top_edge) / (1.-v_top_edge);
+                brighten = (v_height-v_top_edge) / (1.-v_top_edge);
             } else if (v_height<v_bottom_edge) {
                 // 下边缘 发光
-                lighten = (v_bottom_edge-v_height) / v_bottom_edge;
+                brighten = (v_bottom_edge-v_height) / v_bottom_edge;
             } else {
-                lighten = (1. - v_centerFactor) * .5;
+                brighten = (1.-v_centerFactor) * .1;
             }
-            lighten = pow(lighten,3.);
+            brighten = pow(brighten,3.);
 
-            gl_FragColor.rgb = v_color.rgb * (lighten*.5 + v_centerFactor*.5);
+            gl_FragColor.rgb = v_color.rgb * (brighten*.5 + v_centerFactor*.5);
             gl_FragColor.a = v_color.a * v_centerFactor;
         
         #ifdef OVERDRAW_INSPECTOR
             gl_FragColor=vec4(1.0);
         #endif
-
         }
         
     )"; }

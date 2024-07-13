@@ -26,7 +26,8 @@ using FillUniforms = TypeList<
     uniforms::spotlight,
     uniforms::render_time,
     uniforms::palette_color,
-    uniforms::palette_lightness>;
+    uniforms::palette_lightness,
+    uniforms::enable_water_effect>;
 
 using FillPatternUniforms = TypeList<
     uniforms::matrix,
@@ -42,7 +43,7 @@ class FillProgram : public Program<
     gfx::PrimitiveType::Triangle,
     FillLayoutAttributes,
     FillUniforms,
-    TypeList<textures::matcap>,
+    TypeList<textures::gray_noise>,
     style::FillPaintProperties>
 {
 public:

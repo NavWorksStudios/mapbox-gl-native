@@ -33,6 +33,7 @@ private:
     style::FillPaintProperties::Unevaluated unevaluated;
     
     bool enableShaderPalette = false;
+    bool enableWaterEffect = false;
 };
 
 } // namespace mbgl

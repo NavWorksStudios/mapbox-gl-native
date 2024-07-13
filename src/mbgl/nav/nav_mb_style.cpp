@@ -51,11 +51,7 @@ struct ImageData {
 std::map<std::string, ImageData> imageMap;
 
 void load(const std::string& path) {
-    imageMap["matcap.0.png"].image = mbgl::decodeImage(mbgl::util::read_file(path + "matcap.0.png"));
-    imageMap["matcap.1.png"].image = mbgl::decodeImage(mbgl::util::read_file(path + "matcap.1.png"));
-    imageMap["matcap.2.png"].image = mbgl::decodeImage(mbgl::util::read_file(path + "matcap.2.png"));
-    imageMap["matcap.3.png"].image = mbgl::decodeImage(mbgl::util::read_file(path + "matcap.3.png"));
-    imageMap["matcap.4.png"].image = mbgl::decodeImage(mbgl::util::read_file(path + "matcap.4.png"));
+    imageMap["gray_noise_medium"].image = mbgl::decodeImage(mbgl::util::read_file(path + "gray_noise_medium.png"));
 }
 
 void release() {
