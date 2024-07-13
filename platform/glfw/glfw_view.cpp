@@ -1234,7 +1234,7 @@ void GLFWView::toggleLocationIndicatorLayer(bool visibility) {
         puckLayer->setAccuracyRadiusBorderColor(premultiply(mbgl::Color{0.95, 0.95, 0.95, 0}));
         puckLayer->setTopImageSize(0.18);
         puckLayer->setBearingImageSize(0.26);
-        puckLayer->setShadowImageSize(0.2);
+        puckLayer->setShadowImageSize(0.16);
         puckLayer->setImageTiltDisplacement(7.0f); // set to 0 for a "flat" puck
         puckLayer->setPerspectiveCompensation(0.9);
 
