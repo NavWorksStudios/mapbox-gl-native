@@ -157,7 +157,7 @@ struct ShaderSource<FillExtrusionProgram> {
             // clipping
             lowp float distance=pow(gl_Position.x,2.)+pow(gl_Position.z,2.);
             if (u_render_reflection) distance*=3.;
-            if (distance > u_clipping_distance) {
+            if (distance>u_clipping_distance) {
                 gl_Position.x=1.e100;
                 return;
             }
@@ -191,7 +191,7 @@ struct ShaderSource<FillExtrusionProgram> {
             if (u_render_reflection) {
                 v_color *= u_opacity * fadeout * .1;
             } else {
-                v_color *= u_opacity * fadeout * (.8 + .2 * u_spotlight);
+                v_color *= u_opacity * fadeout * (.6 + .4 * u_spotlight);
             }
     
             // ----------------------------- rendering detail -----------------------------
@@ -212,8 +212,8 @@ struct ShaderSource<FillExtrusionProgram> {
     
             // 镜面反射
             const vec3 cameraPos=vec3(0.,500.,0.);
-            const vec3 lightPos=vec3(0.,3000.,1500.);
-            const lowp float specular=1.; // 镜面强度
+            const vec3 lightPos=vec3(0.,500.,1000.);
+            const lowp float specular=.5; // 镜面强度
             const lowp float shininess=1.; // 反射率
             lowp vec3 lightDir=normalize(lightPos-gl_Position.xyz);
             lowp vec3 viewDir=normalize(cameraPos-gl_Position.xyz);
@@ -224,10 +224,7 @@ struct ShaderSource<FillExtrusionProgram> {
             // u_spotlight[0,1]
             // u_spotlight=0，centerFactor[1,1]
             // u_spotlight>1，centerFactor[0,1]
-            v_centerFactor=1.;
-            if (u_spotlight>0.) {
-                v_centerFactor = clamp(distance/1000000., 1.-u_spotlight, 1.);
-            }
+            v_centerFactor = u_spotlight>0. ? clamp(distance/8000000., 1.-u_spotlight, 1.) : 1.;
         }
         
     )"; }
@@ -254,10 +251,6 @@ struct ShaderSource<FillExtrusionProgram> {
     
     static const char* navFragment(const char* ) { return R"(
 
-        uniform lowp float u_spotlight;
-        uniform bool u_render_reflection;
-        uniform lowp float u_render_time;
-
         varying lowp vec4 v_color;
 
         varying lowp float v_top_edge;
@@ -278,7 +271,7 @@ struct ShaderSource<FillExtrusionProgram> {
                 // 下边缘 发光
                 brighten = (v_bottom_edge-v_height) / v_bottom_edge;
             } else {
-                brighten = (1. - v_centerFactor) * .5;
+                brighten = (1.-v_centerFactor) * .1;
             }
             brighten = pow(brighten,3.);
 
@@ -288,7 +281,6 @@ struct ShaderSource<FillExtrusionProgram> {
         #ifdef OVERDRAW_INSPECTOR
             gl_FragColor=vec4(1.0);
         #endif
-
         }
         
     )"; }
