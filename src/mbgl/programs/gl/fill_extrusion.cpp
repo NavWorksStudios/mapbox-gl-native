@@ -89,7 +89,7 @@ struct ShaderSource<FillExtrusionProgram> {
         attribute highp vec2 a_pos;
         attribute lowp vec4 a_normal_ed;
     
-        varying lowp vec2 v_pos;
+        varying lowp vec3 v_pos;
         varying lowp vec4 v_color;
         varying lowp vec2 v_clipping;
         varying lowp vec2 v_edge_ratio;
@@ -160,7 +160,7 @@ struct ShaderSource<FillExtrusionProgram> {
                 return;
             }
     
-            v_pos=gl_Position.xy;
+            v_pos=gl_Position.xyz;
     
             // 上下边缘比例
             lowp float tall=abs(height-base);
@@ -178,7 +178,7 @@ struct ShaderSource<FillExtrusionProgram> {
                 float vertical_factor = clamp((height+base) * pow(height/150.0,0.5), mix(0.7,0.98,1.0-u_lightintensity), 1.0);
                 directional *= ((1.0 - u_vertical_gradient) + (u_vertical_gradient * vertical_factor));
             }
-            directional*=(1. + u_spotlight);
+            directional = directional * (1. + u_spotlight) * .6 + 1.;
     
             // ambient light
             vec4 ambientlight=vec4(0.03,0.03,0.03,1.0);
@@ -228,7 +228,7 @@ struct ShaderSource<FillExtrusionProgram> {
         uniform bool u_render_reflection;
         uniform lowp float u_render_time;
 
-        varying lowp vec2 v_pos;
+        varying lowp vec3 v_pos;
         varying lowp vec4 v_color;
         varying lowp vec2 v_clipping;
         varying lowp vec2 v_edge_ratio;
@@ -250,11 +250,18 @@ struct ShaderSource<FillExtrusionProgram> {
             //
             lowp float top = 0.;
             lowp float bottom = 0.;
-            if (v_height_ratio.x > .9999) {                             // 楼顶
-                top = .8;
-            } else if (v_height_ratio.x > 1. - v_edge_ratio[1]) {       // 上边缘
+            if (v_height_ratio.x > .9999) { // 楼顶 镜面反射
+                const vec3 cameraPos = vec3(0.,500.,0.);
+                const vec3 lightPos = vec3(0.,5000.,5000.);
+                const lowp float specular = .8;                                         // 镜面强度
+                const lowp float reflection = 2.0;                                      // 反射率
+                vec3 lightDir = normalize(lightPos-v_pos);
+                vec3 viewDir = normalize(cameraPos-v_pos);
+                vec3 reflectDir = reflect(-lightDir, vec3(0.,1.,0.));                   // reflect (genType I, genType N),返回反射向量
+                top = .5 + specular * pow(max(dot(viewDir,reflectDir),0.0),reflection); // power(max(0,dot(N,H)),shininess)
+            } else if (v_height_ratio.x > 1. - v_edge_ratio[1]) { // 上边缘
                 top = (v_height_ratio.x + v_edge_ratio[1] - 1.) / v_edge_ratio[1];
-            } else if (v_height_ratio.x < v_edge_ratio[0]) {            // 下边缘
+            } else if (v_height_ratio.x < v_edge_ratio[0]) { // 下边缘
                 bottom = (v_edge_ratio[0] - v_height_ratio.x) / v_edge_ratio[0];
             }
 
