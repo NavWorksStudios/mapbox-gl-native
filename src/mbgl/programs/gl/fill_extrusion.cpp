@@ -189,9 +189,9 @@ struct ShaderSource<FillExtrusionProgram> {
             lowp float fadeout=max(1.-distance/u_clipping_distance,0.);
             fadeout = (fadeout>0.5) ? 1. : fadeout/0.5;
             if (u_render_reflection) {
-                v_color *= u_opacity * fadeout * .1;
+                v_color *= u_opacity * fadeout * .15; // 倒影的透明度颜色
             } else {
-                v_color *= u_opacity * fadeout * (.6 + .4 * u_spotlight);
+                v_color *= u_opacity * fadeout * (.7 - .2 * u_spotlight);
             }
     
             // ----------------------------- rendering detail -----------------------------
@@ -222,9 +222,10 @@ struct ShaderSource<FillExtrusionProgram> {
     
             // 距离屏幕中心点越近，越透明
             // u_spotlight[0,1]
-            // u_spotlight=0，centerFactor[1,1]
-            // u_spotlight>1，centerFactor[0,1]
-            v_centerFactor = u_spotlight>0. ? clamp(distance/8000000., 1.-u_spotlight, 1.) : 1.;
+            // u_spotlight=0，v_centerFactor[1,1]
+            // u_spotlight>1，v_centerFactor[0,1]
+            distance=pow(gl_Position.x,2.)+pow(gl_Position.y,2.);
+            v_centerFactor = u_spotlight>0. ? clamp(distance/6000000., 1.-u_spotlight, 1.) : 1.;
         }
         
     )"; }
@@ -275,8 +276,8 @@ struct ShaderSource<FillExtrusionProgram> {
             }
             brighten = pow(brighten,3.);
 
-            gl_FragColor.rgb = v_color.rgb * (brighten*.5 + v_centerFactor*.5);
-            gl_FragColor.a = v_color.a * v_centerFactor;
+            gl_FragColor.rgb = v_color.rgb * (brighten*.5+v_centerFactor*.5);
+            gl_FragColor.a = v_color.a * (v_centerFactor+.2);
         
         #ifdef OVERDRAW_INSPECTOR
             gl_FragColor=vec4(1.0);

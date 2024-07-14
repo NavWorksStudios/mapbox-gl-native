@@ -254,17 +254,15 @@ void main() {
     if (u_enable_water_effect) { // 模拟水面高光，光源在相机
         const lowp float radius=5000000.;
         lowp float distance=pow(v_pos.x,2.)+pow(v_pos.z,2.);
-        lowp float fadeout=1.-distance/radius;
-        fadeout=clamp(fadeout,0.,1.);y
+        lowp float fadeout=clamp(1.-distance/radius,0.,1.);
         fadeout=pow(fadeout,3.)+.6;
         gl_FragColor.rgb=color.rgb*opacity*fadeout; // 距离屏幕中心点越近，越亮
         gl_FragColor.a=color.a*opacity;
     } else if (u_spotlight > 0.) { // fill 五彩色
         const lowp float radius=1500000.;
-        lowp float distance=pow(v_pos.x,2.)+pow(v_pos.z,2.);
-        lowp float fadeout=1.-distance/radius;
-        fadeout=clamp(fadeout,1.-u_spotlight,1.);
-        fadeout=pow(fadeout,3.)*.8;
+        lowp float distance=pow(v_pos.x,2.)+pow(v_pos.y,2.);
+        lowp float fadeout=clamp(1.-distance/radius,0.,u_spotlight);
+        fadeout=pow(fadeout,3.);
         gl_FragColor.rgb=mix(color.rgb,color_flow(gl_FragCoord.xy),fadeout)*opacity; // 距离屏幕中心点越近，越亮
         gl_FragColor.a=color.a*opacity;
     } else {
