@@ -293,11 +293,13 @@ void GLFWView::onKey(int key, int action, int mods) {
                 if(!routePaused) {
                     routePaused = true;
                     puckFollowsCameraCenter = true;
+                    notFollowCounter = 0;
                     nav::style::setViewMode(nav::style::ViewMode::Normal);
                 }
                 else { // routePaused == true
                     routePaused = false;
                     puckFollowsCameraCenter = true;
+                    notFollowCounter = 0;
                     nav::style::setViewMode(nav::style::ViewMode::Spotlight);
                 }
             }
@@ -993,9 +995,15 @@ void GLFWView::onMouseMove(double x, double y) {
         if (dx || dy) {
             map->moveBy(mbgl::ScreenCoordinate { dx, dy });
             
-            if(puck && puckFollowsCameraCenter) {
-                puckFollowsCameraCenter = false;
-                nav::style::setViewMode(nav::style::ViewMode::Normal);
+            if(puck) {
+                if(puckFollowsCameraCenter) {
+                    puckFollowsCameraCenter = false;
+                    notFollowCounter = 0;
+                    nav::style::setViewMode(nav::style::ViewMode::Normal);
+                }
+                else {
+                    notFollowCounter = 0;
+                }
             }
         }
     }
