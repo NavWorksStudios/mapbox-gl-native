@@ -303,7 +303,7 @@ void bind(const std::string& uri, const mbgl::Color& color, const Binding& callb
 
 bool demo() {
     static int counter = 0;
-    if (counter++ > 40) {
+    if (counter++ > 60) {
         counter = 0;
 
         static float h = 0;
