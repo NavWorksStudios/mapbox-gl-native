@@ -176,7 +176,7 @@ struct ShaderSource<FillExtrusionProgram> {
             directional = directional * (1. + u_spotlight) * .6 + 1.;
     
             // ambient light
-            vec4 ambientlight=vec4(0.03,0.03,0.03,1.0);
+            vec4 ambientlight=vec4(0.06,0.06,0.06,1.0);
             color+=ambientlight;
 
             // mix color with directional light
@@ -212,8 +212,8 @@ struct ShaderSource<FillExtrusionProgram> {
     
             // 镜面反射
             const vec3 cameraPos=vec3(0.,500.,0.);
-            const vec3 lightPos=vec3(0.,500.,1000.);
-            const lowp float specular=.8; // 镜面强度
+            const vec3 lightPos=vec3(0.,1000.,1000.);
+            const lowp float specular=1.; // 镜面强度
             const lowp float shininess=1.; // 反射率
             lowp vec3 lightDir=normalize(lightPos-gl_Position.xyz);
             lowp vec3 viewDir=normalize(cameraPos-gl_Position.xyz);
@@ -265,15 +265,15 @@ struct ShaderSource<FillExtrusionProgram> {
             if (v_height>.9999) {
                 // 楼顶 镜面反射
                 brighten = .5 + v_specular;
-            } else if (v_height>v_top_edge) {
-                // 上边缘 发光
-                brighten = (v_height-v_top_edge) / (1.-v_top_edge);
-            } else if (v_height<v_bottom_edge) {
-                // 下边缘 发光
-                brighten = (v_bottom_edge-v_height) / v_bottom_edge;
             } else {
-                brighten = (1.-v_centerFactor) * .2;
+                brighten = max(
+                    (v_height-v_top_edge) / (1.-v_top_edge), // 上边缘 亮度
+                    (v_bottom_edge-v_height) / v_bottom_edge // 下边缘 亮度
+                );
+
+                brighten = max(brighten, (1.-v_centerFactor) * .2); // 中间亮度
             }
+
             brighten = pow(brighten,3.);
 
             gl_FragColor.rgb = v_color.rgb * (brighten*.5+v_centerFactor*.5);
