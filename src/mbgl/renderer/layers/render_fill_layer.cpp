@@ -40,7 +40,7 @@ RenderFillLayer::RenderFillLayer(Immutable<style::FillLayer::Impl> _impl)
     bindToPalette(baseImpl->id, "fill-outline-color", unevaluated.get<FillOutlineColor>().value);
 
     enableShaderPalette = nav::palette::enableShaderPalette(baseImpl->id);
-    enableWaterEffect = (baseImpl->id == "water");
+    enableWaterEffect = (baseImpl->id.find("water") != std::string::npos);
 }
 
 RenderFillLayer::~RenderFillLayer() = default;

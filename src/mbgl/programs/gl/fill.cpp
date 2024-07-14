@@ -79,10 +79,11 @@ uniform mat4 u_matrix;
 uniform lowp float u_base;
 uniform lowp vec4 u_palette_color;
 uniform lowp float u_palette_lightness;
+uniform bool u_enable_water_effect;
 
 attribute vec2 a_pos;
 
-varying lowp vec2 v_pos;
+varying lowp vec3 v_pos;
 
 #ifndef HAS_UNIFORM_u_color
     uniform lowp float u_color_t;
@@ -152,13 +153,17 @@ void main() {
     mediump float width=u_width;
 #endif
        
-    gl_Position=u_matrix*vec4(a_pos, u_base, 1);
-    v_pos = gl_Position.xy;
+    gl_Position=u_matrix*vec4(a_pos,u_base,1);
+    v_pos=gl_Position.xyz;
 
-    if (u_palette_lightness > 0.) {
-        lowp float lightness = (color.r+color.g+color.b) / u_palette_lightness;
-        color = vec4(u_palette_color.rgb*lightness, color.a);
+#ifndef HAS_UNIFORM_u_color
+    // 灰阶色变换主题色
+    if (u_palette_lightness>0.) {
+        lowp float lightness=color.r/u_palette_lightness;
+        color=vec4(u_palette_color.rgb*lightness,color.a);
     }
+#endif
+
 }
 
 )"; }
@@ -187,8 +192,9 @@ R"(
 
 uniform lowp float u_spotlight;
 uniform lowp float u_render_time;
-        
-varying lowp vec2 v_pos;
+uniform bool u_enable_water_effect;
+
+varying lowp vec3 v_pos;
 
 #ifndef HAS_UNIFORM_u_color
     varying highp vec4 color;
@@ -202,15 +208,16 @@ varying lowp vec2 v_pos;
     uniform lowp float u_opacity;
 #endif
 
+const lowp vec2 resolution = vec2(1800, 720);
+
+// -------------- color flow ---------------
         
 float spot_light(vec2 uv, vec2 C, float r, float b) {
     return clamp(.2 / clamp(length(uv-C)-r, 0., 1.), 0., b) / 5.;
 }
-        
-vec3 color_flow(vec2 fragCoord) {
-    const lowp vec2 resolution = vec2(1800, 720);
-    lowp float time = u_render_time * .01;
 
+vec3 color_flow(vec2 fragCoord) {
+    lowp float time = u_render_time * .01;
     lowp vec2 uv = (2. * fragCoord - resolution.xy) / resolution.y;
     lowp vec3 rgb = cos(time * 31. + uv.xyx + vec3(1.0,2.0,4.0)) *.15;
 
@@ -230,7 +237,10 @@ vec3 color_flow(vec2 fragCoord) {
     
     return rgb + spots;
 }
-        
+
+
+// -------------- main ---------------
+
 void main() {
 
 #ifdef HAS_UNIFORM_u_color
@@ -241,15 +251,24 @@ void main() {
     lowp float opacity=u_opacity;
 #endif
 
-    if (u_spotlight > 0.) {
-        const lowp float radius = 1500000.;
-        lowp float distance = pow(v_pos.x,2.) + pow(v_pos.y,2.);
-        lowp float centerFactor = clamp(distance/radius, 1.-u_spotlight, 1.);
-        centerFactor = pow(1. - centerFactor, 3.) * .8;
-        gl_FragColor.rgb = mix(color.rgb, color_flow(gl_FragCoord.xy), centerFactor) * opacity; // 距离屏幕中心点越近，越亮
-        gl_FragColor.a = color.a * opacity;
+    if (u_enable_water_effect) { // 模拟水面高光，光源在相机
+        const lowp float radius=5000000.;
+        lowp float distance=pow(v_pos.x,2.)+pow(v_pos.z,2.);
+        lowp float fadeout=1.-distance/radius;
+        fadeout=clamp(fadeout,0.,1.);y
+        fadeout=pow(fadeout,3.)+.6;
+        gl_FragColor.rgb=color.rgb*opacity*fadeout; // 距离屏幕中心点越近，越亮
+        gl_FragColor.a=color.a*opacity;
+    } else if (u_spotlight > 0.) { // fill 五彩色
+        const lowp float radius=1500000.;
+        lowp float distance=pow(v_pos.x,2.)+pow(v_pos.z,2.);
+        lowp float fadeout=1.-distance/radius;
+        fadeout=clamp(fadeout,1.-u_spotlight,1.);
+        fadeout=pow(fadeout,3.)*.8;
+        gl_FragColor.rgb=mix(color.rgb,color_flow(gl_FragCoord.xy),fadeout)*opacity; // 距离屏幕中心点越近，越亮
+        gl_FragColor.a=color.a*opacity;
     } else {
-        gl_FragColor = color * opacity;
+        gl_FragColor=color*opacity;
     }
         
 #ifdef OVERDRAW_INSPECTOR
