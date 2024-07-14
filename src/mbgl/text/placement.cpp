@@ -921,16 +921,18 @@ void Placement::updateBucketOpacities(SymbolBucket& bucket,
 
     for (SymbolInstance& symbolInstance : bucket.symbolInstances) {
         
-        float distanceSwitch = 3.0;
+        float distanceSwitch = 4.0;
         symbolInstance.distanceToCenter = 0.0;
-        if(curUpdateLayerID == "poi-label" ||
+        if(
+           curUpdateLayerID == "poi-label" ||
            curUpdateLayerID == "transit-label" ||
            curUpdateLayerID == "transit-label" ||
            curUpdateLayerID == "crosswalk" ||
            curUpdateLayerID == "traffic-signal-navigation" ||
            curUpdateLayerID == "road-label-navigation" ||
            curUpdateLayerID == "road-number-shield-navigation" ||
-           curUpdateLayerID == "road-exit-shield-navigation") {
+           curUpdateLayerID == "road-exit-shield-navigation"
+           ) {
             // 判断symbolInstance是否超过可视距离
             const vec3f& carmeraPos = state.getCameraPosition();
             mat4 tileMat4 = {};
@@ -940,15 +942,21 @@ void Placement::updateBucketOpacities(SymbolBucket& bucket,
             vec4 pos = {{ symbolAnchor.point.x, symbolAnchor.point.y, 0, 1 }};
             matrix::transformMat4(pos, pos, tileMat4);
             
+//            symbolInstance.distanceToCenter = std::sqrt(std::pow(pos[0]-carmeraPos[0], 2) +
+//                                                        std::pow(pos[1]-carmeraPos[1], 2) +
+//                                                        std::pow(pos[2]-carmeraPos[2], 2));
             symbolInstance.distanceToCenter = std::sqrt(std::pow(pos[0]-carmeraPos[0], 2) +
-                                                        std::pow(pos[1]-carmeraPos[1], 2) +
-                                                        std::pow(pos[2]-carmeraPos[2], 2));
+                                                        std::pow(pos[1]-carmeraPos[1], 2));
+//            symbolInstance.distanceToCenter = symbolInstance.distanceToCenter * std::cos(state.getPitch());
             
             // 根据相机角度pitch计算视界倍数
             float pitch = state.getPitch() * util::RAD2DEG;
-            if(pitch >= 70) distanceSwitch = 3.0;
-            else if(pitch <= 50) distanceSwitch = 1.0;
-            else distanceSwitch = 1.0 + (pitch - 50) * 0.1;
+            if(pitch >= 70)
+                distanceSwitch = 4.0;
+            else if(pitch <= 50)
+                distanceSwitch = 2.0;
+            else
+                distanceSwitch = 2.0 + (pitch - 50) * 0.1;
 
             distanceSwitch = distanceSwitch * 1000.0;
         }
