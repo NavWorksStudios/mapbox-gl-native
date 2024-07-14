@@ -69,9 +69,9 @@ MBGL_DEFINE_UNIFORM_SCALAR(float, scale_b);
 MBGL_DEFINE_UNIFORM_SCALAR(float, tile_units_to_pixels);
 MBGL_DEFINE_UNIFORM_SCALAR(float, overscale_factor);
 
+MBGL_DEFINE_UNIFORM_SCALAR(float, data_z);
 MBGL_DEFINE_UNIFORM_SCALAR(bool, render_reflection);
 MBGL_DEFINE_UNIFORM_SCALAR(float, clipping_distance);
-
 MBGL_DEFINE_UNIFORM_SCALAR(float, spotlight);
 MBGL_DEFINE_UNIFORM_SCALAR(float, render_time);
 MBGL_DEFINE_UNIFORM_SCALAR(Color, palette_color);

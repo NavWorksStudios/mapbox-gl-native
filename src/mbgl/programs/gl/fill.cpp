@@ -84,6 +84,7 @@ uniform bool u_enable_water_effect;
 attribute vec2 a_pos;
 
 varying lowp vec3 v_pos;
+varying lowp vec2 v_texture_pos;
 
 #ifndef HAS_UNIFORM_u_color
     uniform lowp float u_color_t;
@@ -155,6 +156,7 @@ void main() {
        
     gl_Position=u_matrix*vec4(a_pos,u_base,1);
     v_pos=gl_Position.xyz;
+    v_texture_pos=a_pos;
 
 #ifndef HAS_UNIFORM_u_color
     // 灰阶色变换主题色
@@ -190,11 +192,14 @@ precision mediump float;
     static const char* navFragment(const char* ) { return
 R"(
 
+uniform lowp float u_zoom;
+uniform lowp float u_data_z;
 uniform lowp float u_spotlight;
 uniform lowp float u_render_time;
 uniform bool u_enable_water_effect;
 
 varying lowp vec3 v_pos;
+varying lowp vec2 v_texture_pos;
 
 #ifndef HAS_UNIFORM_u_color
     varying highp vec4 color;
@@ -208,17 +213,15 @@ varying lowp vec3 v_pos;
     uniform lowp float u_opacity;
 #endif
 
-const lowp vec2 resolution = vec2(1800, 720);
-
 // -------------- color flow ---------------
         
 float spot_light(vec2 uv, vec2 C, float r, float b) {
     return clamp(.2 / clamp(length(uv-C)-r, 0., 1.), 0., b) / 5.;
 }
 
-vec3 color_flow(vec2 fragCoord) {
+vec3 color_flow(lowp vec2 fragCoord, lowp vec2 resolution) {
     lowp float time = u_render_time * .01;
-    lowp vec2 uv = (2. * fragCoord - resolution.xy) / resolution.y;
+    lowp vec2 uv = (fragCoord - 0.5*resolution.xy) / resolution.y;
     lowp vec3 rgb = cos(time * 31. + uv.xyx + vec3(1.0,2.0,4.0)) *.15;
 
     lowp vec3 spots;
@@ -238,6 +241,49 @@ vec3 color_flow(vec2 fragCoord) {
     return rgb + spots;
 }
 
+// -------------- grid color ---------------
+
+//created by TRASHTRASH aka Joshua deLorimier
+
+#define iter 40.0
+#define scaleSpeed 3.0
+#define satSpeed 4.2
+
+// Dave Hoskins - https://www.shadertoy.com/view/4djSRW
+//noise
+float N2(vec2 p) {
+    vec3 p3  = fract(vec3(p.xyx) * vec3(443.897, 441.423, 437.195));
+    p3 += dot(p3, p3.yzx + 19.19);
+    return fract((p3.x + p3.y) * p3.z);
+}
+
+float grid_color( vec2 fragCoord, lowp vec2 resolution ) {
+    float iTime=u_render_time*.6;
+
+    //create coordinates
+    vec2 uv = (fragCoord - 0.5*resolution.xy)/resolution.y;
+    
+    //iterate to make grid
+    uv*=iter;
+
+    //give ID's for each square
+    vec2 gv=fract(uv)-0.5;
+    vec2 id=floor(uv);
+
+    //random values
+    float ran = N2(id);
+    float ran2 = N2(id+64.0);
+
+    //offset each grid
+    vec2 d = abs(gv) - (abs(sin((iTime*scaleSpeed)*ran)*0.5)-0.05);
+
+    //draw the square
+    float rect = min(max(d.x, d.y),0.0) + length(max(d, 0.));
+    float r = step(0., rect);
+
+    //combine square and offset to the color var
+    return abs((1.-r) * sin((iTime*satSpeed)*ran2));
+}
 
 // -------------- main ---------------
 
@@ -252,21 +298,40 @@ void main() {
 #endif
 
     if (u_enable_water_effect) { // 模拟水面高光，光源在相机
-        const lowp float radius=5000000.;
+
+        const lowp float radius=4000000.;
         lowp float distance=pow(v_pos.x,2.)+pow(v_pos.z,2.);
         lowp float fadeout=clamp(1.-distance/radius,0.,1.);
-        fadeout=pow(fadeout,3.)+.6;
-        gl_FragColor.rgb=color.rgb*opacity*fadeout; // 距离屏幕中心点越近，越亮
-        gl_FragColor.a=color.a*opacity;
+        fadeout=pow(fadeout,3.);
+
+        fadeout*=clamp(u_zoom-14.,0.,1.);
+
+        // data_z [13,16]
+        lowp float scale=pow(2.,16.-u_data_z);
+        lowp vec2 coord=vec2(
+            mod(v_texture_pos.x*scale,8192.),
+            mod(v_texture_pos.y*scale,8192.));
+        lowp float gridcolor=grid_color(coord,vec2(8192.,8192.)) * .06;
+
+        gl_FragColor=color;
+        gl_FragColor.rgb+=gridcolor*fadeout;
+        gl_FragColor*=opacity;
+
     } else if (u_spotlight > 0.) { // fill 五彩色
+
         const lowp float radius=1500000.;
         lowp float distance=pow(v_pos.x,2.)+pow(v_pos.y,2.);
         lowp float fadeout=clamp(1.-distance/radius,0.,u_spotlight);
         fadeout=pow(fadeout,3.);
-        gl_FragColor.rgb=mix(color.rgb,color_flow(gl_FragCoord.xy),fadeout)*opacity; // 距离屏幕中心点越近，越亮
+
+        vec3 colorflow=color_flow(gl_FragCoord.xy,vec2(1800,720));
+        gl_FragColor.rgb=mix(color.rgb,colorflow,fadeout)*opacity; // 距离屏幕中心点越近，越亮
         gl_FragColor.a=color.a*opacity;
+
     } else {
+
         gl_FragColor=color*opacity;
+
     }
         
 #ifdef OVERDRAW_INSPECTOR

@@ -40,7 +40,7 @@ RenderFillLayer::RenderFillLayer(Immutable<style::FillLayer::Impl> _impl)
     bindToPalette(baseImpl->id, "fill-outline-color", unevaluated.get<FillOutlineColor>().value);
 
     enableShaderPalette = nav::palette::enableShaderPalette(baseImpl->id);
-    enableWaterEffect = (baseImpl->id.find("water") != std::string::npos);
+    enableWaterEffect = (baseImpl->id == "water");
 }
 
 RenderFillLayer::~RenderFillLayer() = default;
@@ -109,6 +109,8 @@ void RenderFillLayer::render(PaintParameters& parameters) {
                                                   parameters.state)
                         ),
                         uniforms::world::Value( parameters.backend.getDefaultRenderable().getSize() ),
+                        uniforms::zoom::Value( parameters.state.getZoom() ),
+                        uniforms::data_z::Value( tile.id.canonical.z ),
                         uniforms::spotlight::Value( nav::style::spotlight::value() ),
                         uniforms::render_time::Value( nav::style::rendertime::value() ),
                         uniforms::palette_color::Value( color ),
