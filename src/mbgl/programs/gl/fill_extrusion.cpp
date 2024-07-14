@@ -213,7 +213,7 @@ struct ShaderSource<FillExtrusionProgram> {
             // 镜面反射
             const vec3 cameraPos=vec3(0.,500.,0.);
             const vec3 lightPos=vec3(0.,500.,1000.);
-            const lowp float specular=.5; // 镜面强度
+            const lowp float specular=.8; // 镜面强度
             const lowp float shininess=1.; // 反射率
             lowp vec3 lightDir=normalize(lightPos-gl_Position.xyz);
             lowp vec3 viewDir=normalize(cameraPos-gl_Position.xyz);
@@ -271,7 +271,7 @@ struct ShaderSource<FillExtrusionProgram> {
                 // 下边缘 发光
                 brighten = (v_bottom_edge-v_height) / v_bottom_edge;
             } else {
-                brighten = (1.-v_centerFactor) * .1;
+                brighten = (1.-v_centerFactor) * .2;
             }
             brighten = pow(brighten,3.);
 
