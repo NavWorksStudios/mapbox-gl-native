@@ -196,6 +196,7 @@ private:
 #if defined(MBGL_RENDER_BACKEND_OPENGL) && !defined(MBGL_LAYER_CUSTOM_DISABLE_ALL)
     bool routePaused = false;
     bool puckFollowsCameraCenter = true;
+    float notFollowCounter = 0;
     mbgl::style::LocationIndicatorLayer *puck = nullptr;
     mbgl::LatLng targetLatLng = {0.0, 0.0};
 #endif
