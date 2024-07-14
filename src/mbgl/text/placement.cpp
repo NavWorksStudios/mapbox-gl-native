@@ -926,7 +926,6 @@ void Placement::updateBucketOpacities(SymbolBucket& bucket,
         if(
            curUpdateLayerID == "poi-label" ||
            curUpdateLayerID == "transit-label" ||
-           curUpdateLayerID == "transit-label" ||
            curUpdateLayerID == "crosswalk" ||
            curUpdateLayerID == "traffic-signal-navigation" ||
            curUpdateLayerID == "road-label-navigation" ||
