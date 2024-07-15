@@ -443,7 +443,7 @@ void GLFWView::onKey(int key, int action, int mods) {
                 double easing = bearing - *camera.bearing;
                 easing += easing > 180.0 ? -360.0 : easing < -180 ? 360.0 : 0;
                 
-                bearing = *camera.bearing + (easing / 40);
+                bearing = *camera.bearing + (easing / 12);
                 lastPoint = point;
                 
                 if(puckFollowsCameraCenter) {
