@@ -23,13 +23,12 @@ using FillLayoutAttributes = PositionOnlyLayoutAttributes;
 using FillUniforms = TypeList<
     uniforms::matrix,
     uniforms::world,
-    uniforms::zoom,
-    uniforms::data_z,
     uniforms::spotlight,
     uniforms::render_time,
     uniforms::palette_color,
     uniforms::palette_lightness,
-    uniforms::enable_water_effect>;
+    uniforms::water_wave,
+    uniforms::water_data_z_scale>;
 
 using FillPatternUniforms = TypeList<
     uniforms::matrix,

@@ -79,7 +79,6 @@ uniform mat4 u_matrix;
 uniform lowp float u_base;
 uniform lowp vec4 u_palette_color;
 uniform lowp float u_palette_lightness;
-uniform bool u_enable_water_effect;
 
 attribute vec2 a_pos;
 
@@ -192,11 +191,10 @@ precision mediump float;
     static const char* navFragment(const char* ) { return
 R"(
 
-uniform lowp float u_zoom;
-uniform lowp float u_data_z;
 uniform lowp float u_spotlight;
 uniform lowp float u_render_time;
-uniform bool u_enable_water_effect;
+uniform lowp float u_water_wave;
+uniform lowp float u_water_data_z_scale;
 
 varying lowp vec3 v_pos;
 varying lowp vec2 v_texture_pos;
@@ -258,7 +256,7 @@ float N2(vec2 p) {
 }
 
 float grid_color( vec2 fragCoord, lowp vec2 resolution ) {
-    float iTime=u_render_time*.6;
+    float iTime = u_render_time * .6;
 
     //create coordinates
     vec2 uv = (fragCoord - 0.5*resolution.xy)/resolution.y;
@@ -267,14 +265,13 @@ float grid_color( vec2 fragCoord, lowp vec2 resolution ) {
     uv*=iter;
 
     //give ID's for each square
-    vec2 gv=fract(uv)-0.5;
+    vec2 gv=fract(uv);//-0.5; 去掉后间距变大
     vec2 id=floor(uv);
 
     //random values
     float ran = N2(id);
-    float ran2 = N2(id+64.0);
 
-    //offset each grid
+    //offset for each grid
     vec2 d = abs(gv) - (abs(sin((iTime*scaleSpeed)*ran)*0.5)-0.05);
 
     //draw the square
@@ -282,7 +279,7 @@ float grid_color( vec2 fragCoord, lowp vec2 resolution ) {
     float r = step(0., rect);
 
     //combine square and offset to the color var
-    return abs((1.-r) * sin((iTime*satSpeed)*ran2));
+    return abs((1.-r) * sin((iTime*satSpeed)*ran));
 }
 
 // -------------- main ---------------
@@ -297,27 +294,24 @@ void main() {
     lowp float opacity=u_opacity;
 #endif
 
-    if (u_enable_water_effect) { // 模拟水面高光，光源在相机
+    if (u_water_wave > 0.) { // 水面波光
 
         const lowp float radius=4000000.;
         lowp float distance=pow(v_pos.x,2.)+pow(v_pos.z,2.);
         lowp float fadeout=clamp(1.-distance/radius,0.,1.);
-        fadeout=pow(fadeout,3.);
+        fadeout=pow(fadeout,3.)*u_water_wave;
 
-        fadeout*=clamp(u_zoom-14.,0.,1.);
-
-        // data_z [13,16]
-        lowp float scale=pow(2.,16.-u_data_z);
+        const lowp vec2 texture_size = vec2(8000.);
         lowp vec2 coord=vec2(
-            mod(v_texture_pos.x*scale,8192.),
-            mod(v_texture_pos.y*scale,8192.));
-        lowp float gridcolor=grid_color(coord,vec2(8192.,8192.)) * .06;
+        mod(v_texture_pos.x*u_water_data_z_scale,texture_size.x),
+        mod(v_texture_pos.y*u_water_data_z_scale,texture_size.y));
+        lowp float gridcolor=grid_color(coord,texture_size);
 
         gl_FragColor=color;
-        gl_FragColor.rgb+=gridcolor*fadeout;
+        gl_FragColor.rgb += pow(gridcolor,3.) * .1 * fadeout;
         gl_FragColor*=opacity;
 
-    } else if (u_spotlight > 0.) { // fill 五彩色
+    } else if (u_spotlight > 0.) { // 地面五彩色
 
         const lowp float radius=1500000.;
         lowp float distance=pow(v_pos.x,2.)+pow(v_pos.y,2.);

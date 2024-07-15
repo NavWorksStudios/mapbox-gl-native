@@ -109,13 +109,12 @@ void RenderFillLayer::render(PaintParameters& parameters) {
                                                   parameters.state)
                         ),
                         uniforms::world::Value( parameters.backend.getDefaultRenderable().getSize() ),
-                        uniforms::zoom::Value( parameters.state.getZoom() ),
-                        uniforms::data_z::Value( tile.id.canonical.z ),
                         uniforms::spotlight::Value( nav::style::spotlight::value() ),
                         uniforms::render_time::Value( nav::style::rendertime::value() ),
                         uniforms::palette_color::Value( color ),
-                        uniforms::palette_lightness::Value( enableShaderPalette ? (color.r+color.g+color.b)/3. : 0 ),
-                        uniforms::enable_water_effect::Value( enableWaterEffect ),
+                        uniforms::palette_lightness::Value( enableShaderPalette ? (color.r+color.g+color.b)/3. : 0. ),
+                        uniforms::water_wave::Value( enableWaterEffect ? util::clamp((parameters.state.getZoom()-14.)*.3,0.,1.) : 0. ),
+                        uniforms::water_data_z_scale::Value( pow(2.,16.-tile.id.canonical.z) ), // data_z [13,16]
                     },
                     paintPropertyBinders,
                     evaluated,
