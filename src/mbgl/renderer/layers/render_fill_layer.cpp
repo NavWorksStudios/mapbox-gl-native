@@ -113,7 +113,7 @@ void RenderFillLayer::render(PaintParameters& parameters) {
                         uniforms::render_time::Value( nav::style::rendertime::value() ),
                         uniforms::palette_color::Value( color ),
                         uniforms::palette_lightness::Value( enableShaderPalette ? (color.r+color.g+color.b)/3. : 0. ),
-                        uniforms::water_wave::Value( enableWaterEffect ? util::clamp((parameters.state.getZoom()-14.)*.3,0.,1.) : 0. ),
+                        uniforms::water_wave::Value( enableWaterEffect ? util::clamp((parameters.state.getZoom()-13.)*.3,0.,1.) : 0. ),
                         uniforms::water_data_z_scale::Value( pow(2.,16.-tile.id.canonical.z) ), // data_z [13,16]
                     },
                     paintPropertyBinders,

@@ -219,7 +219,7 @@ float spot_light(vec2 uv, vec2 C, float r, float b) {
 
 vec3 color_flow(lowp vec2 fragCoord, lowp vec2 resolution) {
     lowp float time = u_render_time * .01;
-    lowp vec2 uv = (fragCoord - 0.5*resolution.xy) / resolution.y;
+    lowp vec2 uv = (fragCoord*2. - resolution.xy) / resolution.y;
     lowp vec3 rgb = cos(time * 31. + uv.xyx + vec3(1.0,2.0,4.0)) *.15;
 
     lowp vec3 spots;
