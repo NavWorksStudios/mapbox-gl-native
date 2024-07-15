@@ -23,8 +23,15 @@ struct Source {
     const char* sourceLayer;
 };
 
+#define LINE
+#define FILL
+#define SYMBOL
+#define EXTRUSION
+
 static const std::map<std::string, Source> layerIds = {
     { "land", { "background", "", "", } },
+    
+#ifdef FILL
     { "national-park", { "fill", "composite", "landuse_overlay", } },
     { "landuse", { "fill", "composite", "landuse", } },
     { "hillshade", { "fill", "composite", "hillshade", } },
@@ -36,6 +43,9 @@ static const std::map<std::string, Source> layerIds = {
     { "land-structure-line", { "line", "composite", "structure", } },
     
     { "aeroway-polygon", { "fill", "composite", "aeroway", } },
+#endif
+    
+#ifdef LINE
     { "aeroway-line", { "line", "composite", "aeroway", } },
     
     { "tunnel-path-trail", { "line", "composite", "road", } },
@@ -57,16 +67,21 @@ static const std::map<std::string, Source> layerIds = {
     { "tunnel-secondary-tertiary-navigation", { "line", "composite", "road", } },
     { "tunnel-primary-navigation", { "line", "composite", "road", } },
     { "tunnel-motorway-trunk-navigation", { "line", "composite", "road", } },
+#endif
+    
+#ifdef SYMBOL
     { "tunnel-oneway-arrow-blue-navigation", { "symbol", "composite", "road", } },
     { "tunnel-oneway-arrow-white-navigation", { "symbol", "composite", "road", } },
+#endif
     
+#ifdef LINE
     { "road-path-trail", { "line", "composite", "road", } },
     { "road-path-cycleway-piste", { "line", "composite", "road", } },
     { "road-path", { "line", "composite", "road", } },
     { "road-steps", { "line", "composite", "road", } },
     { "road-pedestrian", { "line", "composite", "road", } },
     { "turning-feature-outline-navigation", { "circle", "composite", "road", } },
-    
+
     { "road-minor-case-navigation", { "line", "composite", "road", } },
     { "road-street-case-navigation", { "line", "composite", "road", } },
     { "road-secondary-tertiary-case-navigation", { "line", "composite", "road", } },
@@ -82,12 +97,18 @@ static const std::map<std::string, Source> layerIds = {
     { "road-primary-navigation", { "line", "composite", "road", } },
     { "road-motorway-trunk-case-low-navigation", { "line", "composite", "road", } },
     { "road-motorway-trunk-navigation", { "line", "composite", "road", } },
+#endif
+
+#ifdef SYMBOL
     { "level-crossing-navigation", { "symbol", "composite", "road", } },
     { "road-oneway-arrow-blue-navigation", { "symbol", "composite", "road", } },
     { "road-oneway-arrow-white-navigation", { "symbol", "composite", "road", } },
-    { "turning-feature-navigation", { "circle", "composite", "road", } },
     
-    { "crosswalks", { "symbol", "composite", "structure", } },
+    { "turning-feature-navigation", { "circle", "composite", "road", } },
+    { "crosswalks", { "symbol", "composite", "structure", } }, // 斑马线
+#endif
+    
+#ifdef LINE
     { "road-rail", { "line", "composite", "road", } },
     { "road-rail-tracks", { "line", "composite", "road", } },
     { "bridge-path-trail", { "line", "composite", "road", } },
@@ -113,20 +134,32 @@ static const std::map<std::string, Source> layerIds = {
     { "bridge-motorway-trunk-2-case-navigation", { "line", "composite", "road", } },
     { "bridge-major-link-2-navigation", { "line", "composite", "road", } },
     { "bridge-motorway-trunk-2-navigation", { "line", "composite", "road", } },
+#endif
+    
+#ifdef SYMBOL
     { "bridge-oneway-arrow-blue-navigation", { "symbol", "composite", "road", } },
     { "bridge-oneway-arrow-white-navigation", { "symbol", "composite", "road", } },
+#endif
+    
+#ifdef LINE
     { "bridge-rail", { "line", "composite", "road", } },
     { "bridge-rail-tracks", { "line", "composite", "road", } },
+#endif
     
+#ifdef EXTRUSION
     { "building-extrusion", { "fill-extrusion", "composite", "building", } },
+#endif
     
+#ifdef LINE
     { "admin-2-boundary-bg", { "line", "composite", "admin", } },
     { "admin-1-boundary-bg", { "line", "composite", "admin", } },
     { "admin-0-boundary-bg", { "line", "composite", "admin", } },
     { "admin-2-boundary", { "line", "composite", "admin", } },
     { "admin-1-boundary", { "line", "composite", "admin", } },
     { "admin-0-boundary", { "line", "composite", "admin", } },
+#endif
     
+#ifdef SYMBOL
     { "building-entrance", { "symbol", "composite", "structure", } },
     { "building-number-label", { "symbol", "composite", "housenum_label", } },
     { "block-number-label", { "symbol", "composite", "place_label", } },
@@ -155,12 +188,14 @@ static const std::map<std::string, Source> layerIds = {
     { "state-label", { "symbol", "composite", "place_label", } },
     { "country-label", { "symbol", "composite", "place_label", } },
     { "continent-label", { "symbol", "composite", "natural_label", } },
+#endif
+
 };
 
 
 bool filter(const std::string& id) {
-    return true;
-//    return layerIds.find(id) != layerIds.end();
+//    return true;
+    return layerIds.find(id) != layerIds.end();
 }
 
 static std::map<std::string, int> layerRenderIndexs;
