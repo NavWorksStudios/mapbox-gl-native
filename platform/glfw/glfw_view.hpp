@@ -91,6 +91,8 @@ private:
     void nextOrientation();
 
     void addRandomPointAnnotations(int count);
+    void addTargetPointAnnotations(const mbgl::LatLng& tagPosition);
+    void hideCurrentTargetPointAnnotations();
     void addLineAnnotations(const mbgl::LatLng& tagPosition);
     void hideCurrentLineAnnotations();
     void updateLineAnnotations(const mbgl::LatLng& orgPosition, const mbgl::LatLng& tagPosition);
@@ -109,6 +111,7 @@ private:
     void makeSnapshot(bool withOverlay = false);
 
     mbgl::AnnotationIDs annotationIDs;
+    mbgl::AnnotationIDs targetAnnotationIDs;
     std::vector<std::string> spriteIDs;
 
     mbgl::AnnotationIDs animatedAnnotationIDs;

@@ -363,10 +363,10 @@ void GLFWView::onKey(int key, int action, int mods) {
             resetDatabaseCallback();
             break;
         case GLFW_KEY_K:
-            addRandomCustomPointAnnotations(1);
+            addTargetPointAnnotations({40.712245, -74.014147});
             break;
         case GLFW_KEY_L:
-            addLineAnnotations({20.0, 20.0});
+            addLineAnnotations({40.712245, -74.014147});
             break;
         case GLFW_KEY_A: {
             static const std::vector<std::tuple<mbgl::LatLng,float,float,float>> places = {
@@ -413,6 +413,7 @@ void GLFWView::onKey(int key, int action, int mods) {
                 index = fmod(index + 1, 4);
             }
             
+            targetLatLng = mbgl::platform::glfw::LonLatValue[index];
             static mapbox::cheap_ruler::CheapRuler ruler { 0 };
             ruler = mapbox::cheap_ruler::CheapRuler(mbgl::platform::glfw::LatitudeValue[index]);
             const mapbox::geojson::geojson& route = mbgl::platform::glfw::RouteValue(index);
@@ -423,7 +424,8 @@ void GLFWView::onKey(int key, int action, int mods) {
             const auto& lineString = geometry.get<mapbox::geometry::line_string<double>>();
             routeDistance = ruler.lineDistance(lineString);
             
-            addLineAnnotations({20.0, 20.0});
+            addLineAnnotations(targetLatLng);
+            addTargetPointAnnotations(targetLatLng);
 
             animateRouteCallback = [this, route](mbgl::Map* routeMap) {
                 // 导航模式暂停时，不处理任何逻辑直接返回
@@ -464,12 +466,12 @@ void GLFWView::onKey(int key, int action, int mods) {
                     mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
                     puck->setLocation(toArray(mapCenter));
                     puck->setBearing(mbgl::style::Rotation(bearing));
-                    updateLineAnnotations(mapCenter, {20.0, 20.0});
+                    updateLineAnnotations(mapCenter, targetLatLng);
                 }
                 else {
                     puck->setLocation(toArray({point.y, point.x}));
                     puck->setBearing(mbgl::style::Rotation(initialBearing));
-                    updateLineAnnotations({point.y, point.x}, {20.0, 20.0});
+                    updateLineAnnotations({point.y, point.x}, targetLatLng);
                 }
             };
             
@@ -727,26 +729,28 @@ void GLFWView::nextOrientation() {
     }
 }
 
-void GLFWView::addRandomCustomPointAnnotations(int count) {
-    for (int i = 0; i < count; i++) {
-        static int spriteID = 1;
-        const auto name = std::string{ "marker-" } + mbgl::util::toString(spriteID++);
-        map->addAnnotationImage(makeImage(name, 22, 22, 1));
-        spriteIDs.push_back(name);
-        annotationIDs.push_back(map->addAnnotation(mbgl::SymbolAnnotation { makeRandomPoint(), name }));
+void GLFWView::addTargetPointAnnotations(const mbgl::LatLng& tagPosition) {
+    hideCurrentTargetPointAnnotations();
+    map->addAnnotationImage(std::make_unique<mbgl::style::Image>("marker-target",
+                                                                 mbgl::decodeImage(mbgl::util::read_file(mbglPuckAssetsPath + "default_marker.png")), 1.0));
+    targetAnnotationIDs.push_back(map->addAnnotation(mbgl::SymbolAnnotation { { tagPosition.longitude(), tagPosition.latitude() }, "marker-target" }));
+}
+
+void GLFWView::hideCurrentTargetPointAnnotations() {
+    if(targetAnnotationIDs.size() > 0) {
+        map->removeAnnotation(targetAnnotationIDs[0]);
+        targetAnnotationIDs.clear();
     }
 }
 
 void GLFWView::addRandomPointAnnotations(int count) {
     for (int i = 0; i < count; ++i) {
-        annotationIDs.push_back(map->addAnnotation(mbgl::SymbolAnnotation { makeRandomPoint(), "default_marker" }));
+        annotationIDs.push_back(map->addAnnotation(mbgl::SymbolAnnotation { makeRandomPoint(), "marker-target" }));
     }
 }
 
 void GLFWView::addLineAnnotations(const mbgl::LatLng& tagPosition) {
-    
     hideCurrentLineAnnotations();
-    
     mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
     mbgl::LineString<double> lineString;
     lineString.push_back({ mapCenter.longitude(), mapCenter.latitude() });
@@ -770,7 +774,6 @@ void GLFWView::hideCurrentLineAnnotations() {
 }
 
 void GLFWView::updateLineAnnotations(const mbgl::LatLng& orgPosition, const mbgl::LatLng& tagPosition) {
-    
     mbgl::LineString<double> lineString;
     lineString.push_back({ orgPosition.longitude(), orgPosition.latitude() });
     lineString.push_back({ tagPosition.longitude(), tagPosition.latitude() });

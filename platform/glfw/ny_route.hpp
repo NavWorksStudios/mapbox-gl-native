@@ -204,6 +204,13 @@ constexpr const char* Route = R"route(
 
 }
 
+const mbgl::LatLng LonLatValue[] = {
+    {40.712245, -74.014147},
+    {39.90628261959953, 116.30242291741931},
+    {39.90986228303509, 116.44503609063145},
+    {22.29126441062061, 114.1927715774678}
+};
+
 constexpr const double LatitudeValue[] = {
     NewYork::Latitude,
     Guomao::Latitude,
