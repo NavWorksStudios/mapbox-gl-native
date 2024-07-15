@@ -93,7 +93,7 @@ struct ShaderSource<LineProgram> {
         varying vec2 v_width2;
         varying float v_gamma_scale;
         varying highp float v_linesofar;
-        varying lowp vec2 v_clipping;
+        varying vec3 v_pos;
         
         #ifndef HAS_UNIFORM_u_color
             uniform lowp float u_color_t;
@@ -207,10 +207,7 @@ struct ShaderSource<LineProgram> {
             v_gamma_scale=extrude_length_without_perspective/extrude_length_with_perspective;
             v_width2=vec2(outset,inset);
     
-            lowp float spot_distance = pow(gl_Position.x,2.)+pow(gl_Position.y,2.);
-            lowp float clipping_distance = pow(gl_Position.x,2.)+pow(gl_Position.z,2.);
-            lowp float visibility = max(1.-clipping_distance/u_clipping_distance, 0.);
-            v_clipping = vec2(spot_distance,visibility);
+            v_pos = gl_Position.xyz;
         }
 
     )"; }
@@ -244,7 +241,7 @@ struct ShaderSource<LineProgram> {
         varying lowp vec2 v_width2;
         varying lowp vec2 v_normal;
         varying lowp float v_gamma_scale;
-        varying lowp vec2 v_clipping;
+        varying vec3 v_pos;
     
     #ifndef HAS_UNIFORM_u_color
         varying highp vec4 color;
@@ -282,8 +279,9 @@ struct ShaderSource<LineProgram> {
 
         // 距离屏幕中心点越近，越亮 [1, 0]
         lowp float radius = 1000000. * (1. - .7 * u_spotlight); // 聚光灯点亮后，将范围缩小为30%
-        lowp float centerFactor = min(v_clipping.x/radius, 1.);
-        centerFactor = pow(1.-centerFactor, 2.);
+        lowp float distance = pow(v_pos.x,2.) + pow(v_pos.y,2.);
+        lowp float centerFactor = min(distance/radius, 1.);
+        centerFactor = pow(1. - centerFactor, 2.);
     
         // 默认 + 开灯提亮 [.8, 1.4]
         lowp float spotlightFactor = .8 + .6 * u_spotlight;
