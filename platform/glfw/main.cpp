@@ -111,8 +111,8 @@ struct Settings : mbgl::Settings_JSON {
         
         mbgl::Settings_JSON::save();
         mbgl::Log::Info(mbgl::Event::General,
-                        R"(Exit location: --lat="%f" --lon="%f" --zoom="%f" --bearing "%f")",
-                        latitude, longitude, zoom, bearing);
+                        R"(Exit location: --lat="%f" --lon="%f" --zoom="%f" --pitch="%f" --bearing "%f")",
+                        latitude, longitude, zoom, pitch, bearing);
     }
 
 } settings;

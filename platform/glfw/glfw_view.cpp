@@ -369,20 +369,33 @@ void GLFWView::onKey(int key, int action, int mods) {
             addLineAnnotations({20.0, 20.0});
             break;
         case GLFW_KEY_A: {
-            // XXX Fix precision loss in flyTo:
-            // https://github.com/mapbox/mapbox-gl-native/issues/4298
-            static const std::vector<mbgl::LatLng> places = {
-                mbgl::LatLng { -16.796665, -179.999983 },   // Dateline monument
-                mbgl::LatLng { 12.9810542, 77.6345551 },    // Mapbox Bengaluru, India
-                mbgl::LatLng { -13.15607,-74.21773 },       // Mapbox Peru
-                mbgl::LatLng { 37.77572, -122.4158818 },    // Mapbox SF, USA
-                mbgl::LatLng { 38.91318,-77.03255 },        // Mapbox DC, USA
+            static const std::vector<std::tuple<mbgl::LatLng,float,float,float>> places = {
+                { mbgl::LatLng { 39.902469, 116.391135 }, 17.492792, 70, 38.308417 },
+                { mbgl::LatLng { 31.238810, 121.495198 }, 15.445918, 70, 173.230011 },
+                { mbgl::LatLng { 25.034022, 121.565689 }, 15.509377, 70, 137.804038 },
+                { mbgl::LatLng { 22.287087, 114.153126 }, 15.722247, 70, 173.230011 },
+                { mbgl::LatLng { 3.157095, 101.711161 }, 15.785404, 56.109924, -38.003146 },
+                { mbgl::LatLng { 25.199069, 55.272333 }, 15.139267, 54.849651, -25.617828 },
+                { mbgl::LatLng { 55.752054, 37.622555 }, 17.575427, 70, -144.298426 },
+                { mbgl::LatLng { 50.087501, 14.421360 }, 16.215369, 70, 103.655584 },
+                { mbgl::LatLng { 41.890263, 12.492618 }, 16.650609, 70, 56.149146 },
+                { mbgl::LatLng { 48.859978, 2.292346 }, 15.451197, 70, 70.010436 },
+                { mbgl::LatLng { 51.500563, -0.124530 }, 17.289908, 70, -132.399429 },
+                { mbgl::LatLng { 40.703280, -74.015369 }, 16.292853, 70, 16.625600 },
+                { mbgl::LatLng { 35.884921, 138.527952 }, 7.137733, 0, 0 },
+                { mbgl::LatLng { 31.217935, 120.949375 }, 9.145968, 0, 0 },
+                { mbgl::LatLng { 22.670898, 115.953376 }, 5.778833, 0, 0 },
+                { mbgl::LatLng { 51.501716, -0.080117 }, 10.320973, 0, 0 },
+                { mbgl::LatLng { 40.709430, -74.027215 }, 11.335746, 0, 0 },
             };
+
             static size_t nextPlace = 0;
             mbgl::CameraOptions cameraOptions;
-            cameraOptions.center = places[nextPlace++];
-            cameraOptions.zoom = 20;
-            cameraOptions.pitch = 30;
+            const auto& place = places[nextPlace++];
+            cameraOptions.center = std::get<0>(place);
+            cameraOptions.zoom = std::get<1>(place);
+            cameraOptions.pitch = std::get<2>(place);
+            cameraOptions.bearing = std::get<3>(place);
 
             mbgl::AnimationOptions animationOptions(mbgl::Seconds(10));
             map->flyTo(cameraOptions, animationOptions);
