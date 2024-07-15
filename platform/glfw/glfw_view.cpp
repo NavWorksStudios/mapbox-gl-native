@@ -293,11 +293,13 @@ void GLFWView::onKey(int key, int action, int mods) {
                 if(!routePaused) {
                     routePaused = true;
                     puckFollowsCameraCenter = true;
+                    notFollowCounter = 0;
                     nav::style::setViewMode(nav::style::ViewMode::Normal);
                 }
                 else { // routePaused == true
                     routePaused = false;
                     puckFollowsCameraCenter = true;
+                    notFollowCounter = 0;
                     nav::style::setViewMode(nav::style::ViewMode::Spotlight);
                 }
             }
@@ -437,10 +439,12 @@ void GLFWView::onKey(int key, int action, int mods) {
                 const mbgl::LatLng center { point.y, point.x };
                 auto latLng = *camera.center;
                 double bearing = ruler.bearing({ latLng.longitude(), latLng.latitude() }, point);
+                double initialBearing = ruler.bearing({ lastPoint.x, lastPoint.y }, point);
                 double easing = bearing - *camera.bearing;
                 easing += easing > 180.0 ? -360.0 : easing < -180 ? 360.0 : 0;
                 
-                bearing = *camera.bearing + (easing / 40);
+                bearing = *camera.bearing + (easing / 12);
+                lastPoint = point;
                 
                 if(puckFollowsCameraCenter) {
                     routeMap->jumpTo(mbgl::CameraOptions().withCenter(center).withZoom(18).withBearing(bearing).withPitch(60.0));
@@ -451,7 +455,7 @@ void GLFWView::onKey(int key, int action, int mods) {
                 }
                 else {
                     puck->setLocation(toArray({point.y, point.x}));
-                    puck->setBearing(mbgl::style::Rotation(bearing));
+                    puck->setBearing(mbgl::style::Rotation(initialBearing));
                     updateLineAnnotations({point.y, point.x}, {20.0, 20.0});
                 }
             };
@@ -993,9 +997,15 @@ void GLFWView::onMouseMove(double x, double y) {
         if (dx || dy) {
             map->moveBy(mbgl::ScreenCoordinate { dx, dy });
             
-            if(puck && puckFollowsCameraCenter) {
-                puckFollowsCameraCenter = false;
-                nav::style::setViewMode(nav::style::ViewMode::Normal);
+            if(puck) {
+                if(puckFollowsCameraCenter) {
+                    puckFollowsCameraCenter = false;
+                    notFollowCounter = 0;
+                    nav::style::setViewMode(nav::style::ViewMode::Normal);
+                }
+                else {
+                    notFollowCounter = 0;
+                }
             }
         }
     }

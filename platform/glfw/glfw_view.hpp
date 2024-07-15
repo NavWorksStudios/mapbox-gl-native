@@ -197,6 +197,7 @@ private:
     bool routePaused = false;
     bool puckFollowsCameraCenter = true;
     float notFollowCounter = 0;
+    mapbox::geometry::point<double> lastPoint;
     mbgl::style::LocationIndicatorLayer *puck = nullptr;
     mbgl::LatLng targetLatLng = {0.0, 0.0};
 #endif
