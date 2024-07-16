@@ -898,9 +898,14 @@ void GLFWView::onScroll(GLFWwindow *window, double /*xOffset*/, double yOffset) 
 }
 
 void GLFWView::onScroll(double yOffset) {
-    
-    if(puck && puckFollowsCameraCenter && !routePaused) {
-        return;
+        
+    if(puck) {
+        if(puckFollowsCameraCenter&&!routePaused) {
+            return;
+        }
+        else {
+            notFollowCounter = 0;
+        }
     }
     
     double delta = yOffset * 40;
