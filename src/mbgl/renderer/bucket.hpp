@@ -19,7 +19,7 @@ class RenderLayer;
 class CrossTileSymbolLayerIndex;
 class OverscaledTileID;
 class PatternDependency;
-using PatternLayerMap = std::map<std::string, PatternDependency>;
+using PatternLayerMap = std::map<nav::stringid, PatternDependency>;
 class Placement;
 class TransformState;
 class BucketPlacementData;
@@ -44,13 +44,11 @@ public:
                             std::size_t,
                             const CanonicalTileID&){};
 
-    virtual void update(const FeatureStates&, const GeometryTileLayer&, const std::string&, const ImagePositions&) {}
+    virtual void update(const FeatureStates&, const GeometryTileLayer&, const nav::stringid&, const ImagePositions&) {}
 
     // As long as this bucket has a Prepare render pass, this function is getting called. Typically,
     // this only happens once when the bucket is being rendered for the first time.
     virtual void upload(gfx::UploadPass&) = 0;
-    
-    virtual void nav_upload_external(const CanonicalTileID& canonical, const std::string& layerId, const std::string& sourceLayer) = 0;
 
     virtual bool hasData() const = 0;
 

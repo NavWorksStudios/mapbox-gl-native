@@ -44,8 +44,6 @@ void GLFWRendererFrontend::render() {
     // still using them.
     auto updateParameters_ = updateParameters;
     renderer->render(updateParameters_);
-    
-    updateParameters->transformState.notifyProjectionTransform();
 }
 
 mbgl::Renderer* GLFWRendererFrontend::getRenderer() {

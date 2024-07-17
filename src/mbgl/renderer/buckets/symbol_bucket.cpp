@@ -17,7 +17,7 @@ std::atomic<uint32_t> maxBucketInstanceId;
 } // namespace
 
 SymbolBucket::SymbolBucket(Immutable<style::SymbolLayoutProperties::PossiblyEvaluated> layout_,
-                           const std::map<std::string, Immutable<style::LayerProperties>>& paintProperties_,
+                           const std::map<nav::stringid, Immutable<style::LayerProperties>>& paintProperties_,
                            const style::PropertyValue<float>& textSize,
                            const style::PropertyValue<float>& iconSize,
                            float zoom,
@@ -171,10 +171,6 @@ void SymbolBucket::upload(gfx::UploadPass& uploadPass) {
     placementChangesUploaded = true;
     dynamicUploaded = true;
     sortUploaded = true;
-}
-
-void SymbolBucket::nav_upload_external(const CanonicalTileID& canonical, const std::string& layerID, const std::string& sourceLayer) {
-    
 }
 
 bool SymbolBucket::hasData() const {

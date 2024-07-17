@@ -7,15 +7,12 @@
 #include <cassert>
 #include <utility>
 
-#include "mbgl/nav/nav_unity_bridge.hpp"
-#include "mbgl/nav/nav_mb_style.hpp"
-
 namespace mbgl {
 
 using namespace style;
 
 LineBucket::LineBucket(LineBucket::PossiblyEvaluatedLayoutProperties layout_,
-                       const std::map<std::string, Immutable<LayerProperties>>& layerPaintProperties,
+                       const std::map<nav::stringid, Immutable<LayerProperties>>& layerPaintProperties,
                        const float zoom_,
                        const uint32_t overscaling_)
     : layout(std::move(layout_)), zoom(zoom_), overscaling(overscaling_) {
@@ -619,25 +616,13 @@ void LineBucket::upload(gfx::UploadPass& uploadPass) {
     uploaded = true;
 }
 
-void LineBucket::nav_upload_external(const CanonicalTileID& canonical, const std::string& layerId, const std::string& sourceLayer) {
-    if (hasData()) {
-        const nav::layer::LineBucket param = {
-            {&canonical, nav::layer::renderIndex(layerId), layerId.c_str(), sourceLayer.c_str() },
-            {(const uint16_t*) vertices.data(), (int) vertices.elements()},
-            {triangles.data(), (int) triangles.bytes() / 2}
-        };
-        
-        nav::layer::onAddLineBucket(&param);
-    }
-}
-
 bool LineBucket::hasData() const {
     return !segments.empty();
 }
 
 template <class Property>
-static float get(const LinePaintProperties::PossiblyEvaluated& evaluated, const std::string& id, 
-                 const std::map<std::string, LineProgram::Binders>& paintPropertyBinders) {
+static float get(const LinePaintProperties::PossiblyEvaluated& evaluated, const nav::stringid& id, 
+                 const std::map<nav::stringid, LineProgram::Binders>& paintPropertyBinders) {
     auto it = paintPropertyBinders.find(id);
     if (it == paintPropertyBinders.end() || !it->second.statistics<Property>().max()) {
         return evaluated.get<Property>().constantOr(Property::defaultValue());
@@ -659,7 +644,7 @@ float LineBucket::getQueryRadius(const RenderLayer& layer) const {
     return lineWidth / 2.0f + std::abs(offset) + util::length(translate[0], translate[1]);
 }
 
-void LineBucket::update(const FeatureStates& states, const GeometryTileLayer& layer, const std::string& layerID,
+void LineBucket::update(const FeatureStates& states, const GeometryTileLayer& layer, const nav::stringid& layerID,
                         const ImagePositions& imagePositions) {
     auto it = paintPropertyBinders.find(layerID);
     if (it != paintPropertyBinders.end()) {

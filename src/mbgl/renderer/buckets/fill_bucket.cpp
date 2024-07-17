@@ -9,7 +9,6 @@
 
 #include <cassert>
 
-#include "mbgl/nav/nav_unity_bridge.hpp"
 #include "mbgl/nav/nav_mb_style.hpp"
 
 
@@ -32,7 +31,7 @@ using namespace style;
 struct GeometryTooLongException : std::exception {};
 
 FillBucket::FillBucket(const FillBucket::PossiblyEvaluatedLayoutProperties&,
-                       const std::map<std::string, Immutable<style::LayerProperties>>& layerPaintProperties,
+                       const std::map<nav::stringid, Immutable<style::LayerProperties>>& layerPaintProperties,
                        const float zoom,
                        const uint32_t) {
     for (const auto& pair : layerPaintProperties) {
@@ -142,18 +141,6 @@ void FillBucket::upload(gfx::UploadPass& uploadPass) {
     uploaded = true;
 }
 
-void FillBucket::nav_upload_external(const CanonicalTileID& canonical, const std::string& layerId, const std::string& sourceLayer) {
-    if (hasData()) {
-        const nav::layer::FillBucket param = {
-            {&canonical, nav::layer::renderIndex(layerId), layerId.c_str(), sourceLayer.c_str()},
-            {(const uint16_t*) vertices.data(), (int) vertices.elements()},
-            {lines.data(), (int) lines.bytes() / 2},
-            {triangles.data(), (int) triangles.bytes() / 2}
-        };
-        nav::layer::onAddFillBucket(&param);
-    }
-}
-
 bool FillBucket::hasData() const {
     return !triangleSegments.empty() || !lineSegments.empty();
 }
@@ -164,7 +151,7 @@ float FillBucket::getQueryRadius(const RenderLayer& layer) const {
     return util::length(translate[0], translate[1]);
 }
 
-void FillBucket::update(const FeatureStates& states, const GeometryTileLayer& layer, const std::string& layerID,
+void FillBucket::update(const FeatureStates& states, const GeometryTileLayer& layer, const nav::stringid& layerID,
                         const ImagePositions& imagePositions) {
     auto it = paintPropertyBinders.find(layerID);
     if (it != paintPropertyBinders.end()) {

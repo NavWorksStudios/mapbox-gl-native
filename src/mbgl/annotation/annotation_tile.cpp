@@ -104,7 +104,7 @@ std::unique_ptr<GeometryTileData> AnnotationTileData::clone() const {
     return std::make_unique<AnnotationTileData>(*this);
 }
 
-std::unique_ptr<GeometryTileLayer> AnnotationTileData::getLayer(const std::string& name) const {
+std::unique_ptr<GeometryTileLayer> AnnotationTileData::getLayer(const nav::stringid& name) const {
     auto it = layers.find(name);
     if (it != layers.end()) {
         return std::make_unique<AnnotationTileLayer>(it->second);
@@ -112,7 +112,7 @@ std::unique_ptr<GeometryTileLayer> AnnotationTileData::getLayer(const std::strin
     return nullptr;
 }
 
-std::unique_ptr<AnnotationTileLayer> AnnotationTileData::addLayer(const std::string& name) {
+std::unique_ptr<AnnotationTileLayer> AnnotationTileData::addLayer(const nav::stringid& name) {
     // Only constructs a new layer if it doesn't yet exist, otherwise, we'll use the existing one.
     auto it = layers.find(name);
     if (it == layers.end()) {

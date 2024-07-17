@@ -79,7 +79,7 @@ private:
     const float pixelRatio;
     
     std::unique_ptr<FeatureIndex> featureIndex;
-    std::unordered_map<std::string, LayerRenderData> renderData;
+    std::unordered_map<nav::stringid, LayerRenderData> renderData;
 
     enum State {
         Idle,

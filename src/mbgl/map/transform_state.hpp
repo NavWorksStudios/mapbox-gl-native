@@ -305,7 +305,6 @@ private:
     mutable vec3 _cameraPosition;
     
 public:
-    void notifyProjectionTransform() const;
     inline vec3f getCameraPosition() const {
         vec3f pos = { (float) _cameraPosition[0], (float) _cameraPosition[1], (float) _cameraPosition[2] };
         return pos;

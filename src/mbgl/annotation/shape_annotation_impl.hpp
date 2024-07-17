@@ -10,6 +10,8 @@
 #include <string>
 #include <memory>
 
+#include "mbgl/nav/nav_stringid.hpp"
+
 namespace mbgl {
 
 class AnnotationTileData;
@@ -26,7 +28,7 @@ public:
     void updateTileData(const CanonicalTileID&, AnnotationTileData&);
 
     const AnnotationID id;
-    const std::string layerID;
+    const nav::stringid layerID;
     std::unique_ptr<mapbox::geojsonvt::GeoJSONVT> shapeTiler;
 };
 

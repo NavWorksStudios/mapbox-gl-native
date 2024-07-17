@@ -27,7 +27,7 @@ bool RenderLayer::needsPlacement() const {
            && !placementData.empty();
 }
 
-const std::string& RenderLayer::getID() const {
+const nav::stringid& RenderLayer::getID() const {
     return baseImpl->id;
 }
 

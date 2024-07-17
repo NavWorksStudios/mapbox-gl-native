@@ -66,7 +66,7 @@ public:
 class SymbolBucket final : public Bucket {
 public:
     SymbolBucket(Immutable<style::SymbolLayoutProperties::PossiblyEvaluated>,
-                 const std::map<std::string, Immutable<style::LayerProperties>>&,
+                 const std::map<nav::stringid, Immutable<style::LayerProperties>>&,
                  const style::PropertyValue<float>& textSize,
                  const style::PropertyValue<float>& iconSize,
                  float zoom,
@@ -82,7 +82,6 @@ public:
     ~SymbolBucket() override;
 
     void upload(gfx::UploadPass&) override;
-    void nav_upload_external(const CanonicalTileID& canonical, const std::string& layerID, const std::string& sourceLayer) override;
     bool hasData() const override;
     std::pair<uint32_t, bool> registerAtCrossTileIndex(CrossTileSymbolLayerIndex&, const RenderTile&) override;
     void place(Placement&, const BucketPlacementData&, std::set<uint32_t>&) override;
@@ -128,7 +127,7 @@ public:
         SymbolIconProgram::Binders iconBinders;
         SymbolSDFTextProgram::Binders textBinders;
     };
-    std::map<std::string, PaintProperties> paintProperties;
+    std::map<nav::stringid, PaintProperties> paintProperties;
 
     std::unique_ptr<SymbolSizeBinder> textSizeBinder;
 

@@ -67,14 +67,14 @@ public:
 
     class LayoutResult {
     public:
-        std::unordered_map<std::string, LayerRenderData> layerRenderData;
+        std::unordered_map<nav::stringid, LayerRenderData> layerRenderData;
         std::shared_ptr<FeatureIndex> featureIndex;
         optional<AlphaImage> glyphAtlasImage;
         ImageAtlas iconAtlas;
 
         LayerRenderData* getLayerRenderData(const style::Layer::Impl&);
 
-        LayoutResult(std::unordered_map<std::string, LayerRenderData> renderData_,
+        LayoutResult(std::unordered_map<nav::stringid, LayerRenderData> renderData_,
                      std::unique_ptr<FeatureIndex> featureIndex_,
                      optional<AlphaImage> glyphAtlasImage_,
                      ImageAtlas iconAtlas_)

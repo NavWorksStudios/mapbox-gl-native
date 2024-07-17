@@ -5,6 +5,7 @@
 #include <mbgl/tile/geometry_tile_data.hpp>
 #include <memory>
 
+#include "mbgl/nav/nav_stringid.hpp"
 #include "mbgl/nav/nav_log.hpp"
 
 namespace mbgl {
@@ -23,7 +24,7 @@ public:
 
     virtual void createBucket(const ImagePositions&,
                               std::unique_ptr<FeatureIndex>&,
-                              std::unordered_map<std::string, LayerRenderData>&,
+                              std::unordered_map<nav::stringid, LayerRenderData>&,
                               bool,
                               bool,
                               const CanonicalTileID&,

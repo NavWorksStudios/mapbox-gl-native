@@ -370,7 +370,7 @@ void GLFWView::onKey(int key, int action, int mods) {
             break;
         case GLFW_KEY_A: {
             static const std::vector<std::tuple<mbgl::LatLng,float,float,float>> places = {
-                { mbgl::LatLng { 22.294522, 114.157209 }, 15.722247, 71.050945, 147.869345 },
+//                { mbgl::LatLng { 22.294522, 114.157209 }, 15.722247, 71.050945, 147.869345 },
                 { mbgl::LatLng { 39.903563, 116.391363 }, 17.141364, 70.103668, -33.081634 },
                 { mbgl::LatLng { 31.242662, 121.495084 }, 15.445918, 71.050945, -179.947701 },
                 { mbgl::LatLng { 25.034055, 121.564515 }, 16.077729, 70.723858, 143.526270 },
@@ -462,7 +462,7 @@ void GLFWView::onKey(int key, int action, int mods) {
                 lastPoint = point;
                 
                 if(puckFollowsCameraCenter) {
-                    routeMap->jumpTo(mbgl::CameraOptions().withCenter(center).withZoom(18).withBearing(bearing).withPitch(60.0));
+                    routeMap->jumpTo(mbgl::CameraOptions().withCenter(center).withZoom(18.5).withBearing(bearing).withPitch(60.0));
                     mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
                     puck->setLocation(toArray(mapCenter));
                     puck->setBearing(mbgl::style::Rotation(bearing));
@@ -1060,7 +1060,7 @@ void GLFWView::onMouseMove(double x, double y) {
     auto &style = map->getStyle();
     if (style.getLayer("state-fills")) {
         auto screenCoordinate = _mouseHistory[0].coord;
-        const mbgl::RenderedQueryOptions queryOptions({{{"state-fills"}}, {}});
+        const mbgl::RenderedQueryOptions queryOptions({{{nav::stringid("state-fills")}}, {}});
         auto result = rendererFrontend->getRenderer()->queryRenderedFeatures(screenCoordinate, queryOptions);
         using namespace mbgl;
         FeatureState newState;

@@ -10,8 +10,6 @@
 
 #include <cassert>
 
-#include "mbgl/nav/nav_unity_bridge.hpp"
-
 namespace mapbox {
 namespace util {
 template <>
@@ -37,7 +35,7 @@ using namespace style;
 struct GeometryTooLongException : std::exception {};
 
 FillExtrusionBucket::FillExtrusionBucket(const FillExtrusionBucket::PossiblyEvaluatedLayoutProperties&,
-                       const std::map<std::string, Immutable<style::LayerProperties>>& layerPaintProperties,
+                       const std::map<nav::stringid, Immutable<style::LayerProperties>>& layerPaintProperties,
                        const float zoom,
                        const uint32_t) {
     for (const auto& pair : layerPaintProperties) {
@@ -225,18 +223,6 @@ void FillExtrusionBucket::upload(gfx::UploadPass& uploadPass) {
     uploaded = true;
 }
 
-void FillExtrusionBucket::nav_upload_external(const CanonicalTileID& canonical, const std::string& layerId, const std::string& sourceLayer) {
-    if (hasData()) {
-        const nav::layer::ExtrusionBucket param = {
-            {&canonical, nav::layer::renderIndex(layerId), layerId.c_str(), sourceLayer.c_str()},
-            {(const uint16_t*) vertices.data(), (int) vertices.elements()},
-            {triangles.data(), (int) triangles.bytes() / 2}
-        };
-
-        nav::layer::onAddExtrusionBucket(&param);
-    }
-}
-
 bool FillExtrusionBucket::hasData() const {
     return !triangleSegments.empty();
 }
@@ -248,7 +234,7 @@ float FillExtrusionBucket::getQueryRadius(const RenderLayer& layer) const {
 }
 
 void FillExtrusionBucket::update(const FeatureStates& states, const GeometryTileLayer& layer,
-                                 const std::string& layerID, const ImagePositions& imagePositions) {
+                                 const nav::stringid& layerID, const ImagePositions& imagePositions) {
     auto it = paintPropertyBinders.find(layerID);
     if (it != paintPropertyBinders.end()) {
         it->second.updateVertexVectors(states, layer, imagePositions);

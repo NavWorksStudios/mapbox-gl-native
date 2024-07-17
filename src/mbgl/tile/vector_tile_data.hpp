@@ -43,14 +43,14 @@ public:
     VectorTileData(std::shared_ptr<const std::string> data);
 
     std::unique_ptr<GeometryTileData> clone() const override;
-    std::unique_ptr<GeometryTileLayer> getLayer(const std::string& name) const override;
+    std::unique_ptr<GeometryTileLayer> getLayer(const nav::stringid& name) const override;
 
     std::vector<std::string> layerNames() const;
 
 private:
     std::shared_ptr<const std::string> data;
     mutable bool parsed = false;
-    mutable std::map<std::string, const protozero::data_view> layers;
+    mutable std::map<nav::stringid, const protozero::data_view> layers;
 };
 
 } // namespace mbgl

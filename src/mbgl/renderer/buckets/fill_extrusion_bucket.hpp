@@ -20,7 +20,7 @@ public:
     using PossiblyEvaluatedLayoutProperties = style::Properties<>::PossiblyEvaluated;
 
     FillExtrusionBucket(const PossiblyEvaluatedLayoutProperties&,
-                        const std::map<std::string, Immutable<style::LayerProperties>>&,
+                        const std::map<nav::stringid, Immutable<style::LayerProperties>>&,
                         float,
                         uint32_t);
 
@@ -34,11 +34,10 @@ public:
     bool hasData() const override;
 
     void upload(gfx::UploadPass&) override;
-    void nav_upload_external(const CanonicalTileID& canonical, const std::string& layerId, const std::string& sourceLayer) override;
 
     float getQueryRadius(const RenderLayer&) const override;
 
-    void update(const FeatureStates&, const GeometryTileLayer&, const std::string&, const ImagePositions&) override;
+    void update(const FeatureStates&, const GeometryTileLayer&, const nav::stringid&, const ImagePositions&) override;
 
     gfx::VertexVector<FillExtrusionLayoutVertex> vertices;
     gfx::IndexVector<gfx::Triangles> triangles;
@@ -49,7 +48,7 @@ public:
     optional<gfx::IndexBuffer> indexBuffer;
     optional<gfx::IndexBuffer> reflectionIndexBuffer;
     
-    std::unordered_map<std::string, FillExtrusionProgram::Binders> paintPropertyBinders;
+    std::unordered_map<nav::stringid, FillExtrusionProgram::Binders> paintPropertyBinders;
 };
 
 } // namespace mbgl

@@ -23,7 +23,7 @@ public:
         bucketLeaderID = leaderLayerProperties->layerImpl().id;
 
         for (const auto& layerProperties : group) {
-            const std::string& layerId = layerProperties->baseImpl->id;
+            const auto& layerId = layerProperties->baseImpl->id;
             layerPropertiesMap.emplace(layerId, layerProperties);
         }
 
@@ -54,7 +54,7 @@ public:
 
     void createBucket(const ImagePositions&,
                       std::unique_ptr<FeatureIndex>& featureIndex,
-                      std::unordered_map<std::string, LayerRenderData>& renderData,
+                      std::unordered_map<nav::stringid, LayerRenderData>& renderData,
                       const bool,
                       const bool,
                       const CanonicalTileID& canonical,
@@ -150,7 +150,7 @@ private:
         }
     }
 
-    std::map<std::string, Immutable<style::LayerProperties>> layerPropertiesMap;
+    std::map<nav::stringid, Immutable<style::LayerProperties>> layerPropertiesMap;
     std::string bucketLeaderID;
 
     const std::unique_ptr<GeometryTileLayer> sourceLayer;

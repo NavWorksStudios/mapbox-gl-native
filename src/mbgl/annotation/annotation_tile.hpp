@@ -56,12 +56,12 @@ private:
 class AnnotationTileData : public GeometryTileData {
 public:
     std::unique_ptr<GeometryTileData> clone() const override;
-    std::unique_ptr<GeometryTileLayer> getLayer(const std::string&) const override;
+    std::unique_ptr<GeometryTileLayer> getLayer(const nav::stringid&) const override;
 
-    std::unique_ptr<AnnotationTileLayer> addLayer(const std::string&);
+    std::unique_ptr<AnnotationTileLayer> addLayer(const nav::stringid&);
 
 private:
-    std::unordered_map<std::string, std::shared_ptr<AnnotationTileLayerData>> layers;
+    std::unordered_map<nav::stringid, std::shared_ptr<AnnotationTileLayerData>> layers;
 };
 
 } // namespace mbgl

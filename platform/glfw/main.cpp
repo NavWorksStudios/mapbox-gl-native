@@ -21,8 +21,6 @@
 #include <cstdio>
 #include <array>
 
-#include "mbgl/nav/nav_unity_bridge.hpp"
-
 std::shared_ptr<GLFWView> view;
 std::shared_ptr<mbgl::Map> map;
 std::shared_ptr<GLFWRendererFrontend> rendererFrontend;

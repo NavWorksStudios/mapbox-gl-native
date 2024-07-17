@@ -9,6 +9,8 @@
 #include <vector>
 #include <memory>
 
+#include "mbgl/nav/nav_stringid.hpp"
+
 namespace mbgl {
 
 class CanonicalTileID;
@@ -73,7 +75,7 @@ public:
 
     // Returns the layer with the given name. The returned layer object *may* outlive the data
     // object.
-    virtual std::unique_ptr<GeometryTileLayer> getLayer(const std::string&) const = 0;
+    virtual std::unique_ptr<GeometryTileLayer> getLayer(const nav::stringid&) const = 0;
 };
 
 // classifies an array of rings into polygons with outer rings and holes

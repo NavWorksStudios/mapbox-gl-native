@@ -20,7 +20,7 @@ public:
     std::string max;
 };
 
-using PatternLayerMap = std::map<std::string, PatternDependency>;
+using PatternLayerMap = std::map<nav::stringid, PatternDependency>;
 
 class PatternFeature  {
 public:
@@ -95,7 +95,7 @@ public:
         bucketLeaderID = leaderLayerProperties->layerImpl().id;
 
         for (const auto& layerProperties : group) {
-            const std::string& layerId = layerProperties->baseImpl->id;
+            const auto& layerId = layerProperties->baseImpl->id;
             const auto& evaluated = style::getEvaluated<LayerPropertiesType>(layerProperties);
             const auto& patternProperty = evaluated.template get<PatternPropertyType>();
             const auto constantPattern = patternProperty.constantOr(Faded<style::expression::Image>{"", ""});
@@ -128,7 +128,7 @@ public:
             PatternLayerMap patternDependencyMap;
             if (hasPattern) {
                 for (const auto& layerProperties : group) {
-                    const std::string& layerId = layerProperties->baseImpl->id;
+                    const auto& layerId = layerProperties->baseImpl->id;
                     const auto it = layerPropertiesMap.find(layerId);
                     if (it != layerPropertiesMap.end()) {
                         const auto paint = static_cast<const LayerPropertiesType&>(*it->second).evaluated;
@@ -176,7 +176,7 @@ public:
 
     void createBucket(const ImagePositions& patternPositions,
                       std::unique_ptr<FeatureIndex>& featureIndex,
-                      std::unordered_map<std::string, LayerRenderData>& renderData,
+                      std::unordered_map<nav::stringid, LayerRenderData>& renderData,
                       const bool /*firstLoad*/,
                       const bool /*showCollisionBoxes*/,
                       const CanonicalTileID& canonical,
@@ -257,7 +257,7 @@ public:
     };
 
 protected:
-    std::map<std::string, Immutable<style::LayerProperties>> layerPropertiesMap;
+    std::map<nav::stringid, Immutable<style::LayerProperties>> layerPropertiesMap;
     std::string bucketLeaderID;
 
     const std::unique_ptr<GeometryTileLayer> sourceLayer;

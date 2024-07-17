@@ -38,7 +38,7 @@ public:
 
     void createBucket(const ImagePositions&,
                       std::unique_ptr<FeatureIndex>&,
-                      std::unordered_map<std::string, LayerRenderData>&,
+                      std::unordered_map<nav::stringid, LayerRenderData>&,
                       bool firstLoad,
                       bool showCollisionBoxes,
                       const CanonicalTileID& canonical,
@@ -47,7 +47,7 @@ public:
     bool hasSymbolInstances() const override;
     bool hasDependencies() const override;
 
-    std::map<std::string, Immutable<style::LayerProperties>> layerPaintProperties;
+    std::map<nav::stringid, Immutable<style::LayerProperties>> layerPaintProperties;
 
     const std::string bucketLeaderID;
     std::vector<SymbolInstance> symbolInstances;

@@ -27,9 +27,9 @@ namespace mbgl {
 
 using namespace style;
 
-const std::string AnnotationManager::SourceID = "com.mapbox.annotations";
-const std::string AnnotationManager::PointLayerID = "com.mapbox.annotations.points";
-const std::string AnnotationManager::ShapeLayerID = "com.mapbox.annotations.shape.";
+const nav::stringid AnnotationManager::SourceID({ "com.mapbox.annotations" });
+const nav::stringid AnnotationManager::PointLayerID({ "com.mapbox.annotations.points" });
+const nav::stringid AnnotationManager::ShapeLayerID({ "com.mapbox.annotations.shape." });
 
 AnnotationManager::AnnotationManager(Style& style_)
         : style(style_) {

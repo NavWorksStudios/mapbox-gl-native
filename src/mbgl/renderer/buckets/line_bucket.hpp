@@ -20,7 +20,7 @@ public:
     using PossiblyEvaluatedLayoutProperties = style::LineLayoutProperties::PossiblyEvaluated;
 
     LineBucket(PossiblyEvaluatedLayoutProperties layout,
-               const std::map<std::string, Immutable<style::LayerProperties>>& layerPaintProperties,
+               const std::map<nav::stringid, Immutable<style::LayerProperties>>& layerPaintProperties,
                float zoom,
                uint32_t overscaling);
     ~LineBucket() override;
@@ -35,11 +35,10 @@ public:
     bool hasData() const override;
 
     void upload(gfx::UploadPass&) override;
-    void nav_upload_external(const CanonicalTileID& canonical, const std::string& layerId, const std::string& sourceLayer) override;
 
     float getQueryRadius(const RenderLayer&) const override;
 
-    void update(const FeatureStates&, const GeometryTileLayer&, const std::string&, const ImagePositions&) override;
+    void update(const FeatureStates&, const GeometryTileLayer&, const nav::stringid&, const ImagePositions&) override;
 
     PossiblyEvaluatedLayoutProperties layout;
 
@@ -50,7 +49,7 @@ public:
     optional<gfx::VertexBuffer<LineLayoutVertex>> vertexBuffer;
     optional<gfx::IndexBuffer> indexBuffer;
 
-    std::map<std::string, LineProgram::Binders> paintPropertyBinders;
+    std::map<nav::stringid, LineProgram::Binders> paintPropertyBinders;
 
 private:
     using IsTermination = std::array<bool, 2>;

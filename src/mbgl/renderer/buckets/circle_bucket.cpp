@@ -10,7 +10,7 @@ namespace mbgl {
 
 using namespace style;
 
-CircleBucket::CircleBucket(const std::map<std::string, Immutable<LayerProperties>>& layerPaintProperties,
+CircleBucket::CircleBucket(const std::map<nav::stringid, Immutable<LayerProperties>>& layerPaintProperties,
                            const MapMode mode_,
                            const float zoom)
     : mode(mode_) {
@@ -36,16 +36,12 @@ void CircleBucket::upload(gfx::UploadPass& uploadPass) {
     uploaded = true;
 }
 
-void CircleBucket::nav_upload_external(const CanonicalTileID& canonical, const std::string& layerID, const std::string& sourceLayer) {
-    
-}
-
 bool CircleBucket::hasData() const {
     return !segments.empty();
 }
 
 template <class Property>
-static float get(const CirclePaintProperties::PossiblyEvaluated& evaluated, const std::string& id, const std::map<std::string, CircleProgram::Binders>& paintPropertyBinders) {
+static float get(const CirclePaintProperties::PossiblyEvaluated& evaluated, const nav::stringid& id, const std::map<nav::stringid, CircleProgram::Binders>& paintPropertyBinders) {
     auto it = paintPropertyBinders.find(id);
     if (it == paintPropertyBinders.end() || !it->second.statistics<Property>().max()) {
         return evaluated.get<Property>().constantOr(Property::defaultValue());
@@ -62,7 +58,7 @@ float CircleBucket::getQueryRadius(const RenderLayer& layer) const {
     return radius + stroke + util::length(translate[0], translate[1]);
 }
 
-void CircleBucket::update(const FeatureStates& states, const GeometryTileLayer& layer, const std::string& layerID,
+void CircleBucket::update(const FeatureStates& states, const GeometryTileLayer& layer, const nav::stringid& layerID,
                           const ImagePositions& imagePositions) {
     auto it = paintPropertyBinders.find(layerID);
     if (it != paintPropertyBinders.end()) {

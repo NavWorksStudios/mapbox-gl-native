@@ -13,6 +13,8 @@
 
 #include <mapbox/std/weak.hpp>
 
+#include "mbgl/nav/nav_stringid.hpp"
+
 namespace mbgl {
 
 class LatLngBounds;
@@ -46,9 +48,9 @@ public:
     void addTile(AnnotationTile&);
     void removeTile(AnnotationTile&);
 
-    static const std::string SourceID;
-    static const std::string PointLayerID;
-    static const std::string ShapeLayerID;
+    static const nav::stringid SourceID;
+    static const nav::stringid PointLayerID;
+    static const nav::stringid ShapeLayerID;
 
     mapbox::base::WeakPtr<AnnotationManager> makeWeakPtr() { return weakFactory.makeWeakPtr(); }
 

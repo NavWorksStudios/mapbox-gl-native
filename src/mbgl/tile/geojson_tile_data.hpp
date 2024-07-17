@@ -86,7 +86,7 @@ public:
         return std::make_unique<GeoJSONTileData>(features);
     }
 
-    std::unique_ptr<GeometryTileLayer> getLayer(const std::string&) const override {
+    std::unique_ptr<GeometryTileLayer> getLayer(const nav::stringid&) const override {
         return std::make_unique<GeoJSONTileLayer>(features);
     }
 

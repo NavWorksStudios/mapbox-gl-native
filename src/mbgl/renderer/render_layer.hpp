@@ -90,7 +90,7 @@ public:
     // Returns true is the layer is subject to placement.
     bool needsPlacement() const;
 
-    const std::string& getID() const;
+    const nav::stringid& getID() const;
 
     // Checks whether this layer needs to be rendered in the given render pass.
     bool hasRenderPass(RenderPass) const;

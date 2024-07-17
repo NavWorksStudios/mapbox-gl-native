@@ -43,8 +43,8 @@ public:
         , collisionGroupId(collisionGroupId_)
     {}
     size_t index;
-    std::string sourceLayerName;
-    std::string bucketLeaderID;
+    nav::stringid sourceLayerName;
+    nav::stringid bucketLeaderID;
     size_t sortIndex;
 
     // Only used for symbol features

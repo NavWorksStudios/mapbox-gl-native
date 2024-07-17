@@ -17,7 +17,7 @@ class CircleBucket final : public Bucket {
 public:
     using PossiblyEvaluatedLayoutProperties = style::CircleLayoutProperties::PossiblyEvaluated;
 
-    CircleBucket(const std::map<std::string, Immutable<style::LayerProperties>>& layerPaintProperties,
+    CircleBucket(const std::map<nav::stringid, Immutable<style::LayerProperties>>& layerPaintProperties,
                  MapMode mode,
                  float zoom);
     ~CircleBucket() override;
@@ -25,11 +25,10 @@ public:
     bool hasData() const override;
 
     void upload(gfx::UploadPass&) override;
-    void nav_upload_external(const CanonicalTileID& canonical, const std::string& layerID, const std::string& sourceLayer) override;
 
     float getQueryRadius(const RenderLayer&) const override;
 
-    void update(const FeatureStates&, const GeometryTileLayer&, const std::string&, const ImagePositions&) override;
+    void update(const FeatureStates&, const GeometryTileLayer&, const nav::stringid&, const ImagePositions&) override;
 
     gfx::VertexVector<CircleLayoutVertex> vertices;
     gfx::IndexVector<gfx::Triangles> triangles;
@@ -38,7 +37,7 @@ public:
     optional<gfx::VertexBuffer<CircleLayoutVertex>> vertexBuffer;
     optional<gfx::IndexBuffer> indexBuffer;
 
-    std::map<std::string, CircleProgram::Binders> paintPropertyBinders;
+    std::map<nav::stringid, CircleProgram::Binders> paintPropertyBinders;
 
     const MapMode mode;
 };

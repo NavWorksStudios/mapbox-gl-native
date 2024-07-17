@@ -12,8 +12,6 @@
 #include <mbgl/tile/geometry_tile.hpp>
 #include <mbgl/util/math.hpp>
 
-#include "mbgl/nav/nav_unity_bridge.hpp"
-
 namespace mbgl {
 
 using namespace style;
@@ -132,23 +130,6 @@ void RenderTile::prepare(const SourcePrepareParameters& parameters) {
     transform.state.matrixFor(nearClippedMatrix, id);
     matrix::multiply(matrix, transform.projMatrix, matrix);
     matrix::multiply(nearClippedMatrix, transform.nearClippedProjMatrix, nearClippedMatrix);
-
-    const double digest = ps[0] + ps[1] + ps[3];
-    if (tile.matrixDigest != digest) {
-//        nav::log::i("RenderTile", "obj %p (%d,%d,%d) - (%lf | %lf) [%lf,%lf,%lf]",
-//                    this, id.canonical.x, id.canonical.y, (int)id.canonical.z,
-//                    tile.matrixDigest, digest, ps[0], ps[1], ps[3]);
-        
-        tile.matrixDigest = digest;
-        nav::model::onTileMatrix(&id.canonical, matrix.data());
-
-        // { ps[0], ps[1], 0 } { ps[3], ps[3], 1 }
-        ps[2] = 0;
-        ps[4] = ps[3];
-        ps[5] = 1;
-        nav::model::onTileTransform(&id.canonical, ps, ps+3);
-    }
-
 }
 
 void RenderTile::finishRender(PaintParameters& parameters) const {

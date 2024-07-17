@@ -25,14 +25,14 @@ namespace style {
 
 const std::string& url() {
     static std::string url(
-        // 主题模式
-//        "mapbox://styles/notheorem/clxu5ehnm00ro01qqhhim0d4f" // dark
-//        "mapbox://styles/notheorem/clxrac32800o901qw94ryfkdz" // light
-
-        // 色彩模式
-        "mapbox://styles/navworks/clxx105i700yr01po4zbn2jc1"
-    );
-
+                           // 主题模式
+                           //        "mapbox://styles/notheorem/clxu5ehnm00ro01qqhhim0d4f" // dark
+                           //        "mapbox://styles/notheorem/clxrac32800o901qw94ryfkdz" // light
+                           
+                           // 色彩模式
+                           "mapbox://styles/navworks/clxx105i700yr01po4zbn2jc1"
+                           );
+    
     return url;
 }
 
@@ -96,7 +96,7 @@ namespace rendertime {
 
 struct Time {
     double time_seconds;
-
+    
     void update() {
         const auto now = std::chrono::steady_clock::now();
         time_seconds = std::chrono::duration_cast<std::chrono::duration<double>>(now.time_since_epoch()).count();
@@ -117,7 +117,7 @@ double value() {
 struct ToggleValue {
     bool _enabled = false;
     float _ratio = .5;
-
+    
     bool update() {
         if (_enabled) {
             if (_ratio < 1.) {
@@ -133,7 +133,7 @@ struct ToggleValue {
             return false;
         }
     }
-
+    
     void enable() { _enabled = true; }
     void disable() { _enabled = false; }
     operator float () const { return _ratio; }
@@ -186,9 +186,9 @@ bool isNeedUpdate = true;
 
 bool update() {
     rendertime::timestamp.update();
-
+    
     bool oncemore = false;
-
+    
     oncemore |= spotlight::toggle.update();
     oncemore |= landscape::toggle.update();
     oncemore |= nav::palette::update();
@@ -200,6 +200,6 @@ bool needsUpdate() {
     return isNeedUpdate;
 }
 
-
 }
+
 }

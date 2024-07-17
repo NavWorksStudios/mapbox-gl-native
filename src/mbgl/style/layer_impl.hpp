@@ -10,6 +10,8 @@
 #include <string>
 #include <limits>
 
+#include "mbgl/nav/nav_stringid.hpp"
+
 namespace mbgl {
 
 namespace style {
@@ -45,9 +47,9 @@ public:
     // Populates the given \a fontStack with fonts being used by the layer.
     virtual void populateFontStack(std::set<FontStack>& fontStack) const;
 
-    std::string id;
-    std::string source;
-    std::string sourceLayer;
+    nav::stringid id;
+    nav::stringid source;
+    nav::stringid sourceLayer;
     Filter filter;
     float minZoom = -std::numeric_limits<float>::infinity();
     float maxZoom = std::numeric_limits<float>::infinity();

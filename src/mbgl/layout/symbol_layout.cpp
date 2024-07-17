@@ -760,7 +760,7 @@ std::vector<float> SymbolLayout::calculateTileDistances(const GeometryCoordinate
 
 void SymbolLayout::createBucket(const ImagePositions&,
                                 std::unique_ptr<FeatureIndex>&,
-                                std::unordered_map<std::string, LayerRenderData>& renderData,
+                                std::unordered_map<nav::stringid, LayerRenderData>& renderData,
                                 const bool firstLoad,
                                 const bool showCollisionBoxes,
                                 const CanonicalTileID& canonical,

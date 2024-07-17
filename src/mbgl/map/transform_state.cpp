@@ -8,8 +8,6 @@
 #include <mbgl/util/projection.hpp>
 #include <mbgl/util/tile_coordinate.hpp>
 
-#include "mbgl/nav/nav_unity_bridge.hpp"
-
 namespace mbgl {
 
 namespace {
@@ -211,12 +209,6 @@ void TransformState::updateCameraState() const {
     cameraPosition[2] /= worldSize;
 
     camera.setPosition(cameraPosition);
-}
-
-void TransformState::notifyProjectionTransform() const {
-    if (_cameraPosition[2]) {
-        nav::projection::onTransform(_cameraPosition.data(), _cameraQuaternion.data());
-    }
 }
 
 void TransformState::updateStateFromCamera() {
