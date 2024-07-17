@@ -18,11 +18,10 @@ public:
     explicit stringid(const std::string& id) : std::string(id) { }
     
     size_t hash() const {
-        if (!_hash) _hash = std::hash<std::string>()(*this);
-        return _hash;
+        return _hash ? _hash : _hash = std::hash<std::string>()(*this);
     }
     
-    void operator = (const std::string& id) { (std::string&) *this = id; }
+    void operator = (const std::string& id) { (std::string&) *this = id; _hash = 0; }
     bool operator == (const stringid& other) const { return hash() == other.hash(); }
 };
 
