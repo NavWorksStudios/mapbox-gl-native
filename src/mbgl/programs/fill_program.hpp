@@ -28,7 +28,9 @@ using FillUniforms = TypeList<
     uniforms::palette_color,
     uniforms::palette_lightness,
     uniforms::water_wave,
-    uniforms::water_data_z_scale>;
+    uniforms::water_data_z_scale,
+    uniforms::clip_region,
+    uniforms::focus_region>;
 
 using FillPatternUniforms = TypeList<
     uniforms::matrix,

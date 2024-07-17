@@ -83,7 +83,6 @@ struct ShaderSource<LineProgram> {
         uniform lowp float u_ratio;
         uniform lowp vec2 u_units_to_pixels;
         uniform lowp float u_device_pixel_ratio;
-        uniform lowp float u_clipping_distance;
     
         attribute vec2 a_pos_normal;
         attribute vec4 a_data;
@@ -237,6 +236,7 @@ struct ShaderSource<LineProgram> {
         uniform lowp float u_zoom;
         uniform lowp float u_device_pixel_ratio;
         uniform lowp float u_spotlight;
+        uniform lowp float u_focus_region;
 
         varying lowp vec2 v_width2;
         varying lowp vec2 v_normal;
@@ -278,7 +278,7 @@ struct ShaderSource<LineProgram> {
         lowp float zoomFactor = 1. + (22. - u_zoom) * .02;
 
         // 距离屏幕中心点越近，越亮 [1, 0]
-        lowp float radius = 1000000. * (1. - .7 * u_spotlight); // 聚光灯点亮后，将范围缩小为30%
+        lowp float radius = u_focus_region * (1. - .7 * u_spotlight); // 聚光灯点亮后，将范围缩小为30%
         lowp float distance = pow(v_pos.x,2.) + pow(v_pos.y,2.);
         lowp float centerFactor = min(distance/radius, 1.);
         centerFactor = pow(1. - centerFactor, 2.);

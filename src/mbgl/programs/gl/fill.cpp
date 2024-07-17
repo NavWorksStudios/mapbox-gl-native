@@ -195,6 +195,8 @@ uniform lowp float u_spotlight;
 uniform lowp float u_render_time;
 uniform lowp float u_water_wave;
 uniform lowp float u_water_data_z_scale;
+uniform lowp float u_clip_region;
+uniform lowp float u_focus_region;
 
 varying lowp vec3 v_pos;
 varying lowp vec2 v_texture_pos;
@@ -296,9 +298,8 @@ void main() {
 
     if (u_water_wave > 0.) { // 水面波光
 
-        const lowp float radius=4000000.;
         lowp float distance=pow(v_pos.x,2.)+pow(v_pos.z,2.);
-        lowp float fadeout=clamp(1.-distance/radius,0.,1.);
+        lowp float fadeout=clamp(1.-distance/u_clip_region,0.,1.);
         fadeout=pow(fadeout,3.)*u_water_wave;
 
         const lowp vec2 texture_size = vec2(8000.);
@@ -308,17 +309,16 @@ void main() {
         lowp float gridcolor=grid_color(coord,texture_size);
 
         gl_FragColor=color;
-        gl_FragColor.rgb += pow(gridcolor,3.) * .1 * fadeout;
+        gl_FragColor.rgb += pow(gridcolor,3.) * .2 * fadeout;
         gl_FragColor*=opacity;
 
     } else if (u_spotlight > 0.) { // 地面五彩色
 
-        const lowp float radius=1500000.;
         lowp float distance=pow(v_pos.x,2.)+pow(v_pos.y,2.);
-        lowp float fadeout=clamp(1.-distance/radius,0.,u_spotlight);
+        lowp float fadeout=clamp(1.-distance/(u_focus_region*.3),0.,u_spotlight);
         fadeout=pow(fadeout,3.);
 
-        vec3 colorflow=color_flow(gl_FragCoord.xy,vec2(1800,720));
+        vec3 colorflow=color_flow(gl_FragCoord.xy,vec2(2560,2560));
         gl_FragColor.rgb=mix(color.rgb,colorflow,fadeout)*opacity; // 距离屏幕中心点越近，越亮
         gl_FragColor.a=color.a*opacity;
 

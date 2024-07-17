@@ -84,7 +84,8 @@ struct ShaderSource<FillExtrusionProgram> {
         uniform lowp float u_opacity;
         uniform lowp float u_spotlight;
         uniform bool u_render_reflection;
-        uniform lowp float u_clipping_distance;
+        uniform lowp float u_clip_region;
+        uniform lowp float u_focus_region;
     
         attribute highp vec2 a_pos;
         attribute lowp vec4 a_normal_ed;
@@ -157,7 +158,7 @@ struct ShaderSource<FillExtrusionProgram> {
             // clipping
             lowp float distance=pow(gl_Position.x,2.)+pow(gl_Position.z,2.);
             if (u_render_reflection) distance*=3.;
-            if (distance>u_clipping_distance) {
+            if (distance>u_clip_region) {
                 gl_Position.x=1.e100;
                 return;
             }
@@ -186,7 +187,7 @@ struct ShaderSource<FillExtrusionProgram> {
             v_color.a=1.0;
     
             // 距离渐隐
-            lowp float fadeout=max(1.-distance/u_clipping_distance,0.);
+            lowp float fadeout=max(1.-distance/u_clip_region,0.);
             fadeout = (fadeout>0.5) ? 1. : fadeout/0.5;
             if (u_render_reflection) {
                 v_color *= u_opacity * fadeout * .15; // 倒影的透明度颜色
@@ -225,7 +226,7 @@ struct ShaderSource<FillExtrusionProgram> {
             // u_spotlight=0，v_centerFactor[1,1]
             // u_spotlight>1，v_centerFactor[0,1]
             distance=pow(gl_Position.x,2.)+pow(gl_Position.y,2.);
-            v_centerFactor = u_spotlight>0. ? clamp(distance/6000000., 1.-u_spotlight, 1.) : 1.;
+            v_centerFactor = u_spotlight>0. ? clamp(distance/u_focus_region, 1.-u_spotlight, 1.) : 1.;
         }
         
     )"; }

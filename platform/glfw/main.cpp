@@ -27,7 +27,7 @@ std::shared_ptr<GLFWView> view;
 std::shared_ptr<mbgl::Map> map;
 std::shared_ptr<GLFWRendererFrontend> rendererFrontend;
 
-mbgl::Size size = { 1800, 720 };
+mbgl::Size size;
 
 struct Settings : mbgl::Settings_JSON {
     bool fullscreen = false;

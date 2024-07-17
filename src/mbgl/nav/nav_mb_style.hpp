@@ -16,6 +16,14 @@ namespace style {
 const std::string& url();
 const std::string& accessToken();
 
+namespace display {
+constexpr size_t width = 2048;
+constexpr size_t height = 1080;
+void update(float zoom);
+float clip_region();
+float focus_region();
+}
+
 namespace texture {
 void load(const std::string& path);
 void release();
@@ -33,11 +41,6 @@ float value();
 
 namespace landscape {
 float value();
-}
-
-namespace distance {
-void update(float zoom);
-float clipping();
 }
 
 enum ViewMode : int8_t {

@@ -39,8 +39,8 @@ RenderFillLayer::RenderFillLayer(Immutable<style::FillLayer::Impl> _impl)
     bindToPalette(baseImpl->id, "fill-color", unevaluated.get<FillColor>().value);
     bindToPalette(baseImpl->id, "fill-outline-color", unevaluated.get<FillOutlineColor>().value);
 
-    enableShaderPalette = nav::palette::enableShaderPalette(baseImpl->id);
-    enableWaterEffect = (baseImpl->id == "water");
+    enableShaderPalette = nav::palette::enableShaderPalette(getID());
+    enableWaterEffect = (getID() == "water");
 }
 
 RenderFillLayer::~RenderFillLayer() = default;
@@ -115,6 +115,8 @@ void RenderFillLayer::render(PaintParameters& parameters) {
                         uniforms::palette_lightness::Value( enableShaderPalette ? (color.r+color.g+color.b)/3. : 0. ),
                         uniforms::water_wave::Value( enableWaterEffect ? util::clamp((parameters.state.getZoom()-13.)*.3,0.,1.) : 0. ),
                         uniforms::water_data_z_scale::Value( pow(2.,16.-tile.id.canonical.z) ), // data_z [13,16]
+                        uniforms::clip_region::Value( nav::style::display::clip_region() ),
+                        uniforms::focus_region::Value( nav::style::display::focus_region() ),
                     },
                     paintPropertyBinders,
                     evaluated,

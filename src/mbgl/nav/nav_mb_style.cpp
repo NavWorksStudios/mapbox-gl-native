@@ -10,35 +10,55 @@
 #include <mbgl/style/image.hpp>
 #include <mbgl/util/io.hpp>
 
+#include <cmath>
+
 #include "mbgl/nav/nav_log.hpp"
 
 
 namespace nav {
 
 namespace palette {
-
 bool update();
-
 }
 
 namespace style {
 
 const std::string& url() {
     static std::string url(
-    // 主题模式
-//    "mapbox://styles/notheorem/clxu5ehnm00ro01qqhhim0d4f" // dark
-//    "mapbox://styles/notheorem/clxrac32800o901qw94ryfkdz" // light
+        // 主题模式
+//        "mapbox://styles/notheorem/clxu5ehnm00ro01qqhhim0d4f" // dark
+//        "mapbox://styles/notheorem/clxrac32800o901qw94ryfkdz" // light
 
-    // 色彩模式
-    "mapbox://styles/navworks/clxx105i700yr01po4zbn2jc1"
+        // 色彩模式
+        "mapbox://styles/navworks/clxx105i700yr01po4zbn2jc1"
     );
-    
+
     return url;
 }
 
 const std::string& accessToken() {
     static std::string token = "pk.eyJ1IjoibmF2d29ya3MiLCJhIjoiY2x5M3U3MG96MDF5ZjJsb2lsMXZsczUxayJ9.Mnts5N9BU9OBsRb8fHauBQ";
     return token;
+}
+
+namespace display {
+
+float clipping = 0.;
+
+void update(float zoom) {
+    static float region = height * atan(70/M_PI) * .1;
+    clipping = region * pow(2., zoom);
+}
+
+float clip_region() {
+    return clipping;
+}
+
+float focus_region() {
+    static float region = (pow(width, 2) + pow(height,2));
+    return region;
+}
+
 }
 
 namespace texture {
@@ -136,20 +156,6 @@ ToggleValue toggle;
 
 float value() {
     return toggle;
-}
-
-}
-
-namespace distance {
-
-float distance = 0.;
-
-void update(float zoom) {
-    distance = pow(2., zoom) * 50.;
-}
-
-float clipping() {
-    return distance;
 }
 
 }

@@ -12,6 +12,8 @@
 
 #include <utility>
 
+#include "mbgl/nav/nav_mb_style.hpp"
+
 struct GLFWwindow;
 class GLFWBackend;
 class GLFWRendererFrontend;
@@ -135,8 +137,8 @@ private:
     bool pitching = false;
     bool show3DExtrusions = false;
 
-    int width = 1800;
-    int height = 720;
+    int width = nav::style::display::width;
+    int height = nav::style::display::height;
     float pixelRatio;
 
     struct Mouse {
