@@ -278,7 +278,7 @@ struct ShaderSource<LineProgram> {
         lowp float zoomFactor = 1. + (22. - u_zoom) * .02;
 
         // 距离屏幕中心点越近，越亮 [1, 0]
-        lowp float radius = u_focus_region * (1. - .7 * u_spotlight); // 聚光灯点亮后，将范围缩小为30%
+        lowp float radius = u_focus_region * (.5 - .35 * u_spotlight); // 聚光灯点亮后，将范围缩小为30%
         lowp float distance = pow(v_pos.x,2.) + pow(v_pos.y,2.);
         lowp float centerFactor = min(distance/radius, 1.);
         centerFactor = pow(1. - centerFactor, 2.);
