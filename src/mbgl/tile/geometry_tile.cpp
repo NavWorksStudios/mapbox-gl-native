@@ -187,7 +187,10 @@ void GeometryTile::setData(std::unique_ptr<const GeometryTileData> data_) {
 
     ++correlationID;
     worker.self().invoke(
-        &GeometryTileWorker::setData, std::move(data_), imageManager.getAvailableImages(), correlationID);
+        &GeometryTileWorker::setData, 
+                         std::move(data_),
+                         &imageManager.getAvailableImages(),
+                         correlationID);
 }
 
 void GeometryTile::reset() {
@@ -208,8 +211,9 @@ void GeometryTile::setLayers(const std::vector<Immutable<LayerProperties>>& laye
     // state despite pending parse operations.
     pending = true;
 
-    std::vector<Immutable<LayerProperties>> impls;
-    impls.reserve(layers.size());
+    
+    auto impls = std::make_shared<std::vector<Immutable<LayerProperties>>>();
+    impls->reserve(layers.size());
 
     for (const auto& layer : layers) {
         // Skip irrelevant layers.
@@ -222,12 +226,12 @@ void GeometryTile::setLayers(const std::vector<Immutable<LayerProperties>>& laye
             continue;
         }
 
-        impls.push_back(layer);
+        impls->push_back(layer);
     }
 
     ++correlationID;
     worker.self().invoke(
-        &GeometryTileWorker::setLayers, std::move(impls), imageManager.getAvailableImages(), correlationID);
+        &GeometryTileWorker::setLayers, impls, &imageManager.getAvailableImages(), correlationID);
 }
 
 void GeometryTile::setShowCollisionBoxes(const bool showCollisionBoxes_) {

@@ -38,11 +38,11 @@ public:
                        bool showCollisionBoxes_);
     ~GeometryTileWorker();
 
-    void setLayers(std::vector<Immutable<style::LayerProperties>>,
-                   std::set<std::string> availableImages,
+    void setLayers(std::shared_ptr<std::vector<Immutable<style::LayerProperties>>>,
+                   const std::set<std::string>* availableImages,
                    uint64_t correlationID);
     void setData(std::unique_ptr<const GeometryTileData>,
-                 std::set<std::string> availableImages,
+                 const std::set<std::string>* availableImages,
                  uint64_t correlationID);
     void reset(uint64_t correlationID_);
     void setShowCollisionBoxes(bool showCollisionBoxes_, uint64_t correlationID_);
@@ -93,8 +93,8 @@ private:
     uint64_t imageCorrelationID = 0;
 
     // Outer optional indicates whether we've received it or not.
-    optional<std::vector<Immutable<style::LayerProperties>>> layers;
-    optional<std::unique_ptr<const GeometryTileData>> data;
+    std::shared_ptr<std::vector<Immutable<style::LayerProperties>>> layers;
+    std::unique_ptr<const GeometryTileData> data;
 
     std::vector<std::unique_ptr<Layout>> layouts;
 
@@ -104,7 +104,7 @@ private:
     ImageMap imageMap;
     ImageMap patternMap;
     ImageVersionMap versionMap;
-    std::set<std::string> availableImages;
+    const std::set<std::string>* availableImages;
 
     bool showCollisionBoxes;
     bool firstLoad = true;

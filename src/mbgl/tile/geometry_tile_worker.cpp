@@ -126,12 +126,12 @@ GeometryTileWorker::~GeometryTileWorker() {
 */
 
 void GeometryTileWorker::setData(std::unique_ptr<const GeometryTileData> data_,
-                                 std::set<std::string> availableImages_,
+                                 const std::set<std::string>* availableImages_,
                                  uint64_t correlationID_) {
     try {
         data = std::move(data_);
         correlationID = correlationID_;
-        availableImages = std::move(availableImages_);
+        availableImages = availableImages_;
 
         switch (state) {
         case Idle:
@@ -150,13 +150,13 @@ void GeometryTileWorker::setData(std::unique_ptr<const GeometryTileData> data_,
     }
 }
 
-void GeometryTileWorker::setLayers(std::vector<Immutable<LayerProperties>> layers_,
-                                   std::set<std::string> availableImages_,
+void GeometryTileWorker::setLayers(std::shared_ptr<std::vector<Immutable<LayerProperties>>> layers_,
+                                   const std::set<std::string>* availableImages_,
                                    uint64_t correlationID_) {
     try {
-        layers = std::move(layers_);
+        layers = layers_;
         correlationID = correlationID_;
-        availableImages = std::move(availableImages_);
+        availableImages = availableImages_;
 
         switch (state) {
         case Idle:
@@ -178,8 +178,8 @@ void GeometryTileWorker::setLayers(std::vector<Immutable<LayerProperties>> layer
 }
 
 void GeometryTileWorker::reset(uint64_t correlationID_) {
-    layers = nullopt;
-    data = nullopt;
+    layers = nullptr;
+    data = nullptr;
     correlationID = correlationID_;
 
     switch (state) {
@@ -354,7 +354,7 @@ void GeometryTileWorker::parse() {
     renderData.clear();
     layouts.clear();
 
-    featureIndex = std::make_unique<FeatureIndex>(*data ? (*data)->clone() : nullptr);
+    featureIndex = std::make_unique<FeatureIndex>(data ? data->clone() : nullptr);
 
     GlyphDependencies glyphDependencies;
     ImageDependencies imageDependencies;
@@ -372,14 +372,14 @@ void GeometryTileWorker::parse() {
             return;
         }
 
-        if (!*data) {
+        if (!data) {
             continue; // Tile has no data.
         }
 
         const style::Layer::Impl& leaderImpl = *(group.at(0)->baseImpl);
         BucketParameters parameters { id, mode, pixelRatio, leaderImpl.getTypeInfo() };
         
-        auto geometryLayer = (*data)->getLayer(leaderImpl.sourceLayer);
+        auto geometryLayer = data->getLayer(leaderImpl.sourceLayer);
         if (!geometryLayer) {
             continue;
         }
@@ -399,7 +399,7 @@ void GeometryTileWorker::parse() {
         if (leaderImpl.getTypeInfo()->layout == LayerTypeInfo::Layout::Required) {
             // 符号层和支持图案属性的层，在布局时有一个额外的步骤，以确定哪些图像/字形需要渲染。
             // 会使用中间数据结构Layout来实现这一点。
-            LayoutParameters lp = { parameters, glyphDependencies, imageDependencies, availableImages };
+            LayoutParameters lp = { parameters, glyphDependencies, imageDependencies, *(std::set<std::string>*)availableImages };
             std::unique_ptr<Layout> layout = LayerManager::get()->createLayout(lp, std::move(geometryLayer), group);
             
             if (layout->hasDependencies()) {
