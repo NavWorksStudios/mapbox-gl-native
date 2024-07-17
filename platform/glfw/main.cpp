@@ -84,13 +84,6 @@ struct Settings : mbgl::Settings_JSON {
         zoom = 14.8;
         pitch = 60;
         
-//        // #*#*# 西单
-//        latitude = 39.905755502875508;
-//        longitude = 116.36792889240701;
-//        bearing = -5.3674255908200372;
-//        zoom = 17.040101376780214;
-//        pitch = 60;
-        
         debug = mbgl::EnumType(mbgl::MapDebugOptions::NoDebug);
         
         // Set access token if present
@@ -220,6 +213,16 @@ void init(bool headless) {
         
         mbgl::Log::Info(mbgl::Event::Setup, "Changed style to: %s", newStyle.name);
     });
+    
+
+    mbgl::CameraOptions cameraOptions;
+    cameraOptions.center = mbgl::LatLng { 22.294522, 114.157209 };
+    cameraOptions.zoom = 15.722247;
+    cameraOptions.pitch = 71.050945;
+    cameraOptions.bearing = 147.869345;
+    mbgl::AnimationOptions animationOptions(mbgl::Seconds(15));
+    map->flyTo(cameraOptions, animationOptions);
+
 }
 
 void destroy() {
