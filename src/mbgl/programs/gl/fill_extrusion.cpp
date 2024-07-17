@@ -177,7 +177,7 @@ struct ShaderSource<FillExtrusionProgram> {
             directional = directional * (1. + u_spotlight) * .6 + 1.;
     
             // ambient light
-            vec4 ambientlight=vec4(0.06,0.06,0.06,1.0);
+            vec4 ambientlight=vec4(0.2,0.2,0.2,1.0);
             color+=ambientlight;
 
             // mix color with directional light
@@ -219,7 +219,7 @@ struct ShaderSource<FillExtrusionProgram> {
             lowp vec3 lightDir=normalize(lightPos-gl_Position.xyz);
             lowp vec3 viewDir=normalize(cameraPos-gl_Position.xyz);
             lowp vec3 reflectDir=reflect(-lightDir,vec3(0.,1.,0.)); // reflect (genType I, genType N),返回反射向量
-            v_specular=specular*pow(max(dot(viewDir,reflectDir),0.0),shininess); // power(max(0,dot(N,H)),shininess)
+            v_specular=.5 + specular*pow(max(dot(viewDir,reflectDir),0.0),shininess); // power(max(0,dot(N,H)),shininess)
     
             // 距离屏幕中心点越近，越透明
             // u_spotlight[0,1]
@@ -265,7 +265,7 @@ struct ShaderSource<FillExtrusionProgram> {
             lowp float brighten;
             if (v_height>.9999) {
                 // 楼顶 镜面反射
-                brighten = .5 + v_specular;
+                brighten = v_specular;
             } else {
                 brighten = max(
                     (v_height-v_top_edge) / (1.-v_top_edge), // 上边缘 亮度
