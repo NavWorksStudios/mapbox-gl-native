@@ -46,7 +46,7 @@ namespace display {
 float clipping = 0.;
 
 void update(float zoom) {
-    static float region = height * atan(70/M_PI) * .1;
+    static float region = height * atan(70/M_PI) * .6;
     clipping = region * pow(2., zoom);
 }
 
