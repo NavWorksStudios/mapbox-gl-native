@@ -318,7 +318,7 @@ void main() {
         lowp float fadeout=clamp(1.-distance/(u_focus_region*.3),0.,u_spotlight);
         fadeout=pow(fadeout,3.);
 
-        vec3 colorflow=color_flow(gl_FragCoord.xy,vec2(2560,2560));
+        vec3 colorflow=color_flow(gl_FragCoord.xy,vec2(2000.));
         gl_FragColor.rgb=mix(color.rgb,colorflow,fadeout)*opacity; // 距离屏幕中心点越近，越亮
         gl_FragColor.a=color.a*opacity;
 
