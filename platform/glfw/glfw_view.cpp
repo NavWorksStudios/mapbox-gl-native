@@ -462,7 +462,7 @@ void GLFWView::onKey(int key, int action, int mods) {
                 lastPoint = point;
                 
                 if(puckFollowsCameraCenter) {
-                    routeMap->jumpTo(mbgl::CameraOptions().withCenter(center).withZoom(18.5).withBearing(bearing).withPitch(60.0));
+                    routeMap->jumpTo(mbgl::CameraOptions().withCenter(center).withZoom(18).withBearing(bearing).withPitch(70.0));
                     mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
                     puck->setLocation(toArray(mapCenter));
                     puck->setBearing(mbgl::style::Rotation(bearing));
