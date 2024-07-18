@@ -91,7 +91,6 @@ struct ShaderSource<FillExtrusionProgram> {
         attribute lowp vec4 a_normal_ed;
     
         varying lowp vec4 v_color;
-
         varying lowp float v_top_edge;
         varying lowp float v_bottom_edge;
         varying lowp float v_height;
@@ -159,7 +158,8 @@ struct ShaderSource<FillExtrusionProgram> {
             lowp float distance=pow(gl_Position.x,2.)+pow(gl_Position.z,2.);
             if (u_render_reflection) distance*=3.;
             if (distance>u_clip_region) {
-                gl_Position.x=1.e100;
+                gl_Position.w=1.e100;
+                v_color.a=.0;
                 return;
             }
 
@@ -174,10 +174,9 @@ struct ShaderSource<FillExtrusionProgram> {
                 float vertical_factor = clamp((height+base) * pow(height/150.0,0.5), mix(0.7,0.98,1.0-u_lightintensity), 1.0);
                 directional *= ((1.0 - u_vertical_gradient) + (u_vertical_gradient * vertical_factor));
             }
-            directional = directional * (1. + u_spotlight) * .6 + 1.;
     
             // ambient light
-            vec4 ambientlight=vec4(0.2,0.2,0.2,1.0);
+            vec4 ambientlight=vec4(0.03,0.03,0.03,1.0);
             color+=ambientlight;
 
             // mix color with directional light
@@ -186,16 +185,18 @@ struct ShaderSource<FillExtrusionProgram> {
             v_color.b=clamp(color.b*directional*u_lightcolor.b, 0.3*(1.0-u_lightcolor.b), 1.0);
             v_color.a=1.0;
     
-            // 距离渐隐
-            lowp float fadeout=max(1.-distance/u_clip_region,0.);
-            fadeout = (fadeout>0.5) ? 1. : fadeout/0.5;
-            if (u_render_reflection) {
-                v_color *= u_opacity * fadeout * .15; // 倒影的透明度颜色
-            } else {
-                v_color *= u_opacity * fadeout * (.7 - .2 * u_spotlight);
-            }
+
+            // ----------------------------- building detail -----------------------------
     
-            // ----------------------------- rendering detail -----------------------------
+            // distance fadeout
+            lowp float fadeout=max(1.-distance/u_clip_region,0.);
+            fadeout = (fadeout>.5) ? 1. : fadeout/.5;
+            if (u_render_reflection) {
+                v_color *= u_opacity * fadeout * .1;
+            } else {
+                v_color.rgb += (fadeout - 1.);
+                v_color.a *= u_opacity * fadeout * (.7 - .2 * u_spotlight);
+            }
     
             // 建筑物上下边缘渐变描边增亮
             //
@@ -211,21 +212,21 @@ struct ShaderSource<FillExtrusionProgram> {
             v_bottom_edge=8./tall;
             v_height=h?1.:0.;
     
-            // 镜面反射
+            // point light
             const vec3 cameraPos=vec3(0.,500.,0.);
             const vec3 lightPos=vec3(0.,1000.,1000.);
-            const lowp float specular=1.; // 镜面强度
-            const lowp float shininess=1.; // 反射率
+            const lowp float specular=1.5; // 镜面反射强度
+            const lowp float shininess=1.; // 反光度
             lowp vec3 lightDir=normalize(lightPos-gl_Position.xyz);
             lowp vec3 viewDir=normalize(cameraPos-gl_Position.xyz);
             lowp vec3 reflectDir=reflect(-lightDir,vec3(0.,1.,0.)); // reflect (genType I, genType N),返回反射向量
-            v_specular=.3 + specular*pow(max(dot(viewDir,reflectDir),0.0),shininess); // power(max(0,dot(N,H)),shininess)
+            v_specular=specular*pow(max(dot(viewDir,reflectDir),0.0),shininess); // power(max(0,dot(N,H)),shininess)
     
             // 距离屏幕中心点越近，越透明
             // u_spotlight[0,1]
             // u_spotlight=0，v_centerFactor[1,1]
             // u_spotlight>1，v_centerFactor[0,1]
-            distance=pow(gl_Position.x,2.)+pow(gl_Position.y,2.);
+            distance=pow(gl_Position.x,2.)+pow(gl_Position.z,2.);
             v_centerFactor = u_spotlight>0. ? clamp(distance/u_focus_region, 1.-u_spotlight, 1.) : 1.;
         }
         
@@ -254,7 +255,6 @@ struct ShaderSource<FillExtrusionProgram> {
     static const char* navFragment(const char* ) { return R"(
 
         varying lowp vec4 v_color;
-
         varying lowp float v_top_edge;
         varying lowp float v_bottom_edge;
         varying lowp float v_height;
@@ -262,9 +262,9 @@ struct ShaderSource<FillExtrusionProgram> {
         varying lowp float v_centerFactor;
 
         void main() {
+            // 增光
             lowp float brighten;
-            if (v_height>.9999) {
-                // 楼顶 镜面反射
+            if (v_height>.9999) { // 楼顶 镜面反射
                 brighten = v_specular;
             } else {
                 brighten = max(
@@ -274,7 +274,6 @@ struct ShaderSource<FillExtrusionProgram> {
 
                 brighten = max(brighten, (1.-v_centerFactor) * .2); // 中间亮度
             }
-
             brighten = pow(brighten,3.);
 
             gl_FragColor.rgb = v_color.rgb * (brighten*.5+v_centerFactor*.5);
