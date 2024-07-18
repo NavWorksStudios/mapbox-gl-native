@@ -227,6 +227,10 @@ public:
     }
 };
 
+static const auto clamp01 = [] (float value) {
+    return fmin(fmax(value, 0.), 1.);
+};
+
 class ColorBinding {
     std::string uri;
     Stylizer stylizer;
@@ -238,7 +242,31 @@ public:
     uri(uri), stylizer(stylizer), callback(callback) { }
     
     void notify(const Hsla& baseColor) {
+
+        static const auto fixColor = [] (const std::string& uri_, Hsla color) {
+            if (uri_.find("building-extrusion") != std::string::npos) {
+                color.s = clamp01(color.s+.3);
+                color.l = .5;
+            } else if (uri_.find("case") == std::string::npos) {
+                if (uri_.find("path") != std::string::npos ||
+                    uri_.find("steps") != std::string::npos ||
+                    uri_.find("pedestrian") != std::string::npos) {
+
+                } else if (uri_.find("tunnel") != std::string::npos) {
+                    color.l = clamp01(color.l * (color.l > .5 ? .9 : 1.1));
+                } else if (uri_.find("road") != std::string::npos) {
+                    color.s *= .3;
+                    color.l = clamp01(color.l * (color.l > .5 ? .7 : 1.3));
+                } else if (uri_.find("bridge") != std::string::npos) {
+                    color.s *= .1;
+                    color.l = clamp01(color.l * (color.l > .5 ? .5 : 1.5));
+                }
+            }
+            return color;
+        };
+
         Hsla hsla = stylizer(baseColor);
+        hsla = fixColor(uri, hsla);
         mbgl::Color color;
         hsla >> color;
         callback(color);
@@ -255,35 +283,16 @@ void bind(const std::string& uri, const mbgl::Color& color, const Binding& callb
         return;
     }
 
-    static const auto prefixColor = [] (const std::string& uri, const Hsla& color) {
-        Hsla hsla = color;
-        
+    static const auto fixColor = [] (const std::string& uri, Hsla color) {
         if (uri.find("water-depth") != std::string::npos) {
-            hsla.s = 0;
+            color.s = 0;
         } else if(uri.find("hillshade") != std::string::npos) {
-            hsla.s = 0;
-        } else if (uri.find("building-extrusion") != std::string::npos) {
-
-        } else if (uri.find("case") == std::string::npos) {
-            if (uri.find("path") != std::string::npos ||
-                uri.find("steps") != std::string::npos ||
-                uri.find("pedestrian") != std::string::npos) {
-
-            } else if (uri.find("road") != std::string::npos) {
-                hsla.s = .2;
-                hsla.l *= hsla.l > .5 ? .7 : 1.3;
-            } else if (uri.find("bridge") != std::string::npos) {
-                hsla.s = 0.1;
-                hsla.l *= hsla.l > .5 ? .6 : 1.4;
-            } else if (uri.find("tunnel") != std::string::npos) {
-                hsla.l *= hsla.l > .5 ? .9 : 1.1;
-            }
+            color.s = 0;
         }
-
-        return hsla;
+        return color;
     };
 
-    const Hsla hsla = prefixColor(uri, color);
+    const Hsla hsla = fixColor(uri, color);
     
     static const auto isFixed = [] (const std::string& uri, const mbgl::Color& color) {
         if (uri.find("water-depth") != std::string::npos || 
@@ -317,7 +326,7 @@ bool demo() {
         Hsla color;
         color.h = fmod(h, 360.);
         color.s = .5 + .3 * fabs(fmod(s, 1.) - .5) / .5;
-        color.l = .3 + .5 * fabs(fmod(l, 2.) - 1.) / 1.;
+        color.l = .3 + .7 * fabs(fmod(l, 2.) - 1.) / 1.;
         color.a = 1.;
 
         themeBaseColor.smoothTo(color);
