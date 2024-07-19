@@ -21,7 +21,7 @@
 #include <mbgl/util/tile_coordinate.hpp>
 
 #include <utility>
-
+#include "mbgl/nav/nav_log.hpp"
 namespace mbgl {
 
 using namespace style;
@@ -149,8 +149,16 @@ void Map::flyTo(const CameraOptions& camera, const AnimationOptions& animation) 
 }
 
 void Map::moveBy(const ScreenCoordinate& point, const AnimationOptions& animation) {
+//    nav::log::i("Map", "moveBy point.x %f,point.y %f", point.x,point.y);
     impl->cameraMutated = true;
     impl->transform.moveBy(point, animation);
+    impl->onUpdate();
+}
+
+void Map::moveByTouch(const ScreenCoordinate& point, const AnimationOptions& animation) {
+//    nav::log::i("Map", "moveByTouch point.x %f,point.y %f", point.x,point.y);
+    impl->cameraMutated = true;
+    impl->transform.moveByTouch(point, animation);
     impl->onUpdate();
 }
 

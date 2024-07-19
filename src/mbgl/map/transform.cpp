@@ -109,7 +109,9 @@ void Transform::easeTo(const CameraOptions& camera, const AnimationOptions& anim
     }
 
     if (state.getLatLngBounds() == LatLngBounds()) {
+//        nav::log::i("Transform", "easeTo state.getLatLngBounds() == LatLngBounds()");
         if (isGestureInProgress()) {
+//            nav::log::i("Transform", "easeTo isGestureInProgress");
             // If gesture in progress, we transfer the wrap rounds from the end longitude into
             // start, so the "scroll effect" of rounding the world is the same while assuring the
             // end longitude remains wrapped.
@@ -117,13 +119,15 @@ void Transform::easeTo(const CameraOptions& camera, const AnimationOptions& anim
             startLatLng = LatLng(startLatLng.latitude(), startLatLng.longitude() - wrap);
         } else {
             // Find the shortest path otherwise.
+//            nav::log::i("Transform", "easeTo isGestureInProgress else");
             startLatLng.unwrapForShortestPath(latLng);
         }
     }
 
     const Point<double> startPoint = Projection::project(startLatLng, state.getScale());
     const Point<double> endPoint = Projection::project(latLng, state.getScale());
-
+    nav::log::i("Transform", "easeTo startPoint.x %f,startPoint.y %f", startPoint.x,startPoint.y);
+    nav::log::i("Transform", "easeTo endPoint.x %f,endPoint.y %f", endPoint.x,endPoint.y);
     // Constrain camera options.
     zoom = util::clamp(zoom, state.getMinZoom(), state.getMaxZoom());
     pitch = util::clamp(pitch, state.getMinPitch(), state.getMaxPitch());
@@ -344,6 +348,82 @@ void Transform::flyTo(const CameraOptions& camera, const AnimationOptions& anima
 }
 
 #pragma mark - Position
+
+void Transform::moveByTouch(const ScreenCoordinate& offset, const AnimationOptions& animation) {
+
+    const float maxY = 2000;
+    float yRate = offset.y /maxY;
+    if (yRate >0.98)
+        yRate = 0.98;
+    else if (yRate <= -0.98)
+        yRate = -0.98;
+    const auto w = state.getSize().width;
+    const auto h = state.getSize().height;
+    const auto& center = state.getEdgeInsets().getCenter(w, h);
+    auto moveTo = center - offset;
+    const float yOff = yRate * center.y;
+    moveTo.y = center.y + yOff;
+    
+//    nav::log::w("Transform",
+//                "moveByTouch offset(%lf,%lf) center(%lf,%lf) moveTo(%lf,%lf)",
+//                offset.x, offset.y,
+//                center.x, center.y,
+//                moveTo.x, moveTo.y);
+    if (offset.y > 0) // 向下
+    {
+//        moveTo.y = offset.y - center.y;
+//        moveTo.y = fmax(0., moveTo.y);
+        nav::log::w("Transform",
+                    "向下 %f",offset.y);
+    }
+    else
+    {
+        nav::log::w("Transform",
+                    "向上 %f",offset.y);
+    }
+    nav::log::w("Transform",
+                "moveByTouch new offset(%lf,%lf) center(%lf,%lf) moveTo(%lf,%lf)",
+                offset.x, offset.y,
+                center.x, center.y,
+                moveTo.x, moveTo.y);
+
+    // Use unwrapped LatLng to carry information about moveBy direction.
+    ScreenCoordinate flippedPoint = moveTo;
+//    if (offset.y > 0) // 向下
+//    {
+//        flippedPoint.y = state.getSize().height + flippedPoint.y;
+//        nav::log::w("Transform",
+//                    "向下 %f",offset.y);
+//    }
+//    else
+//    {
+//        flippedPoint.y = state.getSize().height - flippedPoint.y; // 这句不加，向上拉也反弹；
+//        nav::log::w("Transform",
+//                    "向上 %f",offset.y);
+//    }
+//    flippedPoint.y = center.y;  // 不动
+//    flippedPoint.y = 0;  // 向上滚动
+//    flippedPoint.y = center.y +100;  // 下
+//    flippedPoint.y = center.y -100;  // 上
+//    flippedPoint.y = -center.y;  // 向上滚动
+//    flippedPoint.y = 2* center.y;  // 向上滚动
+//    flippedPoint.y = 3* center.y;  // 向上滚动
+//    flippedPoint.y = -2*center.y;  // 向上滚动
+//    flippedPoint.y = -3*center.y;  // 向上滚动
+//    flippedPoint.y = -4*center.y;  // 向上滚动
+//    flippedPoint.y = 5*center.y;  // 向上滚动
+//    flippedPoint.y =  state.getSize().height; // 向下
+//    flippedPoint.y =  -state.getSize().height; // 向上
+    //state.getSize().height;
+    
+    nav::log::w("Transform", "moveByTouch moveTo(%lf,%lf) flipped(%lf,%lf)",
+                moveTo.x, moveTo.y,
+                flippedPoint.x, flippedPoint.y);
+    
+    const auto& loc = state.screenCoordinateToLatLng(flippedPoint, LatLng::Unwrapped);
+    
+    easeTo(CameraOptions().withCenter(loc), animation);
+}
 
 void Transform::moveBy(const ScreenCoordinate& offset, const AnimationOptions& animation) {
     const auto w = state.getSize().width;
@@ -643,10 +723,9 @@ ScreenCoordinate Transform::latLngToScreenCoordinate(const LatLng& latLng) const
 LatLng Transform::screenCoordinateToLatLng(const ScreenCoordinate& point, LatLng::WrapMode wrapMode) const {
     ScreenCoordinate flippedPoint = point;
     flippedPoint.y = state.getSize().height - flippedPoint.y;
-    
-//    nav::log::w("screenCoordinateToLatLng", "point(%lf,%lf) flipped(%lf,%lf)",
-//                point.x, point.y,
-//                flippedPoint.x, flippedPoint.y);
+    nav::log::w("Transform", "moveBy moveTo(%lf,%lf) flipped(%lf,%lf)",
+                point.x, point.y,
+                flippedPoint.x, flippedPoint.y);
     
     return state.screenCoordinateToLatLng(flippedPoint, wrapMode);
 }

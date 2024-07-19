@@ -966,7 +966,7 @@ void GLFWView::onMouseClick(GLFWwindow *window, int button, int action, int modi
 
 void GLFWView::onMouseClick(int button, int action, int modifiers) {
     double now = glfwGetTime();
-
+    nav::log::i("glfw_view", "onMouseClick button %d,action %d,modifiers %d", button,action,modifiers);
     if (action == GLFW_PRESS) {
         map->setGestureInProgress(true);
         if (button == GLFW_MOUSE_BUTTON_LEFT) {
@@ -984,15 +984,20 @@ void GLFWView::onMouseClick(int button, int action, int modifiers) {
         const Mouse pos = _mouseHistory[0];
         const Mouse from = _mouseHistory.prefer(now - 0.5);
         const Mouse recent = _mouseHistory.prefer(now - 0.1);
-        
+        nav::log::i("glfw_view", "onMouseClick pos.coord.x %f,pos.coord.y %f", pos.coord.x,pos.coord.y);
+        nav::log::i("glfw_view", "onMouseClick from.coord.x %f,from.coord.y %f", from.coord.x,from.coord.y);
+        nav::log::i("glfw_view", "onMouseClick recent.coord.x %f,recent.coord.y %f", recent.coord.x,recent.coord.y);
         const float velocity = _mouseHistory[0].velocity(from);
         const float recentVelocity = _mouseHistory[0].velocity(recent);
-        
+        nav::log::i("glfw_view", "onMouseClick velocity %f,recentVelocity %f", velocity,recentVelocity);
         if (tracking && stillTime < 0.05 && recentVelocity > 50 && velocity > 50) { // fling
             const float duration = pos.time - from.time;
+            nav::log::i("glfw_view", "onMouseClick duration %f", duration);
             const mbgl::ScreenCoordinate moved(pos.coord.x - from.coord.x, pos.coord.y - from.coord.y);
+            nav::log::i("glfw_view", "onMouseClick moved.x %f,moved.y %f", moved.x,moved.y);
             const mbgl::ScreenCoordinate fling(moved.x / duration * .6, moved.y / duration * .6);
-            map->moveBy(fling, mbgl::AnimationOptions{{mbgl::Milliseconds((long)(velocity * 2.))}});
+            nav::log::i("glfw_view", "onMouseClick fling.x %f,fling.y %f", fling.x,fling.y);
+            map->moveByTouch(fling, mbgl::AnimationOptions{{mbgl::Milliseconds((long)(velocity * 2.))}});
 
 //            nav::log::w("move map", "dur:%lfs velo:(%lf,%lf) moved(%lf,%lf) fling(%lf,%lf)",
 //                        duration, velocity, recentVelocity, moved.x, moved.y, fling.x, fling.y);
@@ -1012,10 +1017,12 @@ void GLFWView::onMouseMove(GLFWwindow *window, double x, double y) {
 
 void GLFWView::onMouseMove(double x, double y) {
     double now = glfwGetTime();
-    
+    //    nav::log::i("glfw_view", "onMouseMove tracking %d,pitching %d,rotating %d,%f,%f", tracking,pitching,rotating,x,y);
     if (tracking) {
         const double dx = x - _mouseHistory[0].coord.x;
         const double dy = y - _mouseHistory[0].coord.y;
+        //        nav::log::i("glfw_view", "onMouseMove coord.x %f,coord.y %f", _mouseHistory[0].coord.x,_mouseHistory[0].coord.y);
+        //        nav::log::i("glfw_view", "onMouseMove dx %f,dy %f", dx,dy);
         if (dx || dy) {
             map->moveBy(mbgl::ScreenCoordinate { dx, dy });
             
