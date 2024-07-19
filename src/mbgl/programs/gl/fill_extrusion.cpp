@@ -214,7 +214,7 @@ struct ShaderSource<FillExtrusionProgram> {
     
             // point light
             const vec3 cameraPos=vec3(0.,500.,0.);
-            const vec3 lightPos=vec3(0.,1000.,1000.);
+            const vec3 lightPos=vec3(0.,1000.,2000.);
             const lowp float specular=1.5; // 镜面反射强度
             const lowp float shininess=1.; // 反光度
             lowp vec3 lightDir=normalize(lightPos-gl_Position.xyz);
