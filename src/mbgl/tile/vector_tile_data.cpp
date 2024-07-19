@@ -66,6 +66,9 @@ std::string VectorTileLayer::getName() const {
 }
 
 VectorTileData::VectorTileData(std::shared_ptr<const std::string> data_) : data(std::move(data_)) {
+    // We're parsing this lazily so that we can construct VectorTileData objects on the main
+    // thread without incurring the overhead of parsing immediately.
+    buffer = std::make_shared<mapbox::vector_tile::buffer>(*data);
 }
 
 std::unique_ptr<GeometryTileData> VectorTileData::clone() const {
@@ -73,13 +76,7 @@ std::unique_ptr<GeometryTileData> VectorTileData::clone() const {
 }
 
 std::unique_ptr<GeometryTileLayer> VectorTileData::getLayer(const nav::stringid& name) const {
-    if (!parsed) {
-        // We're parsing this lazily so that we can construct VectorTileData objects on the main
-        // thread without incurring the overhead of parsing immediately.
-        layers = mapbox::vector_tile::buffer(*data).getLayers();
-        parsed = true;
-    }
-
+    const auto& layers = buffer->getLayers();
     auto it = layers.find(name);
     if (it != layers.end()) {
         return std::make_unique<VectorTileLayer>(data, it->second);
@@ -87,8 +84,8 @@ std::unique_ptr<GeometryTileLayer> VectorTileData::getLayer(const nav::stringid&
     return nullptr;
 }
 
-std::vector<std::string> VectorTileData::layerNames() const {
-    return mapbox::vector_tile::buffer(*data).layerNames();
+const std::vector<nav::stringid>& VectorTileData::layerNames() const {
+    return buffer->layerNames();
 }
 
 } // namespace mbgl
