@@ -17,7 +17,7 @@ const std::string& url();
 const std::string& accessToken();
 
 namespace display {
-constexpr size_t width = 600;
+constexpr size_t width = 2048;
 constexpr size_t height = 1080;
 void update(float zoom);
 float clip_region();
