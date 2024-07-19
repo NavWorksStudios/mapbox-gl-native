@@ -158,7 +158,7 @@ struct ShaderSource<FillExtrusionProgram> {
             lowp float distance=pow(gl_Position.x,2.)+pow(gl_Position.z,2.);
             if (u_render_reflection) distance*=3.;
             if (distance>u_clip_region) {
-                gl_Position.w=1.e100;
+                gl_Position.y=-1.e100;
                 v_color.a=.0;
                 return;
             }
