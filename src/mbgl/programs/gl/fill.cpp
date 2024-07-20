@@ -153,7 +153,7 @@ void main() {
     mediump float width=u_width;
 #endif
        
-    gl_Position=u_matrix*vec4(a_pos,u_base,1);
+    gl_Position=u_matrix*vec4(a_pos,u_base,1.);
     v_pos=gl_Position.xyz;
     v_texture_pos=a_pos;
 
@@ -222,7 +222,7 @@ float spot_light(vec2 uv, vec2 C, float r, float b) {
 vec3 color_flow(lowp vec2 fragCoord, lowp vec2 resolution) {
     lowp float time = u_render_time * .01;
     lowp vec2 uv = (fragCoord*2. - resolution.xy) / resolution.y;
-    lowp vec3 rgb = cos(time * 31. + uv.xyx + vec3(1.0,2.0,4.0)) *.2;
+    lowp vec3 rgb = cos(time * 31. + uv.xyx + vec3(1.0,2.0,4.0)) * .2;
 
     lowp vec3 spots;
     for(int i = 0; i < 10; i++){
@@ -298,33 +298,48 @@ void main() {
 
     if (u_water_wave > 0.) { // 水面波光
 
+        // point light
+        const lowp vec3 cameraPos=vec3(0.,500.,0.);
+        const lowp vec3 lightPos=vec3(0.,1000.,2000.);
+        const lowp float specular=1.5; // 镜面反射强度
+        const lowp float shininess=4.; // 反光度
+        lowp vec3 lightDir=normalize(v_pos.xyz-lightPos);
+        lowp vec3 viewDir=normalize(cameraPos-v_pos.xyz);
+        lowp vec3 reflectDir=reflect(lightDir,vec3(0.,1.,0.)); // reflect (genType I, genType N),返回反射向量
+        lowp float brighten=max(specular*pow(max(dot(viewDir,reflectDir),0.0),shininess), 0.); // power(max(0,dot(N,H)),shininess)
+
         lowp float distance=pow(v_pos.x,2.)+pow(v_pos.z,2.);
         lowp float fadeout=clamp(1.-distance/u_clip_region,0.,1.);
-        fadeout=pow(fadeout,3.)*u_water_wave;
+        fadeout=pow(fadeout,3.) * u_water_wave;
 
         const lowp vec2 texture_size = vec2(8000.);
         lowp vec2 coord=vec2(
         mod(v_texture_pos.x*u_water_data_z_scale,texture_size.x),
         mod(v_texture_pos.y*u_water_data_z_scale,texture_size.y));
         lowp float gridcolor=grid_color(coord,texture_size);
+        gridcolor = pow(gridcolor,3.);
 
         gl_FragColor=color;
-        gl_FragColor.rgb += pow(gridcolor,3.) * .2 * fadeout;
+        gl_FragColor.rgb += (gridcolor + brighten) * fadeout * .2;
         gl_FragColor*=opacity;
-
-    } else if (u_spotlight > 0.) { // 地面五彩色
-
-        lowp float distance=pow(v_pos.x,2.)+pow(v_pos.y,2.);
-        lowp float fadeout=clamp(1.-distance/(u_focus_region*.3),0.,u_spotlight);
-        fadeout=pow(fadeout,3.);
-
-        vec3 colorflow=color_flow(gl_FragCoord.xy,vec2(2000.));
-        gl_FragColor.rgb=mix(color.rgb,colorflow,fadeout)*opacity; // 距离屏幕中心点越近，越亮
-        gl_FragColor.a=color.a*opacity;
 
     } else {
 
-        gl_FragColor=color*opacity;
+        if (u_spotlight > 0.) { // 五彩地面
+
+            lowp float distance=pow(v_pos.x,2.)+pow(v_pos.y,2.);
+            lowp float fadeout=clamp(1.-distance/(u_focus_region*.3),0.,u_spotlight);
+            fadeout=pow(fadeout,3.);
+
+            vec3 colorflow=color_flow(gl_FragCoord.xy,vec2(2000.));
+            gl_FragColor.rgb=mix(color.rgb,colorflow,fadeout)*opacity; // 距离屏幕中心点越近，越亮
+            gl_FragColor.a=color.a*opacity;
+
+        } else {
+
+            gl_FragColor=color*opacity;
+
+        }
 
     }
         

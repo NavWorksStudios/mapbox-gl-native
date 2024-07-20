@@ -46,7 +46,7 @@ class FillProgram : public Program<
     gfx::PrimitiveType::Triangle,
     FillLayoutAttributes,
     FillUniforms,
-    TypeList<textures::gray_noise>,
+    TypeList<>,
     style::FillPaintProperties>
 {
 public:
@@ -67,8 +67,7 @@ class FillPatternProgram : public Program<
     gfx::PrimitiveType::Triangle,
     FillLayoutAttributes,
     FillPatternUniforms,
-    TypeList<
-        textures::image>,
+    TypeList<textures::image>,
     style::FillPaintProperties>
 {
 public:

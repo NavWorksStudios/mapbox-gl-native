@@ -213,13 +213,13 @@ struct ShaderSource<FillExtrusionProgram> {
             v_height=h?1.:0.;
     
             // point light
-            const vec3 cameraPos=vec3(0.,500.,0.);
-            const vec3 lightPos=vec3(0.,1000.,2000.);
+            const lowp vec3 cameraPos=vec3(0.,500.,0.);
+            const lowp vec3 lightPos=vec3(0.,1000.,2000.);
             const lowp float specular=1.5; // 镜面反射强度
             const lowp float shininess=1.; // 反光度
-            lowp vec3 lightDir=normalize(lightPos-gl_Position.xyz);
+            lowp vec3 lightDir=normalize(gl_Position.xyz-lightPos);
             lowp vec3 viewDir=normalize(cameraPos-gl_Position.xyz);
-            lowp vec3 reflectDir=reflect(-lightDir,vec3(0.,1.,0.)); // reflect (genType I, genType N),返回反射向量
+            lowp vec3 reflectDir=reflect(lightDir,vec3(0.,1.,0.)); // reflect (genType I, genType N),返回反射向量
             v_specular=specular*pow(max(dot(viewDir,reflectDir),0.0),shininess); // power(max(0,dot(N,H)),shininess)
     
             // 距离屏幕中心点越近，越透明
