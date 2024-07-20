@@ -184,7 +184,9 @@ public:
         if(features.size() > 0) {
             
             nav::log::w("PatternLayout", "createBucket (z:%d,x:%d,y:%d) [%s, %s] feature:%d",
-                        (int)canonical.z, (int)canonical.x, (int)canonical.y, bucketLeaderID.c_str(), sourceLayerID.c_str(), (int)features.size());
+                        (int)canonical.z, (int)canonical.x, (int)canonical.y,
+                        bucketLeaderID.get().c_str(), sourceLayerID.get().c_str(),
+                        (int)features.size());
             
             auto bucket = std::make_shared<BucketType>(layout, layerPropertiesMap, zoom, overscaling);
             
@@ -242,7 +244,7 @@ public:
                     const PatternLayerMap& patterns = patternFeature.patterns;
                     const GeometryCollection& geometries = feature->getGeometries();
 
-                    bucket->layerHeight = nav::layer::getHeight(bucketLeaderID);
+                    bucket->layerHeight = nav::layer::getHeight(bucketLeaderID.get());
                     bucket->addFeature(*feature, geometries, patternPositions, patterns, i, canonical);
                     featureIndex->insert(geometries, i, sourceLayerID, bucketLeaderID);
                 }
@@ -258,7 +260,7 @@ public:
 
 protected:
     std::map<nav::stringid, Immutable<style::LayerProperties>> layerPropertiesMap;
-    std::string bucketLeaderID;
+    nav::stringid bucketLeaderID;
 
     const std::unique_ptr<GeometryTileLayer> sourceLayer;
     std::vector<PatternFeature> features;
@@ -266,7 +268,7 @@ protected:
 
     const float zoom;
     const uint32_t overscaling;
-    std::string sourceLayerID;
+    nav::stringid sourceLayerID;
     bool hasPattern;
 };
 

@@ -203,8 +203,8 @@ protected:
     std::unordered_map<const CollisionFeature*, std::vector<ProjectedCollisionBox>> collisionCircles;
 
 public:
-    mutable std::string curUpdateLayerID;
-    void setCurUpdateLayerId(const std::string& layerID) const;
+    mutable nav::stringid curUpdateLayerID;
+    void setCurUpdateLayerId(const nav::stringid& layerID) const;
 };
 
 } // namespace mbgl

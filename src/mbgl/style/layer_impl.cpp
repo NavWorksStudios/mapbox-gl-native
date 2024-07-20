@@ -3,7 +3,7 @@
 namespace mbgl {
 namespace style {
 
-Layer::Impl::Impl(std::string layerID, std::string sourceID)
+Layer::Impl::Impl(nav::stringid layerID, nav::stringid sourceID)
     : id(std::move(layerID)),
       source(std::move(sourceID)) {
 }

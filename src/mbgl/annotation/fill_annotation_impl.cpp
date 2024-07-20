@@ -18,7 +18,7 @@ void FillAnnotationImpl::updateStyle(Style::Impl& style) const {
     if (!layer) {
         auto newLayer = std::make_unique<FillLayer>(layerID, AnnotationManager::SourceID);
         newLayer->setSourceLayer(layerID);
-        layer = style.addLayer(std::move(newLayer), AnnotationManager::PointLayerID);
+        layer = style.addLayer(std::move(newLayer), AnnotationManager::PointLayerID.get());
     }
 
     auto* fillLayer = static_cast<FillLayer*>(layer);

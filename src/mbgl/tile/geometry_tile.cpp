@@ -31,12 +31,12 @@ LayerRenderData* GeometryTile::LayoutResult::getLayerRenderData(const style::Lay
     if (it == layerRenderData.end()) {
         return nullptr;
     }
-    LayerRenderData& result = it->second;
-    if (result.layerProperties->baseImpl->getTypeInfo() != layerImpl.getTypeInfo()) {
+    LayerRenderData* result = &it->second;
+    if (result->layerProperties->baseImpl.get() != &layerImpl) {
         // Layer data might be outdated, see issue #12432.
         return nullptr;
     }
-    return &result;   
+    return result;
 }
 
 class GeometryTileRenderData final : public TileRenderData {
@@ -51,7 +51,7 @@ public:
 private:
     // TileRenderData overrides.
     optional<ImagePosition> getPattern(const std::string&) const override;
-    const LayerRenderData* getLayerRenderData(const style::Layer::Impl&) const override;
+    inline const LayerRenderData* getLayerRenderData(const style::Layer::Impl&) const override;
     Bucket* getBucket(const style::Layer::Impl&) const override;
     void upload(gfx::UploadPass&) override;
     void prepare(const SourcePrepareParameters&) override;
@@ -312,7 +312,7 @@ LayerRenderData* GeometryTile::getLayerRenderData(const style::Layer::Impl& laye
     return layoutResult ? layoutResult->getLayerRenderData(layerImpl) : nullptr;
 }
 
-float GeometryTile::getQueryPadding(const std::unordered_map<std::string, const RenderLayer*>& layers) {
+float GeometryTile::getQueryPadding(const std::unordered_map<nav::stringid, const RenderLayer*>& layers) {
     float queryPadding = 0;
     for (const auto& pair : layers) {
         const LayerRenderData* data = getLayerRenderData(*pair.second->baseImpl);
@@ -323,9 +323,9 @@ float GeometryTile::getQueryPadding(const std::unordered_map<std::string, const 
     return queryPadding;
 }
 
-void GeometryTile::queryRenderedFeatures(std::unordered_map<std::string, std::vector<Feature>>& result,
+void GeometryTile::queryRenderedFeatures(std::unordered_map<nav::stringid, std::vector<Feature>>& result,
                                          const GeometryCoordinates& queryGeometry, const TransformState& transformState,
-                                         const std::unordered_map<std::string, const RenderLayer*>& layers,
+                                         const std::unordered_map<nav::stringid, const RenderLayer*>& layers,
                                          const RenderedQueryOptions& options, const mat4& projMatrix,
                                          const SourceFeatureState& featureState) {
     if (!getData()) return;

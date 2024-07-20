@@ -37,7 +37,7 @@ struct PlacedSymbolData {
     // Viewport padding ({viewportPadding, viewportPadding} is a coordinate of the tile's top-left corner)
     float viewportPadding;
     // Layer id (leader of the symbol layout group)
-    std::string layer;
+    nav::stringid layer;
 };
 
 class Renderer {

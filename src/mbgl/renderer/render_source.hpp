@@ -75,10 +75,10 @@ public:
     virtual const ImageSourceRenderData* getImageRenderData() const { return nullptr; }
     virtual const Tile* getRenderedTile(const UnwrappedTileID&) const { return nullptr; }
 
-    virtual std::unordered_map<std::string, std::vector<Feature>>
+    virtual std::unordered_map<nav::stringid, std::vector<Feature>>
     queryRenderedFeatures(const ScreenLineString& geometry,
                           const TransformState& transformState,
-                          const std::unordered_map<std::string, const RenderLayer*>& layers,
+                          const std::unordered_map<nav::stringid, const RenderLayer*>& layers,
                           const RenderedQueryOptions& options,
                           const mat4& projMatrix) const = 0;
 

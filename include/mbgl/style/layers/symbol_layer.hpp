@@ -12,6 +12,8 @@
 
 #include <vector>
 
+#include "mbgl/nav/nav_stringid.hpp"
+
 namespace mbgl {
 namespace style {
 
@@ -19,7 +21,7 @@ class TransitionOptions;
 
 class SymbolLayer final : public Layer {
 public:
-    SymbolLayer(const std::string& layerID, const std::string& sourceID);
+    SymbolLayer(const nav::stringid& layerID, const nav::stringid& sourceID);
     ~SymbolLayer() override;
 
     // Layout properties

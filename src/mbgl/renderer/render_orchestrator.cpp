@@ -386,7 +386,7 @@ std::unique_ptr<RenderTree> RenderOrchestrator::createRenderTree(
     assert((updateParameters->mode == MapMode::Tile) || !placedSymbolDataCollected);
     bool symbolBucketsChanged = false;
     bool symbolBucketsAdded = false;
-    std::set<std::string> usedSymbolLayers;
+    std::set<nav::stringid> usedSymbolLayers;
     auto longitude = updateParameters->transformState.getLatLng().longitude();
     for (auto it = layersNeedPlacement.crbegin(); it != layersNeedPlacement.crend(); ++it) {
         RenderLayer& layer = *it;
@@ -480,15 +480,15 @@ std::vector<Feature> RenderOrchestrator::queryRenderedFeatures(const ScreenLineS
     return queryRenderedFeatures(geometry, options, layers);
 }
 
-void RenderOrchestrator::queryRenderedSymbols(std::unordered_map<std::string, std::vector<Feature>>& resultsByLayer,
+void RenderOrchestrator::queryRenderedSymbols(std::unordered_map<nav::stringid, std::vector<Feature>>& resultsByLayer,
                                           const ScreenLineString& geometry,
-                                          const std::unordered_map<std::string, const RenderLayer*>& layers,
+                                          const std::unordered_map<nav::stringid, const RenderLayer*>& layers,
                                           const RenderedQueryOptions& options) const {
     const auto hasCrossTileIndex = [] (const auto& pair) {
         return pair.second->baseImpl->getTypeInfo()->crossTileIndex == style::LayerTypeInfo::CrossTileIndex::Required;
     };
 
-    std::unordered_map<std::string, const RenderLayer*> crossTileSymbolIndexLayers;
+    std::unordered_map<nav::stringid, const RenderLayer*> crossTileSymbolIndexLayers;
     std::copy_if(layers.begin(),
                  layers.end(),
                  std::inserter(crossTileSymbolIndexLayers, crossTileSymbolIndexLayers.begin()),
@@ -528,8 +528,8 @@ void RenderOrchestrator::queryRenderedSymbols(std::unordered_map<std::string, st
 }
 
 std::vector<Feature> RenderOrchestrator::queryRenderedFeatures(const ScreenLineString& geometry, const RenderedQueryOptions& options, const std::unordered_map<std::string, const RenderLayer*>& layers) const {
-    std::unordered_set<std::string> sourceIDs;
-    std::unordered_map<std::string, const RenderLayer*> filteredLayers;
+    std::unordered_set<nav::stringid> sourceIDs;
+    std::unordered_map<nav::stringid, const RenderLayer*> filteredLayers;
     for (const auto& pair : layers) {
         if (!pair.second->needsRendering() || !pair.second->supportsZoom(zoomHistory.lastZoom)) {
             continue;
@@ -541,7 +541,7 @@ std::vector<Feature> RenderOrchestrator::queryRenderedFeatures(const ScreenLineS
     mat4 projMatrix;
     transformState.getProjMatrix(projMatrix);
 
-    std::unordered_map<std::string, std::vector<Feature>> resultsByLayer;
+    std::unordered_map<nav::stringid, std::vector<Feature>> resultsByLayer;
     for (const auto& sourceID : sourceIDs) {
         if (RenderSource* renderSource = getRenderSource(sourceID)) {
             auto sourceResults = renderSource->queryRenderedFeatures(geometry, transformState, filteredLayers, options, projMatrix);
@@ -579,8 +579,10 @@ std::vector<Feature> RenderOrchestrator::queryShapeAnnotations(const ScreenLineS
     std::unordered_map<std::string, const RenderLayer*> shapeAnnotationLayers;
     RenderedQueryOptions options;
     for (const auto& layerImpl : *layerImpls) {
-        if (std::mismatch(layerImpl->id.begin(), layerImpl->id.end(),
-                          AnnotationManager::ShapeLayerID.begin(), AnnotationManager::ShapeLayerID.end()).second == AnnotationManager::ShapeLayerID.end()) {
+        if (std::mismatch(layerImpl->id.get().begin(), 
+                          layerImpl->id.get().end(),
+                          AnnotationManager::ShapeLayerID.get().begin(),
+                          AnnotationManager::ShapeLayerID.get().end()).second == AnnotationManager::ShapeLayerID.get().end()) {
             if (const RenderLayer* layer = getRenderLayer(layerImpl->id)) {
                 shapeAnnotationLayers.emplace(layer->getID(), layer);
             }

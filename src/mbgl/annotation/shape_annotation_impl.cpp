@@ -14,7 +14,7 @@ using namespace style;
 
 ShapeAnnotationImpl::ShapeAnnotationImpl(const AnnotationID id_)
     : id(id_),
-      layerID(AnnotationManager::ShapeLayerID + util::toString(id)) {
+      layerID(AnnotationManager::ShapeLayerID.get() + util::toString(id)) {
 }
 
 void ShapeAnnotationImpl::updateTileData(const CanonicalTileID& tileID, AnnotationTileData& data) {

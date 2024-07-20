@@ -19,7 +19,7 @@ void LineAnnotationImpl::updateStyle(Style::Impl& style) const {
         auto newLayer = std::make_unique<LineLayer>(layerID, AnnotationManager::SourceID);
         newLayer->setSourceLayer(layerID);
         newLayer->setLineJoin(LineJoinType::Round);
-        layer = style.addLayer(std::move(newLayer), AnnotationManager::PointLayerID);
+        layer = style.addLayer(std::move(newLayer), AnnotationManager::PointLayerID.get());
     }
 
     auto* lineLayer = static_cast<LineLayer*>(layer);

@@ -121,10 +121,10 @@ const Tile* RenderTileSource::getRenderedTile(const UnwrappedTileID& tileID) con
     return tilePyramid.getRenderedTile(tileID);
 }
 
-std::unordered_map<std::string, std::vector<Feature>>
+std::unordered_map<nav::stringid, std::vector<Feature>>
 RenderTileSource::queryRenderedFeatures(const ScreenLineString& geometry,
                                           const TransformState& transformState,
-                                          const std::unordered_map<std::string, const RenderLayer*>& layers,
+                                          const std::unordered_map<nav::stringid, const RenderLayer*>& layers,
                                           const RenderedQueryOptions& options,
                                           const mat4& projMatrix) const {
     return tilePyramid.queryRenderedFeatures(geometry, transformState, layers, options, projMatrix, featureState);

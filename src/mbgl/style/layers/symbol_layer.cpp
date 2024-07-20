@@ -32,7 +32,7 @@ const LayerTypeInfo* SymbolLayer::Impl::staticTypeInfo() noexcept {
 }
 
 
-SymbolLayer::SymbolLayer(const std::string& layerID, const std::string& sourceID)
+SymbolLayer::SymbolLayer(const nav::stringid& layerID, const nav::stringid& sourceID)
     : Layer(makeMutable<Impl>(layerID, sourceID)) {
 }
 

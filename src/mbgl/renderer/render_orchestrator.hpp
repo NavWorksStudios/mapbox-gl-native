@@ -85,9 +85,9 @@ private:
           RenderLayer* getRenderLayer(const std::string& id);
     const RenderLayer* getRenderLayer(const std::string& id) const;
               
-    void queryRenderedSymbols(std::unordered_map<std::string, std::vector<Feature>>& resultsByLayer,
+    void queryRenderedSymbols(std::unordered_map<nav::stringid, std::vector<Feature>>& resultsByLayer,
                               const ScreenLineString& geometry,
-                              const std::unordered_map<std::string, const RenderLayer*>& layers,
+                              const std::unordered_map<nav::stringid, const RenderLayer*>& layers,
                               const RenderedQueryOptions& options) const;
     
     std::vector<Feature> queryRenderedFeatures(const ScreenLineString&, const RenderedQueryOptions&, const std::unordered_map<std::string, const RenderLayer*>&) const;

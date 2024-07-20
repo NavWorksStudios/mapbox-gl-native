@@ -38,11 +38,11 @@ void Tile::dumpDebugLogs() const {
     Log::Info(Event::General, "Tile::complete: %s", isComplete() ? "yes" : "no");
 }
 
-void Tile::queryRenderedFeatures(std::unordered_map<std::string, std::vector<Feature>>&, const GeometryCoordinates&,
-                                 const TransformState&, const std::unordered_map<std::string, const RenderLayer*>&,
+void Tile::queryRenderedFeatures(std::unordered_map<nav::stringid, std::vector<Feature>>&, const GeometryCoordinates&,
+                                 const TransformState&, const std::unordered_map<nav::stringid, const RenderLayer*>&,
                                  const RenderedQueryOptions&, const mat4&, const SourceFeatureState&) {}
 
-float Tile::getQueryPadding(const std::unordered_map<std::string, const RenderLayer*>&) {
+float Tile::getQueryPadding(const std::unordered_map<nav::stringid, const RenderLayer*>&) {
     return 0;
 }
 

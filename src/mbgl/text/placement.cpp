@@ -716,7 +716,7 @@ void Placement::updateLayerBuckets(const RenderLayer& layer, const TransformStat
     }
 }
 
-void Placement::setCurUpdateLayerId(const std::string& layerID) const{
+void Placement::setCurUpdateLayerId(const nav::stringid& layerID) const{
      curUpdateLayerID = layerID;
 }
 

@@ -107,13 +107,13 @@ void RenderRasterDEMSource::onTileChanged(Tile& tile){
     RenderTileSource::onTileChanged(tile);
 }
 
-std::unordered_map<std::string, std::vector<Feature>>
+std::unordered_map<nav::stringid, std::vector<Feature>>
 RenderRasterDEMSource::queryRenderedFeatures(const ScreenLineString&,
                                           const TransformState&,
-                                          const std::unordered_map<std::string, const RenderLayer*>&,
+                                          const std::unordered_map<nav::stringid, const RenderLayer*>&,
                                           const RenderedQueryOptions&,
                                           const mat4&) const {
-    return std::unordered_map<std::string, std::vector<Feature>>{};
+    return std::unordered_map<nav::stringid, std::vector<Feature>>{};
 }
 
 std::vector<Feature> RenderRasterDEMSource::querySourceFeatures(const SourceQueryOptions&) const {

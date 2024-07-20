@@ -72,7 +72,7 @@ public:
                  float zoom,
                  bool iconsNeedLinear,
                  bool sortFeaturesByY,
-                 std::string bucketName_,
+                 nav::stringid bucketName_,
                  const std::vector<SymbolInstance>&&,
                  const std::vector<SortKeyRange>&&,
                  float tilePixelRatio,
@@ -104,7 +104,7 @@ public:
     SymbolInstanceReferences getSymbols(const optional<SortKeyRange>& sortKeyRange = nullopt) const;
 
     Immutable<style::SymbolLayoutProperties::PossiblyEvaluated> layout;
-    const std::string bucketLeaderID;
+    const nav::stringid bucketLeaderID;
     float sortedAngle = std::numeric_limits<float>::max();
 
     // Flags

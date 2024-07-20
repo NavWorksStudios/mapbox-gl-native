@@ -24,7 +24,7 @@ class CollisionIndex;
 class IndexedSubfeature {
 public:
     IndexedSubfeature() = delete;
-    IndexedSubfeature(std::size_t index_, std::string sourceLayerName_, std::string bucketName_, size_t sortIndex_)
+    IndexedSubfeature(std::size_t index_, nav::stringid sourceLayerName_, nav::stringid bucketName_, size_t sortIndex_)
         : index(index_)
         , sourceLayerName(std::move(sourceLayerName_))
         , bucketLeaderID(std::move(bucketName_))
@@ -57,7 +57,7 @@ using FeatureSortOrder = std::shared_ptr<const std::vector<size_t>>;
 class DynamicFeatureIndex {
 public:
     ~DynamicFeatureIndex();
-    void query(std::unordered_map<std::string, std::vector<Feature>>& result,
+    void query(std::unordered_map<nav::stringid, std::vector<Feature>>& result,
                const mbgl::ScreenLineString& queryGeometry,
                const TransformState& state) const;
 
@@ -78,9 +78,9 @@ public:
 
     const GeometryTileData* getData() { return tileData.get(); }
     
-    void insert(const GeometryCollection&, std::size_t index, const std::string& sourceLayerName, const std::string& bucketLeaderID);
+    void insert(const GeometryCollection&, std::size_t index, const nav::stringid& sourceLayerName, const nav::stringid& bucketLeaderID);
 
-    void query(std::unordered_map<std::string, std::vector<Feature>>& result,
+    void query(std::unordered_map<nav::stringid, std::vector<Feature>>& result,
                const GeometryCoordinates& queryGeometry,
                const TransformState&,
                const mat4& posMatrix,
@@ -88,7 +88,7 @@ public:
                double scale,
                const RenderedQueryOptions& options,
                const UnwrappedTileID&,
-               const std::unordered_map<std::string, const RenderLayer*>&,
+               const std::unordered_map<nav::stringid, const RenderLayer*>&,
                float additionalQueryPadding,
                const SourceFeatureState& sourceFeatureState) const;
 
@@ -98,21 +98,21 @@ public:
                                                                 float bearing,
                                                                 float pixelsToTileUnits);
 
-    void setBucketLayerIDs(const std::string& bucketLeaderID, const std::vector<std::string>& layerIDs);
+    void setBucketLayerIDs(const nav::stringid& bucketLeaderID, const std::vector<nav::stringid>& layerIDs);
 
-    std::unordered_map<std::string, std::vector<Feature>> lookupSymbolFeatures(
+    std::unordered_map<nav::stringid, std::vector<Feature>> lookupSymbolFeatures(
         const std::vector<IndexedSubfeature>& symbolFeatures,
         const RenderedQueryOptions& options,
-        const std::unordered_map<std::string, const RenderLayer*>& layers,
+        const std::unordered_map<nav::stringid, const RenderLayer*>& layers,
         const OverscaledTileID& tileID,
         const FeatureSortOrder& featureSortOrder) const;
 
 private:
-    void addFeature(std::unordered_map<std::string, std::vector<Feature>>& result,
+    void addFeature(std::unordered_map<nav::stringid, std::vector<Feature>>& result,
                     const IndexedSubfeature&,
                     const RenderedQueryOptions& options,
                     const CanonicalTileID&,
-                    const std::unordered_map<std::string, const RenderLayer*>&,
+                    const std::unordered_map<nav::stringid, const RenderLayer*>&,
                     const GeometryCoordinates& queryGeometry,
                     const TransformState& transformState,
                     float pixelsToTileUnits,
@@ -122,7 +122,7 @@ private:
     GridIndex<IndexedSubfeature> grid;
     unsigned int sortIndex = 0;
 
-    std::unordered_map<std::string, std::vector<std::string>> bucketLayerIDs;
+    std::unordered_map<nav::stringid, std::vector<nav::stringid>> bucketLayerIDs;
     std::unique_ptr<const GeometryTileData> tileData;
 };
 } // namespace mbgl

@@ -51,9 +51,9 @@ public:
 
     bool layerPropertiesUpdated(const Immutable<style::LayerProperties>&) override;
 
-    void queryRenderedFeatures(std::unordered_map<std::string, std::vector<Feature>>& result,
+    void queryRenderedFeatures(std::unordered_map<nav::stringid, std::vector<Feature>>& result,
                                const GeometryCoordinates& queryGeometry, const TransformState&,
-                               const std::unordered_map<std::string, const RenderLayer*>& layers,
+                               const std::unordered_map<nav::stringid, const RenderLayer*>& layers,
                                const RenderedQueryOptions& options, const mat4& projMatrix,
                                const SourceFeatureState& featureState) override;
 
@@ -61,7 +61,7 @@ public:
         std::vector<Feature>& result,
         const SourceQueryOptions&) override;
 
-    float getQueryPadding(const std::unordered_map<std::string, const RenderLayer*>&) override;
+    float getQueryPadding(const std::unordered_map<nav::stringid, const RenderLayer*>&) override;
 
     void cancel() override;
 

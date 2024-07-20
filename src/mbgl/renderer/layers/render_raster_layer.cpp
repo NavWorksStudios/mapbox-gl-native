@@ -135,7 +135,7 @@ void RenderRasterLayer::render(PaintParameters& parameters) {
             allUniformValues,
             allAttributeBindings,
             textureBindings,
-            getID() + "/" + drawScopeID
+            getID().get() + "/" + drawScopeID
         );
     };
 

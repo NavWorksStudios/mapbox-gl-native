@@ -10,25 +10,27 @@
 
 namespace nav {
 
-class stringid : public std::string {
-    mutable size_t _hash = 0;
+class stringid {
+    std::string _id;
+    size_t _hash;
     
 public:
-    stringid() = default;
-    explicit stringid(const std::string& id) : std::string(id) { }
+    stringid() { }
+    stringid(const std::string& id) : _id(id), _hash(std::hash<std::string>()(_id)) { }
+
+    inline size_t hash() const { return _hash; }
+    inline const std::string& get() const { return _id; }
+    inline operator const std::string& () const { return _id; }
     
-    size_t hash() const {
-        return _hash ? _hash : _hash = std::hash<std::string>()(*this);
-    }
-    
-    void operator = (const std::string& id) { (std::string&) *this = id; _hash = 0; }
+    bool operator == (const std::string& id) const { return _id == id; }
+    bool operator != (const std::string& id) const { return _id != id; }
     bool operator == (const stringid& other) const { return hash() == other.hash(); }
+    bool operator != (const stringid& other) const { return hash() != other.hash(); }
+    bool operator < (const stringid& other) const { return hash() < other.hash(); }
 };
 
 }
 
 template <> struct std::hash<nav::stringid> {
-    std::size_t operator()(const nav::stringid& id) const {
-        return id.hash();
-    }
+    size_t operator () (const nav::stringid& id) const { return id.hash(); }
 };

@@ -82,9 +82,9 @@ public:
     virtual void setLayers(const std::vector<Immutable<style::LayerProperties>>&) {}
     virtual void setMask(TileMask&&) {}
 
-    virtual void queryRenderedFeatures(std::unordered_map<std::string, std::vector<Feature>>& result,
+    virtual void queryRenderedFeatures(std::unordered_map<nav::stringid, std::vector<Feature>>& result,
                                        const GeometryCoordinates& queryGeometry, const TransformState&,
-                                       const std::unordered_map<std::string, const RenderLayer*>&,
+                                       const std::unordered_map<nav::stringid, const RenderLayer*>&,
                                        const RenderedQueryOptions& options, const mat4& projMatrix,
                                        const SourceFeatureState& featureState);
 
@@ -92,7 +92,7 @@ public:
             std::vector<Feature>& result,
             const SourceQueryOptions&);
 
-    virtual float getQueryPadding(const std::unordered_map<std::string, const RenderLayer*>&);
+    virtual float getQueryPadding(const std::unordered_map<nav::stringid, const RenderLayer*>&);
 
     void setTriedCache();
 

@@ -20,9 +20,9 @@ public:
 template <class T>
 class StyleDifference {
 public:
-    std::unordered_map<std::string, T> added;
-    std::unordered_map<std::string, T> removed;
-    std::unordered_map<std::string, StyleChange<T>> changed;
+    std::unordered_map<nav::stringid, T> added;
+    std::unordered_map<nav::stringid, T> removed;
+    std::unordered_map<nav::stringid, StyleChange<T>> changed;
 };
 
 using ImmutableImage = Immutable<style::Image::Impl>;
@@ -43,6 +43,6 @@ using LayerDifference = StyleDifference<ImmutableLayer>;
 LayerDifference diffLayers(const Immutable<std::vector<ImmutableLayer>>&,
                            const Immutable<std::vector<ImmutableLayer>>&);
 
-bool hasLayoutDifference(const LayerDifference&, const std::string& layerID);
+bool hasLayoutDifference(const LayerDifference&, const nav::stringid& layerID);
 
 } // namespace mbgl

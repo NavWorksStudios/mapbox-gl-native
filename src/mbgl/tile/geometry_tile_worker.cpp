@@ -384,7 +384,7 @@ void GeometryTileWorker::parse() {
             continue;
         }
         
-        std::vector<std::string> layerIDs(group.size());
+        std::vector<nav::stringid> layerIDs(group.size());
         for (const auto& layer : group) {
             layerIDs.push_back(layer->baseImpl->id);
         }
@@ -411,7 +411,7 @@ void GeometryTileWorker::parse() {
             }
         } else {
             const Filter& filter = leaderImpl.filter;
-            const std::string& sourceLayerID = leaderImpl.sourceLayer;
+            const nav::stringid& sourceLayerID = leaderImpl.sourceLayer;
             std::shared_ptr<Bucket> bucket = LayerManager::get()->createBucket(parameters, group);
 
             for (std::size_t i = 0; !obsolete && i < geometryLayer->featureCount(); i++) {

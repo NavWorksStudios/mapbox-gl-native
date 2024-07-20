@@ -42,10 +42,10 @@ void RenderAnnotationSource::update(Immutable<style::Source::Impl> baseImpl_,
         [&](const OverscaledTileID& tileID) { return std::make_unique<AnnotationTile>(tileID, parameters); });
 }
 
-std::unordered_map<std::string, std::vector<Feature>>
+std::unordered_map<nav::stringid, std::vector<Feature>>
 RenderAnnotationSource::queryRenderedFeatures(const ScreenLineString& geometry,
                                               const TransformState& transformState,
-                                              const std::unordered_map<std::string, const RenderLayer*>& layers,
+                                              const std::unordered_map<nav::stringid, const RenderLayer*>& layers,
                                               const RenderedQueryOptions& options,
                                               const mat4& projMatrix) const {
     return tilePyramid.queryRenderedFeatures(geometry, transformState, layers, options, projMatrix, {});

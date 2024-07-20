@@ -9,7 +9,7 @@ namespace mbgl {
 TileLayerIndex::TileLayerIndex(OverscaledTileID coord_,
                                std::vector<SymbolInstance>& symbolInstances,
                                uint32_t bucketInstanceId_,
-                               std::string bucketLeaderId_)
+                               nav::stringid bucketLeaderId_)
     : coord(coord_), bucketInstanceId(bucketInstanceId_), bucketLeaderId(std::move(bucketLeaderId_)) {
     for (SymbolInstance& symbolInstance : symbolInstances) {
         if (symbolInstance.crossTileID == SymbolInstance::invalidCrossTileID()) continue;
@@ -239,7 +239,7 @@ auto CrossTileSymbolIndex::addLayer(const RenderLayer& layer, float lng) -> AddL
     return result;
 }
 
-void CrossTileSymbolIndex::pruneUnusedLayers(const std::set<std::string>& usedLayers) {
+void CrossTileSymbolIndex::pruneUnusedLayers(const std::set<nav::stringid>& usedLayers) {
     for (auto it = layerIndexes.begin(); it != layerIndexes.end();) {
         if (usedLayers.find(it->first) == usedLayers.end()) {
             it = layerIndexes.erase(it);

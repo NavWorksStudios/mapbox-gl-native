@@ -102,13 +102,13 @@ void RenderImageSource::prepare(const SourcePrepareParameters& parameters) {
     renderData = std::make_unique<ImageSourceRenderData>(bucket, std::move(matrices), baseImpl->id);
 }
 
-std::unordered_map<std::string, std::vector<Feature>>
+std::unordered_map<nav::stringid, std::vector<Feature>>
 RenderImageSource::queryRenderedFeatures(const ScreenLineString&,
                                          const TransformState&,
-                                         const std::unordered_map<std::string, const RenderLayer*>&,
+                                         const std::unordered_map<nav::stringid, const RenderLayer*>&,
                                          const RenderedQueryOptions&,
                                          const mat4&) const {
-    return std::unordered_map<std::string, std::vector<Feature>> {};
+    return std::unordered_map<nav::stringid, std::vector<Feature>> {};
 }
 
 std::vector<Feature> RenderImageSource::querySourceFeatures(const SourceQueryOptions&) const {

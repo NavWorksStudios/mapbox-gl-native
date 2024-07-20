@@ -183,7 +183,7 @@ optional<conversion::Error> Layer::setProperty(const std::string& name, const co
                 Log::Warning(mbgl::Event::General,
                              "'source-layer' property cannot be set to"
                              "the layer %s",
-                             baseImpl->id.c_str());
+                             baseImpl->id.get().c_str());
                 return nullopt;
             }
             setSourceLayer(*sourceLayer);
@@ -195,7 +195,7 @@ optional<conversion::Error> Layer::setProperty(const std::string& name, const co
                 Log::Warning(mbgl::Event::General,
                              "'source' property cannot be set to"
                              "the layer %s",
-                             baseImpl->id.c_str());
+                             baseImpl->id.get().c_str());
                 return nullopt;
             }
             setSourceID(*sourceID);

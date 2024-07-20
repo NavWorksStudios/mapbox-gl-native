@@ -151,14 +151,14 @@ private:
     }
 
     std::map<nav::stringid, Immutable<style::LayerProperties>> layerPropertiesMap;
-    std::string bucketLeaderID;
+    nav::stringid bucketLeaderID;
 
     const std::unique_ptr<GeometryTileLayer> sourceLayer;
     std::list<CircleFeature> features;
 
     const float zoom;
     const MapMode mode;
-    std::string sourceLayerID;
+    nav::stringid sourceLayerID;
 };
 
 } // namespace mbgl

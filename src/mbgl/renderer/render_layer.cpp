@@ -72,7 +72,7 @@ void RenderLayer::checkRenderability(const PaintParameters& parameters,
                    "The layer '%s' uses more data-driven properties than the current device "
                    "supports, and will have rendering errors. To ensure compatibility with this "
                    "device, use %d fewer data driven properties in this layer.",
-                   getID().c_str(),
+                   getID().get().c_str(),
                    activeBindingCount - gfx::Context::minimumRequiredVertexBindingCount);
         hasRenderFailures = true;
     } else if (activeBindingCount > gfx::Context::minimumRequiredVertexBindingCount) {
@@ -81,7 +81,7 @@ void RenderLayer::checkRenderability(const PaintParameters& parameters,
                      "Though it will render correctly on this device, it may have rendering errors "
                      "on other devices. To ensure compatibility with all devices, use %d fewer "
                      "data-driven properties in this layer.",
-                     getID().c_str(),
+                     getID().get().c_str(),
                      activeBindingCount - gfx::Context::minimumRequiredVertexBindingCount);
         hasRenderFailures = true;
     }

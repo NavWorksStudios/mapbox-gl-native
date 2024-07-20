@@ -40,8 +40,8 @@ FeatureIndex::FeatureIndex(std::unique_ptr<const GeometryTileData> tileData_)
 
 void FeatureIndex::insert(const GeometryCollection& geometries,
                           std::size_t index,
-                          const std::string& sourceLayerName,
-                          const std::string& bucketLeaderID) {
+                          const nav::stringid& sourceLayerName,
+                          const nav::stringid& bucketLeaderID) {
     auto featureSortIndex = sortIndex++;
     for (const auto& ring : geometries) {
         auto envelope = mapbox::geometry::envelope(ring);
@@ -55,11 +55,11 @@ void FeatureIndex::insert(const GeometryCollection& geometries,
     }
 }
 
-void FeatureIndex::query(std::unordered_map<std::string, std::vector<Feature>>& result,
+void FeatureIndex::query(std::unordered_map<nav::stringid, std::vector<Feature>>& result,
                          const GeometryCoordinates& queryGeometry, const TransformState& transformState,
                          const mat4& posMatrix, const double tileSize, const double scale,
                          const RenderedQueryOptions& queryOptions, const UnwrappedTileID& tileID,
-                         const std::unordered_map<std::string, const RenderLayer*>& layers,
+                         const std::unordered_map<nav::stringid, const RenderLayer*>& layers,
                          const float additionalQueryPadding, const SourceFeatureState& sourceFeatureState) const {
     if (!tileData) {
         return;
@@ -90,13 +90,13 @@ void FeatureIndex::query(std::unordered_map<std::string, std::vector<Feature>>& 
     }
 }
 
-std::unordered_map<std::string, std::vector<Feature>> FeatureIndex::lookupSymbolFeatures(
+std::unordered_map<nav::stringid, std::vector<Feature>> FeatureIndex::lookupSymbolFeatures(
     const std::vector<IndexedSubfeature>& symbolFeatures,
     const RenderedQueryOptions& queryOptions,
-    const std::unordered_map<std::string, const RenderLayer*>& layers,
+    const std::unordered_map<nav::stringid, const RenderLayer*>& layers,
     const OverscaledTileID& tileID,
     const FeatureSortOrder& featureSortOrder) const {
-    std::unordered_map<std::string, std::vector<Feature>> result;
+    std::unordered_map<nav::stringid, std::vector<Feature>> result;
     if (!tileData) {
         return result;
     }
@@ -131,10 +131,10 @@ std::unordered_map<std::string, std::vector<Feature>> FeatureIndex::lookupSymbol
     return result;
 }
 
-void FeatureIndex::addFeature(std::unordered_map<std::string, std::vector<Feature>>& result,
+void FeatureIndex::addFeature(std::unordered_map<nav::stringid, std::vector<Feature>>& result,
                               const IndexedSubfeature& indexedFeature, const RenderedQueryOptions& options,
                               const CanonicalTileID& tileID,
-                              const std::unordered_map<std::string, const RenderLayer*>& layers,
+                              const std::unordered_map<nav::stringid, const RenderLayer*>& layers,
                               const GeometryCoordinates& queryGeometry, const TransformState& transformState,
                               const float pixelsToTileUnits, const mat4& posMatrix,
                               const SourceFeatureState* sourceFeatureState) const {
@@ -142,7 +142,7 @@ void FeatureIndex::addFeature(std::unordered_map<std::string, std::vector<Featur
     std::unique_ptr<GeometryTileLayer> sourceLayer;
     std::unique_ptr<GeometryTileFeature> geometryTileFeature;
 
-    for (const std::string& layerID : bucketLayerIDs.at(indexedFeature.bucketLeaderID)) {
+    for (const nav::stringid& layerID : bucketLayerIDs.at(indexedFeature.bucketLeaderID)) {
         const auto it = layers.find(layerID);
         if (it == layers.end()) {
             continue;
@@ -180,7 +180,7 @@ void FeatureIndex::addFeature(std::unordered_map<std::string, std::vector<Featur
         }
 
         Feature feature = convertFeature(*geometryTileFeature, tileID);
-        feature.source = renderLayer->baseImpl->source;
+        feature.source = renderLayer->baseImpl->source.get();
         feature.sourceLayer = sourceLayer->getName();
         feature.state = state;
         result[layerID].emplace_back(feature);
@@ -209,13 +209,13 @@ optional<GeometryCoordinates> FeatureIndex::translateQueryGeometry(
     return translated;
 }
 
-void FeatureIndex::setBucketLayerIDs(const std::string& bucketLeaderID, const std::vector<std::string>& layerIDs) {
+void FeatureIndex::setBucketLayerIDs(const nav::stringid& bucketLeaderID, const std::vector<nav::stringid>& layerIDs) {
     bucketLayerIDs[bucketLeaderID] = layerIDs;
 }
 
 DynamicFeatureIndex::~DynamicFeatureIndex() = default;
 
-void DynamicFeatureIndex::query(std::unordered_map<std::string, std::vector<Feature>>& result,
+void DynamicFeatureIndex::query(std::unordered_map<nav::stringid, std::vector<Feature>>& result,
                                 const mbgl::ScreenLineString& queryGeometry,
                                 const TransformState& state) const {
     if (features.empty()) return;

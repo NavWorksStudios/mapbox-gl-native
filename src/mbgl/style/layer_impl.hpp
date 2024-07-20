@@ -29,7 +29,7 @@ namespace style {
  */
 class Layer::Impl {
 public:
-    Impl(std::string layerID, std::string sourceID);
+    Impl(nav::stringid layerID, nav::stringid sourceID);
     virtual ~Impl() = default;
 
     Impl& operator=(const Impl&) = delete;

@@ -14,6 +14,8 @@
 #include <memory>
 #include <unordered_set>
 
+#include "mbgl/nav/nav_stringid.hpp"
+
 namespace mbgl {
 
 class SymbolInstance;
@@ -35,14 +37,14 @@ public:
     TileLayerIndex(OverscaledTileID coord,
                    std::vector<SymbolInstance>&,
                    uint32_t bucketInstanceId,
-                   std::string bucketLeaderId);
+                   nav::stringid bucketLeaderId);
 
     Point<int64_t> getScaledCoordinates(SymbolInstance&, const OverscaledTileID&) const;
     void findMatches(SymbolBucket&, const OverscaledTileID&, std::set<uint32_t>&) const;
 
     OverscaledTileID coord;
     uint32_t bucketInstanceId;
-    std::string bucketLeaderId;
+    nav::stringid bucketLeaderId;
     std::map<std::u16string,std::vector<IndexedSymbolInstance>> indexedSymbolInstances;
 };
 
@@ -72,11 +74,11 @@ public:
     };
 
     AddLayerResult addLayer(const RenderLayer& layer, float lng);
-    void pruneUnusedLayers(const std::set<std::string>&);
+    void pruneUnusedLayers(const std::set<nav::stringid>&);
 
     void reset();
 private:
-    std::map<std::string, CrossTileSymbolLayerIndex> layerIndexes;
+    std::unordered_map<nav::stringid, CrossTileSymbolLayerIndex> layerIndexes;
     uint32_t maxCrossTileID = 0;
 };
 

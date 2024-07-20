@@ -49,7 +49,7 @@ public:
 
     std::map<nav::stringid, Immutable<style::LayerProperties>> layerPaintProperties;
 
-    const std::string bucketLeaderID;
+    const nav::stringid bucketLeaderID;
     std::vector<SymbolInstance> symbolInstances;
     std::vector<SortKeyRange> sortKeyRanges;
 

@@ -66,7 +66,7 @@ LayerDifference diffLayers(const Immutable<std::vector<ImmutableLayer>>& a,
     });
 }
 
-bool hasLayoutDifference(const LayerDifference& layerDiff, const std::string& layerID) {
+bool hasLayoutDifference(const LayerDifference& layerDiff, const nav::stringid& layerID) {
     if (layerDiff.added.count(layerID))
         return true;
     const auto it = layerDiff.changed.find(layerID);

@@ -27,9 +27,9 @@ namespace mbgl {
 
 using namespace style;
 
-const nav::stringid AnnotationManager::SourceID({ "com.mapbox.annotations" });
-const nav::stringid AnnotationManager::PointLayerID({ "com.mapbox.annotations.points" });
-const nav::stringid AnnotationManager::ShapeLayerID({ "com.mapbox.annotations.shape." });
+const nav::stringid AnnotationManager::SourceID( "com.mapbox.annotations" );
+const nav::stringid AnnotationManager::PointLayerID( "com.mapbox.annotations.points" );
+const nav::stringid AnnotationManager::ShapeLayerID( "com.mapbox.annotations.shape." );
 
 AnnotationManager::AnnotationManager(Style& style_)
         : style(style_) {
@@ -140,7 +140,7 @@ void AnnotationManager::remove(const AnnotationID& id) {
         symbolAnnotations.erase(id);
     } else if (shapeAnnotations.find(id) != shapeAnnotations.end()) {
         auto it = shapeAnnotations.find(id);
-        *style.get().impl->removeLayer(it->second->layerID);
+        *style.get().impl->removeLayer(it->second->layerID.get());
         shapeAnnotations.erase(it);
     } else {
         assert(false); // Should never happen
@@ -178,15 +178,15 @@ std::unique_ptr<AnnotationTileData> AnnotationManager::getTileData(const Canonic
 void AnnotationManager::updateStyle() {
     // Create annotation source, point layer, and point bucket. We do everything via Style::Impl
     // because we don't want annotation mutations to trigger Style::Impl::styleMutated to be set.
-    if (!style.get().impl->getSource(SourceID)) {
+    if (!style.get().impl->getSource(SourceID.get())) {
         style.get().impl->addSource(std::make_unique<AnnotationSource>());
 
         std::unique_ptr<SymbolLayer> layer = std::make_unique<SymbolLayer>(PointLayerID, SourceID);
 
         using namespace expression::dsl;
-        layer->setSourceLayer(PointLayerID);
+        layer->setSourceLayer(PointLayerID.get());
         layer->setIconImage(PropertyExpression<expression::Image>(
-            image(concat(vec(literal(SourceID + "."), toString(get("sprite")))))));
+            image(concat(vec(literal(SourceID.get() + "."), toString(get("sprite")))))));
         layer->setIconAllowOverlap(true);
         layer->setIconIgnorePlacement(true);
 
@@ -237,7 +237,7 @@ void AnnotationManager::removeTile(AnnotationTile& tile) {
 // To ensure that annotation images do not collide with images from the style,
 // we prefix input image IDs with "com.mapbox.annotations".
 static std::string prefixedImageID(const std::string& id) {
-    return AnnotationManager::SourceID + "." + id;
+    return AnnotationManager::SourceID.get() + "." + id;
 }
 
 void AnnotationManager::addImage(std::unique_ptr<style::Image> image) {
