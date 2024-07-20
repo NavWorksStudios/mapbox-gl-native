@@ -353,22 +353,25 @@ void Transform::moveByTouch(const ScreenCoordinate& offset, const AnimationOptio
 
     const float maxY = 2000;
     float yRate = offset.y /maxY;
-    if (yRate >0.98)
-        yRate = 0.98;
-    else if (yRate <= -0.98)
-        yRate = -0.98;
+
     const auto w = state.getSize().width;
     const auto h = state.getSize().height;
     const auto& center = state.getEdgeInsets().getCenter(w, h);
+    float maxRate = fmin(center.y / center.x,0.98);
+    if (yRate >maxRate)
+        yRate = maxRate;
+    else if (yRate <= -maxRate)
+        yRate = -maxRate;
+    
     auto moveTo = center - offset;
     const float yOff = yRate * center.y;
     moveTo.y = center.y + yOff;
     
-//    nav::log::w("Transform",
-//                "moveByTouch offset(%lf,%lf) center(%lf,%lf) moveTo(%lf,%lf)",
-//                offset.x, offset.y,
-//                center.x, center.y,
-//                moveTo.x, moveTo.y);
+    nav::log::w("Transform",
+                "moveByTouch offset(%lf,%lf) center(%lf,%lf) moveTo(%lf,%lf)",
+                offset.x, offset.y,
+                center.x, center.y,
+                moveTo.x, moveTo.y);
     if (offset.y > 0) // 向下
     {
 //        moveTo.y = offset.y - center.y;
