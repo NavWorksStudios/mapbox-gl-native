@@ -131,8 +131,11 @@ void RenderCircleLayer::render(PaintParameters& parameters) {
     const bool sortFeaturesByKey = !impl_cast(baseImpl).layout.get<CircleSortKey>().isUndefined();
     std::multiset<RenderableSegment> renderableSegments;
 
+    size_t renderIndex = -1;
     for (const RenderTile& renderTile : *renderTiles) {
-        const LayerRenderData* renderData = getRenderDataForPass(renderTile, parameters.pass);
+        renderIndex++;
+        
+        const LayerRenderData* renderData = getRenderDataForPass(renderIndex, parameters.pass);
         if (!renderData) {
             continue;
         }

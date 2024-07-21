@@ -133,8 +133,7 @@ protected:
     void checkRenderability(const PaintParameters&, uint32_t activeBindingCount);
 
     void addRenderPassesFromTiles();
-
-    const LayerRenderData* getRenderDataForPass(const RenderTile&, RenderPass) const;
+    const LayerRenderData* getRenderDataForPass(size_t index, RenderPass) const;
     
     void bindToPalette(const std::string& id, const std::string& tag, style::PropertyValue<Color>& value) const {
         if (value.isConstant()) {
@@ -151,6 +150,8 @@ protected:
 protected:
     // Stores current set of tiles to be rendered for this layer.
     RenderTiles renderTiles;
+    
+    std::vector<const LayerRenderData*> renderDatas;
 
     // Stores what render passes this layer is currently enabled for. This depends on the
     // evaluated StyleProperties object and is updated accordingly.

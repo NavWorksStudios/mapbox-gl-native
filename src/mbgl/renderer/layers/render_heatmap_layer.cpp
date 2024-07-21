@@ -98,8 +98,10 @@ void RenderHeatmapLayer::render(PaintParameters& parameters) {
         auto renderPass = parameters.encoder->createRenderPass(
             "heatmap texture", { *renderTexture, Color{ 0.0f, 0.0f, 0.0f, 1.0f }, {}, {} });
 
+        size_t renderIndex = -1;
         for (const RenderTile& tile : *renderTiles) {
-            const LayerRenderData* renderData = getRenderDataForPass(tile, parameters.pass);
+            renderIndex++;
+            const LayerRenderData* renderData = getRenderDataForPass(renderIndex, parameters.pass);
             if (!renderData) {
                 continue;
             }

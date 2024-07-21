@@ -49,7 +49,7 @@ void RenderLayer::prepare(const LayerPrepareParameters& params) {
     assert(params.source);
     assert(params.source->isEnabled());
     renderTiles = params.source->getRenderTiles();
-    addRenderPassesFromTiles();
+    if (params.source->renderTilesChanged()) addRenderPassesFromTiles();
 }
 
 optional<Color> RenderLayer::getSolidBackground() const {
@@ -89,15 +89,19 @@ void RenderLayer::checkRenderability(const PaintParameters& parameters,
 
 void RenderLayer::addRenderPassesFromTiles() {
     assert(renderTiles);
+    passes = RenderPass::None;
+    renderDatas.clear();
     for (const RenderTile& tile : *renderTiles) {
-        if (const LayerRenderData* renderData = tile.getLayerRenderData(*baseImpl)) {
+        const LayerRenderData* renderData = tile.getLayerRenderData(*baseImpl);
+        renderDatas.emplace_back(renderData);
+        if (renderData) {
             passes |= RenderPass(renderData->layerProperties->renderPasses);
         }
     }
 }
 
-const LayerRenderData* RenderLayer::getRenderDataForPass(const RenderTile& tile, RenderPass pass) const {
-    if (const LayerRenderData* renderData = tile.getLayerRenderData(*baseImpl)) {
+const LayerRenderData* RenderLayer::getRenderDataForPass(size_t index, RenderPass pass) const {
+    if (const LayerRenderData* renderData = renderDatas[index]) {
         return bool(RenderPass(renderData->layerProperties->renderPasses) & pass) ? renderData : nullptr;
     }
     return nullptr;

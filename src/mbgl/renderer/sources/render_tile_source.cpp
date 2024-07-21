@@ -82,14 +82,21 @@ bool RenderTileSource::hasFadingTiles() const {
 
 RenderTiles RenderTileSource::getRenderTiles() const {
     if (!filteredRenderTiles) {
+        size_t hash = 0;
         auto result = std::make_shared<std::vector<std::reference_wrapper<const RenderTile>>>();
         for (const auto& renderTile : *renderTiles) {
             if (renderTile.holdForFade()) {
                 continue;
             }
             result->emplace_back(renderTile);
+            hash += std::hash<UnwrappedTileID>()(renderTile.id);
         }
         filteredRenderTiles = std::move(result);
+        
+        if (filteredRenderTilesHash != hash) {
+            filteredRenderTilesHash = hash;
+            filteredRenderTilesChanged = true;
+        }
     }
     return filteredRenderTiles;
 }

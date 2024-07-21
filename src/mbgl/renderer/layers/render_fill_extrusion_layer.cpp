@@ -43,7 +43,7 @@ void RenderFillExtrusionLayer::transition(const TransitionParameters& parameters
 }
 
 void RenderFillExtrusionLayer::evaluate(const PropertyEvaluationParameters& parameters) {
-    auto properties = makeMutable<FillExtrusionLayerProperties>(
+    auto&& properties = makeMutable<FillExtrusionLayerProperties>(
         staticImmutableCast<FillExtrusionLayer::Impl>(baseImpl),
         parameters.getCrossfadeParameters(),
         unevaluated.evaluate(parameters));
@@ -81,22 +81,22 @@ void RenderFillExtrusionLayer::render(PaintParameters& parameters) {
 
     const auto depthMode = parameters.depthModeFor3D();
 
-    auto draw = [&](auto& programInstance,
-                    const auto& evaluated_,
-                    const auto& crossfade_,
-                    const gfx::StencilMode& stencilMode,
-                    const gfx::ColorMode& colorMode,
-                    const auto& tileBucket,
-                    const auto& uniformValues,
-                    const auto& reflectionUniformValues,
-                    const optional<ImagePosition>& patternPositionA,
-                    const optional<ImagePosition>& patternPositionB,
-                    const auto& textureBindings,
-                    const std::string& uniqueName) {
+    const auto draw = [&](auto& programInstance,
+                          const auto& evaluated_,
+                          const auto& crossfade_,
+                          const gfx::StencilMode& stencilMode,
+                          const gfx::ColorMode& colorMode,
+                          const auto& tileBucket,
+                          const auto& uniformValues,
+                          const auto& reflectionUniformValues,
+                          const optional<ImagePosition>& patternPositionA,
+                          const optional<ImagePosition>& patternPositionB,
+                          const auto& textureBindings,
+                          const std::string& uniqueName) {
         const auto& paintPropertyBinders = tileBucket.paintPropertyBinders.at(getID());
         paintPropertyBinders.setPatternParameters(patternPositionA, patternPositionB, crossfade_);
 
-        const auto allAttributeBindings = programInstance.computeAllAttributeBindings(
+        const auto&& allAttributeBindings = programInstance.computeAllAttributeBindings(
             *tileBucket.vertexBuffer,
             paintPropertyBinders,
             evaluated_
@@ -105,7 +105,7 @@ void RenderFillExtrusionLayer::render(PaintParameters& parameters) {
         checkRenderability(parameters, programInstance.activeBindingCount(allAttributeBindings));
         
         { // draw reflection
-            auto allUniformValues = programInstance.computeAllUniformValues(
+            auto&& allUniformValues = programInstance.computeAllUniformValues(
                 reflectionUniformValues,
                 paintPropertyBinders,
                 evaluated_,
@@ -125,11 +125,11 @@ void RenderFillExtrusionLayer::render(PaintParameters& parameters) {
                 allUniformValues,
                 allAttributeBindings,
                 textureBindings,
-                getID() + "/" + uniqueName);
+                getID().get() + "/" + uniqueName);
         }
         
         { // draw self
-            auto allUniformValues = programInstance.computeAllUniformValues(
+            auto&& allUniformValues = programInstance.computeAllUniformValues(
                 uniformValues,
                 paintPropertyBinders,
                 evaluated_,
@@ -149,16 +149,18 @@ void RenderFillExtrusionLayer::render(PaintParameters& parameters) {
                 allUniformValues,
                 allAttributeBindings,
                 textureBindings,
-                getID() + "/" + uniqueName);
+                getID().get() + "/" + uniqueName);
         }
 
     };
 
     if (unevaluated.get<FillExtrusionPattern>().isUndefined()) {
         // Draw solid color extrusions
-        auto drawTiles = [&](const gfx::StencilMode& stencilMode_, const gfx::ColorMode& colorMode_, const std::string& name) {
+        const auto drawTiles = [&](const gfx::StencilMode& stencilMode_, const gfx::ColorMode& colorMode_, const std::string& name) {
+            size_t renderIndex = -1;
             for (const RenderTile& tile : *renderTiles) {
-                const LayerRenderData* renderData = getRenderDataForPass(tile, parameters.pass);
+                renderIndex++;
+                const LayerRenderData* renderData = getRenderDataForPass(renderIndex, parameters.pass);
                 if (!renderData) {
                     continue;
                 }
@@ -213,11 +215,13 @@ void RenderFillExtrusionLayer::render(PaintParameters& parameters) {
         }
     } else {
         // Draw textured extrusions
-        const auto fillPatternValue =
+        const auto& fillPatternValue =
             evaluated.get<FillExtrusionPattern>().constantOr(mbgl::Faded<expression::Image>{"", ""});
-        auto drawTiles = [&](const gfx::StencilMode& stencilMode_, const gfx::ColorMode& colorMode_, const std::string& name) {
+        const auto drawTiles = [&](const gfx::StencilMode& stencilMode_, const gfx::ColorMode& colorMode_, const std::string& name) {
+            size_t renderIndex = -1;
             for (const RenderTile& tile : *renderTiles) {
-                const LayerRenderData* renderData = getRenderDataForPass(tile, parameters.pass);
+                renderIndex++;
+                const LayerRenderData* renderData = getRenderDataForPass(renderIndex, parameters.pass);
                 if (!renderData) {
                     continue;
                 }
@@ -289,7 +293,7 @@ bool RenderFillExtrusionLayer::queryIntersectsFeature(const GeometryCoordinates&
                                                       const float pixelsToTileUnits, const mat4&,
                                                       const FeatureState&) const {
     const auto& evaluated = static_cast<const FillExtrusionLayerProperties&>(*evaluatedProperties).evaluated;
-    auto translatedQueryGeometry = FeatureIndex::translateQueryGeometry(
+    const auto translatedQueryGeometry = FeatureIndex::translateQueryGeometry(
             queryGeometry,
             evaluated.get<style::FillExtrusionTranslate>(),
             evaluated.get<style::FillExtrusionTranslateAnchor>(),

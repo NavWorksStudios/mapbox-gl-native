@@ -50,7 +50,7 @@ void RenderFillLayer::transition(const TransitionParameters& parameters) {
 }
 
 void RenderFillLayer::evaluate(const PropertyEvaluationParameters& parameters) {
-    auto properties = makeMutable<FillLayerProperties>(
+    auto&& properties = makeMutable<FillLayerProperties>(
         staticImmutableCast<FillLayer::Impl>(baseImpl),
         parameters.getCrossfadeParameters(),
         unevaluated.evaluate(parameters));
@@ -84,30 +84,30 @@ void RenderFillLayer::render(PaintParameters& parameters) {
     assert(renderTiles);
     if (unevaluated.get<FillPattern>().isUndefined()) {
         parameters.renderTileClippingMasks(renderTiles);
+        
+        size_t renderIndex = -1;
         for (const RenderTile& tile : *renderTiles) {
-            const LayerRenderData* renderData = getRenderDataForPass(tile, parameters.pass);
+            renderIndex++;
+            const LayerRenderData* renderData = getRenderDataForPass(renderIndex, parameters.pass);
             if (!renderData) {
                 continue;
             }
             auto& bucket = static_cast<FillBucket&>(*renderData->bucket);
             const auto& evaluated = getEvaluated<FillLayerProperties>(renderData->layerProperties);
 
-            auto draw = [&] (auto& programInstance,
-                             const auto& drawMode,
-                             const auto& depthMode,
-                             const auto& indexBuffer,
-                             const auto& segments,
-                             auto&& textureBindings) {
+            const auto draw = [&] (auto& programInstance,
+                                   const auto& drawMode,
+                                   const auto& depthMode,
+                                   const auto& indexBuffer,
+                                   const auto& segments,
+                                   auto&& textureBindings) {
                 const auto& paintPropertyBinders = bucket.paintPropertyBinders.at(getID());
 
+                const auto& matrix = tile.translatedMatrix(evaluated.get<FillTranslate>(), evaluated.get<FillTranslateAnchor>(), parameters.state);
                 const auto& color = nav::palette::getColorBase();
-                const auto allUniformValues = programInstance.computeAllUniformValues(
+                const auto&& allUniformValues = programInstance.computeAllUniformValues(
                     FillProgram::LayoutUniformValues {
-                        uniforms::matrix::Value(
-                            tile.translatedMatrix(evaluated.get<FillTranslate>(),
-                                                  evaluated.get<FillTranslateAnchor>(),
-                                                  parameters.state)
-                        ),
+                        uniforms::matrix::Value( matrix ),
                         uniforms::world::Value( parameters.backend.getDefaultRenderable().getSize() ),
                         uniforms::spotlight::Value( nav::style::spotlight::value() ),
                         uniforms::render_time::Value( nav::style::rendertime::value() ),
@@ -122,7 +122,8 @@ void RenderFillLayer::render(PaintParameters& parameters) {
                     evaluated,
                     parameters.state.getZoom()
                 );
-                const auto allAttributeBindings = programInstance.computeAllAttributeBindings(
+                
+                const auto&& allAttributeBindings = programInstance.computeAllAttributeBindings(
                     *bucket.vertexBuffer,
                     paintPropertyBinders,
                     evaluated
@@ -134,7 +135,7 @@ void RenderFillLayer::render(PaintParameters& parameters) {
                                      *parameters.renderPass,
                                      drawMode,
                                      depthMode,
-                                     parameters.stencilModeForClipping(tile.id),
+                                     parameters.stencilModeForClipping(renderIndex),
                                      parameters.colorModeForRenderPass(),
                                      gfx::CullFaceMode::disabled(),
                                      indexBuffer,
@@ -145,28 +146,26 @@ void RenderFillLayer::render(PaintParameters& parameters) {
                                      getID());
             };
 
-            auto fillRenderPass = (evaluated.get<FillColor>().constantOr(Color()).a >= 1.0f
-                && evaluated.get<FillOpacity>().constantOr(0) >= 1.0f
-                && parameters.currentLayer >= parameters.opaquePassCutoff) ? RenderPass::Opaque : RenderPass::Translucent;
+            const bool opaque = (evaluated.get<FillColor>().constantOr(Color()).a >= 1.0f &&
+                                 evaluated.get<FillOpacity>().constantOr(0) >= 1.0f &&
+                                 parameters.currentLayer >= parameters.opaquePassCutoff);
+
+            const auto fillRenderPass = opaque ? RenderPass::Opaque : RenderPass::Translucent;
+
             if (bucket.triangleIndexBuffer && parameters.pass == fillRenderPass) {
+                const auto depthMaskType = parameters.pass == RenderPass::Opaque ? gfx::DepthMaskType::ReadWrite : gfx::DepthMaskType::ReadOnly;
                 draw(parameters.programs.getFillLayerPrograms().fill,
                      gfx::Triangles(),
-                     parameters.depthModeForSublayer(1, parameters.pass == RenderPass::Opaque
-                        ? gfx::DepthMaskType::ReadWrite
-                        : gfx::DepthMaskType::ReadOnly),
+                     parameters.depthModeForSublayer(1, depthMaskType),
                      *bucket.triangleIndexBuffer,
                      bucket.triangleSegments,
-                     FillProgram::TextureBindings{
-                        textures::gray_noise::Value{ nav::style::texture::get("gray_noise_medium"), gfx::TextureFilterType::Linear },
-                     });
+                     FillProgram::TextureBindings{});
             }
 
             if (evaluated.get<FillAntialias>() && parameters.pass == RenderPass::Translucent) {
                 draw(parameters.programs.getFillLayerPrograms().fillOutline,
                      gfx::Lines{ 2.0f },
-                     parameters.depthModeForSublayer(
-                         unevaluated.get<FillOutlineColor>().isUndefined() ? 2 : 0,
-                         gfx::DepthMaskType::ReadOnly),
+                     parameters.depthModeForSublayer(unevaluated.get<FillOutlineColor>().isUndefined() ? 2 : 0, gfx::DepthMaskType::ReadOnly),
                      *bucket.lineIndexBuffer,
                      bucket.lineSegments,
                      FillOutlineProgram::TextureBindings{});
@@ -179,8 +178,10 @@ void RenderFillLayer::render(PaintParameters& parameters) {
 
         parameters.renderTileClippingMasks(renderTiles);
 
+        size_t renderIndex = -1;
         for (const RenderTile& tile : *renderTiles) {
-            const LayerRenderData* renderData = getRenderDataForPass(tile, parameters.pass);
+            renderIndex++;
+            const LayerRenderData* renderData = getRenderDataForPass(renderIndex, parameters.pass);
             if (!renderData) {
                 continue;
             }
@@ -192,32 +193,30 @@ void RenderFillLayer::render(PaintParameters& parameters) {
             optional<ImagePosition> patternPosA = tile.getPattern(fillPatternValue.from.id());
             optional<ImagePosition> patternPosB = tile.getPattern(fillPatternValue.to.id());
 
-            auto draw = [&] (auto& programInstance,
-                             const auto& drawMode,
-                             const auto& depthMode,
-                             const auto& indexBuffer,
-                             const auto& segments,
-                             auto&& textureBindings) {
+            const auto draw = [&] (auto& programInstance,
+                                   const auto& drawMode,
+                                   const auto& depthMode,
+                                   const auto& indexBuffer,
+                                   const auto& segments,
+                                   auto&& textureBindings) {
                 const auto& paintPropertyBinders = bucket.paintPropertyBinders.at(getID());
                 paintPropertyBinders.setPatternParameters(patternPosA, patternPosB, crossfade);
 
-                const auto allUniformValues = programInstance.computeAllUniformValues(
+                const auto&& allUniformValues = programInstance.computeAllUniformValues(
                     FillPatternProgram::layoutUniformValues(
-                        tile.translatedMatrix(evaluated.get<FillTranslate>(),
-                                              evaluated.get<FillTranslateAnchor>(),
-                                              parameters.state),
+                        tile.translatedMatrix(evaluated.get<FillTranslate>(), evaluated.get<FillTranslateAnchor>(), parameters.state),
                         parameters.backend.getDefaultRenderable().getSize(),
                         tile.getIconAtlasTexture().size,
                         crossfade,
                         tile.id,
                         parameters.state,
-                        parameters.pixelRatio
-                    ),
+                        parameters.pixelRatio),
                     paintPropertyBinders,
                     evaluated,
                     parameters.state.getZoom()
                 );
-                const auto allAttributeBindings = programInstance.computeAllAttributeBindings(
+                
+                const auto&& allAttributeBindings = programInstance.computeAllAttributeBindings(
                     *bucket.vertexBuffer,
                     paintPropertyBinders,
                     evaluated
@@ -229,7 +228,7 @@ void RenderFillLayer::render(PaintParameters& parameters) {
                                      *parameters.renderPass,
                                      drawMode,
                                      depthMode,
-                                     parameters.stencilModeForClipping(tile.id),
+                                     parameters.stencilModeForClipping(renderIndex),
                                      parameters.colorModeForRenderPass(),
                                      gfx::CullFaceMode::disabled(),
                                      indexBuffer,
@@ -250,6 +249,7 @@ void RenderFillLayer::render(PaintParameters& parameters) {
                          textures::image::Value{ tile.getIconAtlasTexture().getResource(), gfx::TextureFilterType::Linear },
                      });
             }
+            
             if (evaluated.get<FillAntialias>() && unevaluated.get<FillOutlineColor>().isUndefined()) {
                 draw(parameters.programs.getFillLayerPrograms().fillOutlinePattern,
                      gfx::Lines { 2.0f },

@@ -115,7 +115,7 @@ void drawIcon(const DrawFn& draw,
     auto& bucket = static_cast<SymbolBucket&>(*renderData.bucket);
     const auto& evaluated = getEvaluated<SymbolLayerProperties>(renderData.layerProperties);
     const auto& layout = *bucket.layout;
-    auto values = iconPropertyValues(evaluated, layout);
+    const auto& values = iconPropertyValues(evaluated, layout);
     const auto& paintPropertyValues = RenderSymbolLayer::iconPaintProperties(evaluated);
 
     const bool alongLine = layout.get<SymbolPlacement>() != SymbolPlacementType::Point &&
@@ -188,7 +188,7 @@ void drawText(const DrawFn& draw,
     const auto& evaluated = getEvaluated<SymbolLayerProperties>(renderData.layerProperties);
     const auto& layout = *bucket.layout;
 
-    auto values = textPropertyValues(evaluated, layout);
+    const auto& values = textPropertyValues(evaluated, layout);
     const auto& paintPropertyValues = RenderSymbolLayer::textPaintProperties(evaluated);
 
     const bool alongLine = layout.get<SymbolPlacement>() != SymbolPlacementType::Point &&
@@ -315,11 +315,11 @@ void RenderSymbolLayer::transition(const TransitionParameters& parameters) {
 }
 
 void RenderSymbolLayer::evaluate(const PropertyEvaluationParameters& parameters) {
-    auto properties = makeMutable<SymbolLayerProperties>(
+    auto&& properties = makeMutable<SymbolLayerProperties>(
         staticImmutableCast<SymbolLayer::Impl>(baseImpl),
         unevaluated.evaluate(parameters));
     auto& evaluated = properties->evaluated;
-    auto& layout = impl_cast(baseImpl).layout;
+    const auto& layout = impl_cast(baseImpl).layout;
 
     if (hasFormatSectionOverrides) {
         SymbolLayerPaintPropertyOverrides::setOverrides(layout, evaluated);
@@ -363,7 +363,7 @@ void RenderSymbolLayer::render(PaintParameters& parameters) {
                                            const auto& paintProperties,
                                            const auto& textureBindings,
                                            const std::string& suffix) {
-        const auto allUniformValues = programInstance.computeAllUniformValues(
+        const auto&& allUniformValues = programInstance.computeAllUniformValues(
             uniformValues,
             *symbolSizeBinder,
             binders,
@@ -371,7 +371,7 @@ void RenderSymbolLayer::render(PaintParameters& parameters) {
             parameters.state.getZoom()
         );
 
-        const auto allAttributeBindings = programInstance.computeAllAttributeBindings(
+        const auto&& allAttributeBindings = programInstance.computeAllAttributeBindings(
             *buffers.vertexBuffer,
             *buffers.dynamicVertexBuffer,
             *buffers.opacityVertexBuffer,
@@ -396,7 +396,7 @@ void RenderSymbolLayer::render(PaintParameters& parameters) {
                     allUniformValues,
                     allAttributeBindings,
                     textureBindings,
-                    this->getID() + "/" + suffix
+                    this->getID().get() + "/" + suffix
                 );
             },
             [&](const std::reference_wrapper<SegmentVector<SymbolTextAttributes>>& segmentVector) {
@@ -413,14 +413,17 @@ void RenderSymbolLayer::render(PaintParameters& parameters) {
                     allUniformValues,
                     allAttributeBindings,
                     textureBindings,
-                    this->getID() + "/" + suffix
+                    this->getID().get() + "/" + suffix
                 );
             }
         );
     };
 
+    size_t renderIndex = -1;
     for (const RenderTile& tile : *renderTiles) {
-        const LayerRenderData* renderData = getRenderDataForPass(tile, parameters.pass);
+        renderIndex++;
+        
+        const LayerRenderData* renderData = getRenderDataForPass(renderIndex, parameters.pass);
         if (!renderData) {
             continue;
         }
@@ -466,7 +469,7 @@ void RenderSymbolLayer::render(PaintParameters& parameters) {
 
             static const style::Properties<>::PossiblyEvaluated properties{};
             static const CollisionBoxProgram::Binders paintAttributeData(properties, 0);
-            auto pixelRatio = tile.id.pixelsToTileUnits(1, parameters.state.getZoom());
+            const auto pixelRatio = tile.id.pixelsToTileUnits(1, parameters.state.getZoom());
             const float scale = std::pow(2, parameters.state.getZoom() - tile.getOverscaledTileID().overscaledZ);
             std::array<float,2> extrudeScale =
                 {{
@@ -577,7 +580,7 @@ style::TextPaintProperties::PossiblyEvaluated RenderSymbolLayer::textPaintProper
 
 void RenderSymbolLayer::prepare(const LayerPrepareParameters& params) {
     renderTiles = params.source->getRenderTilesSortedByYPosition();
-    addRenderPassesFromTiles();
+    if (params.source->renderTilesChanged()) addRenderPassesFromTiles();
 
     placementData.clear();
 
@@ -589,14 +592,14 @@ void RenderSymbolLayer::prepare(const LayerPrepareParameters& params) {
             assert(tile);
             assert(tile->kind == Tile::Kind::Geometry);
 
-            auto featureIndex = static_cast<const GeometryTile*>(tile)->getFeatureIndex();
+            const auto featureIndex = static_cast<const GeometryTile*>(tile)->getFeatureIndex();
 
             if (bucket->sortKeyRanges.empty()) {
                 placementData.push_back({*bucket, renderTile, featureIndex, baseImpl->source, nullopt});
             } else {
                 for (const auto& sortKeyRange : bucket->sortKeyRanges) {
                     BucketPlacementData layerData{*bucket, renderTile, featureIndex, baseImpl->source, sortKeyRange};
-                    auto sortPosition = std::upper_bound(
+                    const auto sortPosition = std::upper_bound(
                         placementData.cbegin(), placementData.cend(), layerData, [](const auto& lhs, const auto& rhs) {
                             assert(lhs.sortKeyRange && rhs.sortKeyRange);
                             return lhs.sortKeyRange->sortKey < rhs.sortKeyRange->sortKey;

@@ -45,11 +45,11 @@ void RenderLineLayer::transition(const TransitionParameters& parameters) {
 }
 
 void RenderLineLayer::evaluate(const PropertyEvaluationParameters& parameters) {
-    auto properties = makeMutable<LineLayerProperties>(
+    auto&& properties = makeMutable<LineLayerProperties>(
         staticImmutableCast<LineLayer::Impl>(baseImpl),
         parameters.getCrossfadeParameters(),
         unevaluated.evaluate(parameters));
-    auto& evaluated = properties->evaluated;
+    const auto& evaluated = properties->evaluated;
 
     passes = (evaluated.get<style::LineOpacity>().constantOr(1.0) > 0
               && evaluated.get<style::LineColor>().constantOr(Color::black()).a > 0
@@ -99,8 +99,10 @@ void RenderLineLayer::render(PaintParameters& parameters) {
 
     parameters.renderTileClippingMasks(renderTiles);
 
+    size_t renderIndex = -1;
     for (const RenderTile& tile : *renderTiles) {
-        const LayerRenderData* renderData = getRenderDataForPass(tile, parameters.pass);
+        renderIndex++;
+        const LayerRenderData* renderData = getRenderDataForPass(renderIndex, parameters.pass);
         if (!renderData) {
             continue;
         }
@@ -108,32 +110,36 @@ void RenderLineLayer::render(PaintParameters& parameters) {
         const auto& evaluated = getEvaluated<LineLayerProperties>(renderData->layerProperties);
         const auto& crossfade = getCrossfade<LineLayerProperties>(renderData->layerProperties);
 
-        auto draw = [&](auto& programInstance,
-                        auto&& uniformValues,
-                        const optional<ImagePosition>& patternPositionA,
-                        const optional<ImagePosition>& patternPositionB, auto&& textureBindings) {
+        const auto draw = [&](auto& programInstance,
+                              auto&& uniformValues,
+                              const optional<ImagePosition>& patternPositionA,
+                              const optional<ImagePosition>& patternPositionB, auto&& textureBindings) {
+            // 1.7%
             const auto& paintPropertyBinders = bucket.paintPropertyBinders.at(getID());
 
+            // 5%
             paintPropertyBinders.setPatternParameters(patternPositionA, patternPositionB, crossfade);
 
-            const auto allUniformValues =
-                programInstance.computeAllUniformValues(std::forward<decltype(uniformValues)>(uniformValues),
-                                                        paintPropertyBinders,
-                                                        evaluated,
-                                                        parameters.state.getZoom());
-            const auto allAttributeBindings = programInstance.computeAllAttributeBindings(
-                *bucket.vertexBuffer,
-                paintPropertyBinders,
-                evaluated
-            );
+            // 17%
+            const auto&& allUniformValues =
+            programInstance.computeAllUniformValues(std::forward<decltype(uniformValues)>(uniformValues),
+                                                    paintPropertyBinders,
+                                                    evaluated,
+                                                    parameters.state.getZoom());
+            
+            // 6%
+            const auto&& allAttributeBindings = 
+            programInstance.computeAllAttributeBindings(*bucket.vertexBuffer, paintPropertyBinders, evaluated);
 
+            // 0.6%
             checkRenderability(parameters, programInstance.activeBindingCount(allAttributeBindings));
 
+            // 70%
             programInstance.draw(parameters.context,
                                  *parameters.renderPass,
                                  gfx::Triangles(),
                                  parameters.depthModeForSublayer(0, gfx::DepthMaskType::ReadOnly),
-                                 parameters.stencilModeForClipping(tile.id),
+                                 parameters.stencilModeForClipping(renderIndex),
                                  parameters.colorModeForRenderPass(),
                                  gfx::CullFaceMode::disabled(),
                                  *bucket.indexBuffer,
@@ -144,22 +150,25 @@ void RenderLineLayer::render(PaintParameters& parameters) {
                                  getID());
         };
 
+        
         if (!evaluated.get<LineDasharray>().from.empty()) {
             const LinePatternCap cap =
                 bucket.layout.get<LineCap>() == LineCapType::Round ? LinePatternCap::Round : LinePatternCap::Square;
+
             const auto& dashPatternTexture = parameters.lineAtlas.getDashPatternTexture(
                 evaluated.get<LineDasharray>().from, evaluated.get<LineDasharray>().to, cap);
 
             draw(parameters.programs.getLineLayerPrograms().lineSDF,
-                 LineSDFProgram::layoutUniformValues(evaluated,
-                                                     parameters.pixelRatio,
-                                                     tile,
-                                                     parameters.state,
-                                                     parameters.pixelsToGLUnits,
-                                                     dashPatternTexture.getFrom(),
-                                                     dashPatternTexture.getTo(),
-                                                     crossfade,
-                                                     dashPatternTexture.getSize().width),
+                 LineSDFProgram::layoutUniformValues(
+                     evaluated,
+                     parameters.pixelRatio,
+                     tile,
+                     parameters.state,
+                     parameters.pixelsToGLUnits,
+                     dashPatternTexture.getFrom(),
+                     dashPatternTexture.getTo(),
+                     crossfade,
+                     dashPatternTexture.getSize().width),
                  {},
                  {},
                  LineSDFProgram::TextureBindings{
@@ -182,11 +191,11 @@ void RenderLineLayer::render(PaintParameters& parameters) {
                      parameters.pixelRatio,
                      texsize,
                      crossfade),
-                     posA,
-                     posB,
-                     LinePatternProgram::TextureBindings{
-                         textures::image::Value{ tile.getIconAtlasTexture().getResource(), gfx::TextureFilterType::Linear },
-                     });
+                 posA,
+                 posB,
+                 LinePatternProgram::TextureBindings{
+                     textures::image::Value{ tile.getIconAtlasTexture().getResource(), gfx::TextureFilterType::Linear },
+                 });
         } else if (!unevaluated.get<LineGradient>().getValue().isUndefined()) {
             assert(colorRampTexture);
 
@@ -197,11 +206,11 @@ void RenderLineLayer::render(PaintParameters& parameters) {
                     parameters.state,
                     parameters.pixelsToGLUnits,
                     parameters.pixelRatio),
-                    {},
-                    {},
-                    LineGradientProgram::TextureBindings{
-                        textures::image::Value{ colorRampTexture->getResource(), gfx::TextureFilterType::Linear },
-                    });
+                {},
+                {},
+                LineGradientProgram::TextureBindings{
+                    textures::image::Value{ colorRampTexture->getResource(), gfx::TextureFilterType::Linear },
+                });
         } else {
             draw(parameters.programs.getLineLayerPrograms().line,
                  LineProgram::layoutUniformValues(
@@ -290,7 +299,7 @@ bool RenderLineLayer::queryIntersectsFeature(const GeometryCoordinates& queryGeo
 }
 
 void RenderLineLayer::updateColorRamp() {
-    auto colorValue = unevaluated.get<LineGradient>().getValue();
+    const auto colorValue = unevaluated.get<LineGradient>().getValue();
     if (colorValue.isUndefined()) {
         return;
     }

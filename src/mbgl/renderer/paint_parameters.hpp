@@ -11,7 +11,6 @@
 #include <mbgl/util/mat4.hpp>
 
 #include <array>
-#include <map>
 #include <vector>
 
 namespace mbgl {
@@ -89,14 +88,15 @@ public:
     // Stencil handling
 public:
     void renderTileClippingMasks(const RenderTiles&);
-    gfx::StencilMode stencilModeForClipping(const UnwrappedTileID&) const;
+    gfx::StencilMode stencilModeForClipping(size_t index) const;
     gfx::StencilMode stencilModeFor3D();
 
 private:
     void clearStencil();
 
     // This needs to be an ordered map so that we have the same order as the renderTiles.
-    std::map<UnwrappedTileID, int32_t> tileClippingMaskIDs;
+    size_t tileClippingMaskHash = 0;
+    std::vector<int32_t> tileClippingMaskIDs;
     int32_t nextStencilID = 1;
 
 public:

@@ -22,6 +22,7 @@ public:
     bool hasFadingTiles() const override;
 
     RenderTiles getRenderTiles() const override;
+    bool renderTilesChanged() const override { return filteredRenderTilesChanged; }
     RenderTiles getRenderTilesSortedByYPosition() const override;
     const Tile* getRenderedTile(const UnwrappedTileID&) const override;
 
@@ -51,6 +52,10 @@ protected:
     Immutable<std::vector<RenderTile>> renderTiles;
     mutable RenderTiles filteredRenderTiles;
     mutable RenderTiles renderTilesSortedByY;
+    
+private:
+    mutable size_t filteredRenderTilesHash = 0;
+    mutable bool filteredRenderTilesChanged = false;
 
 private:
     float bearing = 0.0F;
