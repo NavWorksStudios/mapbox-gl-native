@@ -622,7 +622,7 @@ bool LineBucket::hasData() const {
 
 template <class Property>
 static float get(const LinePaintProperties::PossiblyEvaluated& evaluated, const nav::stringid& id, 
-                 const std::map<nav::stringid, LineProgram::Binders>& paintPropertyBinders) {
+                 const std::unordered_map<nav::stringid, LineProgram::Binders>& paintPropertyBinders) {
     auto it = paintPropertyBinders.find(id);
     if (it == paintPropertyBinders.end() || !it->second.statistics<Property>().max()) {
         return evaluated.get<Property>().constantOr(Property::defaultValue());
