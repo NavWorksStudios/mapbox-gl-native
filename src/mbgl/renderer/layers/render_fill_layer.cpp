@@ -109,8 +109,8 @@ void RenderFillLayer::render(PaintParameters& parameters) {
                     FillProgram::LayoutUniformValues {
                         uniforms::matrix::Value( matrix ),
                         uniforms::world::Value( parameters.backend.getDefaultRenderable().getSize() ),
-                        uniforms::spotlight::Value( nav::style::spotlight::value() ),
-                        uniforms::render_time::Value( nav::style::rendertime::value() ),
+                        uniforms::spotlight::Value( nav::runtime::spotlight::value() ),
+                        uniforms::render_time::Value( nav::runtime::rendertime::value() ),
                         uniforms::palette_color::Value( color ),
                         uniforms::palette_lightness::Value( enableShaderPalette ? (color.r+color.g+color.b)/3. : 0. ),
                         uniforms::water_wave::Value( enableWaterEffect ? util::clamp((parameters.state.getZoom()-13.)*.3,0.,1.) : 0. ),

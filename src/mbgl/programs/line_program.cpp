@@ -47,7 +47,7 @@ LineProgram::layoutUniformValues(const style::LinePaintProperties::PossiblyEvalu
         pixelsToGLUnits,
         pixelRatio,
         uniforms::zoom::Value( state.getZoom() ),
-        uniforms::spotlight::Value( nav::style::spotlight::value() ),
+        uniforms::spotlight::Value( nav::runtime::spotlight::value() ),
         uniforms::clip_region::Value( nav::style::display::clip_region() ),
         uniforms::focus_region::Value( nav::style::display::focus_region() )
     );
