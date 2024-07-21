@@ -61,6 +61,21 @@ float focus_region() {
 
 }
 
+std::string parsing_domain;
+
+Domain::Domain(const std::string& name) : pos(parsing_domain.size()) {
+    parsing_domain.append("/");
+    parsing_domain.append(name);
+}
+
+Domain::~Domain() {
+    parsing_domain.resize(pos);
+}
+
+Domain::operator const std::string& () const {
+    return parsing_domain;
+}
+
 namespace texture {
 
 struct ImageData {
@@ -91,6 +106,10 @@ mbgl::gfx::TextureResource& get(const std::string& name) {
 }
 
 }
+
+}
+
+namespace runtime {
 
 namespace rendertime {
 

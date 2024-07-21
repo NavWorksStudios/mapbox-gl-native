@@ -15,18 +15,7 @@ void print(const char* id, const char* sourceLayer, const char* sourceId, const 
 
 bool filter(const std::string& id);
 
-int renderIndex(const std::string& id);
 float getHeight(const std::string& layerId);
-
-
-const std::string& parsingUri();
-
-struct ParsingUriDomain {
-    ParsingUriDomain(const std::string& tag);
-    ~ParsingUriDomain();
-private:
-    const size_t uri_len;
-};
 
 }
 }

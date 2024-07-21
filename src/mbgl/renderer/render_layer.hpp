@@ -10,7 +10,7 @@
 #include <memory>
 #include <string>
 
-#include "mbgl/nav/nav_mb_layer.hpp"
+#include "mbgl/nav/nav_mb_style.hpp"
 #include "mbgl/nav/nav_mb_palette.hpp"
 
 namespace mbgl {
@@ -137,10 +137,10 @@ protected:
     
     void bindToPalette(const std::string& id, const std::string& tag, style::PropertyValue<Color>& value) const {
         if (value.isConstant()) {
-            nav::layer::ParsingUriDomain domain1(id);
-            nav::layer::ParsingUriDomain domain2(tag);
-            nav::layer::ParsingUriDomain domain3("constant");
-            nav::palette::bind(nav::layer::parsingUri(), value.asConstant(),
+            nav::style::Domain domain1(id);
+            nav::style::Domain domain2(tag);
+            nav::style::Domain domain3("constant");
+            nav::palette::bind(domain3, value.asConstant(),
             [&value](const Color& color) {
                 value = color;
             });

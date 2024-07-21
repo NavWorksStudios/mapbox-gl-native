@@ -21,6 +21,7 @@
 #include <set>
 
 #include "mbgl/nav/nav_mb_layer.hpp"
+#include "mbgl/nav/nav_mb_style.hpp"
 #include "mbgl/nav/nav_mb_json.hpp"
 
 namespace mbgl {
@@ -223,7 +224,7 @@ void Parser::parseLayers(const JSONValue& value) {
             continue;
         }
         
-        nav::layer::ParsingUriDomain domain(id);
+        nav::style::Domain domain(id);
         auto it = layersMap.find(id);
         parseLayer(it->first,
                    it->second.first,

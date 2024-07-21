@@ -156,7 +156,7 @@ void Layer::setObserver(LayerObserver* observer_) {
 }
 
 optional<conversion::Error> Layer::setProperty(const std::string& name, const conversion::Convertible& value) {
-    nav::layer::ParsingUriDomain domain(name);
+    nav::style::Domain domain(name);
     
     using namespace conversion;
     optional<Error> error = setPropertyInternal(name, value);

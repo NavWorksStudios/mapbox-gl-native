@@ -93,7 +93,7 @@ ParseResult ParsingContext::parse(const Convertible& value,
                          std::move(expected_),
                          scope);
     
-    nav::layer::ParsingUriDomain domain("[" + util::toString(index_) + "]");
+    nav::style::Domain domain("[" + util::toString(index_) + "]");
     
     return child.parse(value, typeAnnotationOption);
 }
@@ -105,7 +105,7 @@ ParseResult ParsingContext::parse(const Convertible& value, std::size_t index_, 
                          std::move(expected_),
                          std::make_shared<detail::Scope>(bindings, scope));
     
-    nav::layer::ParsingUriDomain domain("[" + util::toString(index_) + "]");
+    nav::style::Domain domain("[" + util::toString(index_) + "]");
     
     return child.parse(value);
 }
@@ -174,7 +174,7 @@ ParseResult ParsingContext::parse(const Convertible& value,
             return ParseResult();
         }
         
-        nav::layer::ParsingUriDomain domain(op->c_str());
+        nav::style::Domain domain(op->c_str());
 
         auto parseFunction = expressionRegistry.find(op->c_str());
         if (parseFunction != expressionRegistry.end()) {

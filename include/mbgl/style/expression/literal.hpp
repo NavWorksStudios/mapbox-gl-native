@@ -7,7 +7,7 @@
 #include <memory>
 
 #include "mbgl/nav/nav_mb_palette.hpp"
-#include "mbgl/nav/nav_mb_layer.hpp"
+#include "mbgl/nav/nav_mb_style.hpp"
 
 namespace mbgl {
 namespace style {
@@ -17,8 +17,8 @@ class Literal : public Expression {
 public:
     Literal(const Value& value_) : Expression(Kind::Literal, typeOf(value_)), value(value_) {
         if (value.is<Color>()) {
-            nav::layer::ParsingUriDomain domain("literal");
-            nav::palette::bind(nav::layer::parsingUri(), value.get<Color>(),
+            nav::style::Domain domain("literal");
+            nav::palette::bind(domain, value.get<Color>(),
             [this](const mbgl::Color& color) {
                 value = color;
             });

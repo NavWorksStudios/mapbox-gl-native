@@ -11,6 +11,7 @@
 #include <mbgl/util/color.hpp>
 
 namespace nav {
+
 namespace style {
 
 const std::string& url();
@@ -24,12 +25,24 @@ float clip_region();
 float focus_region();
 }
 
+struct Domain {
+    Domain(const std::string& name);
+    ~Domain();
+    operator const std::string& () const;
+private:
+    const size_t pos;
+};
+
 namespace texture {
 void load(const std::string& path);
 void release();
 void upload(mbgl::gfx::UploadPass& uploadPass);
 mbgl::gfx::TextureResource& get(const std::string& name);
 }
+
+}
+
+namespace runtime {
 
 namespace rendertime {
 double value();
@@ -55,4 +68,5 @@ bool update();
 bool needsUpdate();
 
 }
+
 }

@@ -296,13 +296,13 @@ void GLFWView::onKey(int key, int action, int mods) {
                     else;
                     puckFollowsCameraCenter = true;
                     notFollowCounter = 0;
-                    nav::style::setViewMode(nav::style::ViewMode::Normal);
+                    nav::runtime::setViewMode(nav::runtime::ViewMode::Normal);
                 }
                 else { // routePaused == true
                     routePaused = false;
                     puckFollowsCameraCenter = true;
                     notFollowCounter = 0;
-                    nav::style::setViewMode(nav::style::ViewMode::Spotlight);
+                    nav::runtime::setViewMode(nav::runtime::ViewMode::Spotlight);
                 }
             }
         }
@@ -409,7 +409,7 @@ void GLFWView::onKey(int key, int action, int mods) {
 //            toggle3DExtrusions(show3DExtrusions);
 //            if (animateRouteCallback) break;
             
-            nav::style::setViewMode(nav::style::ViewMode::Spotlight);
+            nav::runtime::setViewMode(nav::runtime::ViewMode::Spotlight);
             
             static int index = 0;
             if (animateRouteCallback) {
@@ -440,7 +440,7 @@ void GLFWView::onKey(int key, int action, int mods) {
                     if(notFollowCounter++>150) {
                         notFollowCounter = 0;
                         puckFollowsCameraCenter = true;
-                        nav::style::setViewMode(nav::style::ViewMode::Spotlight);
+                        nav::runtime::setViewMode(nav::runtime::ViewMode::Spotlight);
                     }
                 }
                 
@@ -906,7 +906,7 @@ void GLFWView::onScroll(double yOffset) {
         if(puckFollowsCameraCenter) {
             puckFollowsCameraCenter = false;
             notFollowCounter = 0;
-            nav::style::setViewMode(nav::style::ViewMode::Normal);
+            nav::runtime::setViewMode(nav::runtime::ViewMode::Normal);
         }
         else {
             notFollowCounter = 0;
@@ -1025,13 +1025,11 @@ void GLFWView::onMouseMove(double x, double y) {
 
     const auto puckProgram = [&]() {
         if(puck) {
+            notFollowCounter = 0;
+            
             if(puckFollowsCameraCenter) {
                 puckFollowsCameraCenter = false;
-                notFollowCounter = 0;
-                nav::style::setViewMode(nav::style::ViewMode::Normal);
-            }
-            else {
-                notFollowCounter = 0;
+                nav::runtime::setViewMode(nav::runtime::ViewMode::Normal);
             }
         }
     };
@@ -1130,7 +1128,7 @@ void GLFWView::run() {
                 
                 const double started = glfwGetTime();
 
-                if (nav::style::update()) invalidate();
+                if (nav::runtime::update()) invalidate();
 
                 if (animateRouteCallback) animateRouteCallback(map);
 

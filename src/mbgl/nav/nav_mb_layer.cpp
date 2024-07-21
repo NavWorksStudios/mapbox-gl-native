@@ -7,7 +7,6 @@
 #include "mbgl/nav/nav_mb_layer.hpp"
 #include "mbgl/nav/nav_log.hpp"
 
-#include <map>
 #include <mutex>
 #include <unordered_map>
 
@@ -29,7 +28,7 @@ struct Source {
 #define SYMBOL
 #define EXTRUSION
 
-static const std::map<std::string, Source> layerIds = {
+static const std::unordered_map<std::string, Source> layerIds = {
     { "land", { "background", "", "", } },
     
 #ifdef FILL
@@ -195,25 +194,8 @@ static const std::map<std::string, Source> layerIds = {
 
 
 bool filter(const std::string& id) {
-//    return true;
-    return layerIds.find(id) != layerIds.end();
-}
-
-static std::map<std::string, int> layerRenderIndexs;
-static std::mutex l;
-
-int renderIndex(const std::string& id) {
-    if (layerRenderIndexs.empty()) {
-        std::lock_guard<std::mutex> lock(l);
-        if (layerRenderIndexs.empty()) {
-            int i = 0;
-            for (auto it = layerIds.begin(); it != layerIds.end(); it++) {
-                layerRenderIndexs[id] = i++;
-            }
-        }
-    }
-    
-    return layerRenderIndexs[id];
+    return true;
+//    return layerIds.find(id) != layerIds.end();
 }
 
 static std::unordered_map<std::string, float> layerHeights = {
@@ -252,21 +234,6 @@ static std::unordered_map<std::string, float> layerHeights = {
 float getHeight(const std::string& layerId) {
     auto it = layerHeights.find(layerId);
     return it == layerHeights.end() ? 0 : it->second;
-}
-
-std::string parsing_uri;
-
-const std::string& parsingUri() {
-    return parsing_uri;
-}
-
-ParsingUriDomain::ParsingUriDomain(const std::string& tag) : uri_len(parsing_uri.size()) {
-    parsing_uri.append("/");
-    parsing_uri.append(tag);
-}
-
-ParsingUriDomain::~ParsingUriDomain() {
-    parsing_uri.resize(uri_len);
 }
 
 }
