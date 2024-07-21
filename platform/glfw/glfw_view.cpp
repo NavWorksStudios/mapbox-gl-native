@@ -291,7 +291,9 @@ void GLFWView::onKey(int key, int action, int mods) {
             // animateRouteCallback = nullptr;
             if (puck != nullptr) {
                 if(!routePaused) {
-                    routePaused = true;
+                    if(puckFollowsCameraCenter)
+                        routePaused = true;
+                    else;
                     puckFollowsCameraCenter = true;
                     notFollowCounter = 0;
                     nav::style::setViewMode(nav::style::ViewMode::Normal);
@@ -899,10 +901,12 @@ void GLFWView::onScroll(GLFWwindow *window, double /*xOffset*/, double yOffset) 
 }
 
 void GLFWView::onScroll(double yOffset) {
-        
+    
     if(puck) {
-        if(puckFollowsCameraCenter&&!routePaused) {
-            return;
+        if(puckFollowsCameraCenter) {
+            puckFollowsCameraCenter = false;
+            notFollowCounter = 0;
+            nav::style::setViewMode(nav::style::ViewMode::Normal);
         }
         else {
             notFollowCounter = 0;
@@ -1018,6 +1022,20 @@ void GLFWView::onMouseMove(GLFWwindow *window, double x, double y) {
 void GLFWView::onMouseMove(double x, double y) {
     double now = glfwGetTime();
     //    nav::log::i("glfw_view", "onMouseMove tracking %d,pitching %d,rotating %d,%f,%f", tracking,pitching,rotating,x,y);
+
+    const auto puckProgram = [&]() {
+        if(puck) {
+            if(puckFollowsCameraCenter) {
+                puckFollowsCameraCenter = false;
+                notFollowCounter = 0;
+                nav::style::setViewMode(nav::style::ViewMode::Normal);
+            }
+            else {
+                notFollowCounter = 0;
+            }
+        }
+    };
+    
     if (tracking) {
         const double dx = x - _mouseHistory[0].coord.x;
         const double dy = y - _mouseHistory[0].coord.y;
@@ -1025,18 +1043,8 @@ void GLFWView::onMouseMove(double x, double y) {
         //        nav::log::i("glfw_view", "onMouseMove dx %f,dy %f", dx,dy);
         if (dx || dy) {
             map->moveBy(mbgl::ScreenCoordinate { dx, dy });
-            
-            if(puck) {
-                if(puckFollowsCameraCenter) {
-                    puckFollowsCameraCenter = false;
-                    notFollowCounter = 0;
-                    nav::style::setViewMode(nav::style::ViewMode::Normal);
-                }
-                else {
-                    notFollowCounter = 0;
-                }
-            }
         }
+        puckProgram();
     }
     
     if (pitching) {
@@ -1045,6 +1053,7 @@ void GLFWView::onMouseMove(double x, double y) {
             pitching = false;
             rotating = true;
         }
+        puckProgram();
     } else if (rotating) {
         if (now - _mouseHistory[0].time > .2) {
             pitching = true;
@@ -1052,6 +1061,7 @@ void GLFWView::onMouseMove(double x, double y) {
         } else {
             map->rotateBy(_mouseHistory[0].coord, { x, y });
         }
+        puckProgram();
     }
     
     _mouseHistory.push_back({x,y}, now);

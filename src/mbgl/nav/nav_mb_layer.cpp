@@ -9,6 +9,7 @@
 
 #include <map>
 #include <mutex>
+#include <unordered_map>
 
 namespace nav {
 namespace layer {
