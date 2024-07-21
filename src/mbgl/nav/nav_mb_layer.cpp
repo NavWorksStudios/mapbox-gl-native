@@ -215,7 +215,7 @@ int renderIndex(const std::string& id) {
     return layerRenderIndexs[id];
 }
 
-static std::map<std::string, float> layerHeights = {
+static std::unordered_map<std::string, float> layerHeights = {
     { "bridge-path", 2.0 },
     { "bridge-steps", 2.0 },
     { "bridge-pedestrian", 2.0 },
