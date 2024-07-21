@@ -46,7 +46,7 @@ std::string toString(const CanonicalTileID&);
 // z/x/y describe the
 class OverscaledTileID {
 public:
-    OverscaledTileID(uint8_t overscaledZ, int16_t wrap, CanonicalTileID);
+    OverscaledTileID(uint8_t overscaledZ, int16_t wrap, const CanonicalTileID&);
     OverscaledTileID(uint8_t overscaledZ, int16_t wrap, uint8_t z, uint32_t x, uint32_t y);
     OverscaledTileID(uint8_t z, uint32_t x, uint32_t y);
     explicit OverscaledTileID(const CanonicalTileID&);
@@ -140,7 +140,7 @@ inline std::array<CanonicalTileID, 4> CanonicalTileID::children() const {
     } };
 }
 
-inline OverscaledTileID::OverscaledTileID(uint8_t overscaledZ_, int16_t wrap_, CanonicalTileID canonical_)
+inline OverscaledTileID::OverscaledTileID(uint8_t overscaledZ_, int16_t wrap_, const CanonicalTileID& canonical_)
     : overscaledZ(overscaledZ_), wrap(wrap_), canonical(canonical_) {
     assert(overscaledZ >= canonical.z);
 }
