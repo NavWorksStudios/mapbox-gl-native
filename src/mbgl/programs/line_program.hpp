@@ -37,10 +37,10 @@ class LineProgram : public Program<
     LineLayoutAttributes,
     TypeList<
         uniforms::matrix,
-        uniforms::zoom,
         uniforms::ratio,
         uniforms::units_to_pixels,
         uniforms::device_pixel_ratio,
+        uniforms::zoom,
         uniforms::spotlight,
         uniforms::clip_region,
         uniforms::focus_region>,

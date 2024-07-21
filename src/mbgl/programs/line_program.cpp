@@ -15,30 +15,6 @@ using namespace style;
 static_assert(sizeof(LineLayoutVertex) == 12, "expected LineLayoutVertex size");
 
 template <class Values, class...Args>
-Values makeValuesForLine(const style::LinePaintProperties::PossiblyEvaluated& properties,
-                  const RenderTile& tile,
-                  const TransformState& state,
-                  const std::array<float, 2>& pixelsToGLUnits,
-                  const float pixelRatio,
-                  Args&&... args) {
-    return Values {
-        uniforms::matrix::Value(
-            tile.translatedMatrix(properties.get<LineTranslate>(),
-                                  properties.get<LineTranslateAnchor>(),
-                                  state)
-        ),
-        uniforms::zoom::Value( state.getZoom() ),
-        uniforms::ratio::Value( 1.0f / tile.id.pixelsToTileUnits(1.0, state.getZoom()) ),
-        uniforms::units_to_pixels::Value({ {1.0f / pixelsToGLUnits[0], 1.0f / pixelsToGLUnits[1]} }),
-        uniforms::device_pixel_ratio::Value( pixelRatio ),
-        uniforms::spotlight::Value( nav::style::spotlight::value() ),
-        uniforms::clip_region::Value( nav::style::display::clip_region() ),
-        uniforms::focus_region::Value( nav::style::display::focus_region() ),
-        std::forward<Args>(args)...
-    };
-}
-
-template <class Values, class...Args>
 Values makeValues(const style::LinePaintProperties::PossiblyEvaluated& properties,
                   const RenderTile& tile,
                   const TransformState& state,
@@ -64,12 +40,16 @@ LineProgram::layoutUniformValues(const style::LinePaintProperties::PossiblyEvalu
                                  const TransformState& state,
                                  const std::array<float, 2>& pixelsToGLUnits,
                                  const float pixelRatio) {
-    return makeValuesForLine<LineProgram::LayoutUniformValues>(
+    return makeValues<LineProgram::LayoutUniformValues>(
         properties,
         tile,
         state,
         pixelsToGLUnits,
-        pixelRatio
+        pixelRatio,
+        uniforms::zoom::Value( state.getZoom() ),
+        uniforms::spotlight::Value( nav::style::spotlight::value() ),
+        uniforms::clip_region::Value( nav::style::display::clip_region() ),
+        uniforms::focus_region::Value( nav::style::display::focus_region() )
     );
 }
 

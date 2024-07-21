@@ -151,30 +151,20 @@ public:
         const uint32_t key = gl::AttributeKey<AttributeList>::compute(attributeBindings);
         auto it = instances.find(key);
         if (it == instances.end()) {
-            it = instances
-                     .emplace(key,
-                              Instance::createInstance(
-                                  context,
-                                  programParameters,
-                                  gl::AttributeKey<AttributeList>::defines(attributeBindings)))
-                     .first;
+            std::string def = gl::AttributeKey<AttributeList>::defines(attributeBindings);
+            std::unique_ptr<Instance> instance = Instance::createInstance(context, programParameters, def);
+            it = instances.emplace(key, std::move(instance)).first;
         }
 
         auto& instance = *it->second;
         context.program = instance.program;
-
         instance.uniformStates.bind(uniformValues);
-
         instance.textureStates.bind(context, textureBindings);
 
         auto& vertexArray = drawScope.getResource<gl::DrawScopeResource>().vertexArray;
-        vertexArray.bind(context,
-                        indexBuffer,
-                        instance.attributeLocations.toBindingArray(attributeBindings));
+        vertexArray.bind(context, indexBuffer, instance.attributeLocations.toBindingArray(attributeBindings));
 
-        context.draw(drawMode,
-                     indexOffset,
-                     indexLength);
+        context.draw(drawMode, indexOffset, indexLength);
     }
 
 private:
