@@ -107,10 +107,13 @@ size_t tileIDsIdentical(const RenderTiles& renderTiles) {
 } // namespace
 
 void PaintParameters::renderTileClippingMasks(const RenderTiles& renderTiles) {
-    if (!renderTiles || renderTiles->empty() || tileClippingMaskHash == tileIDsIdentical(renderTiles)) {
+    const size_t hash = tileIDsIdentical(renderTiles);
+    if (!renderTiles || renderTiles->empty() || tileClippingMaskHash == hash) {
         // The current stencil mask is for this source already; no need to draw another one.
         return;
     }
+    
+    tileClippingMaskHash = hash;
 
     if (nextStencilID + renderTiles->size() > 256) {
         // we'll run out of fresh IDs so we need to clear and start from scratch
@@ -142,14 +145,11 @@ void PaintParameters::renderTileClippingMasks(const RenderTiles& renderTiles) {
                      *staticData.quadTriangleIndexBuffer,
                      staticData.clippingMaskSegments,
                      ClippingMaskProgram::computeAllUniformValues(
-                         ClippingMaskProgram::LayoutUniformValues{
-                             uniforms::matrix::Value(matrixForTile(renderTile.id)),
-                         },
+                         ClippingMaskProgram::LayoutUniformValues{ uniforms::matrix::Value(matrixForTile(renderTile.id)), },
                          paintAttributeData,
                          properties,
                          state.getZoom()),
-                     ClippingMaskProgram::computeAllAttributeBindings(
-                         *staticData.tileVertexBuffer, paintAttributeData, properties),
+                     ClippingMaskProgram::computeAllAttributeBindings(*staticData.tileVertexBuffer, paintAttributeData, properties),
                      ClippingMaskProgram::TextureBindings{},
                      "clipping/" + util::toString(stencilID));
     }

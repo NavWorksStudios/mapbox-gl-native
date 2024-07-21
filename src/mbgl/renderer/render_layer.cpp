@@ -49,7 +49,7 @@ void RenderLayer::prepare(const LayerPrepareParameters& params) {
     assert(params.source);
     assert(params.source->isEnabled());
     renderTiles = params.source->getRenderTiles();
-    if (params.source->renderTilesChanged()) addRenderPassesFromTiles();
+    addRenderPassesFromTiles();
 }
 
 optional<Color> RenderLayer::getSolidBackground() const {

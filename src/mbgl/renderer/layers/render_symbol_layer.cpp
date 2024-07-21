@@ -580,7 +580,7 @@ style::TextPaintProperties::PossiblyEvaluated RenderSymbolLayer::textPaintProper
 
 void RenderSymbolLayer::prepare(const LayerPrepareParameters& params) {
     renderTiles = params.source->getRenderTilesSortedByYPosition();
-    if (params.source->renderTilesChanged()) addRenderPassesFromTiles();
+    addRenderPassesFromTiles();
 
     placementData.clear();
 
