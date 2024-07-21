@@ -9,7 +9,7 @@ ProgramParameters::ProgramParameters(const float pixelRatio,
           std::string result;
           result.reserve(32);
           result += "#define DEVICE_PIXEL_RATIO ";
-          result += util::toString(pixelRatio, true);
+          result += util::toString(pixelRatio);
           result += '\n';
           if (overdraw) {
               result += "#define OVERDRAW_INSPECTOR\n";

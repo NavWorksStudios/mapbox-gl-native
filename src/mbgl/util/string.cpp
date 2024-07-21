@@ -8,45 +8,45 @@
 namespace mbgl {
 namespace util {
 
-std::string toString(int32_t t) {
-    rapidjson::StringBuffer s;
-    rapidjson::Writer<rapidjson::StringBuffer> writer(s);
-    writer.Int(t);
-    return s.GetString();
-}
-
-std::string toString(uint32_t t) {
-    rapidjson::StringBuffer s;
-    rapidjson::Writer<rapidjson::StringBuffer> writer(s);
-    writer.Uint(t);
-    return s.GetString();
-}
-
-std::string toString(int64_t t) {
-    rapidjson::StringBuffer s;
-    rapidjson::Writer<rapidjson::StringBuffer> writer(s);
-    writer.Int64(t);
-    return s.GetString();
-}
-
-std::string toString(uint64_t t) {
-    rapidjson::StringBuffer s;
-    rapidjson::Writer<rapidjson::StringBuffer> writer(s);
-    writer.Uint64(t);
-    return s.GetString();
-}
-
-std::string toString(double t, bool decimal) {
-    rapidjson::StringBuffer s;
-    rapidjson::Writer<rapidjson::StringBuffer> writer(s);
-    writer.Double(t);
-    std::string data = s.GetString();
-    if (!decimal && data.length() >= 3 && data[data.length() - 1] == '0' && data[data.length() - 2] == '.') {
-        // Remove trailing ".0" for integers
-        data.resize(data.length() - 2);
-    }
-    return data;
-}
+//std::string toString(int32_t t) {
+//    rapidjson::StringBuffer s;
+//    rapidjson::Writer<rapidjson::StringBuffer> writer(s);
+//    writer.Int(t);
+//    return s.GetString();
+//}
+//
+//std::string toString(uint32_t t) {
+//    rapidjson::StringBuffer s;
+//    rapidjson::Writer<rapidjson::StringBuffer> writer(s);
+//    writer.Uint(t);
+//    return s.GetString();
+//}
+//
+//std::string toString(int64_t t) {
+//    rapidjson::StringBuffer s;
+//    rapidjson::Writer<rapidjson::StringBuffer> writer(s);
+//    writer.Int64(t);
+//    return s.GetString();
+//}
+//
+//std::string toString(uint64_t t) {
+//    rapidjson::StringBuffer s;
+//    rapidjson::Writer<rapidjson::StringBuffer> writer(s);
+//    writer.Uint64(t);
+//    return s.GetString();
+//}
+//
+//std::string toString(double t, bool decimal) {
+//    rapidjson::StringBuffer s;
+//    rapidjson::Writer<rapidjson::StringBuffer> writer(s);
+//    writer.Double(t);
+//    std::string data = s.GetString();
+//    if (!decimal && data.length() >= 3 && data[data.length() - 1] == '0' && data[data.length() - 2] == '.') {
+//        // Remove trailing ".0" for integers
+//        data.resize(data.length() - 2);
+//    }
+//    return data;
+//}
 
 std::string toString(const std::exception_ptr& error) {
     assert(error);
