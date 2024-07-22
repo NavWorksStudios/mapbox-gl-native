@@ -43,10 +43,18 @@ const std::string& accessToken() {
 
 namespace display {
 
+int width() {
+    return 2048;
+}
+
+int height() {
+    return 1080;
+};
+
 float clipping = 0.;
 
 void update(float zoom) {
-    static float region = height * atan(70/M_PI) * .6;
+    static float region = height() * atan(70/M_PI) * .6;
     clipping = region * pow(2., zoom);
 }
 
@@ -55,7 +63,7 @@ float clip_region() {
 }
 
 float focus_region() {
-    static float region = (pow(width, 2) + pow(height,2));
+    static float region = (pow(width(), 2) + pow(height(),2));
     return region;
 }
 
