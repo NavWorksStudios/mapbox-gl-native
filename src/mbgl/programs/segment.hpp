@@ -6,6 +6,8 @@
 #include <vector>
 #include <map>
 
+#include "mbgl/nav/nav_stringid.hpp"
+
 namespace mbgl {
 
 template <class AttributeList>
@@ -42,7 +44,7 @@ public:
     //     data-driven paint properties
     //   * when two fill layers have the same layout properties, but one
     //     uses fill-color and the other uses fill-pattern
-    mutable std::map<std::string, gfx::DrawScope> drawScopes;
+    mutable std::unordered_map<nav::stringid, gfx::DrawScope> drawScopes;
 
     float sortKey;
 };

@@ -146,6 +146,7 @@ void RenderTile::finishRender(PaintParameters& parameters) const {
         const auto allAttributeBindings =
             DebugProgram::computeAllAttributeBindings(*debugBucket->vertexBuffer, paintAttributeData, properties);
 
+        static nav::stringid TEXT_OUTLINE("text-outline");
         program.draw(parameters.context,
                      *parameters.renderPass,
                      gfx::Lines{4.0f * parameters.pixelRatio},
@@ -160,8 +161,9 @@ void RenderTile::finishRender(PaintParameters& parameters) const {
                      paintAttributeData.uniformValues(parameters.state.getZoom(), properties),
                      allAttributeBindings,
                      DebugProgram::TextureBindings{textures::image::Value{debugBucket->texture->getResource()}},
-                     "text-outline");
+                     TEXT_OUTLINE);
 
+        static nav::stringid TEXT("text");
         program.draw(parameters.context,
                      *parameters.renderPass,
                      gfx::Lines{2.0f * parameters.pixelRatio},
@@ -176,7 +178,7 @@ void RenderTile::finishRender(PaintParameters& parameters) const {
                      paintAttributeData.uniformValues(parameters.state.getZoom(), properties),
                      allAttributeBindings,
                      DebugProgram::TextureBindings{textures::image::Value{debugBucket->texture->getResource()}},
-                     "text");
+                     TEXT);
     }
 
     if (parameters.debugOptions & MapDebugOptions::TileBorders) {
@@ -184,6 +186,7 @@ void RenderTile::finishRender(PaintParameters& parameters) const {
         if (debugBucket->tileBorderSegments.empty()) {
             debugBucket->tileBorderSegments = RenderStaticData::tileBorderSegments();
         }
+        static nav::stringid BORDER("border");
         parameters.programs.debug.draw(
             parameters.context,
             *parameters.renderPass,
@@ -200,7 +203,7 @@ void RenderTile::finishRender(PaintParameters& parameters) const {
             DebugProgram::computeAllAttributeBindings(
                 *parameters.staticData.tileVertexBuffer, paintAttributeData, properties),
             DebugProgram::TextureBindings{textures::image::Value{debugBucket->texture->getResource()}},
-            "border");
+            BORDER);
     }
 }
 

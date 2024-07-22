@@ -42,6 +42,8 @@ void ImageSourceRenderData::render(PaintParameters& parameters) const {
     auto& programInstance = parameters.programs.debug;
 
     for (auto matrix : matrices) {
+        static nav::stringid IMAGE("image");
+
         programInstance.draw(parameters.context,
                              *parameters.renderPass,
                              gfx::LineStrip{4.0f * parameters.pixelRatio},
@@ -58,7 +60,7 @@ void ImageSourceRenderData::render(PaintParameters& parameters) const {
                              DebugProgram::computeAllAttributeBindings(
                                  *parameters.staticData.tileVertexBuffer, paintAttributeData, properties),
                              DebugProgram::TextureBindings{textures::image::Value{debugTexture->getResource()}},
-                             "image");
+                             IMAGE);
     }
 }
 

@@ -166,6 +166,7 @@ void RenderHillshadeLayer::render(PaintParameters& parameters) {
 
             checkRenderability(parameters, HillshadePrepareProgram::activeBindingCount(allAttributeBindings));
 
+            static nav::stringid PREPARE("prepare");
             // Copy over the segments so that we can create our own DrawScopes that get destroyed
             // after this draw call.
             auto segments = RenderStaticData::rasterSegments();
@@ -184,7 +185,7 @@ void RenderHillshadeLayer::render(PaintParameters& parameters) {
                                  HillshadePrepareProgram::TextureBindings{
                                      textures::image::Value{bucket.dem->getResource()},
                                  },
-                                 "prepare");
+                                 PREPARE);
             bucket.texture = std::move(view->getTexture());
             bucket.setPrepared(true);
         } else if (parameters.pass == RenderPass::Translucent) {
