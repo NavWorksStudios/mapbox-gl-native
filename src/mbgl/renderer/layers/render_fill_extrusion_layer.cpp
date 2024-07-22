@@ -151,7 +151,7 @@ void RenderFillExtrusionLayer::render(PaintParameters& parameters) {
                 evaluated.get<FillExtrusionOpacity>(),
                 parameters.evaluatedLight,
                 evaluated.get<FillExtrusionVerticalGradient>(),
-                uniforms::render_reflection::Value(),
+                uniforms::render_reflection::Value()
             );
             
             const std::string uniqueName = getID().get() + "/" + name;
