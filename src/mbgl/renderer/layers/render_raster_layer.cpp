@@ -100,23 +100,23 @@ void RenderRasterLayer::render(PaintParameters& parameters) {
                      const std::string& drawScopeID) {
         auto& programInstance = parameters.programs.getRasterLayerPrograms().raster;
 
-        const auto allUniformValues = RasterProgram::computeAllUniformValues(
-            RasterProgram::LayoutUniformValues{
-                uniforms::matrix::Value(matrix),
-                uniforms::opacity::Value(evaluated.get<RasterOpacity>()),
-                uniforms::fade_t::Value(1),
-                uniforms::brightness_low::Value(evaluated.get<RasterBrightnessMin>()),
-                uniforms::brightness_high::Value(evaluated.get<RasterBrightnessMax>()),
-                uniforms::saturation_factor::Value(saturationFactor(evaluated.get<RasterSaturation>())),
-                uniforms::contrast_factor::Value(contrastFactor(evaluated.get<RasterContrast>())),
-                uniforms::spin_weights::Value(spinWeights(evaluated.get<RasterHueRotate>())),
-                uniforms::buffer_scale::Value(1.0f),
-                uniforms::scale_parent::Value(1.0f),
-                uniforms::tl_parent::Value(std::array<float, 2>{{0.0f, 0.0f}}),
-            },
-            paintAttributeData,
-            evaluated,
-            parameters.state.getZoom());
+        const RasterProgram::LayoutUniformValues layoutUniforms = {
+            uniforms::matrix::Value(matrix),
+            uniforms::opacity::Value(evaluated.get<RasterOpacity>()),
+            uniforms::fade_t::Value(1),
+            uniforms::brightness_low::Value(evaluated.get<RasterBrightnessMin>()),
+            uniforms::brightness_high::Value(evaluated.get<RasterBrightnessMax>()),
+            uniforms::saturation_factor::Value(saturationFactor(evaluated.get<RasterSaturation>())),
+            uniforms::contrast_factor::Value(contrastFactor(evaluated.get<RasterContrast>())),
+            uniforms::spin_weights::Value(spinWeights(evaluated.get<RasterHueRotate>())),
+            uniforms::buffer_scale::Value(1.0f),
+            uniforms::scale_parent::Value(1.0f),
+            uniforms::tl_parent::Value(std::array<float, 2>{{0.0f, 0.0f}}),
+        };
+        
+        const auto&& paintUniforms = 
+            paintAttributeData.uniformValues(parameters.state.getZoom(), evaluated);
+        
         const auto allAttributeBindings =
             RasterProgram::computeAllAttributeBindings(vertexBuffer, paintAttributeData, evaluated);
 
@@ -132,7 +132,8 @@ void RenderRasterLayer::render(PaintParameters& parameters) {
             gfx::CullFaceMode::disabled(),
             indexBuffer,
             segments,
-            allUniformValues,
+            layoutUniforms,
+            paintUniforms,
             allAttributeBindings,
             textureBindings,
             getID().get() + "/" + drawScopeID

@@ -21,7 +21,7 @@ class RenderPass;
 template <class Name,
           gfx::PrimitiveType Primitive,
           class LayoutAttributeList,
-          class LayoutUniformList,
+          class LayoutUniformList_,
           class Textures,
           class PaintProps>
 class Program {
@@ -34,11 +34,13 @@ public:
     using PaintAttributeList = typename Binders::AttributeList;
     using AttributeList = TypeListConcat<LayoutAttributeList, PaintAttributeList>;
     using AttributeBindings = gfx::AttributeBindings<AttributeList>;
-
-    using PaintUniformList = typename Binders::UniformList;
-    using UniformList = TypeListConcat<LayoutUniformList, PaintUniformList>;
+    
+    using LayoutUniformList = LayoutUniformList_;
     using LayoutUniformValues = gfx::UniformValues<LayoutUniformList>;
-    using UniformValues = gfx::UniformValues<UniformList>;
+    using SizeUniformList = TypeList<>;
+    using SizeUniformValues = gfx::UniformValues<SizeUniformList>;
+    using PaintUniformList = typename Binders::UniformList;
+    using PaintUniformValues = gfx::UniformValues<PaintUniformList>;
 
     using TextureList = Textures;
     using TextureBindings = gfx::TextureBindings<TextureList>;
@@ -47,15 +49,6 @@ public:
 
     Program(gfx::Context& context, const ProgramParameters& programParameters)
         : program(context.createProgram<Name>(programParameters)) {
-    }
-
-    static UniformValues computeAllUniformValues(
-        const LayoutUniformValues& layoutUniformValues,
-        const Binders& paintPropertyBinders,
-        const typename PaintProperties::PossiblyEvaluated& currentProperties,
-        float currentZoom) {
-        return layoutUniformValues
-            .concat(paintPropertyBinders.uniformValues(currentZoom, currentProperties));
     }
 
     static AttributeBindings computeAllAttributeBindings(
@@ -69,7 +62,7 @@ public:
     static uint32_t activeBindingCount(const AttributeBindings& allAttributeBindings) {
         return allAttributeBindings.activeCount();
     }
-
+    
     template <class DrawMode>
     void draw(gfx::Context& context,
               gfx::RenderPass& renderPass,
@@ -80,7 +73,8 @@ public:
               const gfx::CullFaceMode& cullFaceMode,
               const gfx::IndexBuffer& indexBuffer,
               const Segment<AttributeList>& segment,
-              const UniformValues& uniformValues,
+              const LayoutUniformValues& layoutUniform,
+              const PaintUniformValues& paintUniform,
               const AttributeBindings& allAttributeBindings,
               const TextureBindings& textureBindings,
               const std::string& layerID) {
@@ -102,7 +96,8 @@ public:
                       stencilMode,
                       colorMode,
                       cullFaceMode,
-                      uniformValues,
+                      layoutUniform,
+                      paintUniform,
                       drawScopeIt->second,
                       allAttributeBindings.offset(segment.vertexOffset),
                       textureBindings,
@@ -121,7 +116,8 @@ public:
               const gfx::CullFaceMode& cullFaceMode,
               const gfx::IndexBuffer& indexBuffer,
               const SegmentVector<AttributeList>& segments,
-              const UniformValues& uniformValues,
+              const LayoutUniformValues& layoutUniform,
+              const PaintUniformValues& paintUniform,
               const AttributeBindings& allAttributeBindings,
               const TextureBindings& textureBindings,
               const std::string& layerID) {
@@ -146,7 +142,102 @@ public:
                 stencilMode,
                 colorMode,
                 cullFaceMode,
-                uniformValues,
+                layoutUniform,
+                paintUniform,
+                drawScopeIt->second,
+                allAttributeBindings.offset(segment.vertexOffset),
+                textureBindings,
+                indexBuffer,
+                segment.indexOffset,
+                segment.indexLength);
+        }
+    }
+    
+    template <class DrawMode>
+    void draw(gfx::Context& context,
+              gfx::RenderPass& renderPass,
+              const DrawMode& drawMode,
+              const gfx::DepthMode& depthMode,
+              const gfx::StencilMode& stencilMode,
+              const gfx::ColorMode& colorMode,
+              const gfx::CullFaceMode& cullFaceMode,
+              const gfx::IndexBuffer& indexBuffer,
+              const Segment<AttributeList>& segment,
+              const LayoutUniformValues& layoutUniform,
+              const SizeUniformValues& sizeUniform,
+              const PaintUniformValues& paintUniform,
+              const AttributeBindings& allAttributeBindings,
+              const TextureBindings& textureBindings,
+              const std::string& layerID) {
+        static_assert(Primitive == gfx::PrimitiveTypeOf<DrawMode>::value, "incompatible draw mode");
+
+        if (!program) {
+            return;
+        }
+
+        auto drawScopeIt = segment.drawScopes.find(layerID);
+        if (drawScopeIt == segment.drawScopes.end()) {
+            drawScopeIt = segment.drawScopes.emplace(layerID, context.createDrawScope()).first;
+        }
+
+        program->draw(context,
+                      renderPass,
+                      drawMode,
+                      depthMode,
+                      stencilMode,
+                      colorMode,
+                      cullFaceMode,
+                      layoutUniform,
+                      sizeUniform,
+                      paintUniform,
+                      drawScopeIt->second,
+                      allAttributeBindings.offset(segment.vertexOffset),
+                      textureBindings,
+                      indexBuffer,
+                      segment.indexOffset,
+                      segment.indexLength);
+    }
+
+    template <class DrawMode>
+    void draw(gfx::Context& context,
+              gfx::RenderPass& renderPass,
+              const DrawMode& drawMode,
+              const gfx::DepthMode& depthMode,
+              const gfx::StencilMode& stencilMode,
+              const gfx::ColorMode& colorMode,
+              const gfx::CullFaceMode& cullFaceMode,
+              const gfx::IndexBuffer& indexBuffer,
+              const SegmentVector<AttributeList>& segments,
+              const LayoutUniformValues& layoutUniform,
+              const SizeUniformValues& sizeUniform,
+              const PaintUniformValues& paintUniform,
+              const AttributeBindings& allAttributeBindings,
+              const TextureBindings& textureBindings,
+              const std::string& layerID) {
+        static_assert(Primitive == gfx::PrimitiveTypeOf<DrawMode>::value, "incompatible draw mode");
+
+        if (!program) {
+            return;
+        }
+
+        for (auto& segment : segments) {
+            auto drawScopeIt = segment.drawScopes.find(layerID);
+
+            if (drawScopeIt == segment.drawScopes.end()) {
+                drawScopeIt = segment.drawScopes.emplace(layerID, context.createDrawScope()).first;
+            }
+
+            program->draw(
+                context,
+                renderPass,
+                drawMode,
+                depthMode,
+                stencilMode,
+                colorMode,
+                cullFaceMode,
+                layoutUniform,
+                sizeUniform,
+                paintUniform,
                 drawScopeIt->second,
                 allAttributeBindings.offset(segment.vertexOffset),
                 textureBindings,

@@ -83,6 +83,16 @@ void RenderCircleLayer::render(PaintParameters& parameters) {
     if (parameters.pass == RenderPass::Opaque) {
         return;
     }
+    
+    CircleProgram::LayoutUniformValues layoutUniforms(
+        uniforms::matrix::Value(),
+        uniforms::scale_with_map::Value(),
+        uniforms::extrude_scale::Value(),
+        uniforms::device_pixel_ratio::Value(parameters.pixelRatio),
+        uniforms::camera_to_center_distance::Value(parameters.state.getCameraToCenterDistance()),
+        uniforms::pitch_with_map::Value()
+    );
+    
     const auto drawTile = [&](const RenderTile& tile, const LayerRenderData* data, const auto& segments) {
         auto& circleBucket = static_cast<CircleBucket&>(*data->bucket);
         const auto& evaluated = getEvaluated<CircleLayerProperties>(data->layerProperties);
@@ -91,27 +101,22 @@ void RenderCircleLayer::render(PaintParameters& parameters) {
         const auto& paintPropertyBinders = circleBucket.paintPropertyBinders.at(getID());
 
         auto& programInstance = parameters.programs.getCircleLayerPrograms().circle;
-        using LayoutUniformValues = CircleProgram::LayoutUniformValues;
-        const auto& allUniformValues = CircleProgram::computeAllUniformValues(
-            LayoutUniformValues(
-                uniforms::matrix::Value(tile.translatedMatrix(evaluated.template get<CircleTranslate>(),
-                                                              evaluated.template get<CircleTranslateAnchor>(),
-                                                              parameters.state)),
-                uniforms::scale_with_map::Value(scaleWithMap),
-                uniforms::extrude_scale::Value(
-                    pitchWithMap ? std::array<float, 2>{{tile.id.pixelsToTileUnits(1, parameters.state.getZoom()),
-                                                         tile.id.pixelsToTileUnits(1, parameters.state.getZoom())}}
-                                 : parameters.pixelsToGLUnits),
-                uniforms::device_pixel_ratio::Value(parameters.pixelRatio),
-                uniforms::camera_to_center_distance::Value(parameters.state.getCameraToCenterDistance()),
-                uniforms::pitch_with_map::Value(pitchWithMap)),
-            paintPropertyBinders,
-            evaluated,
-            parameters.state.getZoom());
+
         const auto& allAttributeBindings =
             CircleProgram::computeAllAttributeBindings(*circleBucket.vertexBuffer, paintPropertyBinders, evaluated);
 
         checkRenderability(parameters, CircleProgram::activeBindingCount(allAttributeBindings));
+        
+        const auto& matrix = tile.translatedMatrix(evaluated.template get<CircleTranslate>(),
+                                                   evaluated.template get<CircleTranslateAnchor>(),
+                                                   parameters.state);
+        const auto tileUnits = tile.id.pixelsToTileUnits(1, parameters.state.getZoom());
+        const auto&& extrude_scale = pitchWithMap ? std::array<float, 2>{tileUnits,tileUnits} : parameters.pixelsToGLUnits;
+        
+        layoutUniforms.template get<uniforms::matrix>() = matrix;
+        layoutUniforms.template get<uniforms::scale_with_map>() = scaleWithMap;
+        layoutUniforms.template get<uniforms::extrude_scale>() = extrude_scale;
+        layoutUniforms.template get<uniforms::pitch_with_map>() = pitchWithMap;
 
         programInstance.draw(parameters.context,
                              *parameters.renderPass,
@@ -122,7 +127,8 @@ void RenderCircleLayer::render(PaintParameters& parameters) {
                              gfx::CullFaceMode::disabled(),
                              *circleBucket.indexBuffer,
                              segments,
-                             allUniformValues,
+                             layoutUniforms,
+                             paintPropertyBinders.uniformValues(parameters.state.getZoom(), evaluated),
                              allAttributeBindings,
                              CircleProgram::TextureBindings{},
                              getID());

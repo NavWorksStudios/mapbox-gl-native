@@ -68,13 +68,12 @@ void RenderBackgroundLayer::render(PaintParameters& parameters) {
 
     const Properties<>::PossiblyEvaluated properties;
     const BackgroundProgram::Binders paintAttributeData(properties, 0);
+    const auto&& paintUniforms = paintAttributeData.uniformValues(parameters.state.getZoom(), properties);
 
-    auto draw = [&](auto& program, auto&& uniformValues, const auto& textureBindings, const uint32_t id) {
-        const auto allUniformValues =
-            program.computeAllUniformValues(std::forward<decltype(uniformValues)>(uniformValues),
-                                            paintAttributeData,
-                                            properties,
-                                            parameters.state.getZoom());
+    auto draw = [&](auto& program, 
+                    auto&& layoutUniforms,
+                    const auto& textureBindings,
+                    const uint32_t id) {
         const auto allAttributeBindings = program.computeAllAttributeBindings(
             *parameters.staticData.tileVertexBuffer,
             paintAttributeData,
@@ -95,7 +94,8 @@ void RenderBackgroundLayer::render(PaintParameters& parameters) {
             gfx::CullFaceMode::disabled(),
             *parameters.staticData.quadTriangleIndexBuffer,
             segments,
-            allUniformValues,
+            layoutUniforms,
+            paintUniforms,
             allAttributeBindings,
             textureBindings,
             util::toString(id));
@@ -107,6 +107,7 @@ void RenderBackgroundLayer::render(PaintParameters& parameters) {
 
     const auto& evaluated = static_cast<const BackgroundLayerProperties&>(*evaluatedProperties).evaluated;
     const auto& crossfade = static_cast<const BackgroundLayerProperties&>(*evaluatedProperties).crossfade;
+    
     if (!evaluated.get<BackgroundPattern>().to.empty()) {
         optional<ImagePosition> imagePosA =
             parameters.patternAtlas.getPattern(evaluated.get<BackgroundPattern>().from.id());
@@ -128,9 +129,7 @@ void RenderBackgroundLayer::render(PaintParameters& parameters) {
                                                                crossfade,
                                                                unwrappedTileID,
                                                                parameters.state),
-                 BackgroundPatternProgram::TextureBindings{
-                     textures::image::Value{parameters.patternAtlas.textureBinding()},
-                 },
+                 BackgroundPatternProgram::TextureBindings{ textures::image::Value{parameters.patternAtlas.textureBinding()}, },
                  i++);
         }
     } else {
@@ -140,14 +139,18 @@ void RenderBackgroundLayer::render(PaintParameters& parameters) {
         if (parameters.pass != backgroundRenderPass) {
             return;
         }
+        
+        auto layoutUniforms = BackgroundProgram::LayoutUniformValues{
+            uniforms::matrix::Value(),
+            uniforms::color::Value(evaluated.get<BackgroundColor>()),
+            uniforms::opacity::Value(evaluated.get<BackgroundOpacity>())
+        };
+        
         uint32_t i = 0;
         for (const auto& tileID : util::tileCover(false, parameters.state, parameters.state.getIntegerZoom())) {
+            layoutUniforms.template get<uniforms::matrix>() = parameters.matrixForTile(tileID.toUnwrapped());
             draw(parameters.programs.getBackgroundLayerPrograms().background,
-                 BackgroundProgram::LayoutUniformValues{
-                     uniforms::matrix::Value(parameters.matrixForTile(tileID.toUnwrapped())),
-                     uniforms::color::Value(evaluated.get<BackgroundColor>()),
-                     uniforms::opacity::Value(evaluated.get<BackgroundOpacity>()),
-                 },
+                 layoutUniforms,
                  BackgroundProgram::TextureBindings{},
                  i++);
         }

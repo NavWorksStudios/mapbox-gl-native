@@ -27,8 +27,10 @@ namespace gl {
 template <class Name>
 class Program final : public gfx::Program<Name> {
 public:
+    using LayoutUniformList = typename Name::LayoutUniformList;
+    using SizeUniformList = typename Name::SizeUniformList;
+    using PaintUniformList = typename Name::PaintUniformList;
     using AttributeList = typename Name::AttributeList;
-    using UniformList = typename Name::UniformList;
     using TextureList = typename Name::TextureList;
 
     Program(ProgramParameters programParameters_)
@@ -44,13 +46,17 @@ public:
     public:
         Instance(Context& context,
                  const std::initializer_list<const char*>& vertexSource,
-                 const std::initializer_list<const char*>& fragmentSource)
-            : program(context.createProgram(
-                  context.createShader(ShaderType::Vertex, vertexSource),
-                  context.createShader(ShaderType::Fragment, fragmentSource),
-                  attributeLocations.getFirstAttribName())) {
+                 const std::initializer_list<const char*>& fragmentSource) :
+            program(context.createProgram(
+            context.createShader(ShaderType::Vertex, vertexSource),
+            context.createShader(ShaderType::Fragment, fragmentSource),
+            attributeLocations.getFirstAttribName())) {
             attributeLocations.queryLocations(program);
-            uniformStates.queryLocations(program);
+                
+            layoutUniformStates.queryLocations(program);
+            sizeUniformStates.queryLocations(program);
+            paintUniformStates.queryLocations(program);
+                
             // Texture units are specified via uniforms as well, so we need query their locations
             textureStates.queryLocations(program);
         }
@@ -122,8 +128,10 @@ public:
         }
 
         UniqueProgram program;
+        gl::UniformStates<LayoutUniformList> layoutUniformStates;
+        gl::UniformStates<SizeUniformList> sizeUniformStates;
+        gl::UniformStates<PaintUniformList> paintUniformStates;
         gl::AttributeLocations<AttributeList> attributeLocations;
-        gl::UniformStates<UniformList> uniformStates;
         gl::TextureStates<TextureList> textureStates;
     };
 
@@ -134,8 +142,9 @@ public:
               const gfx::StencilMode& stencilMode,
               const gfx::ColorMode& colorMode,
               const gfx::CullFaceMode& cullFaceMode,
-              const gfx::UniformValues<UniformList>& uniformValues,
-              gfx::DrawScope& drawScope,
+              const gfx::UniformValues<LayoutUniformList>& layoutUniforms,
+              const gfx::UniformValues<PaintUniformList>& paintUniforms,
+              const gfx::DrawScope& drawScope,
               const gfx::AttributeBindings<AttributeList>& attributeBindings,
               const gfx::TextureBindings<TextureList>& textureBindings,
               const gfx::IndexBuffer& indexBuffer,
@@ -158,7 +167,8 @@ public:
 
         auto& instance = *it->second;
         context.program = instance.program;
-        instance.uniformStates.bind(uniformValues);
+        instance.layoutUniformStates.bind(layoutUniforms);
+        instance.paintUniformStates.bind(paintUniforms);
         instance.textureStates.bind(context, textureBindings);
 
         auto& vertexArray = drawScope.getResource<gl::DrawScopeResource>().vertexArray;
@@ -166,9 +176,53 @@ public:
 
         context.draw(drawMode, indexOffset, indexLength);
     }
+    
+    void draw(gfx::Context& genericContext,
+              gfx::RenderPass&,
+              const gfx::DrawMode& drawMode,
+              const gfx::DepthMode& depthMode,
+              const gfx::StencilMode& stencilMode,
+              const gfx::ColorMode& colorMode,
+              const gfx::CullFaceMode& cullFaceMode,
+              const gfx::UniformValues<LayoutUniformList>& layoutUniforms,
+              const gfx::UniformValues<SizeUniformList>& sizeUniforms,
+              const gfx::UniformValues<PaintUniformList>& paintUniforms,
+              const gfx::DrawScope& drawScope,
+              const gfx::AttributeBindings<AttributeList>& attributeBindings,
+              const gfx::TextureBindings<TextureList>& textureBindings,
+              const gfx::IndexBuffer& indexBuffer,
+              std::size_t indexOffset,
+              std::size_t indexLength) override {
+        auto& context = static_cast<gl::Context&>(genericContext);
 
+        context.setDepthMode(depthMode);
+        context.setStencilMode(stencilMode);
+        context.setColorMode(colorMode);
+        context.setCullFaceMode(cullFaceMode);
+
+        const uint32_t key = gl::AttributeKey<AttributeList>::compute(attributeBindings);
+        auto it = instances.find(key);
+        if (it == instances.end()) {
+            std::string def = gl::AttributeKey<AttributeList>::defines(attributeBindings);
+            std::unique_ptr<Instance> instance = Instance::createInstance(context, programParameters, def);
+            it = instances.emplace(key, std::move(instance)).first;
+        }
+
+        auto& instance = *it->second;
+        context.program = instance.program;
+        instance.layoutUniformStates.bind(layoutUniforms);
+        instance.sizeUniformStates.bind(sizeUniforms);
+        instance.paintUniformStates.bind(paintUniforms);
+        instance.textureStates.bind(context, textureBindings);
+
+        auto& vertexArray = drawScope.getResource<gl::DrawScopeResource>().vertexArray;
+        vertexArray.bind(context, indexBuffer, instance.attributeLocations.toBindingArray(attributeBindings));
+
+        context.draw(drawMode, indexOffset, indexLength);
+    }
+    
 private:
-    std::map<uint32_t, std::unique_ptr<Instance>> instances;
+    std::unordered_map<uint32_t, std::unique_ptr<Instance>> instances;
 };
 
 } // namespace gl

@@ -93,18 +93,6 @@ void RenderHillshadeLayer::render(PaintParameters& parameters) {
 
         const HillshadeProgram::Binders paintAttributeData{ evaluated, 0 };
 
-        const auto allUniformValues = HillshadeProgram::computeAllUniformValues(
-            HillshadeProgram::LayoutUniformValues{
-                uniforms::matrix::Value(matrix),
-                uniforms::highlight::Value(evaluated.get<HillshadeHighlightColor>()),
-                uniforms::shadow::Value(evaluated.get<HillshadeShadowColor>()),
-                uniforms::accent::Value(evaluated.get<HillshadeAccentColor>()),
-                uniforms::light::Value(getLight(parameters)),
-                uniforms::latrange::Value(getLatRange(id)),
-            },
-            paintAttributeData,
-            evaluated,
-            parameters.state.getZoom());
         const auto allAttributeBindings =
             HillshadeProgram::computeAllAttributeBindings(vertexBuffer, paintAttributeData, evaluated);
 
@@ -119,7 +107,14 @@ void RenderHillshadeLayer::render(PaintParameters& parameters) {
                              gfx::CullFaceMode::disabled(),
                              indexBuffer,
                              segments,
-                             allUniformValues,
+                             HillshadeProgram::LayoutUniformValues{
+                                 uniforms::matrix::Value(matrix),
+                                 uniforms::highlight::Value(evaluated.get<HillshadeHighlightColor>()),
+                                 uniforms::shadow::Value(evaluated.get<HillshadeShadowColor>()),
+                                 uniforms::accent::Value(evaluated.get<HillshadeAccentColor>()),
+                                 uniforms::light::Value(getLight(parameters)),
+                                 uniforms::latrange::Value(getLatRange(id)),},
+                             paintAttributeData.uniformValues(parameters.state.getZoom(), evaluated),
                              allAttributeBindings,
                              textureBindings,
                              getID());
@@ -128,6 +123,13 @@ void RenderHillshadeLayer::render(PaintParameters& parameters) {
     mat4 mat;
     matrix::ortho(mat, 0, util::EXTENT, -util::EXTENT, 0, 0, 1);
     matrix::translate(mat, mat, 0, -util::EXTENT, 0);
+    
+    HillshadePrepareProgram::LayoutUniformValues layoutUniforms = {
+        uniforms::matrix::Value(mat),
+        uniforms::dimension::Value(),
+        uniforms::zoom::Value(),
+        uniforms::maxzoom::Value(float(maxzoom)),
+        uniforms::unpack::Value(), };
 
     for (const RenderTile& tile : *renderTiles) {
         auto* bucket_ = tile.getBucket(*baseImpl);
@@ -154,18 +156,11 @@ void RenderHillshadeLayer::render(PaintParameters& parameters) {
             const HillshadePrepareProgram::Binders paintAttributeData{ properties, 0 };
             
             auto& programInstance = parameters.programs.getHillshadeLayerPrograms().hillshadePrepare;
+            
+            layoutUniforms.template get<uniforms::dimension>() = {stride, stride};
+            layoutUniforms.template get<uniforms::zoom>() = float(tile.id.canonical.z);
+            layoutUniforms.template get<uniforms::unpack>() = bucket.getDEMData().getUnpackVector();
 
-            const auto allUniformValues = HillshadePrepareProgram::computeAllUniformValues(
-                HillshadePrepareProgram::LayoutUniformValues{
-                    uniforms::matrix::Value(mat),
-                    uniforms::dimension::Value({{stride, stride}}),
-                    uniforms::zoom::Value(float(tile.id.canonical.z)),
-                    uniforms::maxzoom::Value(float(maxzoom)),
-                    uniforms::unpack::Value(bucket.getDEMData().getUnpackVector()),
-                },
-                paintAttributeData,
-                properties,
-                parameters.state.getZoom());
             const auto allAttributeBindings = HillshadePrepareProgram::computeAllAttributeBindings(
                 *parameters.staticData.rasterVertexBuffer, paintAttributeData, properties);
 
@@ -183,7 +178,8 @@ void RenderHillshadeLayer::render(PaintParameters& parameters) {
                                  gfx::CullFaceMode::disabled(),
                                  *parameters.staticData.quadTriangleIndexBuffer,
                                  segments,
-                                 allUniformValues,
+                                 layoutUniforms,
+                                 paintAttributeData.uniformValues(parameters.state.getZoom(), properties),
                                  allAttributeBindings,
                                  HillshadePrepareProgram::TextureBindings{
                                      textures::image::Value{bucket.dem->getResource()},
@@ -215,9 +211,8 @@ void RenderHillshadeLayer::render(PaintParameters& parameters) {
                      *parameters.staticData.quadTriangleIndexBuffer,
                      bucket.segments,
                      tile.id,
-                     HillshadeProgram::TextureBindings{
-                         textures::image::Value{bucket.texture->getResource(), gfx::TextureFilterType::Linear},
-                     });
+                     HillshadeProgram::TextureBindings{textures::image::Value{bucket.texture->getResource(), gfx::TextureFilterType::Linear},}
+                     );
             }
         }
         

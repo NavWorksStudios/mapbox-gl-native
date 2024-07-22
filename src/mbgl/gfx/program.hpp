@@ -14,6 +14,7 @@ class CullFaceMode;
 class DrawScope;
 class IndexBuffer;
 class RenderPass;
+
 template <class> class UniformValues;
 template <class> class AttributeBindings;
 template <class> class TextureBindings;
@@ -31,10 +32,13 @@ public:
     Program& operator=(Program&&) = delete;
     Program& operator=(const Program&) = delete;
 
+    using LayoutUniformList = typename Name::LayoutUniformList;
+    using SizeUniformList = typename Name::SizeUniformList;
+    using PaintUniformList = typename Name::PaintUniformList;
+    
     using AttributeList = typename Name::AttributeList;
-    using UniformList = typename Name::UniformList;
     using TextureList = typename Name::TextureList;
-
+    
     virtual void draw(Context&,
                       RenderPass&,
                       const DrawMode&,
@@ -42,8 +46,26 @@ public:
                       const StencilMode&,
                       const ColorMode&,
                       const CullFaceMode&,
-                      const UniformValues<UniformList>&,
-                      DrawScope&,
+                      const UniformValues<LayoutUniformList>&,
+                      const UniformValues<PaintUniformList>&,
+                      const DrawScope&,
+                      const AttributeBindings<AttributeList>&,
+                      const TextureBindings<TextureList>&,
+                      const IndexBuffer&,
+                      std::size_t indexOffset,
+                      std::size_t indexLength) = 0;
+    
+    virtual void draw(Context&,
+                      RenderPass&,
+                      const DrawMode&,
+                      const DepthMode&,
+                      const StencilMode&,
+                      const ColorMode&,
+                      const CullFaceMode&,
+                      const UniformValues<LayoutUniformList>&,
+                      const UniformValues<SizeUniformList>&,
+                      const UniformValues<PaintUniformList>&,
+                      const DrawScope&,
                       const AttributeBindings<AttributeList>&,
                       const TextureBindings<TextureList>&,
                       const IndexBuffer&,

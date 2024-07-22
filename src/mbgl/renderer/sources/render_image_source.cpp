@@ -51,13 +51,10 @@ void ImageSourceRenderData::render(PaintParameters& parameters) const {
                              gfx::CullFaceMode::disabled(),
                              *parameters.staticData.tileBorderIndexBuffer,
                              RenderStaticData::tileBorderSegments(),
-                             DebugProgram::computeAllUniformValues(
-                                 DebugProgram::LayoutUniformValues{uniforms::matrix::Value(matrix),
-                                                                   uniforms::color::Value(Color::red()),
-                                                                   uniforms::overlay_scale::Value(1.0f)},
-                                 paintAttributeData,
-                                 properties,
-                                 parameters.state.getZoom()),
+                             DebugProgram::LayoutUniformValues{uniforms::matrix::Value(matrix),
+                                                               uniforms::color::Value(Color::red()),
+                                                               uniforms::overlay_scale::Value(1.0f)},
+                             paintAttributeData.uniformValues(parameters.state.getZoom(), properties),
                              DebugProgram::computeAllAttributeBindings(
                                  *parameters.staticData.tileVertexBuffer, paintAttributeData, properties),
                              DebugProgram::TextureBindings{textures::image::Value{debugTexture->getResource()}},

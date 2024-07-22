@@ -49,7 +49,11 @@ public:
     optional<gfx::VertexBuffer<LineLayoutVertex>> vertexBuffer;
     optional<gfx::IndexBuffer> indexBuffer;
 
+private:
     std::unordered_map<nav::stringid, LineProgram::Binders> paintPropertyBinders;
+public:
+    const std::unordered_map<nav::stringid, LineProgram::Binders>& getPaintPropertyBinders() const { return paintPropertyBinders; }
+    LineProgram::Binders* paintBinders = nullptr;
 
 private:
     using IsTermination = std::array<bool, 2>;

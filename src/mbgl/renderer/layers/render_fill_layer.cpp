@@ -85,6 +85,20 @@ void RenderFillLayer::render(PaintParameters& parameters) {
     if (unevaluated.get<FillPattern>().isUndefined()) {
         parameters.renderTileClippingMasks(renderTiles);
         
+        const auto& color = nav::palette::getColorBase();
+        FillProgram::LayoutUniformValues layoutUniforms = {
+            uniforms::matrix::Value(),
+            uniforms::world::Value( parameters.backend.getDefaultRenderable().getSize() ),
+            uniforms::spotlight::Value( nav::runtime::spotlight::value() ),
+            uniforms::render_time::Value( nav::runtime::rendertime::value() ),
+            uniforms::palette_color::Value( color ),
+            uniforms::palette_lightness::Value( enableShaderPalette ? (color.r+color.g+color.b)/3. : 0. ),
+            uniforms::water_wave::Value( enableWaterEffect ? util::clamp((parameters.state.getZoom()-13.)*.3,0.,1.) : 0. ),
+            uniforms::water_data_z_scale::Value(),
+            uniforms::clip_region::Value( nav::style::display::clip_region() ),
+            uniforms::focus_region::Value( nav::style::display::focus_region() ),
+        };
+        
         size_t renderIndex = -1;
         for (const RenderTile& tile : *renderTiles) {
             renderIndex++;
@@ -92,8 +106,15 @@ void RenderFillLayer::render(PaintParameters& parameters) {
             if (!renderData) {
                 continue;
             }
+            
             auto& bucket = static_cast<FillBucket&>(*renderData->bucket);
             const auto& evaluated = getEvaluated<FillLayerProperties>(renderData->layerProperties);
+            const auto& paintPropertyBinders = bucket.paintPropertyBinders.at(getID());
+            const auto&& paintUniforms = paintPropertyBinders.uniformValues(parameters.state.getZoom(), evaluated);
+            
+            const auto& matrix = tile.translatedMatrix(evaluated.get<FillTranslate>(), evaluated.get<FillTranslateAnchor>(), parameters.state);
+            layoutUniforms.template get<uniforms::matrix>() = matrix;
+            layoutUniforms.template get<uniforms::water_data_z_scale>() = pow(2.,16.-tile.id.canonical.z); // data_z [13,16]
 
             const auto draw = [&] (auto& programInstance,
                                    const auto& drawMode,
@@ -101,27 +122,6 @@ void RenderFillLayer::render(PaintParameters& parameters) {
                                    const auto& indexBuffer,
                                    const auto& segments,
                                    auto&& textureBindings) {
-                const auto& paintPropertyBinders = bucket.paintPropertyBinders.at(getID());
-
-                const auto& matrix = tile.translatedMatrix(evaluated.get<FillTranslate>(), evaluated.get<FillTranslateAnchor>(), parameters.state);
-                const auto& color = nav::palette::getColorBase();
-                const auto&& allUniformValues = programInstance.computeAllUniformValues(
-                    FillProgram::LayoutUniformValues {
-                        uniforms::matrix::Value( matrix ),
-                        uniforms::world::Value( parameters.backend.getDefaultRenderable().getSize() ),
-                        uniforms::spotlight::Value( nav::runtime::spotlight::value() ),
-                        uniforms::render_time::Value( nav::runtime::rendertime::value() ),
-                        uniforms::palette_color::Value( color ),
-                        uniforms::palette_lightness::Value( enableShaderPalette ? (color.r+color.g+color.b)/3. : 0. ),
-                        uniforms::water_wave::Value( enableWaterEffect ? util::clamp((parameters.state.getZoom()-13.)*.3,0.,1.) : 0. ),
-                        uniforms::water_data_z_scale::Value( pow(2.,16.-tile.id.canonical.z) ), // data_z [13,16]
-                        uniforms::clip_region::Value( nav::style::display::clip_region() ),
-                        uniforms::focus_region::Value( nav::style::display::focus_region() ),
-                    },
-                    paintPropertyBinders,
-                    evaluated,
-                    parameters.state.getZoom()
-                );
                 
                 const auto&& allAttributeBindings = programInstance.computeAllAttributeBindings(
                     *bucket.vertexBuffer,
@@ -140,7 +140,8 @@ void RenderFillLayer::render(PaintParameters& parameters) {
                                      gfx::CullFaceMode::disabled(),
                                      indexBuffer,
                                      segments,
-                                     allUniformValues,
+                                     layoutUniforms,
+                                     paintUniforms,
                                      allAttributeBindings,
                                      std::forward<decltype(textureBindings)>(textureBindings),
                                      getID());
@@ -201,20 +202,6 @@ void RenderFillLayer::render(PaintParameters& parameters) {
                                    auto&& textureBindings) {
                 const auto& paintPropertyBinders = bucket.paintPropertyBinders.at(getID());
                 paintPropertyBinders.setPatternParameters(patternPosA, patternPosB, crossfade);
-
-                const auto&& allUniformValues = programInstance.computeAllUniformValues(
-                    FillPatternProgram::layoutUniformValues(
-                        tile.translatedMatrix(evaluated.get<FillTranslate>(), evaluated.get<FillTranslateAnchor>(), parameters.state),
-                        parameters.backend.getDefaultRenderable().getSize(),
-                        tile.getIconAtlasTexture().size,
-                        crossfade,
-                        tile.id,
-                        parameters.state,
-                        parameters.pixelRatio),
-                    paintPropertyBinders,
-                    evaluated,
-                    parameters.state.getZoom()
-                );
                 
                 const auto&& allAttributeBindings = programInstance.computeAllAttributeBindings(
                     *bucket.vertexBuffer,
@@ -233,7 +220,15 @@ void RenderFillLayer::render(PaintParameters& parameters) {
                                      gfx::CullFaceMode::disabled(),
                                      indexBuffer,
                                      segments,
-                                     allUniformValues,
+                                     FillPatternProgram::layoutUniformValues(
+                                         tile.translatedMatrix(evaluated.get<FillTranslate>(), evaluated.get<FillTranslateAnchor>(), parameters.state),
+                                         parameters.backend.getDefaultRenderable().getSize(),
+                                         tile.getIconAtlasTexture().size,
+                                         crossfade,
+                                         tile.id,
+                                         parameters.state,
+                                         parameters.pixelRatio),
+                                     paintPropertyBinders.uniformValues(parameters.state.getZoom(), evaluated),
                                      allAttributeBindings,
                                      std::forward<decltype(textureBindings)>(textureBindings),
                                      getID());

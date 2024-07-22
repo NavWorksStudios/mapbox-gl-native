@@ -106,35 +106,25 @@ void RenderLineLayer::render(PaintParameters& parameters) {
         if (!renderData) {
             continue;
         }
-        auto& bucket = static_cast<LineBucket&>(*renderData->bucket);
+        
         const auto& evaluated = getEvaluated<LineLayerProperties>(renderData->layerProperties);
         const auto& crossfade = getCrossfade<LineLayerProperties>(renderData->layerProperties);
+        
+        auto& bucket = static_cast<LineBucket&>(*renderData->bucket);
+        const auto& paintPropertyBinders = bucket.paintBinders ? *bucket.paintBinders : bucket.getPaintPropertyBinders().at(getID());
+        const auto&& paintUniforms = paintPropertyBinders.uniformValues(parameters.state.getZoom(), evaluated);
 
         const auto draw = [&](auto& programInstance,
-                              auto&& uniformValues,
+                              const auto&& layoutUniforms,
                               const optional<ImagePosition>& patternPositionA,
                               const optional<ImagePosition>& patternPositionB, auto&& textureBindings) {
-            // 1.7%
-            const auto& paintPropertyBinders = bucket.paintPropertyBinders.at(getID());
-
-            // 5%
             paintPropertyBinders.setPatternParameters(patternPositionA, patternPositionB, crossfade);
 
-            // 17%
-            const auto&& allUniformValues =
-            programInstance.computeAllUniformValues(std::forward<decltype(uniformValues)>(uniformValues),
-                                                    paintPropertyBinders,
-                                                    evaluated,
-                                                    parameters.state.getZoom());
-            
-            // 6%
             const auto&& allAttributeBindings = 
             programInstance.computeAllAttributeBindings(*bucket.vertexBuffer, paintPropertyBinders, evaluated);
 
-            // 0.6%
             checkRenderability(parameters, programInstance.activeBindingCount(allAttributeBindings));
 
-            // 70%
             programInstance.draw(parameters.context,
                                  *parameters.renderPass,
                                  gfx::Triangles(),
@@ -144,7 +134,8 @@ void RenderLineLayer::render(PaintParameters& parameters) {
                                  gfx::CullFaceMode::disabled(),
                                  *bucket.indexBuffer,
                                  bucket.segments,
-                                 allUniformValues,
+                                 layoutUniforms,
+                                 paintUniforms,
                                  allAttributeBindings,
                                  std::forward<decltype(textureBindings)>(textureBindings),
                                  getID());

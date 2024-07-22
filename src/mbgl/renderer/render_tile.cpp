@@ -155,13 +155,9 @@ void RenderTile::finishRender(PaintParameters& parameters) const {
                      gfx::CullFaceMode::disabled(),
                      *debugBucket->indexBuffer,
                      debugBucket->segments,
-                     DebugProgram::computeAllUniformValues(
-                         DebugProgram::LayoutUniformValues{uniforms::matrix::Value(matrix),
-                                                           uniforms::color::Value(Color::white()),
-                                                           uniforms::overlay_scale::Value(1.0f)},
-                         paintAttributeData,
-                         properties,
-                         parameters.state.getZoom()),
+                     DebugProgram::LayoutUniformValues{
+                        uniforms::matrix::Value(matrix), uniforms::color::Value(Color::white()), uniforms::overlay_scale::Value(1.0f)},
+                     paintAttributeData.uniformValues(parameters.state.getZoom(), properties),
                      allAttributeBindings,
                      DebugProgram::TextureBindings{textures::image::Value{debugBucket->texture->getResource()}},
                      "text-outline");
@@ -175,13 +171,9 @@ void RenderTile::finishRender(PaintParameters& parameters) const {
                      gfx::CullFaceMode::disabled(),
                      *debugBucket->indexBuffer,
                      debugBucket->segments,
-                     DebugProgram::computeAllUniformValues(
-                         DebugProgram::LayoutUniformValues{uniforms::matrix::Value(matrix),
-                                                           uniforms::color::Value(Color::black()),
-                                                           uniforms::overlay_scale::Value(1.0f)},
-                         paintAttributeData,
-                         properties,
-                         parameters.state.getZoom()),
+                     DebugProgram::LayoutUniformValues{
+                        uniforms::matrix::Value(matrix), uniforms::color::Value(Color::black()), uniforms::overlay_scale::Value(1.0f)},
+                     paintAttributeData.uniformValues(parameters.state.getZoom(), properties),
                      allAttributeBindings,
                      DebugProgram::TextureBindings{textures::image::Value{debugBucket->texture->getResource()}},
                      "text");
@@ -202,13 +194,9 @@ void RenderTile::finishRender(PaintParameters& parameters) const {
             gfx::CullFaceMode::disabled(),
             *parameters.staticData.tileBorderIndexBuffer,
             debugBucket->tileBorderSegments,
-            DebugProgram::computeAllUniformValues(
-                DebugProgram::LayoutUniformValues{uniforms::matrix::Value(matrix),
-                                                  uniforms::color::Value(Color::red()),
-                                                  uniforms::overlay_scale::Value(1.0f)},
-                paintAttributeData,
-                properties,
-                parameters.state.getZoom()),
+            DebugProgram::LayoutUniformValues{
+                uniforms::matrix::Value(matrix), uniforms::color::Value(Color::red()), uniforms::overlay_scale::Value(1.0f)},
+            paintAttributeData.uniformValues(parameters.state.getZoom(), properties),
             DebugProgram::computeAllAttributeBindings(
                 *parameters.staticData.tileVertexBuffer, paintAttributeData, properties),
             DebugProgram::TextureBindings{textures::image::Value{debugBucket->texture->getResource()}},

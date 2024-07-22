@@ -243,7 +243,7 @@ public:
 template <class Name,
           gfx::PrimitiveType Primitive,
           class LayoutAttributeList,
-          class LayoutUniformList,
+          class LayoutUniformList_,
           class Textures,
           class PaintProps>
 class SymbolProgram : public SymbolProgramBase {
@@ -259,11 +259,12 @@ public:
     using AttributeList = TypeListConcat<LayoutAndSizeAttributeList, PaintAttributeList>;
     using AttributeBindings = gfx::AttributeBindings<AttributeList>;
 
+    using LayoutUniformList = LayoutUniformList_;
     using LayoutUniformValues = gfx::UniformValues<LayoutUniformList>;
     using SizeUniformList = typename SymbolSizeBinder::UniformList;
+    using SizeUniformValues = gfx::UniformValues<SizeUniformList>;
     using PaintUniformList = typename Binders::UniformList;
-    using UniformList = TypeListConcat<LayoutUniformList, SizeUniformList, PaintUniformList>;
-    using UniformValues = gfx::UniformValues<UniformList>;
+    using PaintUniformValues = gfx::UniformValues<PaintUniformList>;
 
     using TextureList = Textures;
     using TextureBindings = gfx::TextureBindings<TextureList>;
@@ -272,16 +273,6 @@ public:
 
     SymbolProgram(gfx::Context& context, const ProgramParameters& programParameters)
         : program(context.createProgram<Name>(programParameters)) {
-    }
-
-    static UniformValues computeAllUniformValues(
-        const LayoutUniformValues& layoutUniformValues,
-        const SymbolSizeBinder& symbolSizeBinder,
-        const Binders& paintPropertyBinders,
-        const typename PaintProperties::PossiblyEvaluated& currentProperties,
-        float currentZoom) {
-        return layoutUniformValues.concat(symbolSizeBinder.uniformValues(currentZoom))
-            .concat(paintPropertyBinders.uniformValues(currentZoom, currentProperties));
     }
 
     static AttributeBindings computeAllAttributeBindings(
@@ -301,7 +292,7 @@ public:
     static uint32_t activeBindingCount(const AttributeBindings& allAttributeBindings) {
         return allAttributeBindings.activeCount();
     }
-
+    
     template <class DrawMode>
     void draw(gfx::Context& context,
               gfx::RenderPass& renderPass,
@@ -312,7 +303,9 @@ public:
               const gfx::CullFaceMode& cullFaceMode,
               const gfx::IndexBuffer& indexBuffer,
               const Segment<AttributeList>& segment,
-              const UniformValues& uniformValues,
+              const LayoutUniformValues& layoutUniforms,
+              const SizeUniformValues& sizeUniforms,
+              const PaintUniformValues& paintUniforms,
               const AttributeBindings& allAttributeBindings,
               const TextureBindings& textureBindings,
               const std::string& layerID) {
@@ -335,7 +328,9 @@ public:
             stencilMode,
             colorMode,
             cullFaceMode,
-            uniformValues,
+            layoutUniforms,
+            sizeUniforms,
+            paintUniforms,
             drawScopeIt->second,
             allAttributeBindings.offset(segment.vertexOffset),
             textureBindings,
@@ -354,7 +349,9 @@ public:
               const gfx::CullFaceMode& cullFaceMode,
               const gfx::IndexBuffer& indexBuffer,
               const SegmentVector<AttributeList>& segments,
-              const UniformValues& uniformValues,
+              const LayoutUniformValues& layoutUniforms,
+              const SizeUniformValues& sizeUniforms,
+              const PaintUniformValues& paintUniforms,
               const AttributeBindings& allAttributeBindings,
               const TextureBindings& textureBindings,
               const std::string& layerID) {
@@ -374,7 +371,9 @@ public:
                  cullFaceMode,
                  indexBuffer,
                  segment,
-                 uniformValues,
+                 layoutUniforms,
+                 sizeUniforms,
+                 paintUniforms,
                  allAttributeBindings,
                  textureBindings,
                  layerID);

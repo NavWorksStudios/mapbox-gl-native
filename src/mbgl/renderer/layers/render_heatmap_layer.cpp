@@ -114,14 +114,6 @@ void RenderHeatmapLayer::render(PaintParameters& parameters) {
 
             auto& programInstance = parameters.programs.getHeatmapLayerPrograms().heatmap;
 
-            const auto allUniformValues = HeatmapProgram::computeAllUniformValues(
-                HeatmapProgram::LayoutUniformValues{
-                    uniforms::intensity::Value(evaluated.get<style::HeatmapIntensity>()),
-                    uniforms::matrix::Value(tile.matrix),
-                    uniforms::heatmap::extrude_scale::Value(extrudeScale)},
-                paintPropertyBinders,
-                evaluated,
-                parameters.state.getZoom());
             const auto allAttributeBindings =
                 HeatmapProgram::computeAllAttributeBindings(*bucket.vertexBuffer, paintPropertyBinders, evaluated);
 
@@ -136,7 +128,11 @@ void RenderHeatmapLayer::render(PaintParameters& parameters) {
                                  gfx::CullFaceMode::disabled(),
                                  *bucket.indexBuffer,
                                  bucket.segments,
-                                 allUniformValues,
+                                 HeatmapProgram::LayoutUniformValues{
+                                     uniforms::intensity::Value(evaluated.get<style::HeatmapIntensity>()),
+                                     uniforms::matrix::Value(tile.matrix),
+                                     uniforms::heatmap::extrude_scale::Value(extrudeScale)},
+                                 paintPropertyBinders.uniformValues(parameters.state.getZoom(), evaluated),
                                  allAttributeBindings,
                                  HeatmapProgram::TextureBindings{},
                                  getID());
@@ -153,15 +149,6 @@ void RenderHeatmapLayer::render(PaintParameters& parameters) {
 
         auto& programInstance = parameters.programs.getHeatmapLayerPrograms().heatmapTexture;
 
-        const auto allUniformValues = HeatmapTextureProgram::computeAllUniformValues(
-            HeatmapTextureProgram::LayoutUniformValues{
-                uniforms::matrix::Value(viewportMat),
-                uniforms::world::Value(size),
-                uniforms::opacity::Value(
-                    getEvaluated<HeatmapLayerProperties>(evaluatedProperties).get<HeatmapOpacity>())},
-            paintAttributeData,
-            properties,
-            parameters.state.getZoom());
         const auto allAttributeBindings = HeatmapTextureProgram::computeAllAttributeBindings(
             *parameters.staticData.heatmapTextureVertexBuffer, paintAttributeData, properties);
 
@@ -181,7 +168,11 @@ void RenderHeatmapLayer::render(PaintParameters& parameters) {
             gfx::CullFaceMode::disabled(),
             *parameters.staticData.quadTriangleIndexBuffer,
             segments,
-            allUniformValues,
+            HeatmapTextureProgram::LayoutUniformValues{
+                uniforms::matrix::Value(viewportMat),
+                uniforms::world::Value(size),
+                uniforms::opacity::Value(getEvaluated<HeatmapLayerProperties>(evaluatedProperties).get<HeatmapOpacity>())},
+            paintAttributeData.uniformValues(parameters.state.getZoom(), properties),
             allAttributeBindings,
             HeatmapTextureProgram::TextureBindings{
                 textures::image::Value{renderTexture->getTexture().getResource(), gfx::TextureFilterType::Linear},

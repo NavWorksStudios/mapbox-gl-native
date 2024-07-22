@@ -24,6 +24,10 @@ LineBucket::LineBucket(LineBucket::PossiblyEvaluatedLayoutProperties layout_,
                 getEvaluated<LineLayerProperties>(pair.second),
                 zoom));
     }
+    
+    if (paintPropertyBinders.size() == 1) {
+        paintBinders = &paintPropertyBinders.begin()->second;
+    }
 }
 
 LineBucket::~LineBucket() = default;
