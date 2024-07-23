@@ -683,8 +683,6 @@ public:
     using UniformList = TypeListConcat<InterpolationUniformList<Ps>..., typename Ps::UniformList...>;
     using UniformValues = gfx::UniformValues<UniformList>;
     
-    
-    
     template<typename... Args> struct UniformBinder;
     
     template <>
@@ -700,7 +698,8 @@ public:
             const std::unique_ptr<typename Property<T>::Binder>& binder = binders.template get<T>();
             
             // interpolation uniform values
-            auto& interpolation = uniforms.template get<InterpolationUniform<typename T::Attribute>>();
+            using Interpolation = InterpolationUniform<typename T::Attribute>;
+            typename Interpolation::Value& interpolation = uniforms.template get<Interpolation>();
             binder->bindInterpolationFactor(&interpolation, zoom);
 
             // uniform values
