@@ -19,6 +19,7 @@
 #include <mbgl/util/math.hpp>
 
 #include "mbgl/nav/nav_mb_style.hpp"
+#include "mbgl/nav/nav_mb_palette.hpp"
 
 namespace mbgl {
 
@@ -110,7 +111,7 @@ void RenderFillLayer::render(PaintParameters& parameters) {
             auto& bucket = static_cast<FillBucket&>(*renderData->bucket);
             const auto& evaluated = getEvaluated<FillLayerProperties>(renderData->layerProperties);
             const auto& paintPropertyBinders = bucket.paintPropertyBinders.at(getID());
-            const auto&& paintUniforms = paintPropertyBinders.uniformValues(parameters.state.getZoom(), evaluated);
+            const auto& paintUniforms = paintPropertyBinders.uniformValues(parameters.state.getZoom(), evaluated);
             
             const auto& matrix = tile.translatedMatrix(evaluated.get<FillTranslate>(), evaluated.get<FillTranslateAnchor>(), parameters.state);
             layoutUniforms.template get<uniforms::matrix>() = matrix;
