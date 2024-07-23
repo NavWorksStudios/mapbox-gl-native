@@ -94,7 +94,7 @@ void RenderFillExtrusionLayer::render(PaintParameters& parameters) {
                           const std::string& uniqueName) {
         const auto& paintPropertyBinders = tileBucket.paintPropertyBinders.at(getID());
         paintPropertyBinders.setPatternParameters(patternPositionA, patternPositionB, crossfade_);
-        const auto&& paintUniforms = paintPropertyBinders.uniformValues(parameters.state.getZoom(), evaluated_);
+        const auto& paintUniforms = paintPropertyBinders.uniformValues(parameters.state.getZoom(), evaluated_);
 
         const auto&& allAttributeBindings = programInstance.computeAllAttributeBindings(
             *tileBucket.vertexBuffer,

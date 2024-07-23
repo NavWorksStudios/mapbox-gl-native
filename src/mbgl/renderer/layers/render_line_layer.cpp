@@ -112,7 +112,7 @@ void RenderLineLayer::render(PaintParameters& parameters) {
         
         auto& bucket = static_cast<LineBucket&>(*renderData->bucket);
         const auto& paintPropertyBinders = bucket.paintBinders ? *bucket.paintBinders : bucket.getPaintPropertyBinders().at(getID());
-        const auto&& paintUniforms = paintPropertyBinders.uniformValues(parameters.state.getZoom(), evaluated);
+        const auto& paintUniforms = paintPropertyBinders.uniformValues(parameters.state.getZoom(), evaluated);
 
         const auto draw = [&](auto& programInstance,
                               const auto&& layoutUniforms,

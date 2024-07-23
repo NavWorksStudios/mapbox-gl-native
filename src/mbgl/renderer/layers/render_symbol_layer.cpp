@@ -362,7 +362,7 @@ void RenderSymbolLayer::render(PaintParameters& parameters) {
                                            const auto& textureBindings,
                                            const std::string& suffix) {
         const auto&& sizeUniforms = symbolSizeBinder->uniformValues(parameters.state.getZoom());
-        const auto&& paintUniforms = binders.uniformValues(parameters.state.getZoom(), paintProperties);
+        const auto& paintUniforms = binders.uniformValues(parameters.state.getZoom(), paintProperties);
 
         const auto&& allAttributeBindings = programInstance.computeAllAttributeBindings(
             *buffers.vertexBuffer,

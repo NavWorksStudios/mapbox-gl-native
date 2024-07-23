@@ -114,7 +114,7 @@ void RenderRasterLayer::render(PaintParameters& parameters) {
             uniforms::tl_parent::Value(std::array<float, 2>{{0.0f, 0.0f}}),
         };
         
-        const auto&& paintUniforms = 
+        const auto& paintUniforms = 
             paintAttributeData.uniformValues(parameters.state.getZoom(), evaluated);
         
         const auto allAttributeBindings =

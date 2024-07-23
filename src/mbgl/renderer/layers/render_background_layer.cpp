@@ -68,7 +68,7 @@ void RenderBackgroundLayer::render(PaintParameters& parameters) {
 
     const Properties<>::PossiblyEvaluated properties;
     const BackgroundProgram::Binders paintAttributeData(properties, 0);
-    const auto&& paintUniforms = paintAttributeData.uniformValues(parameters.state.getZoom(), properties);
+    const auto& paintUniforms = paintAttributeData.uniformValues(parameters.state.getZoom(), properties);
 
     auto draw = [&](auto& program, 
                     auto&& layoutUniforms,

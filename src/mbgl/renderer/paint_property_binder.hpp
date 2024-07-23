@@ -120,8 +120,8 @@ public:
     virtual void upload(gfx::UploadPass&) = 0;
     virtual void setPatternParameters(const optional<ImagePosition>&, const optional<ImagePosition>&, const CrossfadeParameters&) = 0;
     virtual std::tuple<ExpandToType<As, optional<gfx::AttributeBinding>>...> attributeBinding(const PossiblyEvaluatedType& currentValue) const = 0;
-    virtual std::tuple<ExpandToType<As, float>...> interpolationFactor(float currentZoom) const = 0;
-    virtual std::tuple<ExpandToType<As, UniformValueType>...> uniformValue(const PossiblyEvaluatedType& currentValue) const = 0;
+    virtual void bindInterpolationFactor(float* target, float zoom) const = 0;
+    virtual void bindUniformValue(UniformValueType* target, const PossiblyEvaluatedType& evaluated) const = 0;
 
     static std::unique_ptr<PaintPropertyBinder> create(const PossiblyEvaluatedType& value, float zoom, T defaultValue);
 
@@ -149,13 +149,13 @@ public:
     std::tuple<optional<gfx::AttributeBinding>> attributeBinding(const PossiblyEvaluatedPropertyValue<T>&) const override {
         return {};
     }
-
-    std::tuple<float> interpolationFactor(float) const override {
-        return std::tuple<float> { 0.0f };
+    
+    void bindInterpolationFactor(float* target, float) const override {
+        target[0] = 0.0f;
     }
 
-    std::tuple<T> uniformValue(const PossiblyEvaluatedPropertyValue<T>& currentValue) const override {
-        return std::tuple<T> { currentValue.constantOr(constant) };
+    void bindUniformValue(T* target, const PossiblyEvaluatedPropertyValue<T>& evaluated) const override {
+        target[0] = evaluated.constantOr(constant);
     }
 
 private:
@@ -163,10 +163,10 @@ private:
 };
 
 template <class T, class... As>
-class ConstantCrossFadedPaintPropertyBinder final : public PaintPropertyBinder<T, std::array<uint16_t, 4>,PossiblyEvaluatedPropertyValue<Faded<T>>, As...> {
+class ConstantCrossFadedPaintPropertyBinder final : public PaintPropertyBinder<T, std::array<uint16_t, 4>, PossiblyEvaluatedPropertyValue<Faded<T>>, As...> {
 public:
     ConstantCrossFadedPaintPropertyBinder(Faded<T> constant_)
-        : constant(std::move(constant_)), constantPatternPositions({}) {
+        : constant(std::move(constant_)) {
     }
 
     void populateVertexVector(const GeometryTileFeature&,
@@ -183,7 +183,8 @@ public:
         if (!posA || !posB) {
             return;
         } else {
-            constantPatternPositions = std::tuple<std::array<uint16_t, 4>, std::array<uint16_t, 4>> { posB->tlbr(), posA->tlbr() };
+            constantPatternPositions[0] = posB->tlbr();
+            constantPatternPositions[1] = posA->tlbr();
         }
     }
 
@@ -192,17 +193,19 @@ public:
         return {};
     }
 
-    std::tuple<float, float> interpolationFactor(float) const override {
-        return std::tuple<float, float> { 0.0f, 0.0f };
+    void bindInterpolationFactor(float* target, float) const override {
+        target[0] = 0.0f;
+        target[1] = 0.0f;
     }
 
-    std::tuple<std::array<uint16_t, 4>, std::array<uint16_t, 4>> uniformValue(const PossiblyEvaluatedPropertyValue<Faded<T>>&) const override {
-        return constantPatternPositions;
+    void bindUniformValue(std::array<uint16_t, 4>* target, const PossiblyEvaluatedPropertyValue<Faded<T>>&)  const override {
+        target[0] = constantPatternPositions[0];
+        target[1] = constantPatternPositions[1];
     }
 
 private:
     Faded<T> constant;
-    std::tuple<std::array<uint16_t, 4>, std::array<uint16_t, 4>> constantPatternPositions;
+    std::array<uint16_t, 4> constantPatternPositions[2];
 };
 
 template <class T, class A>
@@ -291,16 +294,15 @@ public:
         }
     }
 
-    std::tuple<float> interpolationFactor(float) const override {
-        return std::tuple<float> { 0.0f };
+    void bindInterpolationFactor(float* target, float) const override {
+        target[0] = 0.0f;
     }
 
-    std::tuple<T> uniformValue(const PossiblyEvaluatedPropertyValue<T>& currentValue) const override {
-        if (currentValue.isConstant()) {
-            return std::tuple<T>{ *currentValue.constant() };
+    void bindUniformValue(T* target, const PossiblyEvaluatedPropertyValue<T>& evaluated) const override {
+        if (evaluated.isConstant()) {
+            target[0] = *evaluated.constant();
         } else {
             // Uniform values for vertex attribute arrays are unused.
-            return {};
         }
     }
 
@@ -413,22 +415,19 @@ public:
         }
     }
 
-    std::tuple<float> interpolationFactor(float currentZoom) const override {
-        const float possiblyRoundedZoom = expression.useIntegerZoom ? std::floor(currentZoom) : currentZoom;
-
-        return std::tuple<float>{
-            ::fmax(0.0, ::fmin(1.0, expression.interpolationFactor(zoomRange, possiblyRoundedZoom)))};
+    void bindInterpolationFactor(float* target, float zoom) const override {
+        const float possiblyRoundedZoom = expression.useIntegerZoom ? std::floor(zoom) : zoom;
+        target[0] = ::fmax(0.0, ::fmin(1.0, expression.interpolationFactor(zoomRange, possiblyRoundedZoom)));
     }
 
-    std::tuple<T> uniformValue(const PossiblyEvaluatedPropertyValue<T>& currentValue) const override {
-        if (currentValue.isConstant()) {
-            return std::tuple<T> { *currentValue.constant() };
+    void bindUniformValue(T* target, const PossiblyEvaluatedPropertyValue<T>& evaluated) const override {
+        if (evaluated.isConstant()) {
+            target[0] = *evaluated.constant();
         } else {
             // Uniform values for vertex attribute arrays are unused.
-            return {};
         }
     }
-
+    
 private:
     style::PropertyExpression<T> expression;
     T defaultValue;
@@ -524,14 +523,14 @@ public:
             return std::tuple<optional<gfx::AttributeBinding>, optional<gfx::AttributeBinding>>{{}, {}};
         }
     }
-
-    std::tuple<float, float> interpolationFactor(float) const override {
-        return std::tuple<float, float> { 0.0f, 0.0f };
+    
+    void bindInterpolationFactor(float* target, float) const override {
+        target[0] = 0.0f;
+        target[1] = 0.0f;
     }
 
-    std::tuple<std::array<uint16_t, 4>, std::array<uint16_t, 4>>  uniformValue(const PossiblyEvaluatedPropertyValue<Faded<T>>& ) const override {
+    void bindUniformValue(std::array<uint16_t, 4>*, const PossiblyEvaluatedPropertyValue<Faded<T>>&)  const override {
         // Uniform values for vertex attribute arrays are unused.
-        return {};
     }
 
 private:
@@ -609,9 +608,10 @@ private:
     template <class T, class PossiblyEvaluatedType, class... As>
     struct Detail;
 
-    template <class T, class UniformValueType, class PossiblyEvaluatedType, class... As>
-    struct Detail<T, UniformValueType, PossiblyEvaluatedType, TypeList<As...>> {
-        using Binder = PaintPropertyBinder<T, UniformValueType, PossiblyEvaluatedType, typename As::Type...>;
+    template <class T, class UniformValueType_, class PossiblyEvaluatedType, class... As>
+    struct Detail<T, UniformValueType_, PossiblyEvaluatedType, TypeList<As...>> {
+        using UniformValueType = UniformValueType_;
+        using Binder = PaintPropertyBinder<T, UniformValueType_, PossiblyEvaluatedType, typename As::Type...>;
         using ZoomInterpolatedAttributeList = TypeList<ZoomInterpolatedAttribute<As>...>;
         using InterpolationUniformList = TypeList<InterpolationUniform<As>...>;
     };
@@ -682,17 +682,47 @@ public:
 
     using UniformList = TypeListConcat<InterpolationUniformList<Ps>..., typename Ps::UniformList...>;
     using UniformValues = gfx::UniformValues<UniformList>;
+    
+    
+    
+    template<typename... Args> struct UniformBinder;
+    
+    template <>
+    struct UniformBinder<> {
+        template <class EvaluatedProperties>
+        static void bind(const Binders& , UniformValues& , float , EvaluatedProperties& ) {}
+    };
+    
+    template <typename T>
+    struct UniformBinder<T> {
+        template <class EvaluatedProperties>
+        static void bind(const Binders& binders, UniformValues& uniforms, float zoom, EvaluatedProperties& evaluated) {
+            const std::unique_ptr<typename Property<T>::Binder>& binder = binders.template get<T>();
+            
+            // interpolation uniform values
+            auto& interpolation = uniforms.template get<InterpolationUniform<typename T::Attribute>>();
+            binder->bindInterpolationFactor(&interpolation, zoom);
+
+            // uniform values
+            auto& uniform = uniforms.template get<typename T::Uniform>();
+            binder->bindUniformValue(&uniform, evaluated.template get<T>());
+        }
+    };
+
+    template <typename T, typename... Rest>
+    struct UniformBinder<T, Rest...> {
+        template <class EvaluatedProperties>
+        static void bind(const Binders& binders, UniformValues& uniforms, float zoom, EvaluatedProperties& evaluated) {
+            UniformBinder<T>::bind(binders, uniforms, zoom, evaluated);
+            UniformBinder<Rest...>::bind(binders, uniforms, zoom, evaluated);
+        }
+    };
 
     template <class EvaluatedProperties>
-    UniformValues uniformValues(float currentZoom, EvaluatedProperties& currentProperties) const {
-        (void)currentZoom; // Workaround for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=56958
-        return UniformValues (
-            std::tuple_cat(
-                // interpolation uniform values
-                binders.template get<Ps>()->interpolationFactor(currentZoom)...,
-                // uniform values
-                binders.template get<Ps>()->uniformValue(currentProperties.template get<Ps>())...)
-        );
+    const UniformValues& uniformValues(float zoom, EvaluatedProperties& properties) const {
+        (void)zoom; // Workaround for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=56958
+        UniformBinder<Ps...>::bind(binders, uniforms, zoom, properties);
+        return uniforms;
     }
 
     template <class P>
@@ -702,6 +732,7 @@ public:
 
 private:
     Binders binders;
+    mutable UniformValues uniforms;
 };
 
 } // namespace mbgl
