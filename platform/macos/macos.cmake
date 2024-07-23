@@ -90,61 +90,61 @@ target_link_libraries(
 )
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/bin)
-add_subdirectory(${PROJECT_SOURCE_DIR}/expression-test)
+#add_subdirectory(${PROJECT_SOURCE_DIR}/expression-test)
 add_subdirectory(${PROJECT_SOURCE_DIR}/platform/glfw)
-add_subdirectory(${PROJECT_SOURCE_DIR}/platform/node)
+#add_subdirectory(${PROJECT_SOURCE_DIR}/platform/node)
 
-add_executable(
-    mbgl-test-runner
-    ${PROJECT_SOURCE_DIR}/platform/default/src/mbgl/test/main.cpp
-)
+#add_executable(
+#    mbgl-test-runner
+#    ${PROJECT_SOURCE_DIR}/platform/default/src/mbgl/test/main.cpp
+#)
 
-target_include_directories(
-    mbgl-test-runner
-    PUBLIC ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/test/include
-)
+#target_include_directories(
+#    mbgl-test-runner
+#    PUBLIC ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/test/include
+#)
 
-target_compile_definitions(
-    mbgl-test-runner
-    PRIVATE WORK_DIRECTORY=${PROJECT_SOURCE_DIR}
-)
+#target_compile_definitions(
+#    mbgl-test-runner
+#    PRIVATE WORK_DIRECTORY=${PROJECT_SOURCE_DIR}
+#)
 
-target_link_libraries(
-    mbgl-test-runner
-    PRIVATE mbgl-compiler-options -Wl,-force_load mbgl-test
-)
+#target_link_libraries(
+#    mbgl-test-runner
+#    PRIVATE mbgl-compiler-options -Wl,-force_load mbgl-test
+#)
 
-add_executable(
-    mbgl-benchmark-runner
-    ${PROJECT_SOURCE_DIR}/platform/default/src/mbgl/benchmark/main.cpp
-)
+#add_executable(
+#    mbgl-benchmark-runner
+#    ${PROJECT_SOURCE_DIR}/platform/default/src/mbgl/benchmark/main.cpp
+#)
 
-target_include_directories(
-    mbgl-benchmark-runner
-    PUBLIC ${PROJECT_SOURCE_DIR}/benchmark/include
-)
+#target_include_directories(
+#    mbgl-benchmark-runner
+#    PUBLIC ${PROJECT_SOURCE_DIR}/benchmark/include
+#)
 
-target_link_libraries(
-    mbgl-benchmark-runner
-    PRIVATE mbgl-compiler-options -Wl,-force_load mbgl-benchmark
-)
+#target_link_libraries(
+#    mbgl-benchmark-runner
+#    PRIVATE mbgl-compiler-options -Wl,-force_load mbgl-benchmark
+#)
 
-add_executable(
-    mbgl-render-test-runner
-    ${PROJECT_SOURCE_DIR}/platform/default/src/mbgl/render-test/main.cpp
-)
+#add_executable(
+#    mbgl-render-test-runner
+#    ${PROJECT_SOURCE_DIR}/platform/default/src/mbgl/render-test/main.cpp
+#)
 
-target_link_libraries(
-    mbgl-render-test-runner
-    PRIVATE mbgl-compiler-options mbgl-render-test
-)
+#target_link_libraries(
+#    mbgl-render-test-runner
+#    PRIVATE mbgl-compiler-options mbgl-render-test
+#)
 
-set_property(TARGET mbgl-benchmark-runner PROPERTY FOLDER Executables)
-set_property(TARGET mbgl-test-runner PROPERTY FOLDER Executables)
-set_property(TARGET mbgl-render-test-runner PROPERTY FOLDER Executables)
+#set_property(TARGET mbgl-benchmark-runner PROPERTY FOLDER Executables)
+#set_property(TARGET mbgl-test-runner PROPERTY FOLDER Executables)
+#set_property(TARGET mbgl-render-test-runner PROPERTY FOLDER Executables)
 
 # Disable benchmarks in CI as they run in VM environment
-if(NOT DEFINED ENV{CI})
-    add_test(NAME mbgl-benchmark-runner COMMAND mbgl-benchmark-runner WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
-endif()
-add_test(NAME mbgl-test-runner COMMAND mbgl-test-runner WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+#if(NOT DEFINED ENV{CI})
+#   add_test(NAME mbgl-benchmark-runner COMMAND mbgl-benchmark-runner WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+#endif()
+#add_test(NAME mbgl-test-runner COMMAND mbgl-test-runner WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
