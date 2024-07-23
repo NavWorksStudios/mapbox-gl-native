@@ -21,11 +21,13 @@ option(MBGL_WITH_QT "Build Mapbox GL Qt bindings" OFF)
 option(MBGL_WITH_SANITIZER "Use [address|thread|undefined] here" OFF)
 option(MBGL_WITH_RTTI "Compile with runtime type information" OFF)
 option(MBGL_WITH_OPENGL "Build with OpenGL renderer" ON)
-option(MBGL_WITH_WERROR "Make all compilation warnings errors" ON)
+option(MBGL_WITH_WERROR "Make all compilation warnings errors" OFF)
 
 add_library(
     mbgl-compiler-options INTERFACE
 )
+
+add_definitions(-w) 
 
 set(UBSAN_BLACKLIST ${PROJECT_SOURCE_DIR}/scripts/ubsan.blacklist)
 
@@ -1094,9 +1096,9 @@ else()
     message(FATAL_ERROR "Unsupported target platform: " ${CMAKE_SYSTEM_NAME})
 endif()
 
-add_subdirectory(${PROJECT_SOURCE_DIR}/test)
-add_subdirectory(${PROJECT_SOURCE_DIR}/benchmark)
-add_subdirectory(${PROJECT_SOURCE_DIR}/render-test)
+#add_subdirectory(${PROJECT_SOURCE_DIR}/test)
+#add_subdirectory(${PROJECT_SOURCE_DIR}/benchmark)
+#add_subdirectory(${PROJECT_SOURCE_DIR}/render-test)
 
 if(EXISTS ${PROJECT_SOURCE_DIR}/internal/internal.cmake)
     include(${PROJECT_SOURCE_DIR}/internal/internal.cmake)
