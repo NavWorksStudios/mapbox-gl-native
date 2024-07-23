@@ -8,6 +8,9 @@
 #include <mbgl/gfx/context.hpp>
 #include <mbgl/util/logging.hpp>
 
+#include "mbgl/nav/nav_mb_style.hpp"
+#include "mbgl/nav/nav_mb_palette.hpp"
+
 namespace mbgl {
 
 using namespace style;
@@ -103,8 +106,21 @@ void RenderLayer::addRenderPassesFromTiles() {
 const LayerRenderData* RenderLayer::getRenderDataForPass(size_t index, RenderPass pass) const {
     if (const LayerRenderData* renderData = renderDatas[index]) {
         return bool(RenderPass(renderData->layerProperties->renderPasses) & pass) ? renderData : nullptr;
+    } else {
+        return nullptr;
     }
-    return nullptr;
+}
+
+void RenderLayer::bindToPalette(const std::string& id, const std::string& tag, style::PropertyValue<Color>& value) const {
+    if (value.isConstant()) {
+        nav::style::Domain domain1(id);
+        nav::style::Domain domain2(tag);
+        nav::style::Domain domain3("constant");
+        nav::palette::bind(domain3, value.asConstant(),
+        [&value](const Color& color) {
+            value = color;
+        });
+    }
 }
 
 } //namespace mbgl
