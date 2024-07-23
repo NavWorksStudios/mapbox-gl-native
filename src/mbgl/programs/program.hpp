@@ -77,7 +77,7 @@ public:
               const PaintUniformValues& paintUniform,
               const AttributeBindings& allAttributeBindings,
               const TextureBindings& textureBindings,
-              const std::string& layerID) {
+              const nav::stringid& layerID) {
         static_assert(Primitive == gfx::PrimitiveTypeOf<DrawMode>::value, "incompatible draw mode");
 
         if (!program) {
@@ -120,7 +120,7 @@ public:
               const PaintUniformValues& paintUniform,
               const AttributeBindings& allAttributeBindings,
               const TextureBindings& textureBindings,
-              const std::string& layerID) {
+              const nav::stringid& layerID) {
         static_assert(Primitive == gfx::PrimitiveTypeOf<DrawMode>::value, "incompatible draw mode");
 
         if (!program) {
@@ -168,7 +168,7 @@ public:
               const PaintUniformValues& paintUniform,
               const AttributeBindings& allAttributeBindings,
               const TextureBindings& textureBindings,
-              const std::string& layerID) {
+              const nav::stringid& layerID) {
         static_assert(Primitive == gfx::PrimitiveTypeOf<DrawMode>::value, "incompatible draw mode");
 
         if (!program) {
@@ -213,7 +213,7 @@ public:
               const PaintUniformValues& paintUniform,
               const AttributeBindings& allAttributeBindings,
               const TextureBindings& textureBindings,
-              const std::string& layerID) {
+              const nav::stringid& layerID) {
         static_assert(Primitive == gfx::PrimitiveTypeOf<DrawMode>::value, "incompatible draw mode");
 
         if (!program) {
