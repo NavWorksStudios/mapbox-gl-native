@@ -12,30 +12,29 @@ namespace mbgl {
 template <class T>
 class PossiblyEvaluatedPropertyValue {
 private:
-    using Value = variant<T, style::PropertyExpression<T>>;
+    using Value = variant<
+        T,
+        style::PropertyExpression<T>>;
+
     Value value;
-    T* constantPtr = nullptr;
 
 public:
     PossiblyEvaluatedPropertyValue() = default;
-    PossiblyEvaluatedPropertyValue(const Value& v) { *this = v; }
-    PossiblyEvaluatedPropertyValue(const PossiblyEvaluatedPropertyValue& other) { *this = other.value; }
-    
-    void operator = (Value v) {
-        value = std::move(v);
-        constantPtr = value.template is<T>() ? &value.template get<T>() : nullptr;
-    }
+    PossiblyEvaluatedPropertyValue(Value v)
+        : value(std::move(v)) {}
 
     bool isConstant() const {
-        return constantPtr != nullptr;
+        return value.template is<T>();
     }
 
     optional<T> constant() const {
-        return constantPtr ? *constantPtr : optional<T>();
+        return value.match(
+            [&] (const T& t) { return optional<T>(t); },
+            [&] (const auto&) { return optional<T>(); });
     }
 
     T constantOr(const T& t) const {
-        return constantPtr ? *constantPtr : t;
+        return constant().value_or(t);
     }
 
     template <class... Ts>
@@ -73,30 +72,29 @@ public:
 template <class T>
 class PossiblyEvaluatedPropertyValue<Faded<T>> {
 private:
-    using Value = variant<Faded<T>, style::PropertyExpression<T>>;
+    using Value = variant<
+        Faded<T>,
+        style::PropertyExpression<T>>;
+
     Value value;
-    Faded<T>* constantPtr = nullptr;
 
 public:
     PossiblyEvaluatedPropertyValue() = default;
-    PossiblyEvaluatedPropertyValue(const Value& v) { *this = v; }
-    PossiblyEvaluatedPropertyValue(const PossiblyEvaluatedPropertyValue& other) { *this = other.value; }
-    
-    void operator = (Value v) {
-        value = std::move(v);
-        constantPtr = value.template is<Faded<T>>() ? &value.template get<Faded<T>>() : nullptr;
-    }
+    PossiblyEvaluatedPropertyValue(Value v)
+        : value(std::move(v)) {}
 
     bool isConstant() const {
-        return constantPtr != nullptr;
+        return value.template is<Faded<T>>();
     }
 
     optional<Faded<T>> constant() const {
-        return constantPtr ? *constantPtr : optional<Faded<T>>();
+        return value.match(
+            [&] (const Faded<T>& t) { return optional<Faded<T>>(t); },
+            [&] (const auto&) { return optional<Faded<T>>(); });
     }
 
     Faded<T> constantOr(const Faded<T>& t) const {
-        return constantPtr ? *constantPtr : t;
+        return constant().value_or(t);
     }
 
     template <class... Ts>
