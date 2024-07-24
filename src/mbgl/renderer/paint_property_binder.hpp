@@ -687,27 +687,19 @@ public:
     const UniformValues& uniformValues(float zoom, EvaluatedProperties& properties) const {
         (void)zoom; // Workaround for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=56958
 
-        // interpolation uniform values
-        if (lastzoom != zoom) {
-            lastzoom = zoom;
-            
-            auto updateInterpolation = [] (const auto& binder, auto& interpolation, float zoom) {
-                binder->bindInterpolationFactor(&interpolation, zoom);
-            };
-            
-            util::ignore({ (updateInterpolation(binders.template get<Ps>(),
-                                                uniforms.template get<InterpolationUniform<typename Ps::Attribute>>(),
-                                                zoom), 0) ... });
-        }
-        
-        // uniform values
-        auto updateUniform = [] (const auto& binder, auto& uniform, auto& evaluated) {
+        auto update = [] (const auto& binder, auto& interpolation, auto& uniform, float zoom, auto& evaluated) {
+            // interpolation uniform values
+            if (zoom > 0) binder->bindInterpolationFactor(&interpolation, zoom);
+
+            // uniform values
             binder->bindUniformValue(&uniform, evaluated);
         };
-        
-        util::ignore({ (updateUniform(binders.template get<Ps>(),
-                                      uniforms.template get<typename Ps::Uniform>(),
-                                      properties.template get<Ps>()), 0) ... });
+
+        const float z = (lastzoom == zoom) ? 0 : lastzoom = zoom;
+        util::ignore({ (update(binders.template get<Ps>(),
+                               uniforms.template get<InterpolationUniform<typename Ps::Attribute>>(),
+                               uniforms.template get<typename Ps::Uniform>(),
+                               z, properties.template get<Ps>()), 0) ... });
 
         return uniforms;
     }
