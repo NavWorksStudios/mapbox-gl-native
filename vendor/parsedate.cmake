@@ -1,11 +1,21 @@
 if(TARGET mbgl-vendor-parsedate)
     return()
 endif()
+set(CMAKE_CXX_STANDARD 14)
 
-add_library(
-    mbgl-vendor-parsedate STATIC
-    ${CMAKE_CURRENT_LIST_DIR}/parsedate/parsedate.cpp
-)
+if(CMAKE_SYSTEM_NAME STREQUAL Android)
+    add_library(
+        mbgl-vendor-parsedate SHARED
+        ${CMAKE_CURRENT_LIST_DIR}/parsedate/parsedate.cpp
+    )
+else()
+    add_library(
+        mbgl-vendor-parsedate STATIC
+        ${CMAKE_CURRENT_LIST_DIR}/parsedate/parsedate.cpp
+    )
+endif()
+
+
 
 target_link_libraries(
     mbgl-vendor-parsedate
