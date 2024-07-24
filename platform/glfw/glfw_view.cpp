@@ -478,7 +478,8 @@ void GLFWView::onKey(int key, int action, int mods) {
                         routeMap->jumpTo(mbgl::CameraOptions().withCenter(center).withZoom(18).withBearing(bearing).withPitch(70.0));
 //                        const auto& loc = routeMap->screenCoordinateToLatLng(mbgl::ScreenCoordinate{
 //                            static_cast<double>(nav::style::display::width())/2, static_cast<double>(nav::style::display::height())*3/4});
-                        const auto& loc = routeMap->screenCoordinateToLatLng(mbgl::ScreenCoordinate{840, 360});
+                        mbgl::Size size = routeMap->getTranformStateSize();
+                        const auto& loc = routeMap->screenCoordinateToLatLng(mbgl::ScreenCoordinate{static_cast<double>(size.width)/2, static_cast<double>(size.height)*2/5});
                         routeMap->jumpTo(mbgl::CameraOptions().withCenter(loc).withZoom(18).withBearing(bearing).withPitch(70.0));
                     }
                     // mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
