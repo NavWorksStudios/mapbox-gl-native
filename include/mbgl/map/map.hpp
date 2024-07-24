@@ -65,6 +65,7 @@ public:
     void easeTo(const CameraOptions&, const AnimationOptions&);
     void flyTo(const CameraOptions&, const AnimationOptions&);
     void moveBy(const ScreenCoordinate&, const AnimationOptions& = {});
+    LatLng screenCoordinateToLatLng(const ScreenCoordinate&);
     void moveByTouch(const ScreenCoordinate&, const AnimationOptions& = {});
     void scaleBy(double scale, const optional<ScreenCoordinate>& anchor, const AnimationOptions& animation = {});
     void pitchBy(double pitch, const AnimationOptions& animation = {});

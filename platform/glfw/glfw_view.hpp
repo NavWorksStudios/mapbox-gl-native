@@ -205,5 +205,6 @@ private:
     mapbox::geometry::point<double> lastPoint;
     mbgl::style::LocationIndicatorLayer *puck = nullptr;
     mbgl::LatLng targetLatLng = {0.0, 0.0};
+    bool firstFrameForRoute = false;
 #endif
 };
