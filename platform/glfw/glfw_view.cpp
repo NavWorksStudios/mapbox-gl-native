@@ -191,7 +191,8 @@ GLFWView::GLFWView(bool fullscreen_, bool benchmark_, const mbgl::ResourceOption
 
         renderBackend = GLFWBackend::Create(window, benchmark);
 
-        if (renderBackend) pixelRatio = static_cast<float>(renderBackend->getSize().width) / width;
+        if (renderBackend)
+            pixelRatio = static_cast<float>(renderBackend->getSize().width) / width;
     }
 
     glfwMakeContextCurrent(nullptr);
@@ -451,25 +452,40 @@ void GLFWView::onKey(int key, int action, int mods) {
                 double progress = fmod(routeProgress + speed, 1.0);
                 routeProgress = progress;
 
+                // 当前相机参数
                 auto camera = routeMap->getCameraOptions();
-
+                // 沿导航线路进行routeDistance距离的下一个坐标点
                 auto point = ruler.along(lineString, routeProgress * routeDistance);
+                // 下一个坐标点的经纬度坐标
                 const mbgl::LatLng center { point.y, point.x };
+                // 当前相机中心点的经纬度坐标
                 auto latLng = *camera.center;
-                double bearing = ruler.bearing({ latLng.longitude(), latLng.latitude() }, point);
+                // 通过当前puck坐标和下一个坐标点计算puck朝向
+                double bearing = ruler.bearing({ lastPoint.x, lastPoint.y }, point);
+                // 通过当前puck(上一次记录的)坐标和下一个坐标点计算puck朝向
                 double initialBearing = ruler.bearing({ lastPoint.x, lastPoint.y }, point);
+                // 计算puck朝向与当前相机方向的差值
                 double easing = bearing - *camera.bearing;
                 easing += easing > 180.0 ? -360.0 : easing < -180 ? 360.0 : 0;
-                
+                // 将相机差值分成12帧进行修正
                 bearing = *camera.bearing + (easing / 12);
+                // 将本次route坐标点记录保存
                 lastPoint = point;
                 
                 if(puckFollowsCameraCenter) {
-                    routeMap->jumpTo(mbgl::CameraOptions().withCenter(center).withZoom(18).withBearing(bearing).withPitch(70.0));
-                    mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
-                    puck->setLocation(toArray(mapCenter));
-                    puck->setBearing(mbgl::style::Rotation(bearing));
-                    updateLineAnnotations(mapCenter, targetLatLng);
+                    if(firstFrameForRoute) {
+//                        firstFrameForRoute = false;
+                        routeMap->jumpTo(mbgl::CameraOptions().withCenter(center).withZoom(18).withBearing(bearing).withPitch(70.0));
+//                        const auto& loc = routeMap->screenCoordinateToLatLng(mbgl::ScreenCoordinate{
+//                            static_cast<double>(nav::style::display::width())/2, static_cast<double>(nav::style::display::height())*3/4});
+                        mbgl::Size size = routeMap->getTranformStateSize();
+                        const auto& loc = routeMap->screenCoordinateToLatLng(mbgl::ScreenCoordinate{static_cast<double>(size.width)/2, static_cast<double>(size.height)*2/5});
+                        routeMap->jumpTo(mbgl::CameraOptions().withCenter(loc).withZoom(18).withBearing(bearing).withPitch(70.0));
+                    }
+                    // mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
+                    puck->setLocation(toArray({point.y, point.x}));
+                    puck->setBearing(mbgl::style::Rotation(initialBearing));
+                    updateLineAnnotations({point.y, point.x}, targetLatLng);
                 }
                 else {
                     puck->setLocation(toArray({point.y, point.x}));
@@ -479,7 +495,7 @@ void GLFWView::onKey(int key, int action, int mods) {
             };
             
             toggleLocationIndicatorLayer(true);
-            
+            firstFrameForRoute = true;
             animateRouteCallback(map);
         } break;
         case GLFW_KEY_E:

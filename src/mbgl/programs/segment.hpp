@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <vector>
 #include <map>
+#include <unordered_map>
 
 #include "mbgl/nav/nav_stringid.hpp"
 

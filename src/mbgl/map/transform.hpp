@@ -118,9 +118,11 @@ public:
     FreeCameraOptions getFreeCameraOptions() const;
     void setFreeCameraOptions(const FreeCameraOptions& options);
 
+public:
+    TransformState state;
+    
 private:
     MapObserver& observer;
-    TransformState state;
 
     void startTransition(const CameraOptions&,
                          const AnimationOptions&,
