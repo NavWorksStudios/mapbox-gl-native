@@ -682,47 +682,33 @@ public:
 
     using UniformList = TypeListConcat<InterpolationUniformList<Ps>..., typename Ps::UniformList...>;
     using UniformValues = gfx::UniformValues<UniformList>;
-    
-    template<typename... Args> struct UniformBinder;
-    
-    template <>
-    struct UniformBinder<> {
-        template <class EvaluatedProperties>
-        static void bind(const Binders&, UniformValues&, float, EvaluatedProperties&, bool) {}
-    };
-    
-    template <typename T>
-    struct UniformBinder<T> {
-        template <class EvaluatedProperties>
-        static void bind(const Binders& binders, UniformValues& uniforms, float zoom, EvaluatedProperties& evaluated, bool zchanged) {
-            const std::unique_ptr<typename Property<T>::Binder>& binder = binders.template get<T>();
-            
-            if (zchanged) {
-                // interpolation uniform values
-                using Interpolation = InterpolationUniform<typename T::Attribute>;
-                typename Interpolation::Value& interpolation = uniforms.template get<Interpolation>();
-                binder->bindInterpolationFactor(&interpolation, zoom);
-            }
-
-            // uniform values
-            auto& uniform = uniforms.template get<typename T::Uniform>();
-            binder->bindUniformValue(&uniform, evaluated.template get<T>());
-        }
-    };
-
-    template <typename T, typename... Rest>
-    struct UniformBinder<T, Rest...> {
-        template <class EvaluatedProperties>
-        static void bind(const Binders& binders, UniformValues& uniforms, float zoom, EvaluatedProperties& evaluated, bool zchanged) {
-            UniformBinder<T>::bind(binders, uniforms, zoom, evaluated, zchanged);
-            UniformBinder<Rest...>::bind(binders, uniforms, zoom, evaluated, zchanged);
-        }
-    };
 
     template <class EvaluatedProperties>
     const UniformValues& uniformValues(float zoom, EvaluatedProperties& properties) const {
         (void)zoom; // Workaround for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=56958
-        UniformBinder<Ps...>::bind(binders, uniforms, zoom, properties, lastzoom == zoom);
+
+        // interpolation uniform values
+        if (lastzoom != zoom) {
+            lastzoom = zoom;
+            
+            auto updateInterpolation = [] (const auto& binder, auto& interpolation, float zoom) {
+                binder->bindInterpolationFactor(&interpolation, zoom);
+            };
+            
+            util::ignore({ (updateInterpolation(binders.template get<Ps>(),
+                                                uniforms.template get<InterpolationUniform<typename Ps::Attribute>>(),
+                                                zoom), 0) ... });
+        }
+        
+        // uniform values
+        auto updateUniform = [] (const auto& binder, auto& uniform, auto& evaluated) {
+            binder->bindUniformValue(&uniform, evaluated);
+        };
+        
+        util::ignore({ (updateUniform(binders.template get<Ps>(),
+                                      uniforms.template get<typename Ps::Uniform>(),
+                                      properties.template get<Ps>()), 0) ... });
+
         return uniforms;
     }
 
