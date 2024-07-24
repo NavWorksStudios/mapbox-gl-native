@@ -12,29 +12,30 @@ namespace mbgl {
 template <class T>
 class PossiblyEvaluatedPropertyValue {
 private:
-    using Value = variant<
-        T,
-        style::PropertyExpression<T>>;
-
+    using Value = variant<T, style::PropertyExpression<T>>;
     Value value;
+    T* constantPtr = nullptr;
 
 public:
     PossiblyEvaluatedPropertyValue() = default;
-    PossiblyEvaluatedPropertyValue(Value v)
-        : value(std::move(v)) {}
+    PossiblyEvaluatedPropertyValue(const Value& v) { *this = v; }
+    PossiblyEvaluatedPropertyValue(const PossiblyEvaluatedPropertyValue& other) { *this = other.value; }
+    
+    void operator = (Value v) {
+        value = std::move(v);
+        constantPtr = value.template is<T>() ? &value.template get<T>() : nullptr;
+    }
 
     bool isConstant() const {
-        return value.template is<T>();
+        return constantPtr != nullptr;
     }
 
     optional<T> constant() const {
-        return value.match(
-            [&] (const T& t) { return optional<T>(t); },
-            [&] (const auto&) { return optional<T>(); });
+        return constantPtr ? *constantPtr : optional<T>();
     }
 
     T constantOr(const T& t) const {
-        return constant().value_or(t);
+        return constantPtr ? *constantPtr : t;
     }
 
     template <class... Ts>
@@ -72,29 +73,30 @@ public:
 template <class T>
 class PossiblyEvaluatedPropertyValue<Faded<T>> {
 private:
-    using Value = variant<
-        Faded<T>,
-        style::PropertyExpression<T>>;
-
+    using Value = variant<Faded<T>, style::PropertyExpression<T>>;
     Value value;
+    Faded<T>* constantPtr = nullptr;
 
 public:
     PossiblyEvaluatedPropertyValue() = default;
-    PossiblyEvaluatedPropertyValue(Value v)
-        : value(std::move(v)) {}
+    PossiblyEvaluatedPropertyValue(const Value& v) { *this = v; }
+    PossiblyEvaluatedPropertyValue(const PossiblyEvaluatedPropertyValue& other) { *this = other.value; }
+    
+    void operator = (Value v) {
+        value = std::move(v);
+        constantPtr = value.template is<Faded<T>>() ? &value.template get<Faded<T>>() : nullptr;
+    }
 
     bool isConstant() const {
-        return value.template is<Faded<T>>();
+        return constantPtr != nullptr;
     }
 
     optional<Faded<T>> constant() const {
-        return value.match(
-            [&] (const Faded<T>& t) { return optional<Faded<T>>(t); },
-            [&] (const auto&) { return optional<Faded<T>>(); });
+        return constantPtr ? *constantPtr : optional<Faded<T>>();
     }
 
     Faded<T> constantOr(const Faded<T>& t) const {
-        return constant().value_or(t);
+        return constantPtr ? *constantPtr : t;
     }
 
     template <class... Ts>

@@ -40,10 +40,27 @@ namespace util {
 std::string toString(const CanonicalTileID&);
 } // namespace util
 
+
 // Has integer z/x/y coordinates
 // overscaledZ describes the zoom level this tile is intented to represent, e.g. when parsing data
 // z is never larger than the source's maxzoom
 // z/x/y describe the
+
+// On top of the regular z/x/y values, TileIDs have a `wrap` value that specify
+// which cppy of the world the tile belongs to. For example, at `lng: 10` you
+// might render z/x/y/0 while at `lng: 370` you would render z/x/y/1.
+//
+// When lng values get wrapped (going from `lng: 370` to `long: 10`) you expect
+// to see the same thing on the screen (370 degrees and 10 degrees is the same
+// place in the world) but all the TileIDs will have different wrap values.
+//
+// In order to make this transition seamless, we calculate the rounded difference of
+// "worlds" between the last frame and the current frame. If the map panned by
+// a world, then we can assign all the tiles new TileIDs with updated wrap values.
+// For example, assign z/x/y/1 a new id: z/x/y/0. It is the same tile, just rendered
+// in a different position.
+//
+// This enables us to reuse the tiles at more ideal locations and prevent flickering.
 class OverscaledTileID {
 public:
     OverscaledTileID(uint8_t overscaledZ, int16_t wrap, const CanonicalTileID&);
