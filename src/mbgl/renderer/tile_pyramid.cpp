@@ -59,12 +59,14 @@ void TilePyramid::update(const std::vector<Immutable<style::LayerProperties>>& l
                          optional<LatLngBounds> bounds,
                          std::function<std::unique_ptr<Tile>(const OverscaledTileID&)> createTile) {
     // If we need a relayout, abandon any cached tiles; they're now stale.
+    // 如果需要relayout，清空所有瓦片；它们现在已经过时了
     if (needsRelayout) {
         cache.clear();
     }
 
     // If we're not going to render anything, move our existing tiles into
     // the cache (if they're not stale) or abandon them, and return.
+    // 如果不需要染，将现有的瓦片移动到缓存（如果它们没有过时）或放弃它们，然后return
     if (!needsRendering) {
         if (!needsRelayout) {
             for (auto& entry : tiles) {
@@ -78,14 +80,14 @@ void TilePyramid::update(const std::vector<Immutable<style::LayerProperties>>& l
 
         tiles.clear();
         renderedTiles.clear();
-
         return;
     }
 
-    handleWrapJump(parameters.transformState.getLatLng().longitude());
+    handleWorldWrap(parameters.transformState.getLatLng().longitude());
 
     const auto type = sourceImpl.type;
     // Determine the overzooming/underzooming amounts and required tiles.
+    // 确定 过缩放 / 欠缩放 所需的瓦片
     int32_t overscaledZoom = util::coveringZoomLevel(parameters.transformState.getZoom(), type, tileSize);
     int32_t tileZoom = overscaledZoom;
     int32_t panZoom = zoomRange.max;
@@ -95,8 +97,10 @@ void TilePyramid::update(const std::vector<Immutable<style::LayerProperties>>& l
     const Duration minimumUpdateInterval = sourceImpl.getMinimumTileUpdateInterval();
     const bool isVolatile = sourceImpl.isVolatile();
 
-    std::vector<OverscaledTileID> idealTiles;
-    std::vector<OverscaledTileID> panTiles;
+    std::vector<OverscaledTileID> idealTiles; // 理想瓦片
+    std::vector<OverscaledTileID> panTiles; // 预加载瓦片
+    std::vector<OverscaledTileID> detailedTiles; // 细节瓦片
+    std::vector<OverscaledTileID> detailedPanTiles; // 细节预加载瓦片
 
     if (overscaledZoom >= zoomRange.min) {
         int32_t idealZoom = std::min<int32_t>(zoomRange.max, overscaledZoom);
@@ -108,9 +112,11 @@ void TilePyramid::update(const std::vector<Immutable<style::LayerProperties>>& l
         }
 
         // Only attempt prefetching in continuous mode.
+        // 仅在连续模式下，尝试预加载
         if (parameters.mode == MapMode::Continuous && type != style::SourceType::GeoJSON && type != style::SourceType::Annotations) {
             // Request lower zoom level tiles (if configured to do so) in an attempt
             // to show something on the screen faster at the cost of a little of bandwidth.
+            // 请求低级别的瓦片（如果配置为这样做）试图更快地在屏幕上显示某些内容，以牺牲一点带宽为代价
             const uint8_t prefetchZoomDelta =
                 sourcePrefetchZoomDelta ? *sourcePrefetchZoomDelta : parameters.prefetchZoomDelta;
             if (prefetchZoomDelta) {
@@ -118,27 +124,35 @@ void TilePyramid::update(const std::vector<Immutable<style::LayerProperties>>& l
             }
 
             if (panZoom < idealZoom) {
-                panTiles = util::tileCover(false, parameters.transformState, panZoom);
+                panTiles = util::tileCover(false, 8, parameters.transformState, panZoom);
+                detailedPanTiles = util::tileCover(false, 1, parameters.transformState, panZoom);
             }
         }
 
-        idealTiles = util::tileCover(true, parameters.transformState, idealZoom, tileZoom);
-        if (parameters.mode == MapMode::Tile && type != SourceType::Raster && type != SourceType::RasterDEM &&
+        idealTiles = util::tileCover(false, 8, parameters.transformState, idealZoom, tileZoom);
+        detailedTiles = util::tileCover(true, 1, parameters.transformState, idealZoom, tileZoom);
+        
+        if (parameters.mode == MapMode::Tile && 
+            type != SourceType::Raster && type != SourceType::RasterDEM &&
             idealTiles.size() > 1) {
             mbgl::Log::Warning(mbgl::Event::General,
                                "Provided camera options returned %zu tiles, only %s is taken in Tile mode.",
                                idealTiles.size(),
                                util::toString(idealTiles[0]).c_str());
+
             idealTiles = {idealTiles[0]};
+            detailedTiles = {detailedTiles[0]};
         }
     }
 
+    // [ 保留方法 ]
     // Stores a list of all the tiles that we're definitely going to retain. There are two
     // kinds of tiles we need: the ideal tiles determined by the tile cover. They may not yet be in
     // use because they're still loading. In addition to that, we also need to retain all tiles that
     // we're actively using, e.g. as a replacement for tile that aren't loaded yet.
+    // 存储肯定会保留的瓦片列表。有两个需要的瓦片种类：理想的瓦片由瓷砖覆盖率决定。可能还没使用，因为它们仍在加载中。
+    // 除此之外，还需要保留正在使用的瓦片，例如尚未加载的瓦片的替代品。
     std::set<OverscaledTileID> retain;
-
     auto retainTileFn = [&](Tile& tile, TileNecessity necessity) -> void {
         if (retain.emplace(tile.id).second) {
             tile.setUpdateParameters({minimumUpdateInterval, isVolatile});
@@ -149,21 +163,25 @@ void TilePyramid::update(const std::vector<Immutable<style::LayerProperties>>& l
             tile.setLayers(layers);
         }
     };
+    
+    // [ 获取方法 ]
     auto getTileFn = [&](const OverscaledTileID& tileID) -> Tile* {
         auto it = tiles.find(tileID);
         return it == tiles.end() ? nullptr : it->second.get();
     };
 
+    // [ 创建方法 ]
     // The min and max zoom for TileRange are based on the updateRenderables algorithm.
     // Tiles are created at the ideal tile zoom or at lower zoom levels. Child
     // tiles are used from the cache, but not created.
+    // 基于updateRenderables算法，TileRange的最小和最大缩放。
+    // 瓦片基于理想或更低的缩放级别创建。子瓦片从缓存中使用，但并不创建。
     optional<util::TileRange> tileRange = {};
     if (bounds) {
         tileRange = util::TileRange::fromLatLngBounds(
             *bounds, zoomRange.min, std::min(tileZoom, static_cast<int32_t>(zoomRange.max)));
     }
     auto createTileFn = [&](const OverscaledTileID& tileID) -> Tile* {
-
         nav::log::i("TilePyramid", "%p createTile o:%d w:%d (z:%d,x:%d,y:%d) tiles-size(%d)",
                     this,
                     (int)tileID.overscaledZ, (int)tileID.wrap,
@@ -183,36 +201,38 @@ void TilePyramid::update(const std::vector<Immutable<style::LayerProperties>>& l
         return tiles.emplace(tileID, std::move(tile)).first->second.get();
     };
 
+    // [ 更新方法 ]
     auto previouslyRenderedTiles = std::move(renderedTiles);
-
     auto renderTileFn = [&](const UnwrappedTileID& tileID, Tile& tile) {
         addRenderTile(tileID, tile);
         previouslyRenderedTiles.erase(tileID); // Still rendering this tile, no need for special fading logic.
         tile.markRenderedIdeal();
     };
-
+    
     renderedTiles.clear();
 
+    // 处理预加载瓦片
     if (!panTiles.empty()) {
+        static auto renderFn = [](const UnwrappedTileID&, Tile&) {};
         algorithm::updateRenderables(
-            getTileFn,
-            createTileFn,
-            retainTileFn,
-            [](const UnwrappedTileID&, Tile&) {},
-            panTiles,
-            zoomRange,
-            maxParentTileOverscaleFactor);
+            getTileFn, createTileFn, retainTileFn, renderFn, panTiles, zoomRange, maxParentTileOverscaleFactor);
     }
-
+    // 处理理想瓦片
     algorithm::updateRenderables(
         getTileFn, createTileFn, retainTileFn, renderTileFn, idealTiles, zoomRange, maxParentTileOverscaleFactor);
+    // 处理细节瓦片
+//    algorithm::updateRenderables(
+//        getTileFn, createTileFn, retainTileFn, renderTileFn, detailedTiles, zoomRange, maxParentTileOverscaleFactor);
 
+    // 保留退出瓦片
+    // “holdForFade”用于将瓦片在不再需要时，依然保留在渲染树中，以完成symbol淡出
     for (auto previouslyRenderedTile : previouslyRenderedTiles) {
         Tile& tile = previouslyRenderedTile.second;
         tile.markRenderedPreviously();
         if (tile.holdForFade()) {
             // Since it was rendered in the last frame, we know we have it
             // Don't mark the tile "Required" to avoid triggering a new network request
+            // 即将退出的不要将瓦片标记为“必需”，以避免触发新的网络请求
             retainTileFn(tile, TileNecessity::Optional);
             addRenderTile(previouslyRenderedTile.first, tile);
         }
@@ -228,9 +248,9 @@ void TilePyramid::update(const std::vector<Immutable<style::LayerProperties>>& l
 
     // Remove stale tiles. This goes through the (sorted!) tiles map and retain set in lockstep
     // and removes items from tiles that don't have the corresponding key in the retain set.
+    // 移除陈旧的瓦片
+    // 同步遍历（已排序的！）‘瓦片map’以及‘保留set’，删除在tiles中在‘保留set’中不存在的瓦片。
     {
-//        nav::log::i("TilePyramid", "%p Remove stale tiles tiles-size(%d) retain-size(%d)", this, (int)tiles.size(), (int)retain.size());
-        
         auto tilesIt = tiles.begin();
         auto retainIt = retain.begin();
         while (tilesIt != tiles.end()) {
@@ -254,6 +274,7 @@ void TilePyramid::update(const std::vector<Immutable<style::LayerProperties>>& l
     }
 
     // Initialize renderable tiles and update the contained layer render data.
+    // 初始化可渲染图块并更新包含的层渲染数据
     for (auto& entry : renderedTiles) {
         Tile& tile = entry.second;
         assert(tile.isRenderable());
@@ -270,7 +291,7 @@ void TilePyramid::update(const std::vector<Immutable<style::LayerProperties>>& l
     }
 }
 
-void TilePyramid::handleWrapJump(float lng) {
+void TilePyramid::handleWorldWrap(float lng) {
     // On top of the regular z/x/y values, TileIDs have a `wrap` value that specify
     // which cppy of the world the tile belongs to. For example, at `lng: 10` you
     // might render z/x/y/0 while at `lng: 370` you would render z/x/y/1.
@@ -286,6 +307,18 @@ void TilePyramid::handleWrapJump(float lng) {
     // in a different position.
     //
     // This enables us to reuse the tiles at more ideal locations and prevent flickering.
+    
+    // 除了常规的z/x/y值之外，TileID还有一个“wrap”值，用于指定瓦片属于世界上的哪个cppy。
+    // 例如，在'lng：10'时，可能会渲染z/x/y/0，而在“lng：370”时，将渲染z/x/y/1。
+    //
+    // 当lng值被包装时（从“lng：370”到“long：10”），期望在屏幕上看到同样的东西
+    // （370度和10度是相同的世界上的位置），但所有TileID将具有不同的“wrap”值
+    //
+    // 为了使这种过渡无缝，计算了最后一帧和当前帧之间的“世界”。
+    // 如果地图平移了一个世界，我们可以为所有图块分配具有更新包装值的新TileID。
+    // 例如，为z/x/y/1分配一个新的id：z/x/y/0。这是同一块瓷砖，刚刚渲染过在不同的位置。
+    //
+    // 这能够让瓦片在更多位置复用防止闪烁。
 
     const float lngDifference = lng - prevLng;
     const float worldDifference = lngDifference / 360;

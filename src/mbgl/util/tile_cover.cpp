@@ -149,7 +149,7 @@ int32_t coveringZoomLevel(double zoom, style::SourceType type, uint16_t size) {
     }
 }
 
-std::vector<OverscaledTileID> tileCover(bool log, const TransformState& state, uint8_t z, const optional<uint8_t>& overscaledZ) {
+std::vector<OverscaledTileID> tileCover(bool log, int LODIntensity, const TransformState& state, uint8_t z, const optional<uint8_t>& overscaledZ) {
     struct Node {
         AABB aabb;
         uint8_t zoom;
@@ -250,7 +250,7 @@ std::vector<OverscaledTileID> tileCover(bool log, const TransformState& state, u
         // 已经是显示的最大级别而不能再拆分的，或者是超过该级别拆分距离而不能再拆分的
         // Have we reached the target depth or is the tile too far away to be any split further?
         if ((node.zoom == maxZoom) ||
-            (*longestDimension > maxSplitingRadiusByZoom / 2 && node.zoom >= minZoom)) {
+            (*longestDimension > (maxSplitingRadiusByZoom / LODIntensity) && node.zoom >= minZoom)) {
             // 再次进行校验，必须粗相交测试全部可见，或者精确相交测试后可见的
             // Perform precise intersection test between the frustum and aabb. This will cull < 1% false positives
             // missed by the original test

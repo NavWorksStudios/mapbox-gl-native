@@ -48,7 +48,7 @@ public:
     Tile* getTile(const OverscaledTileID&);
     const Tile* getRenderedTile(const UnwrappedTileID&) const;
 
-    void handleWrapJump(float lng);
+    void handleWorldWrap(float lng);
 
     std::unordered_map<nav::stringid, std::vector<Feature>> queryRenderedFeatures(
         const ScreenLineString& geometry, const TransformState& transformState,

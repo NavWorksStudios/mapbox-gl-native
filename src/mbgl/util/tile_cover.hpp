@@ -34,6 +34,7 @@ private:
 int32_t coveringZoomLevel(double z, style::SourceType type, uint16_t tileSize);
 
 std::vector<OverscaledTileID> tileCover(bool log,
+                                        int LODIntensity,
                                         const TransformState&,
                                         uint8_t z,
                                         const optional<uint8_t>& overscaledZ = nullopt);
