@@ -305,6 +305,7 @@ void bind(const std::string& uri, const mbgl::Color& color, const Binding& callb
 
     const bool fixed = isFixed(uri, color);
     ColorBinding binding(uri, Stylizer(hsla, fixed), callback);
+    binding.notify(themeBaseColor);
     paletteBindings.emplace_back(binding);
     
     somebodyNeedsUpdate = true;
