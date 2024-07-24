@@ -431,7 +431,7 @@ public:
 private:
     style::PropertyExpression<T> expression;
     T defaultValue;
-    Range<float> zoomRange;
+    const Range<float> zoomRange;
     gfx::VertexVector<Vertex> vertexVector;
     optional<gfx::VertexBuffer<Vertex>> vertexBuffer;
     FeatureVertexRangeMap featureMap;
@@ -682,46 +682,25 @@ public:
 
     using UniformList = TypeListConcat<InterpolationUniformList<Ps>..., typename Ps::UniformList...>;
     using UniformValues = gfx::UniformValues<UniformList>;
-    
-    
-    
-    template<typename... Args> struct UniformBinder;
-    
-    template <>
-    struct UniformBinder<> {
-        template <class EvaluatedProperties>
-        static void bind(const Binders& , UniformValues& , float , EvaluatedProperties& ) {}
-    };
-    
-    template <typename T>
-    struct UniformBinder<T> {
-        template <class EvaluatedProperties>
-        static void bind(const Binders& binders, UniformValues& uniforms, float zoom, EvaluatedProperties& evaluated) {
-            const std::unique_ptr<typename Property<T>::Binder>& binder = binders.template get<T>();
-            
-            // interpolation uniform values
-            auto& interpolation = uniforms.template get<InterpolationUniform<typename T::Attribute>>();
-            binder->bindInterpolationFactor(&interpolation, zoom);
-
-            // uniform values
-            auto& uniform = uniforms.template get<typename T::Uniform>();
-            binder->bindUniformValue(&uniform, evaluated.template get<T>());
-        }
-    };
-
-    template <typename T, typename... Rest>
-    struct UniformBinder<T, Rest...> {
-        template <class EvaluatedProperties>
-        static void bind(const Binders& binders, UniformValues& uniforms, float zoom, EvaluatedProperties& evaluated) {
-            UniformBinder<T>::bind(binders, uniforms, zoom, evaluated);
-            UniformBinder<Rest...>::bind(binders, uniforms, zoom, evaluated);
-        }
-    };
 
     template <class EvaluatedProperties>
     const UniformValues& uniformValues(float zoom, EvaluatedProperties& properties) const {
         (void)zoom; // Workaround for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=56958
-        UniformBinder<Ps...>::bind(binders, uniforms, zoom, properties);
+
+        auto update = [] (const auto& binder, auto& interpolation, auto& uniform, float zoom, auto& evaluated) {
+            // interpolation uniform values
+            if (zoom > 0) binder->bindInterpolationFactor(&interpolation, zoom);
+
+            // uniform values
+            binder->bindUniformValue(&uniform, evaluated);
+        };
+
+        const float z = (lastzoom == zoom) ? 0 : lastzoom = zoom;
+        util::ignore({ (update(binders.template get<Ps>(),
+                               uniforms.template get<InterpolationUniform<typename Ps::Attribute>>(),
+                               uniforms.template get<typename Ps::Uniform>(),
+                               z, properties.template get<Ps>()), 0) ... });
+
         return uniforms;
     }
 
@@ -732,6 +711,7 @@ public:
 
 private:
     Binders binders;
+    mutable float lastzoom = 0;
     mutable UniformValues uniforms;
 };
 

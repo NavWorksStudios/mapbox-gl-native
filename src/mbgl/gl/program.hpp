@@ -160,7 +160,7 @@ public:
         const uint32_t key = gl::AttributeKey<AttributeList>::compute(attributeBindings);
         auto it = instances.find(key);
         if (it == instances.end()) {
-            std::string def = gl::AttributeKey<AttributeList>::defines(attributeBindings);
+            std::string&& def = gl::AttributeKey<AttributeList>::defines(attributeBindings);
             std::unique_ptr<Instance> instance = Instance::createInstance(context, programParameters, def);
             it = instances.emplace(key, std::move(instance)).first;
         }
