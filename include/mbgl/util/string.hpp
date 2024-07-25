@@ -33,7 +33,27 @@ inline std::string toString(int32_t number) { return std::to_string(number); }
 inline std::string toString(uint32_t number) { return std::to_string(number); }
 inline std::string toString(int64_t number) { return std::to_string(number); }
 inline std::string toString(uint64_t number) { return std::to_string(number); }
-inline std::string toString(size_t number) { return std::to_string(number); }
+
+template <typename = std::enable_if<!std::is_same<int32_t, long>::value>>
+inline std::string toString(long t) {
+    return std::to_string(static_cast<int32_t>(t));
+}
+
+template <typename = std::enable_if<!std::is_same<int64_t, long long>::value>>
+inline std::string toString(long long t) {
+    return std::to_string(static_cast<int64_t>(t));
+}
+
+template <typename = std::enable_if<!std::is_same<uint32_t, unsigned long>::value>>
+inline std::string toString(unsigned long t) {
+    return std::to_string(static_cast<uint32_t>(t));
+}
+
+template <typename = std::enable_if<!std::is_same<uint64_t, unsigned long long>::value>>
+inline std::string toString(unsigned long long t) {
+    return std::to_string(static_cast<uint64_t>(t));
+}
+
 inline std::string toString(float number) { return std::to_string(number); }
 inline std::string toString(double number) { return std::to_string(number); }
 
