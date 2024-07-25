@@ -1,11 +1,13 @@
-#if(NOT ANDROID_NDK_TOOLCHAIN_INCLUDED)
-#    message(FATAL_ERROR "-- Toolchain file not included, see https://developer.android.com/ndk/guides/cmake")
-#endif()
+if(NOT ANDROID_NDK_TOOLCHAIN_INCLUDED)
+    message(FATAL_ERROR "-- Toolchain file not included, see https://developer.android.com/ndk/guides/cmake")
+endif()
 
 target_compile_definitions(
     mbgl-core
     PUBLIC MBGL_USE_GLES2
 )
+
+set(CMAKE_CXX_STANDARD 14)
 
 include(${PROJECT_SOURCE_DIR}/vendor/icu.cmake)
 include(${PROJECT_SOURCE_DIR}/vendor/sqlite.cmake)
@@ -24,7 +26,7 @@ target_link_libraries(
         $<$<CONFIG:Release>:-O2>
         $<$<CONFIG:Release>:-Wl,--icf=all>
         $<$<CONFIG:Release>:-flto>
-        $<$<CONFIG:Release>:-fuse-ld=gold>
+#        $<$<CONFIG:Release>:-fuse-ld=gold>
 )
 
 target_include_directories(
