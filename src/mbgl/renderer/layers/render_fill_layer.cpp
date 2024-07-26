@@ -103,6 +103,11 @@ void RenderFillLayer::render(PaintParameters& parameters) {
         size_t renderIndex = -1;
         for (const RenderTile& tile : *renderTiles) {
             renderIndex++;
+            
+            if (!tile.isRenderable(Tile::RenderMode::Standard)) {
+                continue;
+            }
+            
             const LayerRenderData* renderData = getRenderDataForPass(renderIndex, parameters.pass);
             if (!renderData) {
                 continue;
@@ -183,6 +188,11 @@ void RenderFillLayer::render(PaintParameters& parameters) {
         size_t renderIndex = -1;
         for (const RenderTile& tile : *renderTiles) {
             renderIndex++;
+            
+            if (!tile.isRenderable(Tile::RenderMode::Standard)) {
+                continue;
+            }
+            
             const LayerRenderData* renderData = getRenderDataForPass(renderIndex, parameters.pass);
             if (!renderData) {
                 continue;

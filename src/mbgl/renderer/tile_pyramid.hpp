@@ -70,7 +70,7 @@ public:
     bool hasFadingTiles() const { return fadingTiles; }
 
 private:
-    void addRenderTile(const UnwrappedTileID& tileID, Tile& tile);
+    bool addRenderTile(const UnwrappedTileID& tileID, Tile& tile);
 
     std::map<OverscaledTileID, std::unique_ptr<Tile>> tiles;
     TileCache cache;

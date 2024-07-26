@@ -150,6 +150,14 @@ public:
     // Indicates whether this tile is used for the currently visible layers on the map.
     // Re-initialized at every source update.
     bool usedByRenderedLayers = false;
+    
+public:
+    enum RenderMode {
+        None =      0b0,
+        Standard =  0b1,
+        Detailed = 0b10,
+    };
+    int renderMode = 0;
 
 protected:
     bool triedOptional = false;

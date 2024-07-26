@@ -41,6 +41,8 @@ public:
 
     static Frustum fromInvProjMatrix(const mat4& invProj, double worldSize, double zoom, bool flippedY = false);
 
+    static Frustum fromInvProjMatrix(const mat4& invProj, double worldSize, double zoom, float range, bool flippedY = false);
+
     // Performs conservative intersection test using separating axis theorem.
     // Some accuracy is traded for better performance. False positive rate is < 1%
     IntersectionResult intersects(const AABB& aabb) const;

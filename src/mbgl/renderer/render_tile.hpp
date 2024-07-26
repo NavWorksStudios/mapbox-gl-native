@@ -70,6 +70,7 @@ public:
                             bool inViewportPixelUnits) const;
 
     void setFeatureState(const LayerFeatureStates&);
+    bool isRenderable(int renderMode) const;
 
 private:
     Tile& tile;

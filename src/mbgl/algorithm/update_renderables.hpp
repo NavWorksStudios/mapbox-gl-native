@@ -13,13 +13,15 @@ namespace algorithm {
 template <typename GetTileFn,
           typename CreateTileFn,
           typename RetainTileFn,
-          typename RenderTileFn,
+          typename SetTileToRenderFn,
+          typename SetRenderModeFn,
           typename IdealTileIDs>
 void updateRenderables(GetTileFn getTile,
                        CreateTileFn createTile,
                        RetainTileFn retainTile,
-                       RenderTileFn renderTile,
-                       const IdealTileIDs& idealTileIDs,
+                       SetTileToRenderFn setTileToRender,
+                       SetRenderModeFn setTileRenderMode,
+                       const IdealTileIDs& tileIDs,
                        const Range<uint8_t>& zoomRange,
                        const optional<uint8_t>& maxParentOverscaleFactor = nullopt) {
     std::unordered_set<OverscaledTileID> checked;
@@ -27,15 +29,15 @@ void updateRenderables(GetTileFn getTile,
     int32_t overscaledZ;
 
     // for (all in the set of ideal tiles of the source) {
-    for (const auto& idealDataTileID : idealTileIDs) {
-        assert(idealDataTileID.canonical.z >= zoomRange.min);
-        assert(idealDataTileID.canonical.z <= zoomRange.max);
-        assert(idealDataTileID.overscaledZ >= idealDataTileID.canonical.z);
+    for (const auto& tileID : tileIDs) {
+        assert(tileID.canonical.z >= zoomRange.min);
+        assert(tileID.canonical.z <= zoomRange.max);
+        assert(tileID.overscaledZ >= tileID.canonical.z);
 
-        const UnwrappedTileID idealRenderTileID = idealDataTileID.toUnwrapped();
-        auto tile = getTile(idealDataTileID);
+        const UnwrappedTileID renderTileID = tileID.toUnwrapped();
+        auto tile = getTile(tileID);
         if (!tile) {
-            tile = createTile(idealDataTileID);
+            tile = createTile(tileID);
             // For source types where TileJSON.bounds is set, tiles outside the
             // bounds are not created
             if(tile == nullptr) {
@@ -46,7 +48,8 @@ void updateRenderables(GetTileFn getTile,
         // if (source has the tile and bucket is loaded) {
         if (tile->isRenderable()) {
             retainTile(*tile, TileNecessity::Required);
-            renderTile(idealRenderTileID, *tile);
+            setTileToRender(renderTileID, *tile);
+            setTileRenderMode(*tile);
         } else {
             // We are now attempting to load child and parent tiles.
             bool parentHasTriedOptional = tile->hasTriedCache();
@@ -55,25 +58,27 @@ void updateRenderables(GetTileFn getTile,
             // The tile isn't loaded yet, but retain it anyway because it's an ideal tile.
             retainTile(*tile, TileNecessity::Required);
             covered = true;
-            overscaledZ = idealDataTileID.overscaledZ + 1;
+            overscaledZ = tileID.overscaledZ + 1;
             if (overscaledZ > zoomRange.max) {
                 // We're looking for an overzoomed child tile.
-                const auto childDataTileID = idealDataTileID.scaledTo(overscaledZ);
+                const auto childDataTileID = tileID.scaledTo(overscaledZ);
                 tile = getTile(childDataTileID);
                 if (tile && tile->isRenderable()) {
                     retainTile(*tile, TileNecessity::Optional);
-                    renderTile(idealRenderTileID, *tile);
+                    setTileToRender(renderTileID, *tile);
+                    setTileRenderMode(*tile);
                 } else {
                     covered = false;
                 }
             } else {
                 // Check all four actual child tiles.
-                for (const auto& childTileID : idealDataTileID.canonical.children()) {
-                    const OverscaledTileID childDataTileID(overscaledZ, idealRenderTileID.wrap, childTileID);
+                for (const auto& childTileID : tileID.canonical.children()) {
+                    const OverscaledTileID childDataTileID(overscaledZ, renderTileID.wrap, childTileID);
                     tile = getTile(childDataTileID);
                     if (tile && tile->isRenderable()) {
                         retainTile(*tile, TileNecessity::Optional);
-                        renderTile(childDataTileID.toUnwrapped(), *tile);
+                        setTileToRender(childDataTileID.toUnwrapped(), *tile);
+                        setTileRenderMode(*tile);
                     } else {
                         // At least one child tile doesn't exist, so we are going to look for
                         // parents as well.
@@ -84,12 +89,12 @@ void updateRenderables(GetTileFn getTile,
 
             if (!covered) {
                 // We couldn't find child tiles that entirely cover the ideal tile.
-                for (overscaledZ = idealDataTileID.overscaledZ - 1; overscaledZ >= zoomRange.min; --overscaledZ) {
-                    const auto parentDataTileID = idealDataTileID.scaledTo(overscaledZ);
+                for (overscaledZ = tileID.overscaledZ - 1; overscaledZ >= zoomRange.min; --overscaledZ) {
+                    const auto parentDataTileID = tileID.scaledTo(overscaledZ);
 
                     // Request / render parent tile only if it's overscale factor is less than defined maximum.
                     if (maxParentOverscaleFactor &&
-                        (idealDataTileID.overscaledZ - overscaledZ) > *maxParentOverscaleFactor) {
+                        (tileID.overscaledZ - overscaledZ) > *maxParentOverscaleFactor) {
                         break;
                     }
 
@@ -123,7 +128,8 @@ void updateRenderables(GetTileFn getTile,
                         parentIsLoaded = tile->isLoaded();
 
                         if (tile->isRenderable()) {
-                            renderTile(parentDataTileID.toUnwrapped(), *tile);
+                            setTileToRender(parentDataTileID.toUnwrapped(), *tile);
+                            setTileRenderMode(*tile);
                             // Break parent tile ascent, since we found one.
                             break;
                         }

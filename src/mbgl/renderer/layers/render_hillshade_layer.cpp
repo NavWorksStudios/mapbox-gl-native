@@ -132,6 +132,10 @@ void RenderHillshadeLayer::render(PaintParameters& parameters) {
         uniforms::unpack::Value(), };
 
     for (const RenderTile& tile : *renderTiles) {
+        if (!tile.isRenderable(Tile::RenderMode::Standard)) {
+            continue;
+        }
+        
         auto* bucket_ = tile.getBucket(*baseImpl);
         if (!bucket_) {
             continue;

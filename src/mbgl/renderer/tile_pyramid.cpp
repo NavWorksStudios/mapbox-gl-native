@@ -98,9 +98,8 @@ void TilePyramid::update(const std::vector<Immutable<style::LayerProperties>>& l
     const bool isVolatile = sourceImpl.isVolatile();
 
     std::vector<OverscaledTileID> idealTiles; // 理想瓦片
-    std::vector<OverscaledTileID> panTiles; // 预加载瓦片
     std::vector<OverscaledTileID> detailedTiles; // 细节瓦片
-    std::vector<OverscaledTileID> detailedPanTiles; // 细节预加载瓦片
+    std::vector<OverscaledTileID> panTiles; // 预加载瓦片
 
     if (overscaledZoom >= zoomRange.min) {
         int32_t idealZoom = std::min<int32_t>(zoomRange.max, overscaledZoom);
@@ -124,13 +123,20 @@ void TilePyramid::update(const std::vector<Immutable<style::LayerProperties>>& l
             }
 
             if (panZoom < idealZoom) {
-                panTiles = util::tileCover(false, 8, parameters.transformState, panZoom);
-                detailedPanTiles = util::tileCover(false, 1, parameters.transformState, panZoom);
+                panTiles = util::tileCover(util::coverstrategy::Standard, parameters.transformState, panZoom);
+                std::vector<OverscaledTileID> detailedPanTiles = util::tileCover(util::coverstrategy::Detailed, parameters.transformState, panZoom);
+
+                std::unordered_set<OverscaledTileID> mergedTiles;
+                for (const auto& tile : panTiles) mergedTiles.insert(tile);
+                for (const auto& tile : detailedPanTiles) mergedTiles.insert(tile);
+
+                panTiles.clear();
+                for (const auto& tile : mergedTiles) panTiles.emplace_back(tile);
             }
         }
 
-        idealTiles = util::tileCover(false, 8, parameters.transformState, idealZoom, tileZoom);
-        detailedTiles = util::tileCover(true, 1, parameters.transformState, idealZoom, tileZoom);
+        idealTiles = util::tileCover(util::coverstrategy::Standard, parameters.transformState, idealZoom, tileZoom);
+        detailedTiles = util::tileCover(util::coverstrategy::Detailed, parameters.transformState, idealZoom, tileZoom);
         
         if (parameters.mode == MapMode::Tile && 
             type != SourceType::Raster && type != SourceType::RasterDEM &&
@@ -144,33 +150,14 @@ void TilePyramid::update(const std::vector<Immutable<style::LayerProperties>>& l
             detailedTiles = {detailedTiles[0]};
         }
     }
-
-    // [ 保留方法 ]
-    // Stores a list of all the tiles that we're definitely going to retain. There are two
-    // kinds of tiles we need: the ideal tiles determined by the tile cover. They may not yet be in
-    // use because they're still loading. In addition to that, we also need to retain all tiles that
-    // we're actively using, e.g. as a replacement for tile that aren't loaded yet.
-    // 存储肯定会保留的瓦片列表。有两个需要的瓦片种类：理想的瓦片由瓷砖覆盖率决定。可能还没使用，因为它们仍在加载中。
-    // 除此之外，还需要保留正在使用的瓦片，例如尚未加载的瓦片的替代品。
-    std::set<OverscaledTileID> retain;
-    auto retainTileFn = [&](Tile& tile, TileNecessity necessity) -> void {
-        if (retain.emplace(tile.id).second) {
-            tile.setUpdateParameters({minimumUpdateInterval, isVolatile});
-            tile.setNecessity(necessity);
-        }
-
-        if (needsRelayout) {
-            tile.setLayers(layers);
-        }
-    };
     
-    // [ 获取方法 ]
+    // [ get tile lambda ]
     auto getTileFn = [&](const OverscaledTileID& tileID) -> Tile* {
         auto it = tiles.find(tileID);
         return it == tiles.end() ? nullptr : it->second.get();
     };
 
-    // [ 创建方法 ]
+    // [ create tile lambda ]
     // The min and max zoom for TileRange are based on the updateRenderables algorithm.
     // Tiles are created at the ideal tile zoom or at lower zoom levels. Child
     // tiles are used from the cache, but not created.
@@ -200,29 +187,53 @@ void TilePyramid::update(const std::vector<Immutable<style::LayerProperties>>& l
         tile->setLayers(layers);
         return tiles.emplace(tileID, std::move(tile)).first->second.get();
     };
+    
+    // [ retain tile lambda ]
+    // Stores a list of all the tiles that we're definitely going to retain. There are two
+    // kinds of tiles we need: the ideal tiles determined by the tile cover. They may not yet be in
+    // use because they're still loading. In addition to that, we also need to retain all tiles that
+    // we're actively using, e.g. as a replacement for tile that aren't loaded yet.
+    // 存储肯定会保留的瓦片列表。有两个需要的瓦片种类：理想的瓦片由瓷砖覆盖率决定。可能还没使用，因为它们仍在加载中。
+    // 除此之外，还需要保留正在使用的瓦片，例如尚未加载的瓦片的替代品。
+    std::set<OverscaledTileID> retain;
+    auto retainTileFn = [&](Tile& tile, TileNecessity necessity) -> void {
+        if (retain.emplace(tile.id).second) {
+            tile.setUpdateParameters({minimumUpdateInterval, isVolatile});
+            tile.setNecessity(necessity);
+        }
 
-    // [ 更新方法 ]
+        if (needsRelayout) {
+            tile.setLayers(layers);
+        }
+    };
+
+    // [ mark render tile lambda ]
     auto previouslyRenderedTiles = std::move(renderedTiles);
-    auto renderTileFn = [&](const UnwrappedTileID& tileID, Tile& tile) {
-        addRenderTile(tileID, tile);
+    auto markRenderTileFn = [&](const UnwrappedTileID& tileID, Tile& tile) {
+        if (addRenderTile(tileID, tile)) tile.renderMode = Tile::RenderMode::None; // new added tile to render tree
         previouslyRenderedTiles.erase(tileID); // Still rendering this tile, no need for special fading logic.
         tile.markRenderedIdeal();
     };
-    
+
     renderedTiles.clear();
 
-    // 处理预加载瓦片
+    // 预加载瓦片 create, retain, mark to be rendered
     if (!panTiles.empty()) {
-        static auto renderFn = [](const UnwrappedTileID&, Tile&) {};
-        algorithm::updateRenderables(
-            getTileFn, createTileFn, retainTileFn, renderFn, panTiles, zoomRange, maxParentTileOverscaleFactor);
+        static auto noRenderFn = [](const UnwrappedTileID&, Tile&) {};
+        algorithm::updateRenderables(getTileFn, createTileFn, retainTileFn, noRenderFn,
+                                     [] (Tile& tile) {  },
+                                     panTiles, zoomRange, maxParentTileOverscaleFactor);
     }
-    // 处理理想瓦片
-    algorithm::updateRenderables(
-        getTileFn, createTileFn, retainTileFn, renderTileFn, idealTiles, zoomRange, maxParentTileOverscaleFactor);
-    // 处理细节瓦片
-//    algorithm::updateRenderables(
-//        getTileFn, createTileFn, retainTileFn, renderTileFn, detailedTiles, zoomRange, maxParentTileOverscaleFactor);
+
+    // 理想瓦片 create, retain, mark to be rendered
+    algorithm::updateRenderables(getTileFn, createTileFn, retainTileFn, markRenderTileFn,
+                                 [] (Tile& tile) { tile.renderMode |= Tile::RenderMode::Standard; },
+                                 idealTiles, zoomRange, maxParentTileOverscaleFactor);
+
+    // 细节瓦片 create, retain, mark to be rendered
+    algorithm::updateRenderables(getTileFn, createTileFn, retainTileFn, markRenderTileFn, 
+                                 [] (Tile& tile) { tile.renderMode |= Tile::RenderMode::Detailed; },
+                                 detailedTiles, zoomRange, maxParentTileOverscaleFactor);
 
     // 保留退出瓦片
     // “holdForFade”用于将瓦片在不再需要时，依然保留在渲染树中，以完成symbol淡出
@@ -287,6 +298,51 @@ void TilePyramid::update(const std::vector<Immutable<style::LayerProperties>>& l
                 continue;
             }
             tile.usedByRenderedLayers |= tile.layerPropertiesUpdated(layerProperties);
+        }
+    }
+    
+    { // debug info
+        static int i = 0;
+        static int tileNum = 0;
+        
+        static char buf[256];
+        static char buf1[256];
+        static std::map<int, int> statistic;
+        
+        if (renderedTiles.size() > 0) {
+            tileNum += renderedTiles.size();
+            if (i++ > 20) {
+                statistic.clear();
+                for (auto tile : renderedTiles) {
+                    int count = statistic[tile.first.canonical.z];
+                    statistic[tile.first.canonical.z] = count + 1;
+                }
+
+                char* p = buf;
+                memset(p, 0, 256);
+                for (auto& it : statistic) {
+                    sprintf(p, "%d(%d),", it.first, it.second);
+                    p += strlen(p);
+                }
+                
+                
+                statistic.clear();
+                for (auto tile : renderedTiles) {
+                    int count = statistic[tile.second.get().renderMode];
+                    statistic[tile.second.get().renderMode] = count + 1;
+                }
+                
+                p = buf1;
+                memset(p, 0, 256);
+                if (statistic[1]) sprintf(p, "S(%d),", statistic[1]); p += strlen(p);
+                if (statistic[2]) sprintf(p, "D(%d),", statistic[2]); p += strlen(p);
+                if (statistic[3]) sprintf(p, "MIX(%d),", statistic[3]); p += strlen(p);
+                
+                nav::log::i("LOD", "%d tiles : [LOD %s] [LEVEL %s]", tileNum/i, buf1, buf);
+                
+                i = 0;
+                tileNum = 0;
+            }
         }
     }
 }
@@ -436,9 +492,11 @@ void TilePyramid::clearAll() {
     cache.clear();
 }
 
-void TilePyramid::addRenderTile(const UnwrappedTileID& tileID, Tile& tile) {
+bool TilePyramid::addRenderTile(const UnwrappedTileID& tileID, Tile& tile) {
     assert(tile.isRenderable());
+    bool newadded = renderedTiles.find(tileID) == renderedTiles.end();
     renderedTiles.emplace(tileID, tile);
+    return newadded;
 }
 
 void TilePyramid::updateFadingTiles() {

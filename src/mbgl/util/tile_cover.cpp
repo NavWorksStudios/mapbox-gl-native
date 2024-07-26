@@ -149,7 +149,7 @@ int32_t coveringZoomLevel(double zoom, style::SourceType type, uint16_t size) {
     }
 }
 
-std::vector<OverscaledTileID> tileCover(bool log, int LODIntensity, const TransformState& state, uint8_t z, const optional<uint8_t>& overscaledZ) {
+std::vector<OverscaledTileID> tileCover(const coverstrategy::param_t& strategy, const TransformState& state, uint8_t z, const optional<uint8_t>& overscaledZ) {
     struct Node {
         AABB aabb;
         uint8_t zoom;
@@ -168,24 +168,22 @@ std::vector<OverscaledTileID> tileCover(bool log, int LODIntensity, const Transf
     // 按照逻辑tile尺寸512，在当前比例尺下的大小
     const double worldSize = Projection::worldSize(state.getScale());
     
-    // 通过俯仰角计算LOD的取值范围
-    // const double pitchAngle = state.getPitch() / M_PI * 180.0;
-    // const uint8_t minZoom = (pitchAngle <= 60.0) ? z : 0;
-    const uint8_t minZoom = 0;
+    // LOD取值范围
+    const uint8_t minZoom = (state.getPitch() <= (60.0 / 180.0) * M_PI) ? z : 0;
     const uint8_t maxZoom = z;
     
     const uint8_t overscaledZoom = overscaledZ.value_or(z);
     const bool flippedY = state.getViewportMode() == ViewportMode::FlippedY;
 
-    // 通过屏幕坐标中心点，计算tile坐标系地图中心点
+    // 通过屏幕坐标中心点，计算当前缩放级别坐标系中，地图中心点坐标
     const ScreenCoordinate screenCenter(state.getSize().width / 2.0, state.getSize().height / 2.0);
     auto centerPoint = TileCoordinate::fromScreenCoordinate(state, z, screenCenter).p;
     vec3 centerCoord = {centerPoint.x, centerPoint.y, 0.0};
 
-    // 计算平截头体空间
-    const Frustum frustum = Frustum::fromInvProjMatrix(state.getInvProjectionMatrix(), worldSize, z, flippedY);
+    // 计算当前缩放级别坐标系中，平截头体空间
+    const Frustum frustum = Frustum::fromInvProjMatrix(state.getInvProjectionMatrix(), worldSize, z, strategy.VisiableRange, flippedY);
 
-    // 围绕中心点附近，必须得有几个当前最高级别（最详尽级别）的tile
+    // 围绕中心点附近，保证几个当前最高级别（最详尽级别）的tile
     // There should always be a certain number of maximum zoom level tiles surrounding the center location
     const double radiusOfMaxLvlLodInTiles = 3;
 
@@ -202,13 +200,15 @@ std::vector<OverscaledTileID> tileCover(bool log, int LODIntensity, const Transf
             false                       // fully visible
         };
     };
-
+    
     // Perform depth-first traversal on tile tree to find visible tiles
+    // 深度优先遍历树，计算可见瓦片
     std::vector<Node> stack;
     stack.reserve(128);
     std::vector<ResultTile> result;
 
     // World copies shall be rendered three times on both sides from closest to farthest
+    // 世界副本应从最近到最远的两侧各呈现三次
     for (int i = 1; i <= 3; i++) {
         stack.push_back(newRootTile(-i));
         stack.push_back(newRootTile(i));
@@ -217,44 +217,44 @@ std::vector<OverscaledTileID> tileCover(bool log, int LODIntensity, const Transf
     stack.push_back(newRootTile(0));
 
     // 开始从低等级向高等级拆分，收集由远及近、由粗到细LOD的tile序列
-    while (!stack.empty()) { // 如果还存在需要拆分的tile
+    while (!stack.empty()) { // 如果还存在需要拆分的tile，继续循环
         Node node = stack.back();
         stack.pop_back();
 
         // Use cached visibility information of ancestor nodes
         if (!node.fullyVisible) {
             const IntersectionResult intersection = frustum.intersects(node.aabb);
-            if (intersection == IntersectionResult::Separate) {
-                // 如果该tile和平截头体不想交，则丢弃该tile
-                continue;
-            }
+            // 如果该tile和平截头体不相交，则丢弃该tile
+            if (intersection == IntersectionResult::Separate) continue;
             
-            // 包含关系则全部可见
+            // 如果包含关系，则可见
             node.fullyVisible = (intersection == IntersectionResult::Contains);
         }
 
-        // 该tile距离地图中心点xyz分量中最大值
+        // 该tile距离地图中心点，在xyz分量中最大值
         const vec3 distanceXyz = node.aabb.distanceXYZ(centerCoord);
         const double* longestDimension = std::max_element(distanceXyz.data(), distanceXyz.data() + distanceXyz.size());
         assert(longestDimension);
 
-        // 该比例尺下，允许拆分tile的最大距离（允许范围）
+        // 计算该比例尺下需要拆分tile的距离阈值，进入更细级别的距离阈值
         // We're using distance based heuristics to determine if a tile should be split into quadrants or not.
         // radiusOfMaxLvlLodInTiles defines that there's always a certain number of maxLevel tiles next to the map
         // center. Using the fact that a parent node in quadtree is twice the size of its children (per dimension) we
         // can define distance thresholds for each relative level: f(k) = offset + 2 + 4 + 8 + 16 + ... + 2^k. This is
         // the same as "offset+2^(k+1)-2"
-        const double maxSplitingRadiusByZoom = radiusOfMaxLvlLodInTiles + (1 << (maxZoom - node.zoom)) - 2;
+        // 使用基于距离的启发式，来决定瓦片是否应该继续细化拆分四块。radiusOfMaxLvlLodInTiles定义了地图中心点周边保证有一定数量的最大级别图块。
+        // 利用四叉树中的父节点是其子节点大小的两倍特性，为每个级别定义距离阈值：f(k) = offset + 2 + 4 + 8 + 16 + ... + 2^k. 这是与"offset+2^(k+1)-2"相同
+        const double distanceToSplit = (radiusOfMaxLvlLodInTiles + (1 << (maxZoom - node.zoom)) - 2) / strategy.LODDowngradeIntensity;
 
         // 不能再拆分的tile直接进入结果列表，包括：
         // 已经是显示的最大级别而不能再拆分的，或者是超过该级别拆分距离而不能再拆分的
         // Have we reached the target depth or is the tile too far away to be any split further?
         if ((node.zoom == maxZoom) ||
-            (*longestDimension > (maxSplitingRadiusByZoom / LODIntensity) && node.zoom >= minZoom)) {
+            (*longestDimension > distanceToSplit && node.zoom >= minZoom)) {
             // 再次进行校验，必须粗相交测试全部可见，或者精确相交测试后可见的
             // Perform precise intersection test between the frustum and aabb. This will cull < 1% false positives
             // missed by the original test
-            const bool visible =  node.fullyVisible || (frustum.intersectsPrecise(node.aabb, true) != IntersectionResult::Separate);
+            const bool visible = node.fullyVisible || (frustum.intersectsPrecise(node.aabb, true) != IntersectionResult::Separate);
             if (visible) {
                 const OverscaledTileID id = { 
                     node.zoom == maxZoom ? overscaledZoom : node.zoom,
@@ -299,29 +299,6 @@ std::vector<OverscaledTileID> tileCover(bool log, int LODIntensity, const Transf
     ids.reserve(result.size());
     for (const auto& tile : result) {
         ids.push_back(tile.id);
-    }
-    
-    if (log) { // debug info
-        static int i = 0;
-        static int tileNum = 0;
-        
-        tileNum += ids.size();
-        if (i++ > 60) {
-            static char buf[1024];
-            char* p = buf;
-            memset(p, ' ', 1024);
-            for (auto id : ids) {
-                sprintf(p, "%d,", id.overscaledZ);
-                p += id.overscaledZ > 9 ? 3 : 2;
-            }
-            *p = 0;
-
-            nav::log::i("tile cover", "%d tiles to be render (%s)", tileNum/60, buf);
-            
-            i = 0;
-            tileNum = 0;
-        }
-        
     }
 
     return ids;

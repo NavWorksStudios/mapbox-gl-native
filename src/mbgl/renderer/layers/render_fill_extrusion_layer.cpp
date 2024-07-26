@@ -159,6 +159,11 @@ void RenderFillExtrusionLayer::render(PaintParameters& parameters) {
             size_t renderIndex = -1;
             for (const RenderTile& tile : *renderTiles) {
                 renderIndex++;
+                
+                if (!tile.isRenderable(Tile::RenderMode::Detailed)) {
+                    continue;
+                }
+                
                 const LayerRenderData* renderData = getRenderDataForPass(renderIndex, parameters.pass);
                 if (!renderData) {
                     continue;
@@ -208,6 +213,11 @@ void RenderFillExtrusionLayer::render(PaintParameters& parameters) {
             size_t renderIndex = -1;
             for (const RenderTile& tile : *renderTiles) {
                 renderIndex++;
+                
+                if (!tile.isRenderable(Tile::RenderMode::Detailed)) {
+                    continue;
+                }
+                
                 const LayerRenderData* renderData = getRenderDataForPass(renderIndex, parameters.pass);
                 if (!renderData) {
                     continue;

@@ -130,6 +130,12 @@ Frustum::Frustum(const std::array<vec3, 8>& points_, const std::array<vec4, 6>& 
 }
 
 Frustum Frustum::fromInvProjMatrix(const mat4& invProj, double worldSize, double zoom, bool flippedY) {
+    return fromInvProjMatrix(invProj, worldSize, zoom, 1, flippedY);
+}
+
+Frustum Frustum::fromInvProjMatrix(const mat4& invProj, double worldSize, double zoom, float range, bool flippedY) {
+    assert(range > 0 && range <= 1);
+    
     // Define frustum corner points in normalized clip space
     std::array<vec4, 8> cornerCoords = {{vec4{{-1.0, 1.0, -1.0, 1.0}},
                                          vec4{{1.0, 1.0, -1.0, 1.0}},
@@ -140,7 +146,7 @@ Frustum Frustum::fromInvProjMatrix(const mat4& invProj, double worldSize, double
                                          vec4{{1.0, -1.0, 1.0, 1.0}},
                                          vec4{{-1.0, -1.0, 1.0, 1.0}}}};
 
-    const double scale = std::pow(2.0, zoom);
+    const double scale = std::pow(2.0, zoom) * range;
 
     // Transform points to tile space
     for (auto& coord : cornerCoords) {

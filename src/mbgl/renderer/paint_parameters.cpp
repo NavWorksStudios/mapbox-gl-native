@@ -7,6 +7,7 @@
 #include <mbgl/gfx/render_pass.hpp>
 #include <mbgl/gfx/cull_face_mode.hpp>
 #include <mbgl/map/transform_state.hpp>
+#include <mbgl/tile/tile.hpp>
 
 namespace mbgl {
 
@@ -129,6 +130,10 @@ void PaintParameters::renderTileClippingMasks(const RenderTiles& renderTiles) {
     for (const RenderTile& renderTile : *renderTiles) {
         const int32_t stencilID = nextStencilID++;
         tileClippingMaskIDs.emplace_back(stencilID);
+        
+        if (!renderTile.isRenderable(Tile::RenderMode::Standard)) {
+            continue;
+        }
 
         program.draw(context,
                      *renderPass,

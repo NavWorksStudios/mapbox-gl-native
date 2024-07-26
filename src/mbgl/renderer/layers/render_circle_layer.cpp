@@ -141,6 +141,10 @@ void RenderCircleLayer::render(PaintParameters& parameters) {
     for (const RenderTile& renderTile : *renderTiles) {
         renderIndex++;
         
+        if (!renderTile.isRenderable(Tile::RenderMode::Standard)) {
+            continue;
+        }
+        
         const LayerRenderData* renderData = getRenderDataForPass(renderIndex, parameters.pass);
         if (!renderData) {
             continue;

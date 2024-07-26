@@ -211,4 +211,8 @@ void RenderTile::setFeatureState(const LayerFeatureStates& states) {
     tile.setFeatureState(states);
 }
 
+bool RenderTile::isRenderable(int renderMode) const {
+    return tile.renderMode & renderMode;
+}
+
 } // namespace mbgl

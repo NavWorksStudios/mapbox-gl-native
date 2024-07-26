@@ -420,6 +420,10 @@ void RenderSymbolLayer::render(PaintParameters& parameters) {
     for (const RenderTile& tile : *renderTiles) {
         renderIndex++;
         
+        if (!tile.isRenderable(Tile::RenderMode::Standard)) {
+            continue;
+        }
+        
         const LayerRenderData* renderData = getRenderDataForPass(renderIndex, parameters.pass);
         if (!renderData) {
             continue;
@@ -582,6 +586,10 @@ void RenderSymbolLayer::prepare(const LayerPrepareParameters& params) {
     placementData.clear();
 
     for (const RenderTile& renderTile : *renderTiles) {
+        if (!renderTile.isRenderable(Tile::RenderMode::Standard)) {
+            continue;
+        }
+        
         auto* bucket = static_cast<SymbolBucket*>(renderTile.getBucket(*baseImpl));
         if (bucket && bucket->bucketLeaderID == getID()) {
             // Only place this layer if it's the "group leader" for the bucket

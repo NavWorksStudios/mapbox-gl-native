@@ -70,6 +70,10 @@ bool RenderLineLayer::hasCrossfade() const {
 void RenderLineLayer::prepare(const LayerPrepareParameters& params) {
     RenderLayer::prepare(params);
     for (const RenderTile& tile : *renderTiles) {
+        if (!tile.isRenderable(Tile::RenderMode::Standard)) {
+            continue;
+        }
+        
         const LayerRenderData* renderData = tile.getLayerRenderData(*baseImpl);
         if (!renderData) continue;
 
@@ -102,6 +106,11 @@ void RenderLineLayer::render(PaintParameters& parameters) {
     size_t renderIndex = -1;
     for (const RenderTile& tile : *renderTiles) {
         renderIndex++;
+        
+        if (!tile.isRenderable(Tile::RenderMode::Standard)) {
+            continue;
+        }
+        
         const LayerRenderData* renderData = getRenderDataForPass(renderIndex, parameters.pass);
         if (!renderData) {
             continue;

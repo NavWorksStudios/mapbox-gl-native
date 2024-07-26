@@ -160,6 +160,10 @@ void RenderRasterLayer::render(PaintParameters& parameters) {
         }
     } else if (renderTiles) {
         for (const RenderTile& tile : *renderTiles) {
+            if (!tile.isRenderable(Tile::RenderMode::Standard)) {
+                continue;
+            }
+            
             auto* bucket_ = tile.getBucket(*baseImpl);
             if (!bucket_) {
                 continue;

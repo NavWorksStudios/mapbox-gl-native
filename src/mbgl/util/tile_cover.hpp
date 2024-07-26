@@ -33,11 +33,23 @@ private:
 
 int32_t coveringZoomLevel(double z, style::SourceType type, uint16_t tileSize);
 
-std::vector<OverscaledTileID> tileCover(bool log,
-                                        int LODIntensity,
+namespace coverstrategy {
+
+struct param_t {
+    const float LODDowngradeIntensity;
+    const float VisiableRange;
+};
+
+const param_t Standard = { 10, 1 };
+const param_t Detailed = { 2, 1 };
+
+}
+
+std::vector<OverscaledTileID> tileCover(const coverstrategy::param_t& strategy,
                                         const TransformState&,
                                         uint8_t z,
                                         const optional<uint8_t>& overscaledZ = nullopt);
+
 std::vector<UnwrappedTileID> tileCover(const LatLngBounds&, uint8_t z);
 std::vector<UnwrappedTileID> tileCover(const Geometry<double>&, uint8_t z);
 

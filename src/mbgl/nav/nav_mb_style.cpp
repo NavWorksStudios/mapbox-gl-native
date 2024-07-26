@@ -54,7 +54,7 @@ int height() {
 float clipping = 0.;
 
 void update(float zoom) {
-    static float region = height() * atan(70/M_PI) * .6;
+    static float region = height() * atan(70/M_PI) * .3;
     clipping = region * pow(2., zoom);
 }
 
