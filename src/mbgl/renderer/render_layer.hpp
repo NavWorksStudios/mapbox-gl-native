@@ -63,7 +63,7 @@ protected:
     RenderLayer(Immutable<style::LayerProperties>);
 
 public:
-    virtual ~RenderLayer() = default;
+    virtual ~RenderLayer();
 
     // Begin transitions for any properties that have changed since the last frame.
     virtual void transition(const TransitionParameters&) = 0;

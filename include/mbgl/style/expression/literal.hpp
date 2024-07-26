@@ -18,7 +18,7 @@ public:
     Literal(const Value& value_) : Expression(Kind::Literal, typeOf(value_)), value(value_) {
         if (value.is<Color>()) {
             nav::style::Domain domain("literal");
-            nav::palette::bind(domain, value.get<Color>(),
+            nav::palette::bind(domain, value.get<Color>(), this,
             [this](const mbgl::Color& color) {
                 value = color;
             });
@@ -27,6 +27,10 @@ public:
 
     Literal(const type::Array& type_, std::vector<Value> value_)
         : Expression(Kind::Literal, type_), value(std::move(value_)) {}
+    
+    ~Literal() {
+        nav::palette::unbind(this);
+    }
 
     EvaluationResult evaluate(const EvaluationContext&) const override {
         return value;

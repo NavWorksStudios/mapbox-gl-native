@@ -20,6 +20,10 @@ RenderLayer::RenderLayer(Immutable<style::LayerProperties> properties)
       baseImpl(evaluatedProperties->baseImpl) {
 }
 
+RenderLayer::~RenderLayer() {
+    nav::palette::unbind(this);
+}
+
 void RenderLayer::transition(const TransitionParameters& parameters, Immutable<style::Layer::Impl> newImpl) {
     baseImpl = std::move(newImpl);
     transition(parameters);
@@ -116,7 +120,7 @@ void RenderLayer::bindToPalette(const std::string& id, const std::string& tag, s
         nav::style::Domain domain1(id);
         nav::style::Domain domain2(tag);
         nav::style::Domain domain3("constant");
-        nav::palette::bind(domain3, value.asConstant(),
+        nav::palette::bind(domain3, value.asConstant(), this, 
         [&value](const Color& color) {
             value = color;
         });

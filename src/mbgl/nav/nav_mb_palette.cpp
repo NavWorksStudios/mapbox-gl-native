@@ -237,12 +237,13 @@ class ColorBinding {
     Binding callback;
     
 public:
+    const void* binder;
+    
     ColorBinding() = default;
-    ColorBinding(const std::string& uri, const Stylizer& stylizer, const Binding& callback) :
-    uri(uri), stylizer(stylizer), callback(callback) { }
+    ColorBinding(const std::string& uri, const Stylizer& stylizer, const void* binder, const Binding& callback) :
+    uri(uri), stylizer(stylizer), binder(binder), callback(callback) { }
     
     void notify(const Hsla& baseColor) {
-
         static const auto fixColor = [] (const std::string& uri_, Hsla color) {
             if (uri_.find("building-extrusion") != std::string::npos) {
 //                color.s = normalize(color.s + .2);
@@ -274,9 +275,8 @@ public:
 };
 
 std::vector<ColorBinding> paletteBindings;
-bool somebodyNeedsUpdate = false;
 
-void bind(const std::string& uri, const mbgl::Color& color, const Binding& callback) {
+void bind(const std::string& uri, const mbgl::Color& color, const void* binder, const Binding& callback) {
     nav::log::i("Palette", "bind uri %s", uri.c_str());
     
     if (uri.find("com.mapbox.annotations.shape.0") != std::string::npos) {
@@ -304,11 +304,20 @@ void bind(const std::string& uri, const mbgl::Color& color, const Binding& callb
     };
 
     const bool fixed = isFixed(uri, color);
-    ColorBinding binding(uri, Stylizer(hsla, fixed), callback);
+    ColorBinding binding(uri, Stylizer(hsla, fixed), binder, callback);
     binding.notify(themeBaseColor);
     paletteBindings.emplace_back(binding);
-    
-    somebodyNeedsUpdate = true;
+}
+
+void unbind(const void* binder) {
+    auto it = paletteBindings.begin();
+    while (it != paletteBindings.end()) {
+        if (it->binder == binder) {
+            paletteBindings.erase(it);
+        } else {
+            it++;
+        }
+    }
 }
 
 bool demo() {
@@ -337,8 +346,7 @@ bool demo() {
 }
 
 bool update() {
-    if (somebodyNeedsUpdate || themeBaseColor.needsUpdate()) {
-        somebodyNeedsUpdate = false;
+    if (themeBaseColor.needsUpdate()) {
         themeBaseColor.update();
 
         for (auto& it : paletteBindings) {
