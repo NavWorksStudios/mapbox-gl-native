@@ -236,7 +236,8 @@ void RunLoop::run() {
     while (impl->running) {
         process();
         auto timeout = impl->processRunnables().count();
-        ALooper_pollAll(timeout, &outFd, &outEvents, reinterpret_cast<void**>(&outData));
+        ALooper_pollOnce(timeout, &outFd, &outEvents, reinterpret_cast<void**>(&outData));
+//        ALooper_pollAll(timeout, &outFd, &outEvents, reinterpret_cast<void**>(&outData));
     }
 }
 
