@@ -406,10 +406,6 @@ void GLFWView::onKey(int key, int action, int mods) {
             nextPlace = nextPlace % places.size();
         } break;
         case GLFW_KEY_R: {
-//            show3DExtrusions = true;
-//            toggle3DExtrusions(show3DExtrusions);
-//            if (animateRouteCallback) break;
-            
             nav::runtime::setViewMode(nav::runtime::ViewMode::Spotlight);
             
             static int index = 0;
@@ -448,7 +444,7 @@ void GLFWView::onKey(int key, int action, int mods) {
                 const auto& geometry = route.get<mapbox::geometry::geometry<double>>();
                 const auto& lineString = geometry.get<mapbox::geometry::line_string<double>>();
                 
-                double speed = mbgl::platform::glfw::SpeedValue[index];
+                double speed = mbgl::platform::glfw::SpeedValue[index] * 2;
                 double progress = fmod(routeProgress + speed, 1.0);
                 routeProgress = progress;
 
@@ -474,15 +470,11 @@ void GLFWView::onKey(int key, int action, int mods) {
                 
                 if(puckFollowsCameraCenter) {
                     if(firstFrameForRoute) {
-//                        firstFrameForRoute = false;
                         routeMap->jumpTo(mbgl::CameraOptions().withCenter(center).withZoom(18).withBearing(bearing).withPitch(70.0));
-//                        const auto& loc = routeMap->screenCoordinateToLatLng(mbgl::ScreenCoordinate{
-//                            static_cast<double>(nav::style::display::width())/2, static_cast<double>(nav::style::display::height())*3/4});
                         mbgl::Size size = routeMap->getTranformStateSize();
                         const auto& loc = routeMap->screenCoordinateToLatLng(mbgl::ScreenCoordinate{static_cast<double>(size.width)/2, static_cast<double>(size.height)*2/5});
                         routeMap->jumpTo(mbgl::CameraOptions().withCenter(loc).withZoom(18).withBearing(bearing).withPitch(70.0));
                     }
-                    // mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
                     puck->setLocation(toArray({point.y, point.x}));
                     puck->setBearing(mbgl::style::Rotation(initialBearing));
                     updateLineAnnotations({point.y, point.x}, targetLatLng);
