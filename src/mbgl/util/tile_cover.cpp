@@ -181,7 +181,7 @@ std::vector<OverscaledTileID> tileCover(const coverstrategy::param_t& strategy, 
     vec3 centerCoord = {centerPoint.x, centerPoint.y, 0.0};
 
     // 计算当前缩放级别坐标系中，平截头体空间
-    const Frustum frustum = Frustum::fromInvProjMatrix(state.getInvProjectionMatrix(), worldSize, z, strategy.VisiableRange, flippedY);
+    const Frustum frustum = Frustum::fromInvProjMatrix(state.getInvProjectionMatrix(), worldSize, z, flippedY);
 
     // 围绕中心点附近，保证几个当前最高级别（最详尽级别）的tile
     // There should always be a certain number of maximum zoom level tiles surrounding the center location
@@ -255,8 +255,8 @@ std::vector<OverscaledTileID> tileCover(const coverstrategy::param_t& strategy, 
             // Perform precise intersection test between the frustum and aabb. This will cull < 1% false positives
             // missed by the original test
             const bool visible = node.fullyVisible || (frustum.intersectsPrecise(node.aabb, true) != IntersectionResult::Separate);
-            if (visible) {
-                const OverscaledTileID id = { 
+            if (visible && node.zoom >= strategy.MINZoom) {
+                const OverscaledTileID id = {
                     node.zoom == maxZoom ? overscaledZoom : node.zoom,
                     node.wrap, 
                     node.zoom,

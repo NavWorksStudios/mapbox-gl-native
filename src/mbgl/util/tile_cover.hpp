@@ -37,11 +37,11 @@ namespace coverstrategy {
 
 struct param_t {
     const float LODDowngradeIntensity;
-    const float VisiableRange;
+    const float MINZoom;
 };
 
-const param_t Standard = { 10, 1 };
-const param_t Detailed = { 2, 1 };
+const param_t Standard = { 8, 0 };
+const param_t Detailed = { 1, 15 };
 
 }
 
