@@ -23,10 +23,10 @@ struct Source {
     const char* sourceLayer;
 };
 
-#define LINE
-#define FILL
-#define SYMBOL
-#define EXTRUSION
+//#define LINE
+//#define FILL
+//#define SYMBOL
+//#define EXTRUSION
 
 static const std::unordered_map<std::string, Source> layerIds = {
     { "land", { "background", "", "", } },

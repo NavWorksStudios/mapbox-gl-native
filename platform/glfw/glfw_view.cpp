@@ -951,12 +951,12 @@ void GLFWView::onScroll(double yOffset) {
     }
 
     // #*# 需要改造
-#if defined(MBGL_RENDER_BACKEND_OPENGL) && !defined(MBGL_LAYER_CUSTOM_DISABLE_ALL)
+//#if defined(MBGL_RENDER_BACKEND_OPENGL) && !defined(MBGL_LAYER_CUSTOM_DISABLE_ALL)
 //    if (puck && puckFollowsCameraCenter) {
 //        mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
 //        puck->setLocation(toArray(mapCenter));
 //    }
-#endif
+//#endif
 }
 
 void GLFWView::onWindowResize(GLFWwindow *window, int width, int height) {
@@ -1081,13 +1081,13 @@ void GLFWView::onMouseMove(double x, double y) {
     _mouseHistory.push_back({x,y}, now);
     
 
-#if defined(MBGL_RENDER_BACKEND_OPENGL) && !defined(MBGL_LAYER_CUSTOM_DISABLE_ALL)
+//#if defined(MBGL_RENDER_BACKEND_OPENGL) && !defined(MBGL_LAYER_CUSTOM_DISABLE_ALL)
     // #*#目前逻辑没啥用
 //    if (puck && puckFollowsCameraCenter) {
 //        mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
 //        puck->setLocation(toArray(mapCenter));
 //    }
-#endif
+//#endif
 
     auto &style = map->getStyle();
     if (style.getLayer("state-fills")) {
@@ -1343,7 +1343,7 @@ void GLFWView::toggleLocationIndicatorLayer(bool visibility) {
 using Nanoseconds = std::chrono::nanoseconds;
 
 void GLFWView::onWillStartRenderingFrame() {
-#if defined(MBGL_RENDER_BACKEND_OPENGL) && !defined(MBGL_LAYER_LOCATION_INDICATOR_DISABLE_ALL)
+//#if defined(MBGL_RENDER_BACKEND_OPENGL) && !defined(MBGL_LAYER_LOCATION_INDICATOR_DISABLE_ALL)
 //    puck = static_cast<mbgl::style::LocationIndicatorLayer *>(map->getStyle().getLayer("puck"));
 //    if (puck) {
 //        // #*# 导航箭头方向
@@ -1353,5 +1353,5 @@ void GLFWView::onWillStartRenderingFrame() {
 //            puck->setBearing(mbgl::style::Rotation(bearing));
 //        }
 //    }
-#endif
+//#endif
 }

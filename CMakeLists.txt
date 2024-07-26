@@ -870,6 +870,8 @@ set(all_files
     ${PROJECT_SOURCE_DIR}/src/mbgl/clipper2/clipper.rectclip.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/clipper2/clipper.rectclip.h
     ${PROJECT_SOURCE_DIR}/src/mbgl/clipper2/clipper.version.h
+    ${PROJECT_SOURCE_DIR}/src/mbgl/route/route_line_layer_manager.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/route/route_line_layer_manager.cpp
 )
 
 source_group_by_dir(all_files)
