@@ -309,8 +309,8 @@ void main() {
         lowp float brighten=max(specular*pow(max(dot(viewDir,reflectDir),0.0),shininess), 0.); // power(max(0,dot(N,H)),shininess)
 
         lowp float distance=pow(v_pos.x,2.)+pow(v_pos.z,2.);
-        lowp float fadeout=clamp(1.-distance/u_clip_region,0.,1.);
-        fadeout=pow(fadeout,3.) * u_water_wave;
+        lowp float radial_fadeout=clamp(1.-distance/u_clip_region,0.,1.);
+        radial_fadeout=pow(radial_fadeout,3.) * u_water_wave;
 
         const lowp vec2 texture_size = vec2(4000.);
         lowp vec2 coord=vec2(
@@ -320,7 +320,7 @@ void main() {
         gridcolor = pow(gridcolor,3.);
 
         gl_FragColor=color;
-        gl_FragColor.rgb += (gridcolor + brighten) * fadeout * .2;
+        gl_FragColor.rgb += (gridcolor + brighten) * radial_fadeout * .2;
         gl_FragColor*=opacity;
 
     } else {
