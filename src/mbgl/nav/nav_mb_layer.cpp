@@ -232,8 +232,9 @@ static std::unordered_map<std::string, float> layerHeights = {
 };
 
 float getHeight(const std::string& layerId) {
-    auto it = layerHeights.find(layerId);
-    return it == layerHeights.end() ? 0 : it->second;
+    return 0;
+//    auto it = layerHeights.find(layerId);
+//    return it == layerHeights.end() ? 0 : it->second;
 }
 
 }

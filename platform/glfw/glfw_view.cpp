@@ -464,7 +464,7 @@ void GLFWView::onKey(int key, int action, int mods) {
                 double easing = bearing - *camera.bearing;
                 easing += easing > 180.0 ? -360.0 : easing < -180 ? 360.0 : 0;
                 // 将相机差值分成12帧进行修正
-                bearing = *camera.bearing + (easing / 12);
+                bearing = *camera.bearing + (easing / 20);
                 // 将本次route坐标点记录保存
                 lastPoint = point;
                 

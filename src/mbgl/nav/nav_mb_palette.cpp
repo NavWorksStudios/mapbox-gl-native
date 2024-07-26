@@ -245,21 +245,21 @@ public:
 
         static const auto fixColor = [] (const std::string& uri_, Hsla color) {
             if (uri_.find("building-extrusion") != std::string::npos) {
-                color.s = normalize(color.s + .2);
-                color.l = .5;
+//                color.s = normalize(color.s + .2);
+//                color.l = .5;
             } else if (uri_.find("case") == std::string::npos) {
                 if (uri_.find("path") != std::string::npos ||
                     uri_.find("steps") != std::string::npos ||
                     uri_.find("pedestrian") != std::string::npos) {
 
                 } else if (uri_.find("tunnel") != std::string::npos) {
-                    color.l = normalize(color.l * 1.1);
+//                    color.l = normalize(color.l * 1.1);
                 } else if (uri_.find("road") != std::string::npos) {
-                    color.s *= .3;
-                    color.l = normalize(color.l * 1.3);
+//                    color.s *= .3;
+//                    color.l = normalize(color.l * 1.3);
                 } else if (uri_.find("bridge") != std::string::npos) {
-                    color.s *= .1;
-                    color.l = normalize(color.l * 1.5);
+//                    color.s *= .1;
+//                    color.l = normalize(color.l * 1.5);
                 }
             }
             return color;
