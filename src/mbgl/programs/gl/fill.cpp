@@ -258,7 +258,7 @@ float N2(vec2 p) {
 }
 
 float grid_color( vec2 fragCoord, lowp vec2 resolution ) {
-    float iTime = u_render_time * .6;
+    float iTime = u_render_time * .4;
 
     //create coordinates
     vec2 uv = (fragCoord - 0.5*resolution.xy)/resolution.y;
@@ -300,7 +300,7 @@ void main() {
 
         // point light
         const lowp vec3 cameraPos=vec3(0.,500.,0.);
-        const lowp vec3 lightPos=vec3(0.,1000.,2000.);
+        const lowp vec3 lightPos=vec3(0.,2000.,4000.);
         const lowp float specular=1.5; // 镜面反射强度
         const lowp float shininess=4.; // 反光度
         lowp vec3 lightDir=normalize(v_pos.xyz-lightPos);
@@ -312,7 +312,7 @@ void main() {
         lowp float fadeout=clamp(1.-distance/u_clip_region,0.,1.);
         fadeout=pow(fadeout,3.) * u_water_wave;
 
-        const lowp vec2 texture_size = vec2(8000.);
+        const lowp vec2 texture_size = vec2(4000.);
         lowp vec2 coord=vec2(
         mod(v_texture_pos.x*u_water_data_z_scale,texture_size.x),
         mod(v_texture_pos.y*u_water_data_z_scale,texture_size.y));
