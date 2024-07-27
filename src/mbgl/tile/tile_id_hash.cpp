@@ -13,7 +13,7 @@ size_t hash<mbgl::CanonicalTileID>::operator()(const mbgl::CanonicalTileID& id) 
     std::size_t seed;
     uint32_t* p = (uint32_t*) &seed;
     p[0] = id.x + id.z;
-    p[1] = id.y;
+    p[1] = id.y + 8249;
     return seed;
 }
 
@@ -26,7 +26,7 @@ size_t hash<mbgl::UnwrappedTileID>::operator()(const mbgl::UnwrappedTileID& id) 
     std::size_t seed;
     uint32_t* p = (uint32_t*) &seed;
     p[0] = id.canonical.x + id.canonical.z;
-    p[1] = id.canonical.y + id.wrap;
+    p[1] = id.canonical.y + id.wrap + 8249;
     return seed;
 }
 
@@ -39,7 +39,7 @@ size_t hash<mbgl::OverscaledTileID>::operator()(const mbgl::OverscaledTileID& id
     std::size_t seed;
     uint32_t* p = (uint32_t*) &seed;
     p[0] = id.canonical.x + id.canonical.z + id.overscaledZ;
-    p[1] = id.canonical.y + id.wrap;
+    p[1] = id.canonical.y + id.wrap + 8249;
     return seed;
 }
 
