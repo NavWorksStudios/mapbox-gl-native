@@ -1,18 +1,11 @@
 if(TARGET mbgl-vendor-sqlite)
     return()
 endif()
-set(CMAKE_CXX_STANDARD 14)
-if(CMAKE_SYSTEM_NAME STREQUAL Android)
-    add_library(
-        mbgl-vendor-sqlite SHARED
-        ${CMAKE_CURRENT_LIST_DIR}/sqlite/src/sqlite3.c
-    )
-else()
-    add_library(
-        mbgl-vendor-sqlite STATIC
-        ${CMAKE_CURRENT_LIST_DIR}/sqlite/src/sqlite3.c
-    )
-endif()
+
+add_library(
+    mbgl-vendor-sqlite STATIC
+    ${CMAKE_CURRENT_LIST_DIR}/sqlite/src/sqlite3.c
+)
 
 include(CheckSymbolExists)
 check_symbol_exists("strerror_r" "string.h" MBGL_SQLITE3_HAVE_STRERROR_R)

@@ -1,18 +1,12 @@
 if(TARGET mbgl-vendor-csscolorparser)
     return()
 endif()
-set(CMAKE_CXX_STANDARD 14)
-if(CMAKE_SYSTEM_NAME STREQUAL Android)
-    add_library(
-        mbgl-vendor-csscolorparser SHARED
-        ${CMAKE_CURRENT_LIST_DIR}/csscolorparser/csscolorparser.cpp
-    )
-else()
-    add_library(
-        mbgl-vendor-csscolorparser STATIC
-        ${CMAKE_CURRENT_LIST_DIR}/csscolorparser/csscolorparser.cpp
-    )
-endif()
+
+add_library(
+    mbgl-vendor-csscolorparser STATIC
+    ${CMAKE_CURRENT_LIST_DIR}/csscolorparser/csscolorparser.cpp
+)
+
 
 
 

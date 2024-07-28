@@ -1,49 +1,27 @@
 if(TARGET mbgl-vendor-icu)
     return()
 endif()
-set(CMAKE_CXX_STANDARD 14)
 
-if(CMAKE_SYSTEM_NAME STREQUAL Android)
-    add_library(
-        mbgl-vendor-icu SHARED
+add_library(
+    mbgl-vendor-icu STATIC
 
-        ${CMAKE_CURRENT_LIST_DIR}/icu/src/cmemory.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/icu/src/cstring.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/icu/src/ubidi.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/icu/src/ubidi_props.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/icu/src/ubidiln.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/icu/src/ubidiwrt.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/icu/src/uchar.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/icu/src/udataswp.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/icu/src/uinvchar.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/icu/src/umath.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/icu/src/ushape.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/icu/src/ustring.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/icu/src/utf_impl.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/icu/src/utrie2.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/icu/src/utypes.cpp
-    )
-else()
-    add_library(
-        mbgl-vendor-icu STATIC
+    ${CMAKE_CURRENT_LIST_DIR}/icu/src/cmemory.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/icu/src/cstring.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/icu/src/ubidi.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/icu/src/ubidi_props.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/icu/src/ubidiln.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/icu/src/ubidiwrt.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/icu/src/uchar.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/icu/src/udataswp.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/icu/src/uinvchar.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/icu/src/umath.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/icu/src/ushape.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/icu/src/ustring.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/icu/src/utf_impl.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/icu/src/utrie2.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/icu/src/utypes.cpp
+)
 
-        ${CMAKE_CURRENT_LIST_DIR}/icu/src/cmemory.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/icu/src/cstring.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/icu/src/ubidi.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/icu/src/ubidi_props.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/icu/src/ubidiln.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/icu/src/ubidiwrt.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/icu/src/uchar.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/icu/src/udataswp.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/icu/src/uinvchar.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/icu/src/umath.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/icu/src/ushape.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/icu/src/ustring.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/icu/src/utf_impl.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/icu/src/utrie2.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/icu/src/utypes.cpp
-    )
-endif()
 
 
 target_compile_definitions(

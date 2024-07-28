@@ -874,10 +874,20 @@ set(all_files
 
 source_group_by_dir(all_files)
 
-add_library(
-    mbgl-core STATIC
-    ${all_files}
-)
+
+if(CMAKE_SYSTEM_NAME STREQUAL Android)
+    add_library(
+        mbgl-core SHARED
+        ${all_files}
+    )
+else()
+    add_library(
+        mbgl-core STATIC
+        ${all_files}
+    )
+endif()
+
+#target_link_libraries(mbgl-core /Users/liujunqi/mapbox-gl-native/build/libmbgl-vendor-sqlite.so)
 
 if(MBGL_WITH_OPENGL)
     message("-- Configuring GL-Native with OpenGL renderer backend")
