@@ -11,111 +11,36 @@
 #include <mbgl/util/color.hpp>
 
 namespace mbgl {
-namespace style {
 
-class TransitionOptions;
-
-class RouteLineLayerManager final : public Layer {
-public:
-    RouteLineLayerManager(const std::string& layerID);
-    ~RouteLineLayerManager() override;
-
-    // Layout properties
-
-    static PropertyValue<expression::Image> getDefaultBearingImage();
-    const PropertyValue<expression::Image>& getBearingImage() const;
-    void setBearingImage(const PropertyValue<expression::Image>&);
-
-    static PropertyValue<expression::Image> getDefaultShadowImage();
-    const PropertyValue<expression::Image>& getShadowImage() const;
-    void setShadowImage(const PropertyValue<expression::Image>&);
-
-    static PropertyValue<expression::Image> getDefaultTopImage();
-    const PropertyValue<expression::Image>& getTopImage() const;
-    void setTopImage(const PropertyValue<expression::Image>&);
-
-    // Paint properties
-
-    static PropertyValue<float> getDefaultAccuracyRadius();
-    const PropertyValue<float>& getAccuracyRadius() const;
-    void setAccuracyRadius(const PropertyValue<float>&);
-    void setAccuracyRadiusTransition(const TransitionOptions&);
-    TransitionOptions getAccuracyRadiusTransition() const;
-
-    static PropertyValue<Color> getDefaultAccuracyRadiusBorderColor();
-    const PropertyValue<Color>& getAccuracyRadiusBorderColor() const;
-    void setAccuracyRadiusBorderColor(const PropertyValue<Color>&);
-    void setAccuracyRadiusBorderColorTransition(const TransitionOptions&);
-    TransitionOptions getAccuracyRadiusBorderColorTransition() const;
-
-    static PropertyValue<Color> getDefaultAccuracyRadiusColor();
-    const PropertyValue<Color>& getAccuracyRadiusColor() const;
-    void setAccuracyRadiusColor(const PropertyValue<Color>&);
-    void setAccuracyRadiusColorTransition(const TransitionOptions&);
-    TransitionOptions getAccuracyRadiusColorTransition() const;
-
-    static PropertyValue<Rotation> getDefaultBearing();
-    const PropertyValue<Rotation>& getBearing() const;
-    void setBearing(const PropertyValue<Rotation>&);
-    void setBearingTransition(const TransitionOptions&);
-    TransitionOptions getBearingTransition() const;
-
-    static PropertyValue<float> getDefaultBearingImageSize();
-    const PropertyValue<float>& getBearingImageSize() const;
-    void setBearingImageSize(const PropertyValue<float>&);
-    void setBearingImageSizeTransition(const TransitionOptions&);
-    TransitionOptions getBearingImageSizeTransition() const;
-
-    static PropertyValue<float> getDefaultImageTiltDisplacement();
-    const PropertyValue<float>& getImageTiltDisplacement() const;
-    void setImageTiltDisplacement(const PropertyValue<float>&);
-    void setImageTiltDisplacementTransition(const TransitionOptions&);
-    TransitionOptions getImageTiltDisplacementTransition() const;
-
-    static PropertyValue<std::array<double, 3>> getDefaultLocation();
-    const PropertyValue<std::array<double, 3>>& getLocation() const;
-    void setLocation(const PropertyValue<std::array<double, 3>>&);
-    void setLocationTransition(const TransitionOptions&);
-    TransitionOptions getLocationTransition() const;
-
-    static PropertyValue<float> getDefaultPerspectiveCompensation();
-    const PropertyValue<float>& getPerspectiveCompensation() const;
-    void setPerspectiveCompensation(const PropertyValue<float>&);
-    void setPerspectiveCompensationTransition(const TransitionOptions&);
-    TransitionOptions getPerspectiveCompensationTransition() const;
-
-    static PropertyValue<float> getDefaultShadowImageSize();
-    const PropertyValue<float>& getShadowImageSize() const;
-    void setShadowImageSize(const PropertyValue<float>&);
-    void setShadowImageSizeTransition(const TransitionOptions&);
-    TransitionOptions getShadowImageSizeTransition() const;
-
-    static PropertyValue<float> getDefaultTopImageSize();
-    const PropertyValue<float>& getTopImageSize() const;
-    void setTopImageSize(const PropertyValue<float>&);
-    void setTopImageSizeTransition(const TransitionOptions&);
-    TransitionOptions getTopImageSizeTransition() const;
-
-    // Private implementation
-
-    class Impl;
-    const Impl& impl() const;
-
-    Mutable<Impl> mutableImpl() const;
-    RouteLineLayerManager(Immutable<Impl>);
-    std::unique_ptr<Layer> cloneRef(const std::string& id) const final;
-
-protected:
-    // Dynamic properties
-    optional<conversion::Error> setPropertyInternal(const std::string& name, const conversion::Convertible& value) final;
-
-    StyleProperty getProperty(const std::string& name) const final;
-    Value serialize() const final;
-
-    Mutable<Layer::Impl> mutableBaseImpl() const final;
+enum class RoadCondition {
+    Past = 0,           // 行驶过 - 灰色
+    Fast,               // 可高速行驶 - 深绿
+    Unblocked,          // 畅通 - 绿色
+    Normal,             // 正常路况 - 浅绿色
+    Congested,          // 行驶缓慢 - 黄色
+    VeryCongested,      // 非常拥堵 - 浅红色
+    MostCongested       // 极致拥堵 - 深红色
 };
 
-} // namespace style
+class RouteLineLayerManager {
+public:
+    RouteLineLayerManager();
+    ~RouteLineLayerManager();
+
+    void setRouteLineGeometries(std::vector<mapbox::geometry::line_string<double>>& line_strings, RoadCondition);
+
+protected:
+    // Dynamic line geometry vector for every(7) road conditions
+    std::vector<mapbox::geometry::line_string<double>> line_string1; // past
+    std::vector<mapbox::geometry::line_string<double>> line_string2; // fast
+    std::vector<mapbox::geometry::line_string<double>> line_string3; // unblocked
+    std::vector<mapbox::geometry::line_string<double>> line_string4; // normal - default road condition
+    std::vector<mapbox::geometry::line_string<double>> line_string5; // congested
+    std::vector<mapbox::geometry::line_string<double>> line_string6; // very congested
+    std::vector<mapbox::geometry::line_string<double>> line_string7; // most congested
+    
+};
+
 } // namespace mbgl
 
 // clang-format on

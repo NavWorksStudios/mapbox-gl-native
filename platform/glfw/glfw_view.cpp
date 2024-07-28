@@ -788,7 +788,7 @@ void GLFWView::hideCurrentLineAnnotations() {
         mbgl::LineString<double> lineString;
         lineString.push_back({ mapCenter.longitude(), mapCenter.latitude() });
         lineString.push_back({ mapCenter.longitude(), mapCenter.latitude() });
-        map->updateAnnotation(annotationIDs[0], mbgl::LineAnnotation { lineString, 1.0f, 3.0f, { {0.0,0.0,0.0,0.0} } });
+        map->updateAnnotation(annotationIDs[0], mbgl::LineAnnotation { lineString, 0.0f, 0.0f, { {0.0,0.0,0.0,0.0} } });
     }
 }
 
