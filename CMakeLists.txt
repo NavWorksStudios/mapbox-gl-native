@@ -888,6 +888,14 @@ else()
 endif()
 
 #target_link_libraries(mbgl-core /Users/liujunqi/mapbox-gl-native/build/libmbgl-vendor-sqlite.so)
+# 忽略 -Wenum-constexpr-conversion 警告
+# if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+#     target_compile_options(mbgl-core PRIVATE -Wno-enum-constexpr-conversion)
+# elseif(MSVC)
+#     # 如果使用 MSVC 编译器，需要不同的标志来禁用相应的警告
+#     target_compile_options(mbgl-core PRIVATE /wdXXXX)
+# endif()
+
 
 if(MBGL_WITH_OPENGL)
     message("-- Configuring GL-Native with OpenGL renderer backend")
@@ -996,6 +1004,8 @@ if(MBGL_WITH_OPENGL)
             ${PROJECT_SOURCE_DIR}/src/mbgl/style/layers/location_indicator_layer_properties.hpp
     )
 endif()
+
+target_compile_options(mbgl-core PRIVATE -Wno-enum-constexpr-conversion)
 
 if(EXISTS ${PROJECT_SOURCE_DIR}/.git/HEAD)
     execute_process(
