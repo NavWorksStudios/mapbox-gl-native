@@ -190,7 +190,7 @@ struct ShaderSource<FillExtrusionProgram> {
             // 远近明暗和透明
             lowp float radial_shade=clamp((1.-distance/u_clip_region)*2.,0.,1.);
 //            v_color.rgb+=radial_shade*.3-.3 ;
-            v_color*=u_opacity*(u_render_reflection?.1:.9);
+            v_color*=u_opacity*(u_render_reflection?.2:.9);
 
             // ----------------------------- building detail -----------------------------
     
@@ -266,8 +266,8 @@ struct ShaderSource<FillExtrusionProgram> {
                 // u_spotlight=0，[1,1], u_spotlight>0，[1,.2]
                 lowp float radial_spotlight_alpha = 1.;
                 if (u_spotlight > 0.) {
-                    lowp float distance=pow(v_pos.x,2.)+pow(v_pos.z,2.);
-                    radial_spotlight_alpha = clamp(2.*distance/u_focus_region,1.-u_spotlight,1.);
+                    lowp float distance=pow(v_pos.x,2.)+pow(v_pos.y,2.);
+                    radial_spotlight_alpha = clamp(4.*distance/u_focus_region+.1,1.-u_spotlight,1.);
                 }
 
                 gl_FragColor.rgb=v_color.rgb*(.8+brighten);
