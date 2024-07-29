@@ -205,7 +205,7 @@ struct ShaderSource<FillExtrusionProgram> {
             //
             lowp float tall=abs(height-base);
             v_top_edge=1.-min(200.,tall*.8)/tall;
-            v_bottom_edge=20./tall;
+            v_bottom_edge=10./tall;
             v_height=h?1.:0.;
 
             // point light in fragment shader
