@@ -687,7 +687,7 @@ public:
     const UniformValues& uniformValues(float zoom, EvaluatedProperties& properties) const {
         (void)zoom; // Workaround for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=56958
 
-        auto update = [] (const auto& binder, auto& interpolation, auto& uniform, float zoom, auto& evaluated) {
+        static const auto update = [] (const auto& binder, auto& interpolation, auto& uniform, float zoom, auto& evaluated) {
             // interpolation uniform values
             if (zoom > 0) binder->bindInterpolationFactor(&interpolation, zoom);
 
