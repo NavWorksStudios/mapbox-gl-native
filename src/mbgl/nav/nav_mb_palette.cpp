@@ -322,21 +322,22 @@ void unbind(const void* binder) {
 
 bool demo() {
     static int counter = 0;
-    if (counter++ > 60) {
+    if (counter++ > 30) {
         counter = 0;
 
         static float h = 0;
         static float s = 0;
         static float l = 0;
 
-        h += 18.;
-        s += .1;
-        l += .1;
+        static auto wave = [] (float v, float min, float max) {
+            const float length = max - min;
+            return min + fabs(fmod(v, length * 2) - length) / length;
+        };
 
         Hsla color;
-        color.h = fmod(h, 360.);
-        color.s = .5 + .3 * fabs(fmod(s, 1.) - .5) / .5;
-        color.l = .3 + .7 * fabs(fmod(l, 2.) - 1.) / 1.;
+        color.h = fmod(h += 9., 360.);
+        color.s = .5 + .3 * wave(s += .05, 0, 1);
+        color.l = .3 + .5 * wave(l += .1, 0, 1);
         color.a = 1.;
 
         themeBaseColor.smoothTo(color);
