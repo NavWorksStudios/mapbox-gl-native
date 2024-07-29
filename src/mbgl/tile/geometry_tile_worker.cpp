@@ -34,7 +34,7 @@ using namespace style;
 
 GeometryTileWorker::GeometryTileWorker(ActorRef<GeometryTileWorker> self_,
                                        ActorRef<GeometryTile> parent_,
-                                       OverscaledTileID id_,
+                                       const OverscaledTileID& id_,
                                        std::string sourceID_,
                                        const std::atomic<bool>& obsolete_,
                                        const MapMode mode_,
@@ -48,11 +48,11 @@ GeometryTileWorker::GeometryTileWorker(ActorRef<GeometryTileWorker> self_,
       mode(mode_),
       pixelRatio(pixelRatio_),
       showCollisionBoxes(showCollisionBoxes_) {
-    nav::log::i("GeometryTileWorker", "constructor (z:%d,x:%d,y:%d)", (int)id.canonical.z, (int)id.canonical.x, (int)id.canonical.y);
+    nav::log::i("GeometryTileWorker", "constructor (z:%d,x:%d,y:%d) %s", (int)id.canonical.z, (int)id.canonical.x, (int)id.canonical.y, sourceID.c_str());
 }
 
 GeometryTileWorker::~GeometryTileWorker() {
-    nav::log::i("GeometryTileWorker", "destructor (z:%d,x:%d,y:%d)", (int)id.canonical.z, (int)id.canonical.x, (int)id.canonical.y);
+//    nav::log::i("GeometryTileWorker", "destructor (z:%d,x:%d,y:%d) %s", (int)id.canonical.z, (int)id.canonical.x, (int)id.canonical.y, sourceID.c_str());
 }
 
 /*
