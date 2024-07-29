@@ -17,17 +17,30 @@
 
 namespace mbgl {
 
+namespace route {
+
+static RouteLineLayerManager instance;
+
+RouteLineLayerManager& RouteLineLayerManager::getInstance() {
+    return instance;
+}
+
 RouteLineLayerManager::RouteLineLayerManager() {
 }
 
 RouteLineLayerManager::~RouteLineLayerManager() = default;
 
-void RouteLineLayerManager::setRouteLineGeometries(std::vector<mapbox::geometry::line_string<double>>& line_strings, RoadCondition eRoadCondition) {
+void RouteLineLayerManager::setRouteInfo(const route& route) {
     
     
 }
 
+void RouteLineLayerManager::setPuckLocation(const mbgl::LatLng& location) {
+    
+    
+}
 
+}
 
 } // namespace mbgl
 
