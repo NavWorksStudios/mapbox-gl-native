@@ -168,9 +168,11 @@ std::vector<OverscaledTileID> tileCover(const coverstrategy::param_t& strategy, 
     // 按照逻辑tile尺寸512，在当前比例尺下的大小
     const double worldSize = Projection::worldSize(state.getScale());
     
-    // LOD取值范围
-    const uint8_t minZoom = (state.getPitch() <= (60.0 / 180.0) * M_PI) ? z : 0;
+    // LOD降级取值范围
+    constexpr float MAX_PITCH = (70.0 / 180.0) * M_PI;
+    const uint8_t minZoom = (1. - state.getPitch() / MAX_PITCH) * (z - 2);
     const uint8_t maxZoom = z;
+    const uint8_t minSeenZoom = fmax(maxZoom - 5, minZoom);
     
     const uint8_t overscaledZoom = overscaledZ.value_or(z);
     const bool flippedY = state.getViewportMode() == ViewportMode::FlippedY;
@@ -255,7 +257,7 @@ std::vector<OverscaledTileID> tileCover(const coverstrategy::param_t& strategy, 
             // Perform precise intersection test between the frustum and aabb. This will cull < 1% false positives
             // missed by the original test
             const bool visible = node.fullyVisible || (frustum.intersectsPrecise(node.aabb, true) != IntersectionResult::Separate);
-            if (visible && node.zoom >= strategy.MINZoom) {
+            if (visible && node.zoom >= minSeenZoom) {
                 const OverscaledTileID id = {
                     node.zoom == maxZoom ? overscaledZoom : node.zoom,
                     node.wrap, 
