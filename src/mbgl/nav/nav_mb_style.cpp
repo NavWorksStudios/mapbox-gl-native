@@ -94,7 +94,7 @@ struct ImageData {
 std::map<std::string, ImageData> imageMap;
 
 void load(const std::string& path) {
-    imageMap["gray_noise_medium"].image = mbgl::decodeImage(mbgl::util::read_file(path + "gray_noise_medium.png"));
+//    imageMap["gray_noise_medium"].image = mbgl::decodeImage(mbgl::util::read_file(path + "gray_noise_medium.png"));
 }
 
 void release() {

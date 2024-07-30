@@ -742,9 +742,9 @@ void GLFWView::nextOrientation() {
 
 void GLFWView::addTargetPointAnnotations(const mbgl::LatLng& tagPosition) {
     hideCurrentTargetPointAnnotations();
-    map->addAnnotationImage(std::make_unique<mbgl::style::Image>("marker-target",
-                                                                 mbgl::decodeImage(mbgl::util::read_file(mbglPuckAssetsPath + "default_marker.png")), 1.0));
-    targetAnnotationIDs.push_back(map->addAnnotation(mbgl::SymbolAnnotation { { tagPosition.longitude(), tagPosition.latitude() }, "marker-target" }));
+    map->addAnnotationImage(std::make_unique<mbgl::style::Image>("marker-destination",
+                                                                 mbgl::decodeImage(mbgl::util::read_file(mbglPuckAssetsPath + "target.png")), 1.0));
+    targetAnnotationIDs.push_back(map->addAnnotation(mbgl::SymbolAnnotation { { tagPosition.longitude(), tagPosition.latitude() }, "marker-destination" }));
 }
 
 void GLFWView::hideCurrentTargetPointAnnotations() {
@@ -756,7 +756,7 @@ void GLFWView::hideCurrentTargetPointAnnotations() {
 
 void GLFWView::addRandomPointAnnotations(int count) {
     for (int i = 0; i < count; ++i) {
-        annotationIDs.push_back(map->addAnnotation(mbgl::SymbolAnnotation { makeRandomPoint(), "marker-target" }));
+        annotationIDs.push_back(map->addAnnotation(mbgl::SymbolAnnotation { makeRandomPoint(), "marker-destination" }));
     }
 }
 
@@ -768,8 +768,7 @@ void GLFWView::addLineAnnotations(const mbgl::LatLng& tagPosition) {
     lineString.push_back({ tagPosition.longitude(), tagPosition.latitude() });
     if(annotationIDs.size() > 0) {
         map->updateAnnotation(annotationIDs[0], mbgl::LineAnnotation { lineString, 1.0f, 3.0f, { mbgl::Color::red() } });
-    }
-    else {
+    } else {
         annotationIDs.push_back(map->addAnnotation(mbgl::LineAnnotation { lineString, 1.0f, 3.0f, { mbgl::Color::red() } }));
     }
 }
