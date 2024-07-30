@@ -255,6 +255,10 @@ void GeometryTile::onLayout(std::shared_ptr<LayoutResult> result, const uint64_t
     }
     
     observer->onTileChanged(*this);
+    
+    if (sourceID.find("annotations") == std::string::npos)
+    nav::log::i("GeometryTile", "onLayout (z:%d,x:%d,y:%d) %s", (int)id.canonical.z, (int)id.canonical.x, (int)id.canonical.y, sourceID.c_str());
+
 }
 
 void GeometryTile::onError(std::exception_ptr err, const uint64_t resultCorrelationID) {
@@ -370,9 +374,7 @@ void GeometryTile::querySourceFeatures(
                 // Apply filter, if any
                 style::expression::EvaluationContext context;
                 context.withZoom(this->id.overscaledZ).withGeometryTileFeature(feature.get());
-                const auto& e = context;
-
-                if (options.filter && !(*options.filter)(e)) {
+                if (options.filter && !(*options.filter)(context)) {
                     continue;
                 }
 

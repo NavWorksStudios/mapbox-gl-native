@@ -42,9 +42,7 @@ void GeoJSONTile::querySourceFeatures(
                 // Apply filter, if any
                 style::expression::EvaluationContext context;
                 context.withZoom(this->id.overscaledZ).withGeometryTileFeature(feature.get());
-                const auto& e = context;
-
-                if (options.filter && !(*options.filter)(e)) {
+                if (options.filter && !(*options.filter)(context)) {
                     continue;
                 }
 

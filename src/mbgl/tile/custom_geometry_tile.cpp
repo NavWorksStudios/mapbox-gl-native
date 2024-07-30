@@ -84,9 +84,7 @@ void CustomGeometryTile::querySourceFeatures(
             // Apply filter, if any
             style::expression::EvaluationContext context;
             context.withZoom(static_cast<float>(id.overscaledZ)).withGeometryTileFeature(feature.get());
-            const auto& e = context;
-            
-            if (queryOptions.filter && !(*queryOptions.filter)(e)) {
+            if (queryOptions.filter && !(*queryOptions.filter)(context)) {
                 continue;
             }
 

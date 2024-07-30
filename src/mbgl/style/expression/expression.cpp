@@ -49,9 +49,7 @@ EvaluationResult Expression::evaluate(optional<float> zoom,
 
     style::expression::EvaluationContext context;
     context.withZoom(std::move(zoom)).withGeometryTileFeature(&f).withColorRampParameter(std::move(colorRampParameter));
-    const auto& e = context;
-
-    return this->evaluate(e);
+    return evaluate(context);
 }
 
 EvaluationResult Expression::evaluate(optional<float> zoom,
@@ -65,9 +63,7 @@ EvaluationResult Expression::evaluate(optional<float> zoom,
     withGeometryTileFeature(&f).
     withColorRampParameter(std::move(colorRampParameter)).
     withAvailableImages(&availableImages);
-    const auto& e = context;
-    
-    return this->evaluate(e);
+    return evaluate(context);
 }
 
 EvaluationResult Expression::evaluate(optional<float> zoom,
@@ -83,9 +79,7 @@ EvaluationResult Expression::evaluate(optional<float> zoom,
     withColorRampParameter(std::move(colorRampParameter)).
     withAvailableImages(&availableImages).
     withCanonicalTileID(&canonical);
-    const auto& e = context;
-
-    return this->evaluate(e);
+    return evaluate(context);
 }
 
 EvaluationResult Expression::evaluate(optional<mbgl::Value> accumulated, const Feature& feature) const {
@@ -94,9 +88,7 @@ EvaluationResult Expression::evaluate(optional<mbgl::Value> accumulated, const F
     style::expression::EvaluationContext context;
     context.withAccumulated(std::move(accumulated)).
     withGeometryTileFeature(&f);
-    const auto& e = context;
-    
-    return this->evaluate(e);
+    return evaluate(context);
 }
 
 } // namespace expression
