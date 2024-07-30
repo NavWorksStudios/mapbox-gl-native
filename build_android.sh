@@ -9,7 +9,10 @@ cmake . -B  build \
   -DCMAKE_SYSTEM_NAME=Android \
   -DCMAKE_SYSTEM_VERSION=27 \
   -DCMAKE_ANDROID_ARCH_ABI=arm64-v8a \
+  -DANDROID_STL=c++_shared 
+  
 
+#  -DCMAKEANDROID_STL=c++_shared 
 #  -DCMAKEANDROID_PLATFORM=android-27 \
 #  -DCMAKEANDROID_STL=c++_shared \
 #   -DCMAKEANDROID_NDK=/Users/liujunqi/Library/Android/sdk/ndk/27.0.12077973 \
