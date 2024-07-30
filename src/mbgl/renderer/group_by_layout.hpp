@@ -7,6 +7,6 @@
 
 namespace mbgl {
 
-std::string layoutKey(const style::Layer::Impl& impl);
+std::string makeLayoutKey(const style::Layer::Impl& impl);
 
 } // namespace mbgl

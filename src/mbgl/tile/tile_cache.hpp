@@ -6,7 +6,7 @@
 
 #include <list>
 #include <memory>
-#include <map>
+#include <unordered_map>
 
 namespace mbgl {
 
@@ -23,7 +23,7 @@ public:
     void clear();
 
 private:
-    std::map<OverscaledTileID, std::unique_ptr<Tile>> tiles;
+    std::unordered_map<OverscaledTileID, std::unique_ptr<Tile>> tiles;
     std::list<OverscaledTileID> orderedKeys;
 
     size_t size;

@@ -98,7 +98,7 @@ public:
                                                                 float bearing,
                                                                 float pixelsToTileUnits);
 
-    void setBucketLayerIDs(const nav::stringid& bucketLeaderID, const std::vector<nav::stringid>& layerIDs);
+    void setBucketLayerIDs(const nav::stringid& bucketLeaderID, const std::vector<std::string>& layerIDs);
 
     std::unordered_map<nav::stringid, std::vector<Feature>> lookupSymbolFeatures(
         const std::vector<IndexedSubfeature>& symbolFeatures,
@@ -122,7 +122,7 @@ private:
     GridIndex<IndexedSubfeature> grid;
     unsigned int sortIndex = 0;
 
-    std::unordered_map<nav::stringid, std::vector<nav::stringid>> bucketLayerIDs;
+    std::unordered_map<nav::stringid, std::vector<std::string>> bucketLayerIDs;
     std::unique_ptr<const GeometryTileData> tileData;
 };
 } // namespace mbgl

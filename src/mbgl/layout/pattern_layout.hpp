@@ -120,9 +120,7 @@ public:
             
             style::expression::EvaluationContext context;
             context.withZoom(this->zoom).withGeometryTileFeature(feature.get()).withCanonicalTileID(&parameters.tileID.canonical);
-            const auto& e = context;
-            
-            if (!leaderLayerProperties->layerImpl().filter(e))
+            if (!leaderLayerProperties->layerImpl().filter(context))
                 continue;
 
             PatternLayerMap patternDependencyMap;
@@ -179,10 +177,8 @@ public:
                       std::unordered_map<nav::stringid, LayerRenderData>& renderData,
                       const bool /*firstLoad*/,
                       const bool /*showCollisionBoxes*/,
-                      const CanonicalTileID& canonical,
-                      const bool reversal) override {
+                      const CanonicalTileID& canonical) override {
         if(features.size() > 0) {
-            
             nav::log::w("PatternLayout", "createBucket (z:%d,x:%d,y:%d) [%s, %s] feature:%d",
                         (int)canonical.z, (int)canonical.x, (int)canonical.y,
                         bucketLeaderID.get().c_str(), sourceLayerID.get().c_str(),
@@ -191,63 +187,14 @@ public:
             auto bucket = std::make_shared<BucketType>(layout, layerPropertiesMap, zoom, overscaling);
             
             for (auto & patternFeature : features) {
-                
-//                nav::log::i("PatternLayout", "createBucket:addFeature (z:%d,x:%d,y:%d)", (int)canonical.z, (int)canonical.x, (int)canonical.y);
-                
-                if(reversal) {
-                    assert(0);
-//                    const auto i = patternFeature.i;
-//                    std::unique_ptr<GeometryTileFeature> feature = std::move(patternFeature.feature);
-//                    const PatternLayerMap& patterns = patternFeature.patterns;
-//                    const GeometryCollection& geometries = feature->getGeometries();
-//                    
-//                    // need add clipper->Difference logic
-//                    // ========================================================================
-//                    const Clipper2Lib::Paths64 tilePath = { Clipper2Lib::MakePath({8192, 8192, 0, 8192, 0, 0, 8192, 0}) };
-//                    
-//                    Clipper2Lib::Paths64 watersPath;
-//                    for(const auto& geometry : geometries) {
-//                        Clipper2Lib::Path64 waterPath;
-//                        for(const auto& geometryCoordinate : geometry) {
-//                            waterPath.push_back(Clipper2Lib::Point64(geometryCoordinate.x, geometryCoordinate.y));
-//                        }
-//                        watersPath.push_back(waterPath);
-//                    }
-//                    
-//                    Clipper2Lib::Paths64 landPath = Clipper2Lib::Intersect(tilePath, watersPath, Clipper2Lib::FillRule::NonZero);
-//                    if(landPath == tilePath) {
-//                        landPath.clear();
-//                    } else {
-//                        landPath = Clipper2Lib::Difference(tilePath, landPath, Clipper2Lib::FillRule::NonZero);
-//                    }
-//                    
-//                    // 将landsPath转换为geometries
-//                    GeometryCollection geometry;
-//                    for(const auto& path : landPath) {
-//                        GeometryCoordinates points;
-//                        for(const auto& point : path) {
-//                            points.push_back(Point<int16_t>{static_cast<int16_t>(point.x), static_cast<int16_t>(point.y)});
-//                        }
-//                        if (path.size() > 2) {
-//                            points.push_back(Point<int16_t>{static_cast<int16_t>(path[0].x), static_cast<int16_t>(path[0].y)});
-//                        }
-//                        
-//                        geometry.push_back(points);
-//                    }
-//                    // ========================================================================
-//
-//                    bucket->addFeature(*feature, geometry, patternPositions, patterns, i, canonical);
-//                    featureIndex->insert(geometry, i, sourceLayerID, bucketLeaderID);
-                } else {
-                    const auto i = patternFeature.i;
-                    std::unique_ptr<GeometryTileFeature> feature = std::move(patternFeature.feature);
-                    const PatternLayerMap& patterns = patternFeature.patterns;
-                    const GeometryCollection& geometries = feature->getGeometries();
+                const auto i = patternFeature.i;
+                std::unique_ptr<GeometryTileFeature> feature = std::move(patternFeature.feature);
+                const PatternLayerMap& patterns = patternFeature.patterns;
+                const GeometryCollection& geometries = feature->getGeometries();
 
-                    bucket->layerHeight = nav::layer::getHeight(bucketLeaderID.get());
-                    bucket->addFeature(*feature, geometries, patternPositions, patterns, i, canonical);
-                    featureIndex->insert(geometries, i, sourceLayerID, bucketLeaderID);
-                }
+                bucket->layerHeight = nav::layer::getHeight(bucketLeaderID.get());
+                bucket->addFeature(*feature, geometries, patternPositions, patterns, i, canonical);
+                featureIndex->insert(geometries, i, sourceLayerID, bucketLeaderID);
             }
             
             if (bucket->hasData()) {

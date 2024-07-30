@@ -763,8 +763,7 @@ void SymbolLayout::createBucket(const ImagePositions&,
                                 std::unordered_map<nav::stringid, LayerRenderData>& renderData,
                                 const bool firstLoad,
                                 const bool showCollisionBoxes,
-                                const CanonicalTileID& canonical,
-                                const bool reversal) {
+                                const CanonicalTileID& canonical) {
     auto bucket = std::make_shared<SymbolBucket>(layout,
                                                  layerPaintProperties,
                                                  textSize,

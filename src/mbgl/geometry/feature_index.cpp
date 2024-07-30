@@ -174,8 +174,7 @@ void FeatureIndex::addFeature(std::unordered_map<nav::stringid, std::vector<Feat
 
         style::expression::EvaluationContext context;
         context.withZoom(static_cast<float>(tileID.z)).withGeometryTileFeature(geometryTileFeature.get());
-        const auto& e = context;
-        if (options.filter && !(*options.filter)(e)) {
+        if (options.filter && !(*options.filter)(context)) {
             continue;
         }
 
@@ -209,7 +208,7 @@ optional<GeometryCoordinates> FeatureIndex::translateQueryGeometry(
     return translated;
 }
 
-void FeatureIndex::setBucketLayerIDs(const nav::stringid& bucketLeaderID, const std::vector<nav::stringid>& layerIDs) {
+void FeatureIndex::setBucketLayerIDs(const nav::stringid& bucketLeaderID, const std::vector<std::string>& layerIDs) {
     bucketLayerIDs[bucketLeaderID] = layerIDs;
 }
 

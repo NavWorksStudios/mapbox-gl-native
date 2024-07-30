@@ -41,8 +41,7 @@ public:
                       std::unordered_map<nav::stringid, LayerRenderData>&,
                       bool firstLoad,
                       bool showCollisionBoxes,
-                      const CanonicalTileID& canonical,
-                      const bool reversal) override;
+                      const CanonicalTileID& canonical) override;
 
     bool hasSymbolInstances() const override;
     bool hasDependencies() const override;
