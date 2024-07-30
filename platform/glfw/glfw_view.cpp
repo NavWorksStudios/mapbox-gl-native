@@ -795,6 +795,9 @@ void GLFWView::hideCurrentLineAnnotations() {
 void GLFWView::updateLineAnnotations(const mbgl::LatLng& orgPosition, const mbgl::LatLng& tagPosition) {
     mbgl::LineString<double> lineString;
     lineString.push_back({ orgPosition.longitude(), orgPosition.latitude() });
+    lineString.push_back({ tagPosition.longitude()-0.001, tagPosition.latitude()-0.001 });
+    lineString.push_back({ tagPosition.longitude()-0.002, tagPosition.latitude()-0.002 });
+    lineString.push_back({ tagPosition.longitude()+0.04, tagPosition.latitude()-0.05 });
     lineString.push_back({ tagPosition.longitude(), tagPosition.latitude() });
     if(annotationIDs.size() > 0) {
         map->updateAnnotation(annotationIDs[0], mbgl::LineAnnotation { lineString, 1.0f, 3.0f, { mbgl::Color::red() } });

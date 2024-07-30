@@ -40,6 +40,45 @@ void RouteLineLayerManager::setPuckLocation(const mbgl::LatLng& location) {
     
 }
 
+
+
+
+
+
+void RouteLineLayerManager::update() {
+    
+    
+}
+
+//std::unique_ptr<AnnotationTileData> RouteLineLayerManager::::getTileData(const CanonicalTileID& tileID) {
+//    if (symbolAnnotations.empty() && shapeAnnotations.empty())
+//        return nullptr;
+//
+//    auto tileData = std::make_unique<AnnotationTileData>();
+//
+//    auto pointLayer = tileData->addLayer(PointLayerID);
+//
+//    LatLngBounds tileBounds(tileID);
+//    // Hack for https://github.com/mapbox/mapbox-gl-native/issues/12472
+//    // To handle precision issues, query a slightly larger area than the tile bounds
+//    // Symbols at a border can be included in vector data for both tiles
+//    // The rendering/querying logic will make sure the symbols show up in only one of the tiles
+//    tileBounds.extend(LatLng(tileBounds.south() - 0.000000001, tileBounds.west() - 0.000000001));
+//    tileBounds.extend(LatLng(tileBounds.north() + 0.000000001, tileBounds.east() + 0.000000001));
+//    
+//    symbolTree.query(boost::geometry::index::intersects(tileBounds),
+//        boost::make_function_output_iterator([&](const auto& val){
+//            val->updateLayer(tileID, *pointLayer);
+//        }));
+//
+//    for (const auto& shape : shapeAnnotations) {
+//        shape.second->updateTileData(tileID, *tileData);
+//    }
+//
+//    return tileData;
+//}
+
+
 }
 
 } // namespace mbgl

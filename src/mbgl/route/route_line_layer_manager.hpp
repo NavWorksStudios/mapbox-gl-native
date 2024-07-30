@@ -29,9 +29,23 @@ public:
     void setPuckLocation(const mbgl::LatLng& location);
     
 private:
-    // Dynamic line geometry vector for every(7) road conditions
-    mapbox::geometry::line_string<double> line_string_past;            // past
-    mapbox::geometry::line_string<double> line_string_unpast;          // unpast
+    // Dynamic line geometry vector for road conditions
+    mapbox::geometry::line_string<double> line_string_past;     // past
+    mapbox::geometry::line_string<double> line_string_unpast;   // unpast or all
+    
+    style::PropertyValue<Color> color_f3 = Color::black();
+    style::PropertyValue<Color> color_f2 = Color::black();
+    style::PropertyValue<Color> color_f1 = Color::black();
+    style::PropertyValue<Color> color_normal = Color::black();
+    style::PropertyValue<Color> color_s1 = Color::black();
+    style::PropertyValue<Color> color_s2 = Color::black();
+    style::PropertyValue<Color> color_s3 = Color::black();
+    
+    bool crossfade = true;
+    
+private:
+    void update();
+    
     
 };
 

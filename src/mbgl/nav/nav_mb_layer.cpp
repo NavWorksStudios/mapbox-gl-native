@@ -194,8 +194,8 @@ static const std::unordered_map<std::string, Source> layerIds = {
 
 
 bool filter(const std::string& id) {
-    return true;
-//    return layerIds.find(id) != layerIds.end();
+//    return true;
+    return layerIds.find(id) != layerIds.end();
 }
 
 static std::unordered_map<std::string, float> layerHeights = {
