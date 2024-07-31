@@ -124,14 +124,6 @@ void TilePyramid::update(const std::vector<Immutable<style::LayerProperties>>& l
 
             if (panZoom < idealZoom) {
                 panTiles = util::tileCover(util::coverstrategy::Standard, parameters.transformState, panZoom);
-                std::vector<OverscaledTileID> detailedPanTiles = util::tileCover(util::coverstrategy::Detailed, parameters.transformState, panZoom);
-
-                std::unordered_set<OverscaledTileID> mergedTiles;
-                for (const auto& tile : panTiles) mergedTiles.insert(tile);
-                for (const auto& tile : detailedPanTiles) mergedTiles.insert(tile);
-
-                panTiles.clear();
-                for (const auto& tile : mergedTiles) panTiles.emplace_back(tile);
             }
         }
 
@@ -169,11 +161,6 @@ void TilePyramid::update(const std::vector<Immutable<style::LayerProperties>>& l
             *bounds, zoomRange.min, std::min(tileZoom, static_cast<int32_t>(zoomRange.max)));
     }
     auto createTileFn = [&](const OverscaledTileID& tileID) -> Tile* {
-        nav::log::i("TilePyramid", "%p createTile o:%d w:%d (z:%d,x:%d,y:%d) tiles-size(%d)",
-                    this,
-                    (int)tileID.overscaledZ, (int)tileID.wrap,
-                    (int)tileID.canonical.z, (int)tileID.canonical.x, (int)tileID.canonical.y, (int)tiles.size());
-        
         if (tileRange && !tileRange->contains(tileID.canonical)) {
             return nullptr;
         }
@@ -217,14 +204,6 @@ void TilePyramid::update(const std::vector<Immutable<style::LayerProperties>>& l
 
     renderedTiles.clear();
 
-    // 预加载瓦片 create, retain, mark to be rendered
-    if (!panTiles.empty()) {
-        static auto noRenderFn = [](const UnwrappedTileID&, Tile&) {};
-        algorithm::updateRenderables(getTileFn, createTileFn, retainTileFn, noRenderFn,
-                                     [] (Tile& tile) {  },
-                                     panTiles, zoomRange, maxParentTileOverscaleFactor);
-    }
-
     // 理想瓦片 create, retain, mark to be rendered
     algorithm::updateRenderables(getTileFn, createTileFn, retainTileFn, markRenderTileFn,
                                  [] (Tile& tile) { tile.renderMode |= Tile::RenderMode::Standard; },
@@ -234,6 +213,14 @@ void TilePyramid::update(const std::vector<Immutable<style::LayerProperties>>& l
     algorithm::updateRenderables(getTileFn, createTileFn, retainTileFn, markRenderTileFn, 
                                  [] (Tile& tile) { tile.renderMode |= Tile::RenderMode::Detailed; },
                                  detailedTiles, zoomRange, maxParentTileOverscaleFactor);
+    
+    // 预加载瓦片 create, retain, mark to be rendered
+//    if (!panTiles.empty()) {
+//        static auto noRenderFn = [](const UnwrappedTileID&, Tile&) {};
+//        algorithm::updateRenderables(getTileFn, createTileFn, retainTileFn, noRenderFn,
+//                                     [] (Tile& tile) {  },
+//                                     panTiles, zoomRange, maxParentTileOverscaleFactor);
+//    }
 
     // 保留退出瓦片
     // “holdForFade”用于将瓦片在不再需要时，依然保留在渲染树中，以完成symbol淡出
