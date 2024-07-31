@@ -42,10 +42,16 @@ public:
     
     bool routeLineShowState();
     
+    void updateData();
+    
     // for debug
     void setRouteGeometry(const mapbox::geometry::line_string<double>&);
     
+    
 public:
+    
+    void addTile(RouteTile&);
+    void removeTile(RouteTile&);
     
     static const nav::stringid SourceID;
     static const nav::stringid PointLayerID;
@@ -68,10 +74,13 @@ private:
     bool crossfade = true;
     
     std::unordered_set<RouteTile*> tiles;
+    std::mutex mutex;
+    bool dirty = false;
+    
+    mbgl::LatLng puckLocation;
     
 private:
-    void update();
-    
+    std::unique_ptr<RouteTileData> getTileData(const CanonicalTileID& tileID);
     
 };
 

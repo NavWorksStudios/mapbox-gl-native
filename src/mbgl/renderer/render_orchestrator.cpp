@@ -28,6 +28,7 @@
 #include <mbgl/util/logging.hpp>
 
 #include "mbgl/nav/nav_mb_style.hpp"
+#include <mbgl/route/route_line_layer_manager.hpp>
 
 namespace mbgl {
 
@@ -150,6 +151,11 @@ std::unique_ptr<RenderTree> RenderOrchestrator::createRenderTree(
         if (updateParameters->annotationManager) {
             updateParameters->annotationManager->updateData();
         }
+    }
+  
+    // #*# 更新导航线路数据
+    if (LayerManager::routelineEnabled) {
+        RouteLineLayerManager::getInstance().updateData();
     }
 
     const bool zoomChanged =

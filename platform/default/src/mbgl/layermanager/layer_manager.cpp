@@ -111,4 +111,10 @@ const bool LayerManager::annotationsEnabled = false;
 const bool LayerManager::annotationsEnabled = true;
 #endif
 
+#if defined(MBGL_LAYER_LINE_DISABLE_ALL) || defined(MBGL_LAYER_FILL_DISABLE_ALL)
+const bool LayerManager::routelineEnabled = false;
+#else
+const bool LayerManager::routelineEnabled = true;
+#endif
+
 } // namespace mbgl

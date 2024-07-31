@@ -60,6 +60,8 @@ public:
      * and this flag won't be needed any more.
      */
     static const bool annotationsEnabled;
+    
+    static const bool routelineEnabled;
 
 protected:
     virtual ~LayerManager() = default;

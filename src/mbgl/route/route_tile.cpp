@@ -1,9 +1,9 @@
-#include <mbgl/route/route_tile.hpp>
+
 #include <mbgl/annotation/annotation_manager.hpp>
 #include <mbgl/util/constants.hpp>
 #include <mbgl/renderer/tile_parameters.hpp>
 #include <mbgl/route/route_line_layer_manager.hpp>
-
+#include <mbgl/route/route_tile.hpp>
 #include <utility>
 
 namespace mbgl {
@@ -16,7 +16,7 @@ RouteTile::RouteTile(const OverscaledTileID& overscaledTileID,
 //    auto guard = routeLineManager.lock();
     if (&mbgl::RouteLineLayerManager::getInstance()) {
         // #*#
-//        routeLineManager->addTile(*this);
+        mbgl::RouteLineLayerManager::getInstance().addTile(*this);
     }
 }
 
@@ -24,7 +24,7 @@ RouteTile::~RouteTile() {
 //    auto guard = routeLineManager.lock();
     if (&mbgl::RouteLineLayerManager::getInstance()) {
         // #*#
-//        routeLineManager->removeTile(*this);
+        mbgl::RouteLineLayerManager::getInstance().removeTile(*this);
     }
 }
 
