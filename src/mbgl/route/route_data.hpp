@@ -8,7 +8,7 @@
 
 namespace mbgl {
 
-namespace route {
+//namespace route {
 
 const int16_t eRoadCondition_MostFast = -3;
 const int16_t eRoadCondition_VeryFast = -2;
@@ -53,7 +53,7 @@ void clear();
 
 std::shared_ptr<route> get();
 
-}
+//}
 
 } // namespace mbgl
 

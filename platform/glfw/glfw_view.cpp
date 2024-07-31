@@ -49,6 +49,8 @@
 #include "mbgl/nav/nav_mb_style.hpp"
 #include "mbgl/nav/nav_log.hpp"
 
+#include <mbgl/route/route_line_layer_manager.hpp>
+
 namespace {
 const std::string mbglPuckAssetsPath{MAPBOX_PUCK_ASSETS_PATH};
 
@@ -430,6 +432,7 @@ void GLFWView::onKey(int key, int action, int mods) {
             
             addLineAnnotations(targetLatLng);
             addTargetPointAnnotations(targetLatLng);
+            addRouteLines();
 
             animateRouteCallback = [this, route](mbgl::Map* routeMap) {
                 // 导航模式暂停时，不处理任何逻辑直接返回
@@ -766,6 +769,19 @@ void GLFWView::addRandomPointAnnotations(int count) {
     for (int i = 0; i < count; ++i) {
         annotationIDs.push_back(map->addAnnotation(mbgl::SymbolAnnotation { makeRandomPoint(), "marker-target" }));
     }
+}
+
+
+void GLFWView::addRouteLines() {
+    mbgl::LineString<double> lineString;
+    lineString.push_back({ -74.013841, 40.702449 });
+    lineString.push_back({ -74.013863, 40.702462 });
+    lineString.push_back({ -74.013977, 40.702548 });
+    lineString.push_back({ -74.01404, 40.702595 });
+    lineString.push_back({ -74.01438, 40.711171 });
+    lineString.push_back({ -74.01436, 40.71125 });
+    lineString.push_back({ -74.014147, 40.712245 });
+    mbgl::RouteLineLayerManager::getInstance().setRouteGeometry(lineString);
 }
 
 void GLFWView::addLineAnnotations(const mbgl::LatLng& tagPosition) {

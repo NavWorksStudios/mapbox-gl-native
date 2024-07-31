@@ -105,6 +105,9 @@ private:
     void updateAnimatedAnnotations();
     void toggleCustomSource();
     void toggleLocationIndicatorLayer(bool visibility);
+    
+    // test route
+    void addRouteLines();
 
     void cycleDebugOptions();
     void clearAnnotations();

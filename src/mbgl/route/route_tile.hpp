@@ -6,7 +6,10 @@
 
 namespace mbgl {
 
+//namespace route {
+
 class AnnotationManager;
+class RouteLineLayerManager;
 class TileParameters;
 
 class RouteTile : public GeometryTile {
@@ -15,7 +18,7 @@ public:
     ~RouteTile() override;
 
 private:
-    mapbox::base::WeakPtr<AnnotationManager> annotationManager;
+    mapbox::base::WeakPtr<RouteLineLayerManager> routeLineManager;
 };
 
 class RouteTileFeatureData;
@@ -63,5 +66,7 @@ public:
 private:
     std::unordered_map<nav::stringid, std::shared_ptr<RouteTileLayerData>> layers;
 };
+
+//}
 
 } // namespace mbgl

@@ -17,7 +17,7 @@
 
 namespace mbgl {
 
-namespace route {
+//namespace route {
 
 static RouteLineLayerManager instance;
 
@@ -40,9 +40,34 @@ void RouteLineLayerManager::setPuckLocation(const mbgl::LatLng& location) {
     
 }
 
+void RouteLineLayerManager::setRouteGeometry(const mapbox::geometry::line_string<double>& line_strings) {
+    
+    // 保存导航路线的型点数据
+    line_string_unpast = std::move(line_strings);
+    
+    // 根据layer manager中的金字塔的tile列表切分型点数据
+    
+    
+    // 将切分后（分属不同tile的）数据进行parse解析装载进route line layer
+    
+    
+    // 将route line layer保存到layer manager等待渲染
+    
+}
 
+void RouteLineLayerManager::showRouteLine() {
+    inShowing = true;
+    
+}
 
+void RouteLineLayerManager::hideRouteLine() {
+    inShowing = false;
+    
+}
 
+bool RouteLineLayerManager::routeLineShowState() {
+    return inShowing;
+}
 
 
 void RouteLineLayerManager::update() {
@@ -79,7 +104,7 @@ void RouteLineLayerManager::update() {
 //}
 
 
-}
+//}
 
 } // namespace mbgl
 

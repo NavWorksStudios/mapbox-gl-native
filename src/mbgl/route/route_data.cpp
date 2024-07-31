@@ -17,7 +17,7 @@
 
 namespace mbgl {
 
-namespace route {
+//namespace route {
 
 static std::shared_ptr<route> route_instance;
 
@@ -35,7 +35,7 @@ std::shared_ptr<route> get() {
     return route_instance;
 }
 
-}
+//}
 
 } // namespace mbgl
 

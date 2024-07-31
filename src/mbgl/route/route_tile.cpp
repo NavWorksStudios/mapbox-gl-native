@@ -2,27 +2,29 @@
 #include <mbgl/annotation/annotation_manager.hpp>
 #include <mbgl/util/constants.hpp>
 #include <mbgl/renderer/tile_parameters.hpp>
+#include <mbgl/route/route_line_layer_manager.hpp>
 
 #include <utility>
 
 namespace mbgl {
 
+//namespace route {
+
 RouteTile::RouteTile(const OverscaledTileID& overscaledTileID,
                                const TileParameters& parameters)
-    : GeometryTile(overscaledTileID, AnnotationManager::SourceID, parameters),
-      annotationManager(parameters.annotationManager) {
-    auto guard = annotationManager.lock();
-    if (annotationManager) {
+    : GeometryTile(overscaledTileID, RouteLineLayerManager::SourceID, parameters) {
+//    auto guard = routeLineManager.lock();
+    if (&mbgl::RouteLineLayerManager::getInstance()) {
         // #*#
-//        annotationManager->addTile(*this);
+//        routeLineManager->addTile(*this);
     }
 }
 
 RouteTile::~RouteTile() {
-    auto guard = annotationManager.lock();
-    if (annotationManager) {
+//    auto guard = routeLineManager.lock();
+    if (&mbgl::RouteLineLayerManager::getInstance()) {
         // #*#
-//        annotationManager->removeTile(*this);
+//        routeLineManager->removeTile(*this);
     }
 }
 
@@ -122,5 +124,7 @@ std::unique_ptr<RouteTileLayer> RouteTileData::addLayer(const nav::stringid& nam
     }
     return std::make_unique<RouteTileLayer>(it->second);
 }
+
+//}
 
 } // namespace mbgl
