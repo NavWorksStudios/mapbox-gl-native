@@ -167,6 +167,7 @@ private:
         }
         
         size_t size() const { return history.size(); }
+
         void newSequence() { sequenceNum++; }
         
         const Mouse& operator [] (int index) const {
@@ -175,9 +176,7 @@ private:
 
         const Mouse& prefer(double time) {
             auto it = history.end() - 1;
-            while (it != history.begin() && (it - 1)->prefer(time, sequenceNum)) {
-                it--;
-            }
+            while (it != history.begin() && (--it)->prefer(time, sequenceNum)) ;
             return *it;
         }
     } _mouseHistory;

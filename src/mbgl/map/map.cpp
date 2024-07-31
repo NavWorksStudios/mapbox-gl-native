@@ -128,6 +128,16 @@ bool Map::isPanning() const {
 
 #pragma mark -
 
+LatLng Map::screenCoordinateToLatLng(const ScreenCoordinate& point) {
+    return impl->transform.screenCoordinateToLatLng(point);
+}
+
+Size Map::getTranformStateSize() {
+    return impl->transform.state.getSize();
+}
+
+#pragma mark -
+
 CameraOptions Map::getCameraOptions(const optional<EdgeInsets>& padding) const {
     return impl->transform.getCameraOptions(padding);
 }
@@ -152,21 +162,6 @@ void Map::moveBy(const ScreenCoordinate& point, const AnimationOptions& animatio
 //    nav::log::i("Map", "moveBy point.x %f,point.y %f", point.x,point.y);
     impl->cameraMutated = true;
     impl->transform.moveBy(point, animation);
-    impl->onUpdate();
-}
-
-LatLng Map::screenCoordinateToLatLng(const ScreenCoordinate& point) {
-    return impl->transform.screenCoordinateToLatLng(point);
-}
-
-Size Map::getTranformStateSize() {
-    return impl->transform.state.getSize();
-}
-
-void Map::moveByTouch(const ScreenCoordinate& point, const AnimationOptions& animation) {
-//    nav::log::i("Map", "moveByTouch point.x %f,point.y %f", point.x,point.y);
-    impl->cameraMutated = true;
-    impl->transform.moveByTouch(point, animation);
     impl->onUpdate();
 }
 
