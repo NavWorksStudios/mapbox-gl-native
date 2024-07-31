@@ -6,7 +6,6 @@
 #include <mbgl/layout/symbol_layout.hpp>
 #include <mbgl/layout/pattern_layout.hpp>
 #include <mbgl/renderer/bucket_parameters.hpp>
-#include <mbgl/renderer/group_by_layout.hpp>
 #include <mbgl/style/filter.hpp>
 #include <mbgl/style/layers/symbol_layer_impl.hpp>
 #include <mbgl/renderer/layers/render_fill_layer.hpp>
@@ -35,7 +34,7 @@ using namespace style;
 GeometryTileWorker::GeometryTileWorker(ActorRef<GeometryTileWorker> self_,
                                        ActorRef<GeometryTile> parent_,
                                        const OverscaledTileID& id_,
-                                       std::string sourceID_,
+                                       const std::string& sourceID_,
                                        const std::atomic<bool>& obsolete_,
                                        const MapMode mode_,
                                        const float pixelRatio_,
@@ -48,11 +47,13 @@ GeometryTileWorker::GeometryTileWorker(ActorRef<GeometryTileWorker> self_,
       mode(mode_),
       pixelRatio(pixelRatio_),
       showCollisionBoxes(showCollisionBoxes_) {
-    nav::log::i("GeometryTileWorker", "constructor (z:%d,x:%d,y:%d) %s", (int)id.canonical.z, (int)id.canonical.x, (int)id.canonical.y, sourceID.c_str());
+    if (sourceID.find("annotation") == std::string::npos) {
+        nav::log::i("GeometryTileWorker", "constructor (z:%d,x:%d,y:%d) %s", (int)id.canonical.z, (int)id.canonical.x, (int)id.canonical.y, sourceID.c_str());
+    }
 }
 
 GeometryTileWorker::~GeometryTileWorker() {
-//    nav::log::i("GeometryTileWorker", "destructor (z:%d,x:%d,y:%d) %s", (int)id.canonical.z, (int)id.canonical.x, (int)id.canonical.y, sourceID.c_str());
+    nav::log::i("GeometryTileWorker", "destructor (z:%d,x:%d,y:%d) %s", (int)id.canonical.z, (int)id.canonical.x, (int)id.canonical.y, sourceID.c_str());
 }
 
 /*
@@ -349,8 +350,6 @@ void GeometryTileWorker::parse() {
 
     MBGL_TIMING_START(watch)
 
-    std::unordered_map<std::string, std::unique_ptr<SymbolLayout>> symbolLayoutMap;
-
     renderData.clear();
     layouts.clear();
 
@@ -362,8 +361,7 @@ void GeometryTileWorker::parse() {
     // Create render layers and group by layout
     std::unordered_map<std::string, std::vector<Immutable<style::LayerProperties>>> groupMap;
     for (auto layer : *layers) {
-        std::string key = layoutKey(*layer->baseImpl);
-        groupMap[key].push_back(std::move(layer));
+        groupMap[layer->layoutKey].push_back(std::move(layer));
     }
 
     for (auto& pair : groupMap) {
@@ -384,7 +382,7 @@ void GeometryTileWorker::parse() {
             continue;
         }
         
-        std::vector<nav::stringid> layerIDs(group.size());
+        std::vector<std::string> layerIDs;
         for (const auto& layer : group) {
             layerIDs.push_back(layer->baseImpl->id);
         }
@@ -397,17 +395,16 @@ void GeometryTileWorker::parse() {
         // the images/glyphs are available to add the features to the buckets.
 
         if (leaderImpl.getTypeInfo()->layout == LayerTypeInfo::Layout::Required) {
-            // 符号层和支持图案属性的层，在布局时有一个额外的步骤，以确定哪些图像/字形需要渲染。
-            // 会使用中间数据结构Layout来实现这一点。
+            // 符号层和支持图案属性的层，在布局时有一个额外的步骤，以确定哪些图像/字形需要渲染。会使用中间数据结构Layout来实现这一点。
             LayoutParameters lp = { parameters, glyphDependencies, imageDependencies, *(std::set<std::string>*)availableImages };
             std::unique_ptr<Layout> layout = LayerManager::get()->createLayout(lp, std::move(geometryLayer), group);
-            
+
             if (layout->hasDependencies()) {
                 // 如果有使用图像/字形（依赖），Layout先被存下来，直到图像/字形可用，然后创建bucket，再将特征添加到其中。
                 layouts.push_back(std::move(layout));
             } else {
                 // 如果没有使用（依赖）图像/字形，则立即创建一个bucket。
-                layout->createBucket({}, featureIndex, renderData, firstLoad, showCollisionBoxes, id.canonical, false);
+                layout->createBucket({}, featureIndex, renderData, firstLoad, showCollisionBoxes, id.canonical);
             }
         } else {
             const Filter& filter = leaderImpl.filter;
@@ -419,9 +416,7 @@ void GeometryTileWorker::parse() {
 
                 style::expression::EvaluationContext context;
                 context.withZoom(this->id.overscaledZ).withGeometryTileFeature(feature.get()).withCanonicalTileID(&id.canonical);
-                const auto& e = context;
-
-                if (!filter(expression::EvaluationContext(e)))
+                if (!filter(expression::EvaluationContext(context)))
                     continue;
 
                 const GeometryCollection& geometries = feature->getGeometries();
