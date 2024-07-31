@@ -1,6 +1,5 @@
 #pragma once
 #include <mbgl/style/layer_impl.hpp>
-#include <mbgl/renderer/group_by_layout.hpp>
 
 namespace mbgl {
 
@@ -19,10 +18,8 @@ public:
     Immutable<Layer::Impl> baseImpl;
     // Contains render passes used by the renderer, see `mbgl::RenderPass`.
     uint8_t renderPasses = 0u;
-    const std::string layoutKey;
-
 protected:
-    LayerProperties(Immutable<Layer::Impl> impl) : baseImpl(std::move(impl)), layoutKey(makeLayoutKey(*baseImpl)) {
+    LayerProperties(Immutable<Layer::Impl> impl) : baseImpl(std::move(impl)) {
     }
 };
 

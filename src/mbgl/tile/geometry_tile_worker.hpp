@@ -93,7 +93,7 @@ private:
     uint64_t imageCorrelationID = 0;
 
     // Outer optional indicates whether we've received it or not.
-    std::shared_ptr<std::vector<Immutable<style::LayerProperties>>> layers;
+    std::shared_ptr<std::vector<Immutable<style::LayerProperties>>> layerProperties;
     std::unique_ptr<const GeometryTileData> data;
 
     std::vector<std::unique_ptr<Layout>> layouts;

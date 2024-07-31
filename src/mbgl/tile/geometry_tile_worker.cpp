@@ -6,6 +6,7 @@
 #include <mbgl/layout/symbol_layout.hpp>
 #include <mbgl/layout/pattern_layout.hpp>
 #include <mbgl/renderer/bucket_parameters.hpp>
+#include <mbgl/renderer/group_by_layout.hpp>
 #include <mbgl/style/filter.hpp>
 #include <mbgl/style/layers/symbol_layer_impl.hpp>
 #include <mbgl/renderer/layers/render_fill_layer.hpp>
@@ -151,11 +152,11 @@ void GeometryTileWorker::setData(std::unique_ptr<const GeometryTileData> data_,
     }
 }
 
-void GeometryTileWorker::setLayers(std::shared_ptr<std::vector<Immutable<LayerProperties>>> layers_,
+void GeometryTileWorker::setLayers(std::shared_ptr<std::vector<Immutable<LayerProperties>>> layers,
                                    const std::set<std::string>* availableImages_,
                                    uint64_t correlationID_) {
     try {
-        layers = layers_;
+        layerProperties = layers;
         correlationID = correlationID_;
         availableImages = availableImages_;
 
@@ -179,7 +180,7 @@ void GeometryTileWorker::setLayers(std::shared_ptr<std::vector<Immutable<LayerPr
 }
 
 void GeometryTileWorker::reset(uint64_t correlationID_) {
-    layers = nullptr;
+    layerProperties = nullptr;
     data = nullptr;
     correlationID = correlationID_;
 
@@ -344,7 +345,7 @@ void GeometryTileWorker::requestNewImages(const ImageDependencies& imageDependen
 }
 
 void GeometryTileWorker::parse() {
-    if (!data || !layers) {
+    if (!data || !layerProperties) {
         return;
     }
 
@@ -360,8 +361,9 @@ void GeometryTileWorker::parse() {
 
     // Create render layers and group by layout
     std::unordered_map<std::string, std::vector<Immutable<style::LayerProperties>>> groupMap;
-    for (auto layer : *layers) {
-        groupMap[layer->layoutKey].push_back(std::move(layer));
+    for (auto property : *layerProperties) {
+        std::string&& key = makeLayoutKey(*property->baseImpl);
+        groupMap[key].push_back(std::move(property));
     }
 
     for (auto& pair : groupMap) {
@@ -459,7 +461,7 @@ bool GeometryTileWorker::hasPendingParseResult() const {
 }
 
 void GeometryTileWorker::finalizeLayout() {
-    if (!data || !layers || !hasPendingParseResult() || hasPendingDependencies()) {
+    if (!data || !layerProperties || !hasPendingParseResult() || hasPendingDependencies()) {
         return;
     }
     

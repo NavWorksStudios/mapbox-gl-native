@@ -4,6 +4,7 @@
 #include <mbgl/util/rect.hpp>
 
 #include <mapbox/shelf-pack.hpp>
+#include "mbgl/nav/nav_stringid.hpp"
 
 #include <array>
 
@@ -51,7 +52,7 @@ public:
     }
 };
 
-using ImagePositions = std::map<std::string, ImagePosition>;
+using ImagePositions = std::unordered_map<nav::stringid, ImagePosition>;
 
 class ImagePatch {
 public:
