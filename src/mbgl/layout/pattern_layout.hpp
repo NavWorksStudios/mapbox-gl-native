@@ -179,10 +179,10 @@ public:
                       const bool /*showCollisionBoxes*/,
                       const CanonicalTileID& canonical) override {
         if(features.size() > 0) {
-            nav::log::w("PatternLayout", "createBucket (z:%d,x:%d,y:%d) [%s, %s] feature:%d",
-                        (int)canonical.z, (int)canonical.x, (int)canonical.y,
-                        bucketLeaderID.get().c_str(), sourceLayerID.get().c_str(),
-                        (int)features.size());
+//            nav::log::w("PatternLayout", "createBucket (z:%d,x:%d,y:%d) [%s, %s] feature:%d",
+//                        (int)canonical.z, (int)canonical.x, (int)canonical.y,
+//                        bucketLeaderID.get().c_str(), sourceLayerID.get().c_str(),
+//                        (int)features.size());
             
             auto bucket = std::make_shared<BucketType>(layout, layerPropertiesMap, zoom, overscaling);
             
