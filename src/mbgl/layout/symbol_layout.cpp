@@ -137,9 +137,7 @@ SymbolLayout::SymbolLayout(const BucketParameters& parameters,
 
         expression::EvaluationContext context;
         context.withZoom(this->zoom).withGeometryTileFeature(feature.get()).withCanonicalTileID(&parameters.tileID.canonical);
-        const auto& e = context;
-        
-        if (!leader.filter(e))
+        if (!leader.filter(context))
             continue;
 
         SymbolFeature ft(std::move(feature));

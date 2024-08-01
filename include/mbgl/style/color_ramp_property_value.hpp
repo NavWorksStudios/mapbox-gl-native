@@ -36,9 +36,7 @@ public:
     Color evaluate(double rampEvaluationParameter) const {
         expression::EvaluationContext context;
         context.withColorRampParameter(rampEvaluationParameter);
-        const auto& e = context;
-        
-        const auto result = value->evaluate(e);
+        const auto result = value->evaluate(context);
         return *expression::fromExpressionValue<Color>(*result);
     }
 

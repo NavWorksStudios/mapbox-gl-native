@@ -61,9 +61,7 @@ public:
         
         expression::EvaluationContext context;
         context.withZoom(zoom);
-        const auto& e = context;
-        
-        return evaluate(e);
+        return evaluate(context);
     }
     
     T evaluatePitch(float pitch) const {
@@ -72,9 +70,7 @@ public:
         
         expression::EvaluationContext context;
         context.withPitch(pitch);
-        const auto& e = context;
-        
-        return evaluate(e);
+        return evaluate(context);
     }
 
     T evaluate(const GeometryTileFeature& feature, T finalDefaultValue) const {
@@ -83,17 +79,13 @@ public:
         
         expression::EvaluationContext context;
         context.withGeometryTileFeature(&feature);
-        const auto& e = context;
-        
-        return evaluate(e, finalDefaultValue);
+        return evaluate(context, finalDefaultValue);
     }
 
     T evaluate(const GeometryTileFeature& feature, const std::set<std::string>& availableImages, T finalDefaultValue) const {
         expression::EvaluationContext context;
         context.withGeometryTileFeature(&feature).withAvailableImages(&availableImages);
-        const auto& e = context;
-
-        return evaluate(e, finalDefaultValue);
+        return evaluate(context, finalDefaultValue);
     }
 
     T evaluate(const GeometryTileFeature& feature, const CanonicalTileID& canonical, T finalDefaultValue) const {
@@ -108,51 +100,39 @@ public:
                const CanonicalTileID& canonical, T finalDefaultValue) const {
         expression::EvaluationContext context;
         context.withGeometryTileFeature(&feature).withAvailableImages(&availableImages).withCanonicalTileID(&canonical);
-        const auto& e = context;
-
-        return evaluate(e, finalDefaultValue);
+        return evaluate(context, finalDefaultValue);
     }
 
     T evaluate(float zoom, const GeometryTileFeature& feature, T finalDefaultValue) const {
         expression::EvaluationContext context;
         context.withZoom(zoom).withGeometryTileFeature(&feature);
-        const auto& e = context;
-        
-        return evaluate(e, finalDefaultValue);
+        return evaluate(context, finalDefaultValue);
     }
 
     T evaluate(float zoom, const GeometryTileFeature& feature, const std::set<std::string>& availableImages, T finalDefaultValue) const {
         expression::EvaluationContext context;
         context.withZoom(zoom).withGeometryTileFeature(&feature).withAvailableImages(&availableImages);
-        const auto& e = context;
-        
-        return evaluate(e, finalDefaultValue);
+        return evaluate(context, finalDefaultValue);
     }
 
     T evaluate(float zoom, const GeometryTileFeature& feature, const std::set<std::string>& availableImages,
                const CanonicalTileID& canonical, T finalDefaultValue) const {
         expression::EvaluationContext context;
         context.withZoom(zoom).withGeometryTileFeature(&feature).withAvailableImages(&availableImages).withCanonicalTileID(&canonical);
-        const auto& e = context;
-        
-        return evaluate(e, finalDefaultValue);
+        return evaluate(context, finalDefaultValue);
     }
 
     T evaluate(float zoom, const GeometryTileFeature& feature, const CanonicalTileID& canonical, T finalDefaultValue) const {
         expression::EvaluationContext context;
         context.withZoom(zoom).withGeometryTileFeature(&feature).withCanonicalTileID(&canonical);
-        const auto& e = context;
-        
-        return evaluate(e, finalDefaultValue);
+        return evaluate(context, finalDefaultValue);
     }
 
     T evaluate(float zoom, const GeometryTileFeature& feature, const FeatureState& state, T finalDefaultValue) const {
         assert(!isFeatureConstant());
         expression::EvaluationContext context;
         context.withZoom(zoom).withGeometryTileFeature(&feature).withFeatureState(&state);
-        const auto& e = context;
-        
-        return evaluate(e, finalDefaultValue);
+        return evaluate(context, finalDefaultValue);
     }
 
     std::vector<optional<T>> possibleOutputs() const {
