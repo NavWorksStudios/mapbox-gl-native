@@ -878,6 +878,10 @@ set(all_files
     ${PROJECT_SOURCE_DIR}/src/mbgl/route/render_route_line_layer.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/route/route_tile.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/route/route_tile.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/route/route_source.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/route/route_source.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/route/render_route_source.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/route/render_route_source.cpp
 )
 
 source_group_by_dir(all_files)

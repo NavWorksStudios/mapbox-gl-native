@@ -83,6 +83,10 @@ void Map::Impl::onStyleLoaded() {
     if (LayerManager::annotationsEnabled) {
         annotationManager.onStyleLoaded();
     }
+    // #*#
+    if (LayerManager::routelineEnabled) {
+        annotationManager.onStyleLoaded();
+    }
     observer.onDidFinishLoadingStyle();
 }
 
