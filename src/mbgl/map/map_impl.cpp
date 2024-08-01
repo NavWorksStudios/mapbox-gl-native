@@ -85,9 +85,9 @@ void Map::Impl::onStyleLoaded() {
     if (LayerManager::annotationsEnabled) {
         annotationManager.onStyleLoaded();
     }
-    // #*#
+    // #*# style加载后触发更新routeManager
     if (LayerManager::routelineEnabled) {
-        annotationManager.onStyleLoaded();
+        routeManager.onStyleLoaded();
     }
     observer.onDidFinishLoadingStyle();
 }

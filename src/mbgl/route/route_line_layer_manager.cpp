@@ -18,6 +18,7 @@
 #include <mbgl/route/route_line_layer_manager.hpp>
 #include <mbgl/route/route_source.hpp>
 #include <mbgl/route/render_route_source.hpp>
+#include <mbgl/style/layers/line_layer.hpp>
 
 namespace mbgl {
 
@@ -123,19 +124,15 @@ void RouteLineLayerManager::updateStyle() {
         style.get().impl->addSource(std::make_unique<RouteSource>());
 
         // #*#
-//        std::unique_ptr<SymbolLayer> layer = std::make_unique<SymbolLayer>(PointLayerID, SourceID);
-//
-//        using namespace expression::dsl;
-//        layer->setSourceLayer(PointLayerID.get());
-//        layer->setIconImage(PropertyExpression<expression::Image>(
-//            image(concat(vec(literal(SourceID.get() + "."), toString(get("sprite")))))));
-//        layer->setIconAllowOverlap(true);
-//        layer->setIconIgnorePlacement(true);
-//
-//        style.get().impl->addLayer(std::move(layer));
+        std::unique_ptr<LineLayer> layer = std::make_unique<LineLayer>(ShapeLayerID, SourceID);
+
+        using namespace expression::dsl;
+        layer->setSourceLayer(SourceID.get());
+
+        style.get().impl->addLayer(std::move(layer));
     }
 
-    std::lock_guard<std::mutex> lock(mutex);
+//    std::lock_guard<std::mutex> lock(mutex);
 
     // #*#
 //    for (const auto& shape : shapeAnnotations) {
