@@ -108,6 +108,8 @@ void RenderBackgroundLayer::render(PaintParameters& parameters) {
     const auto& evaluated = static_cast<const BackgroundLayerProperties&>(*evaluatedProperties).evaluated;
     const auto& crossfade = static_cast<const BackgroundLayerProperties&>(*evaluatedProperties).crossfade;
     
+    static std::vector<OverscaledTileID> tileIDs;
+    
     if (!evaluated.get<BackgroundPattern>().to.empty()) {
         optional<ImagePosition> imagePosA =
             parameters.patternAtlas.getPattern(evaluated.get<BackgroundPattern>().from.id());
@@ -118,7 +120,7 @@ void RenderBackgroundLayer::render(PaintParameters& parameters) {
             return;
 
         uint32_t i = 0;
-        const auto& tileIDs = util::tileCover(util::coverstrategy::Standard, parameters.state, parameters.state.getIntegerZoom());
+        util::tileCover(tileIDs, util::strategy::Standard, parameters.state, parameters.state.getIntegerZoom());
         for (const auto& tileID : tileIDs) {
             const UnwrappedTileID unwrappedTileID = tileID.toUnwrapped();
             draw(parameters.programs.getBackgroundLayerPrograms().backgroundPattern,
@@ -148,7 +150,7 @@ void RenderBackgroundLayer::render(PaintParameters& parameters) {
         };
         
         uint32_t i = 0;
-        const auto&& tileIDs = util::tileCover(util::coverstrategy::Standard, parameters.state, parameters.state.getIntegerZoom());
+        util::tileCover(tileIDs, util::strategy::Standard, parameters.state, parameters.state.getIntegerZoom());
         for (const auto& tileID : tileIDs) {
             layoutUniforms.template get<uniforms::matrix>() = parameters.matrixForTile(tileID.toUnwrapped());
             draw(parameters.programs.getBackgroundLayerPrograms().background,

@@ -33,25 +33,21 @@ private:
 
 int32_t coveringZoomLevel(double z, style::SourceType type, uint16_t tileSize);
 
-namespace coverstrategy {
-
-struct param_t {
-    const float LODDowngradeIntensity;
-    const float MINZoom;
+namespace strategy {
+struct Type {
+    const float LOD_INTENSITY;
+    const float MIN_Z;
+    const float MAX_Z;
 };
 
-const param_t Standard = { 8, 0 };
-const param_t Detailed = { 1, 15 };
-
+constexpr Type Standard = { 8, 0, 22 };
+constexpr Type Detailed = { 1, 15, 15 };
 }
 
-std::vector<OverscaledTileID> tileCover(const coverstrategy::param_t& strategy,
-                                        const TransformState&,
-                                        uint8_t z,
-                                        const optional<uint8_t>& overscaledZ = nullopt);
-
-std::vector<UnwrappedTileID> tileCover(const LatLngBounds&, uint8_t z);
-std::vector<UnwrappedTileID> tileCover(const Geometry<double>&, uint8_t z);
+void tileCover(std::vector<OverscaledTileID>& ids, const strategy::Type& strategy,
+               const TransformState& state, uint8_t z, const optional<uint8_t>& overscaledZ = nullopt);
+void tileCover(std::vector<UnwrappedTileID>& ids, const LatLngBounds&, uint8_t z);
+void tileCover(std::vector<UnwrappedTileID>& ids, const Geometry<double>&, uint8_t z);
 
 // Compute only the count of tiles needed for tileCover
 uint64_t tileCount(const LatLngBounds&, uint8_t z);

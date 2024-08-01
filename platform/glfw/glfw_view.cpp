@@ -444,7 +444,7 @@ void GLFWView::onKey(int key, int action, int mods) {
                 const auto& geometry = route.get<mapbox::geometry::geometry<double>>();
                 const auto& lineString = geometry.get<mapbox::geometry::line_string<double>>();
                 
-                double speed = mbgl::platform::glfw::SpeedValue[index] * 4;
+                double speed = mbgl::platform::glfw::SpeedValue[index] * 2;
                 double progress = fmod(routeProgress + speed, 1.0);
                 routeProgress = progress;
 

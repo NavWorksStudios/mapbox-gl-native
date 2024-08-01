@@ -97,9 +97,9 @@ void TilePyramid::update(const std::vector<Immutable<style::LayerProperties>>& l
     const Duration minimumUpdateInterval = sourceImpl.getMinimumTileUpdateInterval();
     const bool isVolatile = sourceImpl.isVolatile();
 
-    std::vector<OverscaledTileID> idealTiles; // 理想瓦片
-    std::vector<OverscaledTileID> detailedTiles; // 细节瓦片
-    std::vector<OverscaledTileID> panTiles; // 预加载瓦片
+    static std::vector<OverscaledTileID> idealTiles; // 理想瓦片
+    static std::vector<OverscaledTileID> detailedTiles; // 细节瓦片
+    static std::vector<OverscaledTileID> panTiles; // 预加载瓦片
 
     if (overscaledZoom >= zoomRange.min) {
         int32_t idealZoom = std::min<int32_t>(zoomRange.max, overscaledZoom);
@@ -123,12 +123,12 @@ void TilePyramid::update(const std::vector<Immutable<style::LayerProperties>>& l
             }
 
             if (panZoom < idealZoom) {
-                panTiles = util::tileCover(util::coverstrategy::Standard, parameters.transformState, panZoom);
+                util::tileCover(panTiles, util::strategy::Standard, parameters.transformState, panZoom);
             }
         }
 
-        idealTiles = util::tileCover(util::coverstrategy::Standard, parameters.transformState, idealZoom, tileZoom);
-        detailedTiles = util::tileCover(util::coverstrategy::Detailed, parameters.transformState, idealZoom, tileZoom);
+        util::tileCover(idealTiles, util::strategy::Standard, parameters.transformState, idealZoom, tileZoom);
+        util::tileCover(detailedTiles, util::strategy::Detailed, parameters.transformState, idealZoom, tileZoom);
         
         if (parameters.mode == MapMode::Tile && 
             type != SourceType::Raster && type != SourceType::RasterDEM &&

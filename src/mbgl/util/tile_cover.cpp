@@ -87,12 +87,15 @@ namespace util {
 
 namespace {
 
-std::vector<UnwrappedTileID> tileCover(const Point<double>& tl,
-                                       const Point<double>& tr,
-                                       const Point<double>& br,
-                                       const Point<double>& bl,
-                                       const Point<double>& c,
-                                       uint8_t z) {
+void tileCover(std::vector<UnwrappedTileID>& ids,
+               const Point<double>& tl, 
+               const Point<double>& tr,
+               const Point<double>& br, 
+               const Point<double>& bl,
+               const Point<double>& c, 
+               uint8_t z) {
+    ids.clear();
+
     const int32_t tiles = 1 << z;
 
     struct ID {
@@ -100,7 +103,7 @@ std::vector<UnwrappedTileID> tileCover(const Point<double>& tl,
         double sqDist;
     };
 
-    std::vector<ID> t;
+    static std::vector<ID> t;
 
     auto scanLine = [&](int32_t x0, int32_t x1, int32_t y) {
         int32_t x;
@@ -130,12 +133,9 @@ std::vector<UnwrappedTileID> tileCover(const Point<double>& tl,
                 return a.x == b.x && a.y == b.y;
             }), t.end());
 
-    std::vector<UnwrappedTileID> result;
-    result.reserve(t.size());
     for (const auto& id : t) {
-        result.emplace_back(z, id.x, id.y);
+        ids.emplace_back(z, id.x, id.y);
     }
-    return result;
 }
 
 } // namespace
@@ -149,7 +149,9 @@ int32_t coveringZoomLevel(double zoom, style::SourceType type, uint16_t size) {
     }
 }
 
-std::vector<OverscaledTileID> tileCover(const coverstrategy::param_t& strategy, const TransformState& state, uint8_t z, const optional<uint8_t>& overscaledZ) {
+void tileCover(std::vector<OverscaledTileID>& ids, const strategy::Type& strategy, const TransformState& state, uint8_t z, const optional<uint8_t>& overscaledZ) {
+    ids.clear();
+
     struct Node {
         AABB aabb;
         uint8_t zoom;
@@ -172,7 +174,7 @@ std::vector<OverscaledTileID> tileCover(const coverstrategy::param_t& strategy, 
     constexpr float MAX_PITCH = (70.0 / 180.0) * M_PI;
     const uint8_t minZoom = (1. - state.getPitch() / MAX_PITCH) * (z - 2);
     const uint8_t maxZoom = z;
-    const uint8_t minSeenZoom = fmax(maxZoom - 5, minZoom);
+    const uint8_t minSeenZoom = fmax(fmax(maxZoom - 5, minZoom), strategy.MIN_Z);
     
     const uint8_t overscaledZoom = overscaledZ.value_or(z);
     const bool flippedY = state.getViewportMode() == ViewportMode::FlippedY;
@@ -205,9 +207,11 @@ std::vector<OverscaledTileID> tileCover(const coverstrategy::param_t& strategy, 
     
     // Perform depth-first traversal on tile tree to find visible tiles
     // 深度优先遍历树，计算可见瓦片
-    std::vector<Node> stack;
-    stack.reserve(128);
-    std::vector<ResultTile> result;
+    static std::vector<Node> stack;
+    static std::vector<ResultTile> result;
+    
+    stack.clear();
+    result.clear();
 
     // World copies shall be rendered three times on both sides from closest to farthest
     // 世界副本应从最近到最远的两侧各呈现三次
@@ -246,7 +250,7 @@ std::vector<OverscaledTileID> tileCover(const coverstrategy::param_t& strategy, 
         // the same as "offset+2^(k+1)-2"
         // 使用基于距离的启发式，来决定瓦片是否应该继续细化拆分四块。radiusOfMaxLvlLodInTiles定义了地图中心点周边保证有一定数量的最大级别图块。
         // 利用四叉树中的父节点是其子节点大小的两倍特性，为每个级别定义距离阈值：f(k) = offset + 2 + 4 + 8 + 16 + ... + 2^k. 这是与"offset+2^(k+1)-2"相同
-        const double distanceToSplit = (radiusOfMaxLvlLodInTiles + (1 << (maxZoom - node.zoom)) - 2) / strategy.LODDowngradeIntensity;
+        const double distanceToSplit = (radiusOfMaxLvlLodInTiles + (1 << (maxZoom - node.zoom)) - 2) / strategy.LOD_INTENSITY;
 
         // 不能再拆分的tile直接进入结果列表，包括：
         // 已经是显示的最大级别而不能再拆分的，或者是超过该级别拆分距离而不能再拆分的
@@ -297,27 +301,25 @@ std::vector<OverscaledTileID> tileCover(const coverstrategy::param_t& strategy, 
     std::sort(result.begin(), result.end(), compare);
 
     // 组织结果tile id列表
-    std::vector<OverscaledTileID> ids;
-    ids.reserve(result.size());
     for (const auto& tile : result) {
         ids.push_back(tile.id);
     }
-
-    return ids;
 }
 
-std::vector<UnwrappedTileID> tileCover(const LatLngBounds& bounds_, uint8_t z) {
+void tileCover(std::vector<UnwrappedTileID>& ids, const LatLngBounds& bounds_, uint8_t z) {
+    ids.clear();
+
     if (bounds_.isEmpty() ||
         bounds_.south() >  util::LATITUDE_MAX ||
         bounds_.north() < -util::LATITUDE_MAX) {
-        return {};
+        return;
     }
 
     LatLngBounds bounds = LatLngBounds::hull(
         { std::max(bounds_.south(), -util::LATITUDE_MAX), bounds_.west() },
         { std::min(bounds_.north(),  util::LATITUDE_MAX), bounds_.east() });
 
-    return tileCover(
+    tileCover(ids,
         Projection::project(bounds.northwest(), z),
         Projection::project(bounds.northeast(), z),
         Projection::project(bounds.southeast(), z),
@@ -326,14 +328,15 @@ std::vector<UnwrappedTileID> tileCover(const LatLngBounds& bounds_, uint8_t z) {
         z);
 }
 
-std::vector<UnwrappedTileID> tileCover(const Geometry<double>& geometry, uint8_t z) {
-    std::vector<UnwrappedTileID> result;
+void tileCover(std::vector<UnwrappedTileID>& ids, const Geometry<double>& geometry, uint8_t z) {
+    ids.clear();
+
     TileCover tc(geometry, z, true);
     while (tc.hasNext()) {
-        result.push_back(*tc.next());
+        ids.push_back(*tc.next());
     };
 
-    return result;
+    return ids;
 }
 
 // Taken from https://github.com/mapbox/sphericalmercator#xyzbbox-zoom-tms_style-srs

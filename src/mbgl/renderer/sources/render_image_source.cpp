@@ -167,13 +167,15 @@ void RenderImageSource::update(Immutable<style::Source::Impl> baseImpl_,
     auto imageBounds = LatLngBounds::hull(coords[0], coords[1]);
     imageBounds.extend(coords[2]);
     imageBounds.extend(coords[3]);
-    auto tileCover = util::tileCover(imageBounds, zoom);
+    static std::vector<UnwrappedTileID> tileCover;
+    util::tileCover(tileCover, imageBounds, zoom);
     tileIds.clear();
     tileIds.push_back(tileCover[0]);
 
     bool hasVisibleTile = false;
     // Add additional wrapped tile ids if neccessary
-    const auto&& idealTiles = util::tileCover(util::coverstrategy::Standard, transformState, transformState.getZoom());
+    static std::vector<OverscaledTileID> idealTiles;
+    util::tileCover(idealTiles, util::strategy::Standard, transformState, transformState.getZoom());
     for (auto tile : idealTiles) {
         if (tile.wrap != 0 && tileCover[0].canonical.isChildOf(tile.canonical)) {
             tileIds.emplace_back(tile.wrap, tileCover[0].canonical);
