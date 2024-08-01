@@ -27,9 +27,9 @@ using namespace style;
 //namespace route {
 
 //static RouteLineLayerManager instance;
-const nav::stringid RouteLineLayerManager::SourceID( "com.mapbox.routelines" );
-const nav::stringid RouteLineLayerManager::PointLayerID( "com.mapbox.routelines.points" );
-const nav::stringid RouteLineLayerManager::ShapeLayerID( "com.mapbox.routelines.shape." );
+const nav::stringid RouteLineLayerManager::RouteSourceID( "com.mapbox.routelines" );
+//const nav::stringid RouteLineLayerManager::PointLayerID( "com.mapbox.routelines.points" );
+const nav::stringid RouteLineLayerManager::RouteShapeLayerID( "com.mapbox.routelines.shape" );
 
 //RouteLineLayerManager& RouteLineLayerManager::getInstance() {
 //    return instance;
@@ -120,14 +120,14 @@ void RouteLineLayerManager::onStyleLoaded() {
 void RouteLineLayerManager::updateStyle() {
     // Create annotation source, point layer, and point bucket. We do everything via Style::Impl
     // because we don't want annotation mutations to trigger Style::Impl::styleMutated to be set.
-    if (!style.get().impl->getSource(SourceID.get())) {
+    if (!style.get().impl->getSource(RouteSourceID.get())) {
         style.get().impl->addSource(std::make_unique<RouteSource>());
 
         // #*#
-        std::unique_ptr<LineLayer> layer = std::make_unique<LineLayer>(ShapeLayerID, SourceID);
+        std::unique_ptr<LineLayer> layer = std::make_unique<LineLayer>(RouteShapeLayerID, RouteSourceID);
 
         using namespace expression::dsl;
-        layer->setSourceLayer(SourceID.get());
+        layer->setSourceLayer(RouteSourceID.get());
 
         style.get().impl->addLayer(std::move(layer));
     }
@@ -158,7 +158,7 @@ std::unique_ptr<RouteTileData> RouteLineLayerManager::getTileData(const Canonica
 
     auto tileData = std::make_unique<RouteTileData>();
 
-    auto pointLayer = tileData->addLayer(RouteLineLayerManager::ShapeLayerID);
+    auto pointLayer = tileData->addLayer(RouteSourceID);
 
     LatLngBounds tileBounds(tileID);
     // Hack for https://github.com/mapbox/mapbox-gl-native/issues/12472

@@ -59,9 +59,9 @@ public:
     
 public:
     
-    static const nav::stringid SourceID;
-    static const nav::stringid PointLayerID;
-    static const nav::stringid ShapeLayerID;
+    static const nav::stringid RouteSourceID;
+//    static const nav::stringid PointLayerID;
+    static const nav::stringid RouteShapeLayerID;
     
     mapbox::base::WeakPtr<RouteLineLayerManager> makeWeakPtr() { return weakFactory.makeWeakPtr(); }
     

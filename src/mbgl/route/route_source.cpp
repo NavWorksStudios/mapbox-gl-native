@@ -1,7 +1,7 @@
 #include <mbgl/annotation/annotation_manager.hpp>
 #include <mbgl/annotation/annotation_source.hpp>
 #include <mbgl/style/layer.hpp>
-//#include <mbgl/route/annotation_manager.hpp>
+#include <mbgl/route/route_line_layer_manager.hpp>
 #include <mbgl/route/route_source.hpp>
 
 namespace mbgl {
@@ -13,7 +13,7 @@ RouteSource::RouteSource()
 }
 
 RouteSource::Impl::Impl()
-    : Source::Impl(SourceType::Annotations, AnnotationManager::SourceID) {
+    : Source::Impl(SourceType::Route, RouteLineLayerManager::RouteSourceID) {
 }
 
 const RouteSource::Impl& RouteSource::impl() const {

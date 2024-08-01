@@ -12,7 +12,7 @@ namespace mbgl {
 
 RouteTile::RouteTile(const OverscaledTileID& overscaledTileID,
                                const TileParameters& parameters)
-    : GeometryTile(overscaledTileID, RouteLineLayerManager::SourceID, parameters) {
+    : GeometryTile(overscaledTileID, RouteLineLayerManager::RouteSourceID, parameters) {
 //    auto guard = routeLineManager.lock();
         // #*#
 //    if (&mbgl::RouteLineLayerManager::getInstance()) {
