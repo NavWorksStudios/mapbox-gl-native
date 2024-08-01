@@ -28,14 +28,33 @@ enum LogLevel : uint8_t {
 void v(const char* tag, const char* format, ...);
 void i(const char* tag, const char* format, ...);
 void d(const char* tag, const char* format, ...);
-void i(const char* tag, const char* format, ...);
 void w(const char* tag, const char* format, ...);
 void e(const char* tag, const char* format, ...);
 
-void printf(const char* format, ...);
+void sprintf(char* buf, const char* format, ...);
 
-std::string tileId(const mbgl::CanonicalTileID& canonical, const std::string& layerId, const std::string& sourceId);
-std::map<std::string, int>& bucketMap();
+template <int VOLUME>
+class Stream {
+    char buf[VOLUME] = { 0 };
+    char* p = { buf };
+
+public:
+    void operator()(const char* format, ...) {
+        va_list args;
+        va_start(args, format);
+        sprintf(p, format, args);
+        va_end(args);
+        p += strlen(p);
+
+        assert(p-buf < VOLUME);
+    }
+    
+    void v(const char* tag) { log::v(tag, "%s", buf); }
+    void i(const char* tag) { log::i(tag, "%s", buf); }
+    void d(const char* tag) { log::d(tag, "%s", buf); }
+    void w(const char* tag) { log::w(tag, "%s", buf); }
+    void e(const char* tag) { log::e(tag, "%s", buf); }
+};
 
 }
 }
