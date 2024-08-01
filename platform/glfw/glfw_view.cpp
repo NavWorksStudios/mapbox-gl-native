@@ -767,7 +767,7 @@ void GLFWView::addRouteLines() {
     lineString.push_back({ -74.01438, 40.711171 });
     lineString.push_back({ -74.01436, 40.71125 });
     lineString.push_back({ -74.014147, 40.712245 });
-    mbgl::RouteLineLayerManager::getInstance().setRouteGeometry(lineString);
+//    mbgl::RouteLineLayerManager::getInstance().setRouteGeometry(lineString);
 }
 
 void GLFWView::addLineAnnotations(const mbgl::LatLng& tagPosition) {

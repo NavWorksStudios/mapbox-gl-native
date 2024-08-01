@@ -28,7 +28,7 @@ optional<std::string> RouteSource::Impl::getAttribution() const {
     return {};
 }
 
-bool AnnotationSource::supportsLayerType(const mbgl::style::LayerTypeInfo* info) const {
+bool RouteSource::supportsLayerType(const mbgl::style::LayerTypeInfo* info) const {
     return !std::strcmp(info->type, "line") || !std::strcmp(info->type, "symbol") || !std::strcmp(info->type, "fill");
 }
 

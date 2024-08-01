@@ -23,12 +23,16 @@ namespace mbgl {
 
 //namespace route {
 
+namespace style {
+class Style;
+} // namespace style
+
 class RouteLineLayerManager : private util::noncopyable {
 public:
-    RouteLineLayerManager();
+    RouteLineLayerManager(style::Style&);
     ~RouteLineLayerManager();
     
-    static RouteLineLayerManager& getInstance();
+//    static RouteLineLayerManager& getInstance();
     
     void setRouteInfo(const route&);
     
@@ -47,15 +51,19 @@ public:
     // for debug
     void setRouteGeometry(const mapbox::geometry::line_string<double>&);
     
-    
-public:
-    
     void addTile(RouteTile&);
     void removeTile(RouteTile&);
+    
+    void setStyle(style::Style&);
+    void onStyleLoaded();
+    
+public:
     
     static const nav::stringid SourceID;
     static const nav::stringid PointLayerID;
     static const nav::stringid ShapeLayerID;
+    
+    mapbox::base::WeakPtr<RouteLineLayerManager> makeWeakPtr() { return weakFactory.makeWeakPtr(); }
     
 private:
     // Dynamic line geometry vector for road conditions
@@ -76,11 +84,15 @@ private:
     std::unordered_set<RouteTile*> tiles;
     std::mutex mutex;
     bool dirty = false;
+    std::reference_wrapper<style::Style> style;
     
     mbgl::LatLng puckLocation;
     
+    
 private:
+    mapbox::base::WeakPtrFactory<RouteLineLayerManager> weakFactory{this};
     std::unique_ptr<RouteTileData> getTileData(const CanonicalTileID& tileID);
+    void updateStyle();
     
 };
 

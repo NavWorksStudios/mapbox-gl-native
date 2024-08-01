@@ -2,6 +2,7 @@
 
 // This file is generated. Edit scripts/generate-style-code.js, then run `make style-code`.
 
+#include <mapbox/eternal.hpp>
 #include <mbgl/style/layers/location_indicator_layer_impl.hpp>
 #include <mbgl/style/layer_observer.hpp>
 #include <mbgl/style/conversion/color_ramp_property_value.hpp>
@@ -10,27 +11,32 @@
 #include <mbgl/style/conversion/transition_options.hpp>
 #include <mbgl/style/conversion/json.hpp>
 #include <mbgl/style/conversion_impl.hpp>
+#include <mbgl/style/expression/dsl.hpp>
 #include <mbgl/util/traits.hpp>
-
-#include <mapbox/eternal.hpp>
-
+#include <mbgl/style/style.hpp>
+#include <mbgl/style/style_impl.hpp>
 #include <mbgl/route/route_line_layer_manager.hpp>
+#include <mbgl/route/route_source.hpp>
+#include <mbgl/route/render_route_source.hpp>
 
 namespace mbgl {
 
+using namespace style;
+
 //namespace route {
 
-static RouteLineLayerManager instance;
+//static RouteLineLayerManager instance;
 const nav::stringid RouteLineLayerManager::SourceID( "com.mapbox.routelines" );
 const nav::stringid RouteLineLayerManager::PointLayerID( "com.mapbox.routelines.points" );
 const nav::stringid RouteLineLayerManager::ShapeLayerID( "com.mapbox.routelines.shape." );
 
-RouteLineLayerManager& RouteLineLayerManager::getInstance() {
-    return instance;
-}
+//RouteLineLayerManager& RouteLineLayerManager::getInstance() {
+//    return instance;
+//}
 
-RouteLineLayerManager::RouteLineLayerManager() {
-}
+RouteLineLayerManager::RouteLineLayerManager(Style& style_)
+        : style(style_) {
+};
 
 RouteLineLayerManager::~RouteLineLayerManager() = default;
 
@@ -98,6 +104,54 @@ void RouteLineLayerManager::removeTile(RouteTile& tile) {
 //    CHECK_ROUTE_ENABLED_AND_RETURN();
     std::lock_guard<std::mutex> lock(mutex);
     tiles.erase(&tile);
+}
+
+void RouteLineLayerManager::setStyle(style::Style& style_) {
+//    CHECK_ROUTE_ENABLED_AND_RETURN();
+    style = style_;
+}
+
+void RouteLineLayerManager::onStyleLoaded() {
+//    CHECK_ROUTE_ENABLED_AND_RETURN();
+    updateStyle();
+}
+
+void RouteLineLayerManager::updateStyle() {
+    // Create annotation source, point layer, and point bucket. We do everything via Style::Impl
+    // because we don't want annotation mutations to trigger Style::Impl::styleMutated to be set.
+    if (!style.get().impl->getSource(SourceID.get())) {
+        style.get().impl->addSource(std::make_unique<RouteSource>());
+
+        // #*#
+//        std::unique_ptr<SymbolLayer> layer = std::make_unique<SymbolLayer>(PointLayerID, SourceID);
+//
+//        using namespace expression::dsl;
+//        layer->setSourceLayer(PointLayerID.get());
+//        layer->setIconImage(PropertyExpression<expression::Image>(
+//            image(concat(vec(literal(SourceID.get() + "."), toString(get("sprite")))))));
+//        layer->setIconAllowOverlap(true);
+//        layer->setIconIgnorePlacement(true);
+//
+//        style.get().impl->addLayer(std::move(layer));
+    }
+
+    std::lock_guard<std::mutex> lock(mutex);
+
+    // #*#
+//    for (const auto& shape : shapeAnnotations) {
+//        shape.second->updateStyle(*style.get().impl);
+//    }
+
+    // #*# 不排除将来添加导航使用图片 - 鱼骨线
+//    for (const auto& image : images) {
+//        // Call addImage even for images we may have previously added, because we must support
+//        // addAnnotationImage being used to update an existing image. Creating a new image is
+//        // relatively cheap, as it copies only the Immutable reference. (We can't keep track
+//        // of which images need to be added because we don't know if the style is the same
+//        // instance as in the last updateStyle call. If it's a new style, we need to add all
+//        // images.)
+//        style.get().impl->addImage(std::make_unique<style::Image>(image.second));
+//    }
 }
 
 std::unique_ptr<RouteTileData> RouteLineLayerManager::getTileData(const CanonicalTileID& tileID) {

@@ -19,7 +19,8 @@ Map::Impl::Impl(RendererFrontend& frontend_,
       crossSourceCollisions(mapOptions.crossSourceCollisions()),
       fileSource(std::move(fileSource_)),
       style(std::make_unique<style::Style>(fileSource, pixelRatio)),
-      annotationManager(*style) {
+      annotationManager(*style),
+      routeManager(*style){
     transform.setNorthOrientation(mapOptions.northOrientation());
     style->impl->setObserver(this);
     rendererFrontend.setObserver(*this);
@@ -62,6 +63,7 @@ void Map::Impl::onUpdate() {
                                style->impl->getSourceImpls(),
                                style->impl->getLayerImpls(),
                                annotationManager.makeWeakPtr(),
+                               routeManager.makeWeakPtr(),
                                fileSource,
                                prefetchZoomDelta,
                                bool(stillImageRequest),

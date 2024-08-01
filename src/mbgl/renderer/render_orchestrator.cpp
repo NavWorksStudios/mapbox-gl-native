@@ -155,7 +155,11 @@ std::unique_ptr<RenderTree> RenderOrchestrator::createRenderTree(
   
     // #*# 更新导航线路数据
     if (LayerManager::routelineEnabled) {
-        RouteLineLayerManager::getInstance().updateData();
+//        RouteLineLayerManager::getInstance().updateData();
+        auto guard = updateParameters->routeManager.lock();
+        if (updateParameters->routeManager) {
+            updateParameters->routeManager->updateData();
+        }
     }
 
     const bool zoomChanged =

@@ -14,18 +14,20 @@ RouteTile::RouteTile(const OverscaledTileID& overscaledTileID,
                                const TileParameters& parameters)
     : GeometryTile(overscaledTileID, RouteLineLayerManager::SourceID, parameters) {
 //    auto guard = routeLineManager.lock();
-    if (&mbgl::RouteLineLayerManager::getInstance()) {
         // #*#
-        mbgl::RouteLineLayerManager::getInstance().addTile(*this);
-    }
+//    if (&mbgl::RouteLineLayerManager::getInstance()) {
+//        // #*#
+//        mbgl::RouteLineLayerManager::getInstance().addTile(*this);
+//    }
 }
 
 RouteTile::~RouteTile() {
 //    auto guard = routeLineManager.lock();
-    if (&mbgl::RouteLineLayerManager::getInstance()) {
-        // #*#
-        mbgl::RouteLineLayerManager::getInstance().removeTile(*this);
-    }
+    // #*#
+//    if (&mbgl::RouteLineLayerManager::getInstance()) {
+//        // #*#
+//        mbgl::RouteLineLayerManager::getInstance().removeTile(*this);
+//    }
 }
 
 class RouteTileFeatureData {
