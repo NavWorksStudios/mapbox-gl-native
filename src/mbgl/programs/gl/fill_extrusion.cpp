@@ -187,10 +187,9 @@ struct ShaderSource<FillExtrusionProgram> {
             v_color.b=clamp(color.b*directional*u_lightcolor.b, 0.3*(1.0-u_lightcolor.b), 1.25);
             v_color.a=1.;
     
-            // 远近明暗和透明
-            lowp float radial_shade=clamp((1.-distance/u_clip_region)*2.,0.,1.);
-//            v_color.rgb+=radial_shade*.3-.3 ;
-            v_color*=u_opacity*(u_render_reflection?.2:.9);
+            // 远近透明
+            lowp float radial_fadeout=clamp((1.-distance/u_clip_region)*2.,0.,1.);
+            v_color*=u_opacity*radial_fadeout*(u_render_reflection?.2:.9);
 
             // ----------------------------- building detail -----------------------------
     
