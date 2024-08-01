@@ -254,13 +254,11 @@ public:
                     uri_.find("pedestrian") != std::string::npos) {
 
                 } else if (uri_.find("tunnel") != std::string::npos) {
-//                    color.l = normalize(color.l * 1.1);
+                    color.l = normalize(color.l * 1.2);
                 } else if (uri_.find("road") != std::string::npos) {
-//                    color.s *= .3;
-//                    color.l = normalize(color.l * 1.3);
+                    color.l = normalize(color.l * 1.4);
                 } else if (uri_.find("bridge") != std::string::npos) {
-//                    color.s *= .1;
-//                    color.l = normalize(color.l * 1.5);
+                    color.l = normalize(color.l * 1.6);
                 }
             }
             return color;
