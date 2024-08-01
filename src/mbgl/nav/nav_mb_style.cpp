@@ -25,13 +25,13 @@ namespace style {
 
 const std::string& url() {
     static std::string url(
-                           // 主题模式
-                           //        "mapbox://styles/notheorem/clxu5ehnm00ro01qqhhim0d4f" // dark
-                           //        "mapbox://styles/notheorem/clxrac32800o901qw94ryfkdz" // light
-                           
-                           // 色彩模式
-                           "mapbox://styles/navworks/clxx105i700yr01po4zbn2jc1"
-                           );
+       // 主题模式
+//       "mapbox://styles/notheorem/clxu5ehnm00ro01qqhhim0d4f" // dark
+//       "mapbox://styles/notheorem/clxrac32800o901qw94ryfkdz" // light
+       
+       // 色彩模式
+       "mapbox://styles/navworks/clxx105i700yr01po4zbn2jc1"
+   );
     
     return url;
 }
