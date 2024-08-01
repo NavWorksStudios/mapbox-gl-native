@@ -72,6 +72,6 @@ public:
     std::vector<ImagePatch> getImagePatchesAndUpdateVersions(const ImageManager&);
 };
 
-ImageAtlas makeImageAtlas(const ImageMap&, const ImageMap&, const std::unordered_map<std::string, uint32_t>& versionMap);
+ImageAtlas makeImageAtlas(const ImageMap&, const ImageMap&, const std::unordered_map<nav::stringid, uint32_t>& versionMap);
 
 } // namespace mbgl

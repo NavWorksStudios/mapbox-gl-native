@@ -80,7 +80,7 @@ std::vector<ImagePatch> ImageAtlas::getImagePatchesAndUpdateVersions(const Image
     return imagePatches;
 }
 
-ImageAtlas makeImageAtlas(const ImageMap& icons, const ImageMap& patterns, const std::unordered_map<std::string, uint32_t>& versionMap) {
+ImageAtlas makeImageAtlas(const ImageMap& icons, const ImageMap& patterns, const std::unordered_map<nav::stringid, uint32_t>& versionMap) {
     ImageAtlas result;
 
     mapbox::ShelfPack::ShelfPackOptions options;
