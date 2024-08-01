@@ -72,6 +72,10 @@ private:
     std::shared_ptr<RasterBucket> bucket;
     std::unique_ptr<ImageSourceRenderData> renderData;
     std::vector<UnwrappedTileID> tileIds;
+    
+private:
+    std::vector<UnwrappedTileID> tileCover;
+    std::vector<OverscaledTileID> idealTiles;
 };
 
 } // namespace mbgl

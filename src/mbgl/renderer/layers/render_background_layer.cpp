@@ -108,8 +108,6 @@ void RenderBackgroundLayer::render(PaintParameters& parameters) {
     const auto& evaluated = static_cast<const BackgroundLayerProperties&>(*evaluatedProperties).evaluated;
     const auto& crossfade = static_cast<const BackgroundLayerProperties&>(*evaluatedProperties).crossfade;
     
-    static std::vector<OverscaledTileID> tileIDs;
-    
     if (!evaluated.get<BackgroundPattern>().to.empty()) {
         optional<ImagePosition> imagePosA =
             parameters.patternAtlas.getPattern(evaluated.get<BackgroundPattern>().from.id());

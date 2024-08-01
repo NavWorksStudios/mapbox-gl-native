@@ -97,10 +97,6 @@ void TilePyramid::update(const std::vector<Immutable<style::LayerProperties>>& l
     const Duration minimumUpdateInterval = sourceImpl.getMinimumTileUpdateInterval();
     const bool isVolatile = sourceImpl.isVolatile();
 
-    static std::vector<OverscaledTileID> idealTiles; // 理想瓦片
-    static std::vector<OverscaledTileID> detailedTiles; // 细节瓦片
-    static std::vector<OverscaledTileID> panTiles; // 预加载瓦片
-
     if (overscaledZoom >= zoomRange.min) {
         int32_t idealZoom = std::min<int32_t>(zoomRange.max, overscaledZoom);
 
@@ -128,11 +124,9 @@ void TilePyramid::update(const std::vector<Immutable<style::LayerProperties>>& l
         }
 
         util::tileCover(idealTiles, util::strategy::Standard, parameters.transformState, idealZoom, tileZoom);
-        util::tileCover(detailedTiles, util::strategy::Detailed, parameters.transformState, idealZoom, tileZoom);
+        if (type == SourceType::Vector) util::tileCover(detailedTiles, util::strategy::Detailed, parameters.transformState, idealZoom, tileZoom);
         
-        if (parameters.mode == MapMode::Tile && 
-            type != SourceType::Raster && type != SourceType::RasterDEM &&
-            idealTiles.size() > 1) {
+        if (parameters.mode == MapMode::Tile && type != SourceType::Raster && type != SourceType::RasterDEM && idealTiles.size() > 1) {
             mbgl::Log::Warning(mbgl::Event::General,
                                "Provided camera options returned %zu tiles, only %s is taken in Tile mode.",
                                idealTiles.size(),
@@ -212,15 +206,15 @@ void TilePyramid::update(const std::vector<Immutable<style::LayerProperties>>& l
     // 细节瓦片 create, retain, mark to be rendered
     algorithm::updateRenderables(getTileFn, createTileFn, retainTileFn, markRenderTileFn, 
                                  [] (Tile& tile) { tile.renderMode |= Tile::RenderMode::Detailed; },
-                                 detailedTiles, zoomRange, maxParentTileOverscaleFactor);
+                                 detailedTiles, Range<uint8_t>(15,16), maxParentTileOverscaleFactor);
     
     // 预加载瓦片 create, retain, mark to be rendered
-//    if (!panTiles.empty()) {
-//        static auto noRenderFn = [](const UnwrappedTileID&, Tile&) {};
-//        algorithm::updateRenderables(getTileFn, createTileFn, retainTileFn, noRenderFn,
-//                                     [] (Tile& tile) {  },
-//                                     panTiles, zoomRange, maxParentTileOverscaleFactor);
-//    }
+    if (!panTiles.empty()) {
+        static auto noRenderFn = [](const UnwrappedTileID&, Tile&) {};
+        algorithm::updateRenderables(getTileFn, createTileFn, retainTileFn, noRenderFn,
+                                     [] (Tile& tile) {  },
+                                     panTiles, zoomRange, maxParentTileOverscaleFactor);
+    }
 
     // 保留退出瓦片
     // “holdForFade”用于将瓦片在不再需要时，依然保留在渲染树中，以完成symbol淡出
@@ -288,7 +282,8 @@ void TilePyramid::update(const std::vector<Immutable<style::LayerProperties>>& l
         }
     }
     
-    { // debug info
+    // debug info
+    if (type == SourceType::Vector) {
         static int i = 0;
         static int tileNum = 0;
         

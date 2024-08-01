@@ -24,6 +24,10 @@ private:
     // Paint properties
     style::BackgroundPaintProperties::Unevaluated unevaluated;
     SegmentVector<BackgroundAttributes> segments;
+    
+private:
+    std::vector<OverscaledTileID> tileIDs;
+
 };
 
 } // namespace mbgl

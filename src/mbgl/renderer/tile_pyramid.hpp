@@ -81,6 +81,12 @@ private:
     float prevLng = 0;
 
     bool fadingTiles = false;
+    
+private:
+    std::vector<OverscaledTileID> idealTiles; // 理想瓦片
+    std::vector<OverscaledTileID> detailedTiles; // 细节瓦片
+    std::vector<OverscaledTileID> panTiles; // 预加载瓦片
+
 };
 
 } // namespace mbgl
