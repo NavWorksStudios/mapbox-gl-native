@@ -124,8 +124,10 @@ void PaintParameters::renderTileClippingMasks(const RenderTiles& renderTiles) {
     tileClippingMaskIDs.clear();
 
     auto& program = staticData.programs.clippingMask;
-    const style::Properties<>::PossiblyEvaluated properties {};
-    const ClippingMaskProgram::Binders paintAttributeData(properties, 0);
+
+    static const style::Properties<>::PossiblyEvaluated properties {};
+    static const ClippingMaskProgram::Binders paintAttributeData(properties, 0);
+    static const ClippingMaskProgram::Binders::UniformValues paintUniformValues = paintAttributeData.makeUniformValues(state.getZoom(), properties);
 
     for (const RenderTile& renderTile : *renderTiles) {
         const int32_t stencilID = nextStencilID++;
@@ -150,7 +152,7 @@ void PaintParameters::renderTileClippingMasks(const RenderTiles& renderTiles) {
                      *staticData.quadTriangleIndexBuffer,
                      staticData.clippingMaskSegments,
                      ClippingMaskProgram::LayoutUniformValues{ uniforms::matrix::Value(matrixForTile(renderTile.id)), },
-                     paintAttributeData.uniformValues(state.getZoom(), properties),
+                     paintUniformValues,
                      ClippingMaskProgram::computeAllAttributeBindings(*staticData.tileVertexBuffer, paintAttributeData, properties),
                      ClippingMaskProgram::TextureBindings{},
                      "clipping/" + util::toString(stencilID));

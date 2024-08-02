@@ -100,6 +100,10 @@ void RenderLineLayer::render(PaintParameters& parameters) {
     if (parameters.pass == RenderPass::Opaque) {
         return;
     }
+    
+    bool refreshPaintUniforms = true;
+    using Properties = style::LinePaintProperties::DataDrivenProperties;
+    mbgl::PaintPropertyBinders<Properties>::UniformValues paintUniformValues;
 
     parameters.renderTileClippingMasks(renderTiles);
 
@@ -121,10 +125,14 @@ void RenderLineLayer::render(PaintParameters& parameters) {
         
         auto& bucket = static_cast<LineBucket&>(*renderData->bucket);
         const auto& paintPropertyBinders = bucket.paintBinders ? *bucket.paintBinders : bucket.getPaintPropertyBinders().at(getID());
-        const auto& paintUniforms = paintPropertyBinders.uniformValues(parameters.state.getZoom(), evaluated);
+
+        if (refreshPaintUniforms) {
+            paintPropertyBinders.fillUniformValues(paintUniformValues, parameters.state.getZoom(), evaluated);
+            refreshPaintUniforms = false;
+        }
 
         const auto draw = [&](auto& programInstance,
-                              const auto&& layoutUniforms,
+                              const auto&& layoutUniformValues,
                               const optional<ImagePosition>& patternPositionA,
                               const optional<ImagePosition>& patternPositionB, auto&& textureBindings) {
             paintPropertyBinders.setPatternParameters(patternPositionA, patternPositionB, crossfade);
@@ -143,8 +151,8 @@ void RenderLineLayer::render(PaintParameters& parameters) {
                                  gfx::CullFaceMode::disabled(),
                                  *bucket.indexBuffer,
                                  bucket.segments,
-                                 layoutUniforms,
-                                 paintUniforms,
+                                 layoutUniformValues,
+                                 paintUniformValues,
                                  allAttributeBindings,
                                  std::forward<decltype(textureBindings)>(textureBindings),
                                  getID());

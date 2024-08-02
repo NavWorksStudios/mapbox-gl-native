@@ -90,7 +90,9 @@ void RenderRasterLayer::render(PaintParameters& parameters) {
         return;
     }
     const auto& evaluated = static_cast<const RasterLayerProperties&>(*evaluatedProperties).evaluated;
-    RasterProgram::Binders paintAttributeData{ evaluated, 0 };
+    const RasterProgram::Binders paintAttributeData{ evaluated, 0 };
+    RasterProgram::Binders::UniformValues paintUniformValues;
+    paintAttributeData.fillUniformValues(paintUniformValues, parameters.state.getZoom(), evaluated);
 
     auto draw = [&] (const mat4& matrix,
                      const auto& vertexBuffer,
@@ -100,7 +102,7 @@ void RenderRasterLayer::render(PaintParameters& parameters) {
                      const std::string& drawScopeID) {
         auto& programInstance = parameters.programs.getRasterLayerPrograms().raster;
 
-        const RasterProgram::LayoutUniformValues layoutUniforms = {
+        const RasterProgram::LayoutUniformValues layoutUniformValues = {
             uniforms::matrix::Value(matrix),
             uniforms::opacity::Value(evaluated.get<RasterOpacity>()),
             uniforms::fade_t::Value(1),
@@ -113,9 +115,6 @@ void RenderRasterLayer::render(PaintParameters& parameters) {
             uniforms::scale_parent::Value(1.0f),
             uniforms::tl_parent::Value(std::array<float, 2>{{0.0f, 0.0f}}),
         };
-        
-        const auto& paintUniforms = 
-            paintAttributeData.uniformValues(parameters.state.getZoom(), evaluated);
         
         const auto allAttributeBindings =
             RasterProgram::computeAllAttributeBindings(vertexBuffer, paintAttributeData, evaluated);
@@ -132,8 +131,8 @@ void RenderRasterLayer::render(PaintParameters& parameters) {
             gfx::CullFaceMode::disabled(),
             indexBuffer,
             segments,
-            layoutUniforms,
-            paintUniforms,
+            layoutUniformValues,
+            paintUniformValues,
             allAttributeBindings,
             textureBindings,
             getID().get() + "/" + drawScopeID

@@ -93,6 +93,10 @@ void RenderCircleLayer::render(PaintParameters& parameters) {
         uniforms::pitch_with_map::Value()
     );
     
+    bool refreshPaintUniforms = true;
+    using Properties = style::CirclePaintProperties::DataDrivenProperties;
+    mbgl::PaintPropertyBinders<Properties>::UniformValues paintUniformValues;
+    
     const auto drawTile = [&](const RenderTile& tile, const LayerRenderData* data, const auto& segments) {
         auto& circleBucket = static_cast<CircleBucket&>(*data->bucket);
         const auto& evaluated = getEvaluated<CircleLayerProperties>(data->layerProperties);
@@ -117,6 +121,11 @@ void RenderCircleLayer::render(PaintParameters& parameters) {
         layoutUniforms.template get<uniforms::scale_with_map>() = scaleWithMap;
         layoutUniforms.template get<uniforms::extrude_scale>() = extrude_scale;
         layoutUniforms.template get<uniforms::pitch_with_map>() = pitchWithMap;
+        
+        if (refreshPaintUniforms) {
+            paintPropertyBinders.fillUniformValues(paintUniformValues, parameters.state.getZoom(), evaluated);
+            refreshPaintUniforms = false;
+        }
 
         programInstance.draw(parameters.context,
                              *parameters.renderPass,
@@ -128,7 +137,7 @@ void RenderCircleLayer::render(PaintParameters& parameters) {
                              *circleBucket.indexBuffer,
                              segments,
                              layoutUniforms,
-                             paintPropertyBinders.uniformValues(parameters.state.getZoom(), evaluated),
+                             paintUniformValues,
                              allAttributeBindings,
                              CircleProgram::TextureBindings{},
                              getID());

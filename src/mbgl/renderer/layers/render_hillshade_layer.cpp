@@ -82,7 +82,12 @@ void RenderHillshadeLayer::render(PaintParameters& parameters) {
     assert(renderTiles);
     if (parameters.pass != RenderPass::Translucent && parameters.pass != RenderPass::Pass3D)
         return;
-    const auto& evaluated = static_cast<const HillshadeLayerProperties&>(*evaluatedProperties).evaluated;  
+
+    const auto& evaluated = static_cast<const HillshadeLayerProperties&>(*evaluatedProperties).evaluated;
+    const HillshadeProgram::Binders paintAttributeData{ evaluated, 0 };
+    HillshadeProgram::Binders::UniformValues paintUniformValues;
+    paintAttributeData.fillUniformValues(paintUniformValues, parameters.state.getZoom(), evaluated);
+    
     auto draw = [&] (const mat4& matrix,
                      const auto& vertexBuffer,
                      const auto& indexBuffer,
@@ -90,8 +95,6 @@ void RenderHillshadeLayer::render(PaintParameters& parameters) {
                      const UnwrappedTileID& id,
                      const auto& textureBindings) {
         auto& programInstance = parameters.programs.getHillshadeLayerPrograms().hillshade;
-
-        const HillshadeProgram::Binders paintAttributeData{ evaluated, 0 };
 
         const auto allAttributeBindings =
             HillshadeProgram::computeAllAttributeBindings(vertexBuffer, paintAttributeData, evaluated);
@@ -114,7 +117,7 @@ void RenderHillshadeLayer::render(PaintParameters& parameters) {
                                  uniforms::accent::Value(evaluated.get<HillshadeAccentColor>()),
                                  uniforms::light::Value(getLight(parameters)),
                                  uniforms::latrange::Value(getLatRange(id)),},
-                             paintAttributeData.uniformValues(parameters.state.getZoom(), evaluated),
+                             paintUniformValues,
                              allAttributeBindings,
                              textureBindings,
                              getID());
@@ -130,6 +133,11 @@ void RenderHillshadeLayer::render(PaintParameters& parameters) {
         uniforms::zoom::Value(),
         uniforms::maxzoom::Value(float(maxzoom)),
         uniforms::unpack::Value(), };
+    
+    static const Properties<>::PossiblyEvaluated properties;
+    static const HillshadePrepareProgram::Binders paintAttributes{ properties, 0 };
+    static HillshadePrepareProgram::Binders::UniformValues paintUniforms;
+    paintAttributes.fillUniformValues(paintUniforms, parameters.state.getZoom(), properties);
 
     for (const RenderTile& tile : *renderTiles) {
         if (!tile.isRenderable(Tile::RenderMode::Standard)) {
@@ -155,9 +163,6 @@ void RenderHillshadeLayer::render(PaintParameters& parameters) {
 
             auto renderPass = parameters.encoder->createRenderPass(
                 "hillshade prepare", { *view, Color{ 0.0f, 0.0f, 0.0f, 0.0f }, {}, {} });
-
-            const Properties<>::PossiblyEvaluated properties;
-            const HillshadePrepareProgram::Binders paintAttributeData{ properties, 0 };
             
             auto& programInstance = parameters.programs.getHillshadeLayerPrograms().hillshadePrepare;
             
@@ -184,7 +189,7 @@ void RenderHillshadeLayer::render(PaintParameters& parameters) {
                                  *parameters.staticData.quadTriangleIndexBuffer,
                                  segments,
                                  layoutUniforms,
-                                 paintAttributeData.uniformValues(parameters.state.getZoom(), properties),
+                                 paintUniforms,
                                  allAttributeBindings,
                                  HillshadePrepareProgram::TextureBindings{
                                      textures::image::Value{bucket.dem->getResource()},

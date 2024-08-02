@@ -28,6 +28,8 @@ class CollisionBoxProgram : public Program<
     TypeList<>,
     style::Properties<>>
 {
+    mbgl::PaintPropertyBinders<TypeList<>>::UniformValues paintUniformValues;
+    
 public:
     using Program::Program;
 
@@ -79,6 +81,8 @@ public:
 
         assert(layoutVertexBuffer.elements == dynamicVertexBuffer.elements);
 
+        paintPropertyBinders.fillUniformValues(paintUniformValues, currentZoom, currentProperties);
+
         for (auto& segment : segments) {
             auto drawScopeIt = segment.drawScopes.find(layerID);
 
@@ -94,7 +98,7 @@ public:
                           colorMode,
                           cullFaceMode,
                           layoutUniformValues,
-                          paintPropertyBinders.uniformValues(currentZoom, currentProperties),
+                          paintUniformValues,
                           drawScopeIt->second,
                           allAttributeBindings.offset(segment.vertexOffset),
                           textureBindings,
@@ -118,6 +122,8 @@ class CollisionCircleProgram : public Program<
     TypeList<>,
     style::Properties<>>
 {
+    mbgl::PaintPropertyBinders<TypeList<>>::UniformValues paintUniformValues;
+    
 public:
     using Program::Program;
 
@@ -159,6 +165,8 @@ public:
         AttributeBindings allAttributeBindings = gfx::AttributeBindings<CollisionBoxLayoutAttributes>(layoutVertexBuffer)
             .concat(gfx::AttributeBindings<CollisionBoxDynamicAttributes>(dynamicVertexBuffer))
             .concat(paintPropertyBinders.attributeBindings(currentProperties));
+        
+        paintPropertyBinders.fillUniformValues(paintUniformValues, currentZoom, currentProperties);
 
         for (auto& segment : segments) {
             auto drawScopeIt = segment.drawScopes.find(layerID);
@@ -175,7 +183,7 @@ public:
                           colorMode,
                           cullFaceMode,
                           layoutUniformValues,
-                          paintPropertyBinders.uniformValues(currentZoom, currentProperties),
+                          paintUniformValues,
                           drawScopeIt->second,
                           allAttributeBindings.offset(segment.vertexOffset),
                           textureBindings,

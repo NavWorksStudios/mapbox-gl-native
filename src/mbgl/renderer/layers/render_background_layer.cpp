@@ -68,10 +68,11 @@ void RenderBackgroundLayer::render(PaintParameters& parameters) {
 
     const Properties<>::PossiblyEvaluated properties;
     const BackgroundProgram::Binders paintAttributeData(properties, 0);
-    const auto& paintUniforms = paintAttributeData.uniformValues(parameters.state.getZoom(), properties);
+    BackgroundProgram::Binders::UniformValues paintUniformValues;
+    paintAttributeData.fillUniformValues(paintUniformValues, parameters.state.getZoom(), properties);
 
     auto draw = [&](auto& program, 
-                    auto&& layoutUniforms,
+                    auto&& layoutUniformValues,
                     const auto& textureBindings,
                     const uint32_t id) {
         const auto allAttributeBindings = program.computeAllAttributeBindings(
@@ -94,8 +95,8 @@ void RenderBackgroundLayer::render(PaintParameters& parameters) {
             gfx::CullFaceMode::disabled(),
             *parameters.staticData.quadTriangleIndexBuffer,
             segments,
-            layoutUniforms,
-            paintUniforms,
+            layoutUniformValues,
+            paintUniformValues,
             allAttributeBindings,
             textureBindings,
             util::toString(id));

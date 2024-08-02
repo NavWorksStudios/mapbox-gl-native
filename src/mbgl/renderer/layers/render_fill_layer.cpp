@@ -83,11 +83,16 @@ bool RenderFillLayer::hasCrossfade() const {
 
 void RenderFillLayer::render(PaintParameters& parameters) {
     assert(renderTiles);
+    
+    bool refreshPaintUniforms = true;
+    using Properties = style::FillPaintProperties::DataDrivenProperties;
+    mbgl::PaintPropertyBinders<Properties>::UniformValues paintUniformValues;
+
     if (unevaluated.get<FillPattern>().isUndefined()) {
         parameters.renderTileClippingMasks(renderTiles);
         
         const auto& color = nav::palette::getColorBase();
-        FillProgram::LayoutUniformValues layoutUniforms = {
+        FillProgram::LayoutUniformValues layoutUniformValues = {
             uniforms::matrix::Value(),
             uniforms::world::Value( parameters.backend.getDefaultRenderable().getSize() ),
             uniforms::spotlight::Value( nav::runtime::spotlight::value() ),
@@ -116,11 +121,15 @@ void RenderFillLayer::render(PaintParameters& parameters) {
             auto& bucket = static_cast<FillBucket&>(*renderData->bucket);
             const auto& evaluated = getEvaluated<FillLayerProperties>(renderData->layerProperties);
             const auto& paintPropertyBinders = bucket.paintPropertyBinders.at(getID());
-            const auto& paintUniforms = paintPropertyBinders.uniformValues(parameters.state.getZoom(), evaluated);
+            
+            if (refreshPaintUniforms) {
+                paintPropertyBinders.fillUniformValues(paintUniformValues, parameters.state.getZoom(), evaluated);
+                refreshPaintUniforms = false;
+            }
             
             const auto& matrix = tile.translatedMatrix(evaluated.get<FillTranslate>(), evaluated.get<FillTranslateAnchor>(), parameters.state);
-            layoutUniforms.template get<uniforms::matrix>() = matrix;
-            layoutUniforms.template get<uniforms::water_data_z_scale>() = pow(2.,16.-tile.id.canonical.z); // data_z [13,16]
+            layoutUniformValues.template get<uniforms::matrix>() = matrix;
+            layoutUniformValues.template get<uniforms::water_data_z_scale>() = pow(2.,16.-tile.id.canonical.z); // data_z [13,16]
 
             const auto draw = [&] (auto& programInstance,
                                    const auto& drawMode,
@@ -146,8 +155,8 @@ void RenderFillLayer::render(PaintParameters& parameters) {
                                      gfx::CullFaceMode::disabled(),
                                      indexBuffer,
                                      segments,
-                                     layoutUniforms,
-                                     paintUniforms,
+                                     layoutUniformValues,
+                                     paintUniformValues,
                                      allAttributeBindings,
                                      std::forward<decltype(textureBindings)>(textureBindings),
                                      getID());
@@ -214,6 +223,11 @@ void RenderFillLayer::render(PaintParameters& parameters) {
                 const auto& paintPropertyBinders = bucket.paintPropertyBinders.at(getID());
                 paintPropertyBinders.setPatternParameters(patternPosA, patternPosB, crossfade);
                 
+                if (refreshPaintUniforms) {
+                    paintPropertyBinders.fillUniformValues(paintUniformValues, parameters.state.getZoom(), evaluated);
+                    refreshPaintUniforms = false;
+                }
+                
                 const auto&& allAttributeBindings = programInstance.computeAllAttributeBindings(
                     *bucket.vertexBuffer,
                     paintPropertyBinders,
@@ -239,7 +253,7 @@ void RenderFillLayer::render(PaintParameters& parameters) {
                                          tile.id,
                                          parameters.state,
                                          parameters.pixelRatio),
-                                     paintPropertyBinders.uniformValues(parameters.state.getZoom(), evaluated),
+                                     paintUniformValues,
                                      allAttributeBindings,
                                      std::forward<decltype(textureBindings)>(textureBindings),
                                      getID());

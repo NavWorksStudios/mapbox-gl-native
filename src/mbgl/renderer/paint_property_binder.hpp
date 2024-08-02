@@ -682,9 +682,30 @@ public:
 
     using UniformList = TypeListConcat<InterpolationUniformList<Ps>..., typename Ps::UniformList...>;
     using UniformValues = gfx::UniformValues<UniformList>;
-
+    
     template <class EvaluatedProperties>
-    const UniformValues& uniformValues(float zoom, EvaluatedProperties& properties) const {
+    UniformValues makeUniformValues(float zoom, EvaluatedProperties& properties) const {
+        (void)zoom; // Workaround for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=56958
+
+        UniformValues uniforms;
+        static const auto update = [] (const auto& binder, auto& interpolation, auto& uniform, float zoom, auto& evaluated) {
+            // interpolation uniform values
+            if (zoom > 0) binder->bindInterpolationFactor(&interpolation, zoom);
+
+            // uniform values
+            binder->bindUniformValue(&uniform, evaluated);
+        };
+
+        const float z = (lastzoom == zoom) ? 0 : lastzoom = zoom;
+        util::ignore({ (update(binders.template get<Ps>(),
+                               uniforms.template get<InterpolationUniform<typename Ps::Attribute>>(),
+                               uniforms.template get<typename Ps::Uniform>(),
+                               z, properties.template get<Ps>()), 0) ... });
+        return uniforms;
+    }
+    
+    template <class EvaluatedProperties>
+    void fillUniformValues(UniformValues& uniforms, float zoom, EvaluatedProperties& properties) const {
         (void)zoom; // Workaround for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=56958
 
         static const auto update = [] (const auto& binder, auto& interpolation, auto& uniform, float zoom, auto& evaluated) {
@@ -700,8 +721,6 @@ public:
                                uniforms.template get<InterpolationUniform<typename Ps::Attribute>>(),
                                uniforms.template get<typename Ps::Uniform>(),
                                z, properties.template get<Ps>()), 0) ... });
-
-        return uniforms;
     }
 
     template <class P>
@@ -712,7 +731,6 @@ public:
 private:
     Binders binders;
     mutable float lastzoom = 0;
-    mutable UniformValues uniforms;
 };
 
 } // namespace mbgl

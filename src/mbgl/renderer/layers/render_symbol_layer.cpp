@@ -133,7 +133,7 @@ void drawIcon(const DrawFn& draw,
     const bool variablePlacedIcon = bucket.hasVariablePlacement && layout.get<IconTextFit>() != IconTextFitType::None;
 
     if (sdfIcons) {
-        auto layoutUniforms = SymbolSDFIconProgram::layoutUniformValues(
+        auto layoutUniformValues = SymbolSDFIconProgram::layoutUniformValues(
             false,
             variablePlacedIcon,
             values,
@@ -146,10 +146,14 @@ void drawIcon(const DrawFn& draw,
             parameters.symbolFadeChange,
             SymbolSDFPart::Halo);
         
+        SymbolSDFIconProgram::PaintUniformValues paintUniformValues;
+        bucketPaintProperties.iconBinders.fillUniformValues(paintUniformValues, parameters.state.getZoom(), paintPropertyValues);
+        
         if (values.hasHalo) {
-            layoutUniforms.template get<uniforms::is_halo>() = true;
+            layoutUniformValues.template get<uniforms::is_halo>() = true;
             draw(parameters.programs.getSymbolLayerPrograms().symbolIconSDF,
-                 layoutUniforms,
+                 layoutUniformValues,
+                 paintUniformValues,
                  bucket.sdfIcon,
                  iconSegments,
                  bucket.iconSizeBinder,
@@ -160,9 +164,10 @@ void drawIcon(const DrawFn& draw,
         }
 
         if (values.hasFill) {
-            layoutUniforms.template get<uniforms::is_halo>() = false;
+            layoutUniformValues.template get<uniforms::is_halo>() = false;
             draw(parameters.programs.getSymbolLayerPrograms().symbolIconSDF,
-                 layoutUniforms,
+                 layoutUniformValues,
+                 paintUniformValues,
                  bucket.sdfIcon,
                  iconSegments,
                  bucket.iconSizeBinder,
@@ -172,15 +177,30 @@ void drawIcon(const DrawFn& draw,
                  "fill");
         }
     } else {
+        auto layoutUniformValues = SymbolIconProgram::layoutUniformValues(
+            false,
+            variablePlacedIcon,
+            values,
+            iconSize,
+            parameters.pixelsToGLUnits,
+            alongLine,
+            tile,
+            parameters.state,
+            parameters.symbolFadeChange);
+        
+        SymbolIconProgram::PaintUniformValues paintUniformValues;
+        bucketPaintProperties.iconBinders.fillUniformValues(paintUniformValues, parameters.state.getZoom(), paintPropertyValues);
+        
         draw(parameters.programs.getSymbolLayerPrograms().symbolIcon,
-            SymbolIconProgram::layoutUniformValues(false, variablePlacedIcon, values, iconSize, parameters.pixelsToGLUnits, alongLine, tile, parameters.state, parameters.symbolFadeChange),
-            bucket.icon,
-            iconSegments,
-            bucket.iconSizeBinder,
-            bucketPaintProperties.iconBinders,
-            paintPropertyValues,
-            SymbolIconProgram::TextureBindings{ textureBinding },
-            "icon");
+             layoutUniformValues,
+             paintUniformValues,
+             bucket.icon,
+             iconSegments,
+             bucket.iconSizeBinder,
+             bucketPaintProperties.iconBinders,
+             paintPropertyValues,
+             SymbolIconProgram::TextureBindings{ textureBinding },
+             "icon");
     }
 }
 
@@ -205,9 +225,14 @@ void drawText(const DrawFn& draw,
     const gfx::TextureBinding glyphTextureBinding{tile.getGlyphAtlasTexture().getResource(),
                                                   gfx::TextureFilterType::Linear};
 
-    const auto drawGlyphs = [&](auto& program, const auto& uniforms, const auto& textures, SymbolSDFPart part) {
+    const auto drawGlyphs = [&](auto& program, 
+                                const auto& layoutUniformValues,
+                                const auto& paintUniformValues,
+                                const auto& textures,
+                                SymbolSDFPart part) {
         draw(program,
-             uniforms,
+             layoutUniformValues,
+             paintUniformValues,
              bucket.text,
              textSegments,
              bucket.textSizeBinder,
@@ -228,7 +253,7 @@ void drawText(const DrawFn& draw,
                 ? gfx::TextureFilterType::Linear
                 : gfx::TextureFilterType::Nearest};
         
-        auto layoutUniforms = SymbolTextAndIconProgram::layoutUniformValues(
+        auto layoutUniformValues = SymbolTextAndIconProgram::layoutUniformValues(
             bucket.hasVariablePlacement,
             values,
             glyphTexSize,
@@ -241,23 +266,28 @@ void drawText(const DrawFn& draw,
             parameters.symbolFadeChange,
             SymbolSDFPart::Halo);
         
+        SymbolTextAndIconProgram::PaintUniformValues paintUniformValues;
+        bucketPaintProperties.iconBinders.fillUniformValues(paintUniformValues, parameters.state.getZoom(), evaluated);
+        
         if (values.hasHalo) {
-            layoutUniforms.template get<uniforms::is_halo>() = true;
+            layoutUniformValues.template get<uniforms::is_halo>() = true;
             drawGlyphs(parameters.programs.getSymbolLayerPrograms().symbolTextAndIcon,
-                       layoutUniforms,
+                       layoutUniformValues,
+                       paintUniformValues,
                        SymbolTextAndIconProgram::TextureBindings{glyphTextureBinding, iconTextureBinding},
                        SymbolSDFPart::Halo);
         }
 
         if (values.hasFill) {
-            layoutUniforms.template get<uniforms::is_halo>() = false;
+            layoutUniformValues.template get<uniforms::is_halo>() = false;
             drawGlyphs(parameters.programs.getSymbolLayerPrograms().symbolTextAndIcon,
-                       layoutUniforms,
+                       layoutUniformValues,
+                       paintUniformValues,
                        SymbolTextAndIconProgram::TextureBindings{glyphTextureBinding, iconTextureBinding},
                        SymbolSDFPart::Fill);
         }
     } else {
-        auto layoutUniforms = SymbolSDFTextProgram::layoutUniformValues(
+        auto layoutUniformValues = SymbolSDFTextProgram::layoutUniformValues(
             true,
             bucket.hasVariablePlacement,
             values,
@@ -270,18 +300,23 @@ void drawText(const DrawFn& draw,
             parameters.symbolFadeChange,
             SymbolSDFPart::Halo);
         
+        SymbolSDFTextProgram::PaintUniformValues paintUniformValues;
+        bucketPaintProperties.textBinders.fillUniformValues(paintUniformValues, parameters.state.getZoom(), evaluated);
+        
         if (values.hasHalo) {
-            layoutUniforms.template get<uniforms::is_halo>() = true;
+            layoutUniformValues.template get<uniforms::is_halo>() = true;
             drawGlyphs(parameters.programs.getSymbolLayerPrograms().symbolGlyph,
-                       layoutUniforms,
+                       layoutUniformValues,
+                       paintUniformValues,
                        SymbolSDFTextProgram::TextureBindings{glyphTextureBinding},
                        SymbolSDFPart::Halo);
         }
 
         if (values.hasFill) {
-            layoutUniforms.template get<uniforms::is_halo>() = false;
+            layoutUniformValues.template get<uniforms::is_halo>() = false;
             drawGlyphs(parameters.programs.getSymbolLayerPrograms().symbolGlyph,
-                       layoutUniforms,
+                       layoutUniformValues,
+                       paintUniformValues,
                        SymbolSDFTextProgram::TextureBindings{glyphTextureBinding},
                        SymbolSDFPart::Fill);
         }
@@ -352,17 +387,17 @@ void RenderSymbolLayer::render(PaintParameters& parameters) {
     const bool sortFeaturesByKey = !impl_cast(baseImpl).layout.get<SymbolSortKey>().isUndefined();
     std::multiset<RenderableSegment> renderableSegments;
 
-    const auto draw = [&parameters, this] (auto& programInstance,
-                                           const auto& layoutUniforms,
-                                           const auto& buffers,
-                                           auto& segments,
-                                           const auto& symbolSizeBinder,
-                                           const auto& binders,
-                                           const auto& paintProperties,
-                                           const auto& textureBindings,
-                                           const std::string& suffix) {
+    const auto draw = [&] (auto& programInstance,
+                            const auto& layoutUniformValues,
+                            const auto& paintUniformValues,
+                            const auto& buffers,
+                            auto& segments,
+                            const auto& symbolSizeBinder,
+                            const auto& binders,
+                            const auto& paintProperties,
+                            const auto& textureBindings,
+                            const std::string& suffix) {
         const auto&& sizeUniforms = symbolSizeBinder->uniformValues(parameters.state.getZoom());
-        const auto& paintUniforms = binders.uniformValues(parameters.state.getZoom(), paintProperties);
 
         const auto&& allAttributeBindings = programInstance.computeAllAttributeBindings(
             *buffers.vertexBuffer,
@@ -386,9 +421,9 @@ void RenderSymbolLayer::render(PaintParameters& parameters) {
                     gfx::CullFaceMode::disabled(),
                     *buffers.indexBuffer,
                     segment,
-                    layoutUniforms,
+                    layoutUniformValues,
                     sizeUniforms,
-                    paintUniforms,
+                    paintUniformValues,
                     allAttributeBindings,
                     textureBindings,
                     this->getID().get() + "/" + suffix
@@ -405,9 +440,9 @@ void RenderSymbolLayer::render(PaintParameters& parameters) {
                     gfx::CullFaceMode::disabled(),
                     *buffers.indexBuffer,
                     segmentVector,
-                    layoutUniforms,
+                    layoutUniformValues,
                     sizeUniforms,
-                    paintUniforms,
+                    paintUniformValues,
                     allAttributeBindings,
                     textureBindings,
                     this->getID().get() + "/" + suffix

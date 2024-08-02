@@ -38,6 +38,7 @@ void ImageSourceRenderData::render(PaintParameters& parameters) const {
     assert(debugTexture);
     static const style::Properties<>::PossiblyEvaluated properties {};
     static const DebugProgram::Binders paintAttributeData(properties, 0);
+    static const DebugProgram::Binders::UniformValues paintUniformValues = paintAttributeData.makeUniformValues(parameters.state.getZoom(), properties);
 
     auto& programInstance = parameters.programs.debug;
 
@@ -56,7 +57,7 @@ void ImageSourceRenderData::render(PaintParameters& parameters) const {
                              DebugProgram::LayoutUniformValues{uniforms::matrix::Value(matrix),
                                                                uniforms::color::Value(Color::red()),
                                                                uniforms::overlay_scale::Value(1.0f)},
-                             paintAttributeData.uniformValues(parameters.state.getZoom(), properties),
+                             paintUniformValues,
                              DebugProgram::computeAllAttributeBindings(
                                  *parameters.staticData.tileVertexBuffer, paintAttributeData, properties),
                              DebugProgram::TextureBindings{textures::image::Value{debugTexture->getResource()}},

@@ -138,6 +138,7 @@ void RenderTile::finishRender(PaintParameters& parameters) const {
 
     static const style::Properties<>::PossiblyEvaluated properties {};
     static const DebugProgram::Binders paintAttributeData(properties, 0);
+    static const DebugProgram::Binders::UniformValues paintUniformValues = paintAttributeData.makeUniformValues(parameters.state.getZoom(), properties);
 
     auto& program = parameters.programs.debug;
 
@@ -158,7 +159,7 @@ void RenderTile::finishRender(PaintParameters& parameters) const {
                      debugBucket->segments,
                      DebugProgram::LayoutUniformValues{
                         uniforms::matrix::Value(matrix), uniforms::color::Value(Color::white()), uniforms::overlay_scale::Value(1.0f)},
-                     paintAttributeData.uniformValues(parameters.state.getZoom(), properties),
+                     paintUniformValues,
                      allAttributeBindings,
                      DebugProgram::TextureBindings{textures::image::Value{debugBucket->texture->getResource()}},
                      TEXT_OUTLINE);
@@ -175,7 +176,7 @@ void RenderTile::finishRender(PaintParameters& parameters) const {
                      debugBucket->segments,
                      DebugProgram::LayoutUniformValues{
                         uniforms::matrix::Value(matrix), uniforms::color::Value(Color::black()), uniforms::overlay_scale::Value(1.0f)},
-                     paintAttributeData.uniformValues(parameters.state.getZoom(), properties),
+                     paintUniformValues,
                      allAttributeBindings,
                      DebugProgram::TextureBindings{textures::image::Value{debugBucket->texture->getResource()}},
                      TEXT);
@@ -199,7 +200,7 @@ void RenderTile::finishRender(PaintParameters& parameters) const {
             debugBucket->tileBorderSegments,
             DebugProgram::LayoutUniformValues{
                 uniforms::matrix::Value(matrix), uniforms::color::Value(Color::red()), uniforms::overlay_scale::Value(1.0f)},
-            paintAttributeData.uniformValues(parameters.state.getZoom(), properties),
+            paintUniformValues,
             DebugProgram::computeAllAttributeBindings(
                 *parameters.staticData.tileVertexBuffer, paintAttributeData, properties),
             DebugProgram::TextureBindings{textures::image::Value{debugBucket->texture->getResource()}},

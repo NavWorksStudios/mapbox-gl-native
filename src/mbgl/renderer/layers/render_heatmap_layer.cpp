@@ -98,6 +98,10 @@ void RenderHeatmapLayer::render(PaintParameters& parameters) {
         auto renderPass = parameters.encoder->createRenderPass(
             "heatmap texture", { *renderTexture, Color{ 0.0f, 0.0f, 0.0f, 1.0f }, {}, {} });
 
+        bool refreshPaintUniforms = true;
+        using Properties = style::HeatmapPaintProperties::DataDrivenProperties;
+        mbgl::PaintPropertyBinders<Properties>::UniformValues paintUniformValues;
+
         size_t renderIndex = -1;
         for (const RenderTile& tile : *renderTiles) {
             renderIndex++;
@@ -116,6 +120,11 @@ void RenderHeatmapLayer::render(PaintParameters& parameters) {
             const auto extrudeScale = tile.id.pixelsToTileUnits(1, parameters.state.getZoom());
 
             const auto& paintPropertyBinders = bucket.paintPropertyBinders.at(getID());
+
+            if (refreshPaintUniforms) {
+                paintPropertyBinders.fillUniformValues(paintUniformValues, parameters.state.getZoom(), evaluated);
+                refreshPaintUniforms = false;
+            }
 
             auto& programInstance = parameters.programs.getHeatmapLayerPrograms().heatmap;
 
@@ -137,7 +146,7 @@ void RenderHeatmapLayer::render(PaintParameters& parameters) {
                                      uniforms::intensity::Value(evaluated.get<style::HeatmapIntensity>()),
                                      uniforms::matrix::Value(tile.matrix),
                                      uniforms::heatmap::extrude_scale::Value(extrudeScale)},
-                                 paintPropertyBinders.uniformValues(parameters.state.getZoom(), evaluated),
+                                 paintUniformValues,
                                  allAttributeBindings,
                                  HeatmapProgram::TextureBindings{},
                                  getID());
@@ -151,6 +160,8 @@ void RenderHeatmapLayer::render(PaintParameters& parameters) {
 
         const Properties<>::PossiblyEvaluated properties;
         const HeatmapTextureProgram::Binders paintAttributeData{ properties, 0 };
+        HeatmapTextureProgram::Binders::UniformValues paintUniformValues;
+        paintAttributeData.fillUniformValues(paintUniformValues, parameters.state.getZoom(), properties);
 
         auto& programInstance = parameters.programs.getHeatmapLayerPrograms().heatmapTexture;
 
@@ -177,7 +188,7 @@ void RenderHeatmapLayer::render(PaintParameters& parameters) {
                 uniforms::matrix::Value(viewportMat),
                 uniforms::world::Value(size),
                 uniforms::opacity::Value(getEvaluated<HeatmapLayerProperties>(evaluatedProperties).get<HeatmapOpacity>())},
-            paintAttributeData.uniformValues(parameters.state.getZoom(), properties),
+            paintUniformValues,
             allAttributeBindings,
             HeatmapTextureProgram::TextureBindings{
                 textures::image::Value{renderTexture->getTexture().getResource(), gfx::TextureFilterType::Linear},

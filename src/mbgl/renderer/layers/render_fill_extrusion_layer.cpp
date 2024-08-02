@@ -80,6 +80,10 @@ void RenderFillExtrusionLayer::render(PaintParameters& parameters) {
     }
 
     const auto depthMode = parameters.depthModeFor3D();
+    
+    bool refreshPaintUniforms = true;
+    using Properties = style::FillExtrusionPaintProperties::DataDrivenProperties;
+    mbgl::PaintPropertyBinders<Properties>::UniformValues paintUniformValues;
 
     const auto draw = [&](auto& programInstance,
                           const auto& evaluated_,
@@ -87,14 +91,18 @@ void RenderFillExtrusionLayer::render(PaintParameters& parameters) {
                           const gfx::StencilMode& stencilMode,
                           const gfx::ColorMode& colorMode,
                           const auto& tileBucket,
-                          auto& layoutUniforms,
+                          auto& layoutUniformValues,
                           const optional<ImagePosition>& patternPositionA,
                           const optional<ImagePosition>& patternPositionB,
                           const auto& textureBindings,
                           const std::string& uniqueName) {
         const auto& paintPropertyBinders = tileBucket.paintPropertyBinders.at(getID());
         paintPropertyBinders.setPatternParameters(patternPositionA, patternPositionB, crossfade_);
-        const auto& paintUniforms = paintPropertyBinders.uniformValues(parameters.state.getZoom(), evaluated_);
+
+        if (refreshPaintUniforms) {
+            paintPropertyBinders.fillUniformValues(paintUniformValues, parameters.state.getZoom(), evaluated_);
+            refreshPaintUniforms = false;
+        }
 
         const auto&& allAttributeBindings = programInstance.computeAllAttributeBindings(
             *tileBucket.vertexBuffer,
@@ -105,7 +113,7 @@ void RenderFillExtrusionLayer::render(PaintParameters& parameters) {
         checkRenderability(parameters, programInstance.activeBindingCount(allAttributeBindings));
         
         // draw reflection
-        layoutUniforms.template get<uniforms::render_reflection>() = true;
+        layoutUniformValues.template get<uniforms::render_reflection>() = true;
         programInstance.draw(
             parameters.context,
             *parameters.renderPass,
@@ -116,14 +124,14 @@ void RenderFillExtrusionLayer::render(PaintParameters& parameters) {
             gfx::CullFaceMode::backCCW(),
             *tileBucket.reflectionIndexBuffer,
             tileBucket.triangleSegments,
-            layoutUniforms,
-            paintUniforms,
+            layoutUniformValues,
+            paintUniformValues,
             allAttributeBindings,
             textureBindings,
             uniqueName);
         
         // draw self
-        layoutUniforms.template get<uniforms::render_reflection>() = false;
+        layoutUniformValues.template get<uniforms::render_reflection>() = false;
         programInstance.draw(
             parameters.context,
             *parameters.renderPass,
@@ -134,8 +142,8 @@ void RenderFillExtrusionLayer::render(PaintParameters& parameters) {
             gfx::CullFaceMode::backCCW(),
             *tileBucket.indexBuffer,
             tileBucket.triangleSegments,
-            layoutUniforms,
-            paintUniforms,
+            layoutUniformValues,
+            paintUniformValues,
             allAttributeBindings,
             textureBindings,
             uniqueName);
