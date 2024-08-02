@@ -4,6 +4,7 @@
 #include <mbgl/style/types.hpp>
 #include <mbgl/util/geometry.hpp>
 #include <mbgl/util/optional.hpp>
+#include <mbgl/util/range.hpp>
 
 #include <vector>
 #include <memory>
@@ -36,12 +37,11 @@ int32_t coveringZoomLevel(double z, style::SourceType type, uint16_t tileSize);
 namespace strategy {
 struct Type {
     const float LOD_INTENSITY;
-    const float MIN_Z;
-    const float MAX_Z;
+    Range<uint8_t> Z_RANGE;
 };
 
-constexpr Type Standard = { 8, 0, 22 };
-constexpr Type Detailed = { 1, 15, 15 };
+constexpr Type Standard = { 8, {0, 22} };
+constexpr Type Detailed = { 1, {15, 16} };
 }
 
 void tileCover(std::vector<OverscaledTileID>& ids, const strategy::Type& strategy,

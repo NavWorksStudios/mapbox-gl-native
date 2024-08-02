@@ -173,8 +173,8 @@ void tileCover(std::vector<OverscaledTileID>& ids, const strategy::Type& strateg
     // LOD降级取值范围
     constexpr float MAX_PITCH = (70.0 / 180.0) * M_PI;
     const uint8_t minZoom = (1. - state.getPitch() / MAX_PITCH) * (z - 2);
-    const uint8_t maxZoom = z;
-    const uint8_t minSeenZoom = fmax(fmax(maxZoom - 5, minZoom), strategy.MIN_Z);
+    const uint8_t maxZoom = fmin(z, strategy.Z_RANGE.max);
+    const uint8_t minSeenZoom = fmax(fmax(maxZoom - 5, minZoom), strategy.Z_RANGE.min);
     
     const uint8_t overscaledZoom = overscaledZ.value_or(z);
     const bool flippedY = state.getViewportMode() == ViewportMode::FlippedY;
