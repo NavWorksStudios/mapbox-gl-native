@@ -18,7 +18,7 @@ public:
     ~RouteTile() override;
 
 private:
-    mapbox::base::WeakPtr<RouteLineLayerManager> routeLineManager;
+    mapbox::base::WeakPtr<RouteLineLayerManager> routeManager;
 };
 
 class RouteTileFeatureData;

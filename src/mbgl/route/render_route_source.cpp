@@ -6,6 +6,7 @@
 
 #include <mbgl/layermanager/layer_manager.hpp>
 #include <mbgl/route/render_route_source.hpp>
+#include <mbgl/route/route_line_layer_manager.hpp>
 
 namespace mbgl {
 

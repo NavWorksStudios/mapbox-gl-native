@@ -155,7 +155,6 @@ std::unique_ptr<RenderTree> RenderOrchestrator::createRenderTree(
   
     // #*# 更新导航线路数据
     if (LayerManager::routelineEnabled) {
-//        RouteLineLayerManager::getInstance().updateData();
         auto guard = updateParameters->routeManager.lock();
         if (updateParameters->routeManager) {
             updateParameters->routeManager->updateData();
@@ -182,6 +181,7 @@ std::unique_ptr<RenderTree> RenderOrchestrator::createRenderTree(
                                         updateParameters->fileSource,
                                         updateParameters->mode,
                                         updateParameters->annotationManager,
+                                        updateParameters->routeManager,
                                         *imageManager,
                                         *glyphManager,
                                         updateParameters->prefetchZoomDelta};

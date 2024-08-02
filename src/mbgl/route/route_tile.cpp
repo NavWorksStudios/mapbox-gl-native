@@ -12,22 +12,21 @@ namespace mbgl {
 
 RouteTile::RouteTile(const OverscaledTileID& overscaledTileID,
                                const TileParameters& parameters)
-    : GeometryTile(overscaledTileID, RouteLineLayerManager::RouteSourceID, parameters) {
-//    auto guard = routeLineManager.lock();
+    : GeometryTile(overscaledTileID, RouteLineLayerManager::RouteSourceID, parameters),
+      routeManager(parameters.routeManager) {
+    auto guard = routeManager.lock();
         // #*#
-//    if (&mbgl::RouteLineLayerManager::getInstance()) {
-//        // #*#
-//        mbgl::RouteLineLayerManager::getInstance().addTile(*this);
-//    }
+    if (routeManager) {
+        routeManager->addTile(*this);
+    }
 }
 
 RouteTile::~RouteTile() {
-//    auto guard = routeLineManager.lock();
+    auto guard = routeManager.lock();
     // #*#
-//    if (&mbgl::RouteLineLayerManager::getInstance()) {
-//        // #*#
-//        mbgl::RouteLineLayerManager::getInstance().removeTile(*this);
-//    }
+    if (routeManager) {
+        routeManager->removeTile(*this);
+    }
 }
 
 class RouteTileFeatureData {
