@@ -296,6 +296,8 @@ void main() {
     lowp float opacity=u_opacity;
 #endif
 
+    lowp float distance=pow(v_pos.x,2.)+pow(v_pos.z,2.);
+
     if (u_water_wave > 0.) { // 水面波光
 
         // point light
@@ -308,7 +310,6 @@ void main() {
         lowp vec3 reflectDir=reflect(lightDir,vec3(0.,1.,0.)); // reflect (genType I, genType N),返回反射向量
         lowp float brighten=max(specular*pow(max(dot(viewDir,reflectDir),0.0),shininess), 0.); // power(max(0,dot(N,H)),shininess)
 
-        lowp float distance=pow(v_pos.x,2.)+pow(v_pos.z,2.);
         lowp float radial_fadeout=clamp(1.-distance/u_clip_region,0.,1.);
         radial_fadeout=pow(radial_fadeout,3.) * u_water_wave;
 
@@ -342,6 +343,9 @@ void main() {
         }
 
     }
+
+    lowp float radial_fadeout=1.-min(distance/u_clip_region,1.)*.3;
+    gl_FragColor.rgb *= radial_fadeout;
         
 #ifdef OVERDRAW_INSPECTOR
     gl_FragColor=vec4(1.0);
