@@ -18,10 +18,16 @@ using RoutePlanIDs = std::vector<RoutePlanID>;
 
 class SymbolRoutePlan {
 public:
-    SymbolRoutePlan(Point<double> geometry_, std::string icon_ = {}) : geometry(geometry_), icon(std::move(icon_)) {}
+    SymbolRoutePlan(std::vector<Point<double>> geometries_,
+                    std::vector<std::string> icons_ = {},
+                    std::vector<std::string> descriptions_ = {})
+            : geometries(geometries_),
+              icons(std::move(icons)),
+              descriptions(std::move(descriptions_)) {}
 
-    Point<double> geometry;
-    std::string icon;
+    std::vector<Point<double>> geometries;
+    std::vector<std::string> icons;
+    std::vector<std::string> descriptions;
 };
 
 using ShapeRoutePlanGeometry = variant<
@@ -32,12 +38,12 @@ using ShapeRoutePlanGeometry = variant<
 
 class LineRoutePlan {
 public:
-    LineRoutePlan(ShapeRoutePlanGeometry geometry_,
+    LineRoutePlan(LineString<double> geometry_,
                   nav::stringid layerId_)
         : geometry(std::move(geometry_)),
           layerId(layerId_) {}
-    ShapeRoutePlanGeometry geometry;
-    nav::stringid layerId;
+    LineString<double> geometry;
+    nav::stringid layerId;  // 关联的style中的layer
 };
 
 class FillRoutePlan {
@@ -48,7 +54,7 @@ public:
       layerId(layerId_) {}
 
     ShapeRoutePlanGeometry geometry;
-    nav::stringid layerId;
+    nav::stringid layerId;  // 关联的style中的layer
 };
 
 using RoutePlan = variant<

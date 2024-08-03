@@ -3,6 +3,7 @@
 #include <mbgl/annotation/annotation.hpp>
 #include <mbgl/tile/geometry_tile.hpp>
 #include <mbgl/tile/geometry_tile_data.hpp>
+#include <mbgl/route/route_plan.hpp>
 
 namespace mbgl {
 
@@ -47,7 +48,7 @@ public:
     std::unique_ptr<GeometryTileFeature> getFeature(std::size_t i) const override;
     std::string getName() const override;
 
-    void addFeature(AnnotationID,
+    void addFeature(RoutePlanID,
                     FeatureType,
                     GeometryCollection,
                     std::unordered_map<std::string, std::string> properties = {{}});
@@ -60,7 +61,8 @@ class RouteTileData : public GeometryTileData {
 public:
     std::unique_ptr<GeometryTileData> clone() const override;
     std::unique_ptr<GeometryTileLayer> getLayer(const nav::stringid&) const override;
-
+    
+    std::unique_ptr<RouteTileLayer> getAndNewLayer(const nav::stringid&);
     std::unique_ptr<RouteTileLayer> addLayer(const nav::stringid&);
 
 private:

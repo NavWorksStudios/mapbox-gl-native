@@ -96,7 +96,7 @@ std::string RouteTileLayer::getName() const {
     return layer->name;
 }
 
-void RouteTileLayer::addFeature(const AnnotationID id,
+void RouteTileLayer::addFeature(const RoutePlanID id,
                                      FeatureType type,
                                      GeometryCollection geometries,
                                      std::unordered_map<std::string, std::string> properties) {
@@ -115,6 +115,14 @@ std::unique_ptr<GeometryTileLayer> RouteTileData::getLayer(const nav::stringid& 
         return std::make_unique<RouteTileLayer>(it->second);
     }
     return nullptr;
+}
+
+std::unique_ptr<RouteTileLayer> RouteTileData::getAndNewLayer(const nav::stringid& name) {
+    auto it = layers.find(name);
+    if (it != layers.end()) {
+        return std::make_unique<RouteTileLayer>(it->second);
+    }
+    return addLayer(name);
 }
 
 std::unique_ptr<RouteTileLayer> RouteTileData::addLayer(const nav::stringid& name) {

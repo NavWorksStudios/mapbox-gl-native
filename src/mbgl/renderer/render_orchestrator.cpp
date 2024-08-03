@@ -356,6 +356,9 @@ std::unique_ptr<RenderTree> RenderOrchestrator::createRenderTree(
                 renderItemsEmplaceHint = layerRenderItems.emplace_hint(renderItemsEmplaceHint, layer, nullptr, index);
             }
         }
+        if(filteredLayersForSource.size()==0) {
+            ;
+        }
         source->update(sourceImpl,
                        filteredLayersForSource,
                        sourceNeedsRendering,

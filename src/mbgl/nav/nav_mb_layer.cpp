@@ -23,10 +23,11 @@ struct Source {
     const char* sourceLayer;
 };
 
-//#define LINE
-//#define FILL
-//#define SYMBOL
-//#define EXTRUSION
+#define LINE
+#define FILL
+#define SYMBOL
+#define EXTRUSION
+//#define ROUTE_LINE
 
 static const std::unordered_map<std::string, Source> layerIds = {
     { "land", { "background", "", "", } },
@@ -190,6 +191,11 @@ static const std::unordered_map<std::string, Source> layerIds = {
     { "continent-label", { "symbol", "composite", "natural_label", } },
 #endif
 
+#ifdef ROUTE_LINE
+    { "route", { "line", "composite", "road", } },
+    { "road-dimmed", { "line", "composite", "road", } },
+#endif
+    
 };
 
 

@@ -33,9 +33,9 @@ using namespace style;
 //namespace route {
 
 //static RouteLineLayerManager instance;
-const nav::stringid RouteLineLayerManager::RouteSourceID( "com.mapbox.routelines" );
-//const nav::stringid RouteLineLayerManager::PointLayerID( "com.mapbox.routelines.points" );
-const nav::stringid RouteLineLayerManager::RouteShapeLayerID( "com.mapbox.routelines.shape" );
+const nav::stringid RouteLineLayerManager::RouteSourceID( "route" );
+//const nav::stringid RouteLineLayerManager::PointLayerID( "route" );
+const nav::stringid RouteLineLayerManager::RouteShapeLayerID( "route" );
 
 //RouteLineLayerManager& RouteLineLayerManager::getInstance() {
 //    return instance;
@@ -130,12 +130,19 @@ void RouteLineLayerManager::updateStyle() {
         style.get().impl->addSource(std::make_unique<RouteSource>());
 
         // #*#
-        std::unique_ptr<LineLayer> layer = std::make_unique<LineLayer>(RouteShapeLayerID, RouteSourceID);
-
-        using namespace expression::dsl;
-        layer->setSourceLayer(RouteSourceID.get());
-
-        style.get().impl->addLayer(std::move(layer));
+        Layer* layer = style.get().impl->getLayer(RouteShapeLayerID);
+        if(layer) {
+            layer->setSourceLayer(RouteSourceID.get());
+//            layer->setSourceID(RouteSourceID.get());
+        }
+        else {
+            std::unique_ptr<LineLayer> layer = std::make_unique<LineLayer>(RouteShapeLayerID, RouteSourceID);
+//            using namespace expression::dsl;
+            layer->setSourceLayer(RouteSourceID.get());
+            layer->setLineColor(mbgl::Color{0.05, 0.85, 0.05, 1.0});
+            layer->setLineWidth(12);
+            style.get().impl->addLayer(std::move(layer));
+        }
     }
 
 //    std::lock_guard<std::mutex> lock(mutex);
@@ -213,6 +220,7 @@ void RouteLineLayerManager::updateTileData(const CanonicalTileID& tileID, RouteT
         return;
 
     auto layer = data.addLayer(RouteShapeLayerID);
+//    auto layer = data.getAndNewLayer(RouteShapeLayerID);
 
     ToGeometryCollection toGeometryCollection;
     ToFeatureType toFeatureType;
@@ -260,6 +268,7 @@ void RouteLineLayerManager::add(const RoutePlanID& id, const LineRoutePlan& rout
 //    ShapeAnnotationImpl& impl = *shapeAnnotations.emplace(id,
 //        std::make_unique<LineAnnotationImpl>(id, annotation)).first->second;
 //    impl.updateStyle(*style.get().impl);
+    line_string_unpast = routePlan.geometry;
 }
 
 // #*# 未来大概率无效需废弃

@@ -282,6 +282,9 @@ void bind(const std::string& uri, const mbgl::Color& color, const Binding& callb
     if (uri.find("com.mapbox.annotations.shape.0") != std::string::npos) {
         return;
     }
+    if (uri.find("route") != std::string::npos) {
+        return;
+    }
 
     static const auto fixColor = [] (const std::string& uri, Hsla color) {
         if (uri.find("water-depth") != std::string::npos) {
