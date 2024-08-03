@@ -19,6 +19,12 @@
 #include <mbgl/route/route_source.hpp>
 #include <mbgl/route/render_route_source.hpp>
 #include <mbgl/style/layers/line_layer.hpp>
+#include <mbgl/tile/tile_id.hpp>
+#include <mbgl/math/wrap.hpp>
+#include <mbgl/math/clamp.hpp>
+#include <mbgl/util/string.hpp>
+#include <mbgl/util/constants.hpp>
+#include <mbgl/util/geometry.hpp>
 
 namespace mbgl {
 
@@ -139,7 +145,7 @@ void RouteLineLayerManager::updateStyle() {
 //        shape.second->updateStyle(*style.get().impl);
 //    }
 
-    // #*# 不排除将来添加导航使用图片 - 鱼骨线
+    // #*# 未来可能添加导航使用图片 - 如：鱼骨线
 //    for (const auto& image : images) {
 //        // Call addImage even for images we may have previously added, because we must support
 //        // addAnnotationImage being used to update an existing image. Creating a new image is
@@ -168,7 +174,7 @@ std::unique_ptr<RouteTileData> RouteLineLayerManager::getTileData(const Canonica
     tileBounds.extend(LatLng(tileBounds.south() - 0.000000001, tileBounds.west() - 0.000000001));
     tileBounds.extend(LatLng(tileBounds.north() + 0.000000001, tileBounds.east() + 0.000000001));
     
-    // #*# 无效待删除
+    // #*# 未来可能添加路况插标图
 //    symbolTree.query(boost::geometry::index::intersects(tileBounds),
 //        boost::make_function_output_iterator([&](const auto& val){
 //            val->updateLayer(tileID, *pointLayer);
@@ -178,10 +184,59 @@ std::unique_ptr<RouteTileData> RouteLineLayerManager::getTileData(const Canonica
 //    for (const auto& shape : shapeAnnotations) {
 //        shape.second->updateTileData(tileID, *tileData);
 //    }
+//    updateTileData(tileID, *tileData);
 
     return tileData;
 }
 
+#if 1
+void RouteLineLayerManager::updateTileData(const CanonicalTileID& tileID, RouteTileData& data) {
+    static const double baseTolerance = 4;
+
+    if (!shapeTiler) {
+        mapbox::feature::feature_collection<double> features;
+//        features.emplace_back(ShapeAnnotationGeometry::visit(
+//            geometry(), [](auto&& geom) { return Feature{std::forward<decltype(geom)>(geom)}; }));
+        features.emplace_back(Feature{std::forward<decltype(geometry())>(geometry())});
+        mapbox::geojsonvt::Options options;
+        // The annotation source is currently hard coded to maxzoom 16, so we're topping out at z16
+        // here as well.
+        options.maxZoom = 16;
+        options.buffer = 255u;
+        options.extent = util::EXTENT;
+        options.tolerance = baseTolerance;
+        shapeTiler = std::make_unique<mapbox::geojsonvt::GeoJSONVT>(features, options);
+    }
+
+    const auto& shapeTile = shapeTiler->getTile(tileID.z, tileID.x, tileID.y);
+    if (shapeTile.features.empty())
+        return;
+
+    auto layer = data.addLayer(RouteShapeLayerID);
+
+    ToGeometryCollection toGeometryCollection;
+    ToFeatureType toFeatureType;
+    for (const auto& shapeFeature : shapeTile.features) {
+        FeatureType featureType = apply_visitor(toFeatureType, shapeFeature.geometry);
+        GeometryCollection renderGeometry = apply_visitor(toGeometryCollection, shapeFeature.geometry);
+
+        assert(featureType != FeatureType::Unknown);
+
+        // https://github.com/mapbox/geojson-vt-cpp/issues/44
+        if (featureType == FeatureType::Polygon) {
+            renderGeometry = fixupPolygons(renderGeometry);
+        }
+
+        // #*# id
+        layer->addFeature(1, featureType, renderGeometry);
+    }
+}
+
+const LineString<double>& RouteLineLayerManager::geometry() const {
+    return line_string_unpast;
+}
+
+#endif
 
 //}
 

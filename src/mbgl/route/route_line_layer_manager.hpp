@@ -10,6 +10,7 @@
 #include <mbgl/style/rotation.hpp>
 #include <mbgl/util/color.hpp>
 #include <mbgl/util/geo.hpp>
+#include <mapbox/geojsonvt.hpp>
 
 #include <mbgl/route/route_data.hpp>
 #include <mbgl/route/route_tile.hpp>
@@ -68,7 +69,7 @@ public:
 private:
     // Dynamic line geometry vector for road conditions
     mapbox::geometry::line_string<double> line_string_past;     // past
-    mapbox::geometry::line_string<double> line_string_unpast;   // unpast or all
+    mapbox::geometry::line_string<double> line_string_unpast;   // unpast or all, mapbox::geometry::line_string<T>
     
     style::PropertyValue<Color> color_f3 = Color::black();
     style::PropertyValue<Color> color_f2 = Color::black();
@@ -87,13 +88,14 @@ private:
     std::reference_wrapper<style::Style> style;
     
     mbgl::LatLng puckLocation;
-    
+    std::unique_ptr<mapbox::geojsonvt::GeoJSONVT> shapeTiler;
     
 private:
     mapbox::base::WeakPtrFactory<RouteLineLayerManager> weakFactory{this};
     std::unique_ptr<RouteTileData> getTileData(const CanonicalTileID& tileID);
     void updateStyle();
-    
+    void updateTileData(const CanonicalTileID& tileID, RouteTileData& data);
+    const LineString<double>& geometry() const;
 };
 
 //}
