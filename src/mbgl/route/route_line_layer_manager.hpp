@@ -14,6 +14,7 @@
 
 #include <mbgl/route/route_data.hpp>
 #include <mbgl/route/route_tile.hpp>
+#include <mbgl/route/route_plan.hpp>
 
 #include <unordered_set>
 #include <unordered_map>
@@ -58,6 +59,11 @@ public:
     void setStyle(style::Style&);
     void onStyleLoaded();
     
+    RoutePlanID addRoutePlan(const RoutePlan& routePlan);
+    void add(const RoutePlanID& id, const LineRoutePlan& routePlan);
+    void add(const RoutePlanID& id, const SymbolRoutePlan& routePlan);
+    void add(const RoutePlanID& id, const FillRoutePlan& routePlan);
+    
 public:
     
     static const nav::stringid RouteSourceID;
@@ -86,6 +92,7 @@ private:
     std::mutex mutex;
     bool dirty = false;
     std::reference_wrapper<style::Style> style;
+    RoutePlanID nextID = 0;
     
     mbgl::LatLng puckLocation;
     std::unique_ptr<mapbox::geojsonvt::GeoJSONVT> shapeTiler;

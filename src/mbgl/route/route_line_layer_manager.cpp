@@ -184,7 +184,7 @@ std::unique_ptr<RouteTileData> RouteLineLayerManager::getTileData(const Canonica
 //    for (const auto& shape : shapeAnnotations) {
 //        shape.second->updateTileData(tileID, *tileData);
 //    }
-//    updateTileData(tileID, *tileData);
+    updateTileData(tileID, *tileData);
 
     return tileData;
 }
@@ -237,6 +237,37 @@ const LineString<double>& RouteLineLayerManager::geometry() const {
 }
 
 #endif
+
+RoutePlanID RouteLineLayerManager::addRoutePlan(const RoutePlan& routePlan) {
+//    CHECK_ROUTE_ENABLED_AND_RETURN(nextID++);
+    std::lock_guard<std::mutex> lock(mutex);
+    RoutePlanID id = nextID++;
+    RoutePlan::visit(routePlan, [&] (const auto& routePlan_) {
+        this->add(id, routePlan_);
+    });
+    dirty = true;
+    return id;
+}
+
+// #*# 未来大概率需要用于路况插标
+void RouteLineLayerManager::add(const RoutePlanID& id, const SymbolRoutePlan& routePlan) {
+//    auto impl = std::make_shared<SymbolAnnotationImpl>(id, annotation);
+//    symbolTree.insert(impl);
+//    symbolAnnotations.emplace(id, impl);
+}
+
+void RouteLineLayerManager::add(const RoutePlanID& id, const LineRoutePlan& routePlan) {
+//    ShapeAnnotationImpl& impl = *shapeAnnotations.emplace(id,
+//        std::make_unique<LineAnnotationImpl>(id, annotation)).first->second;
+//    impl.updateStyle(*style.get().impl);
+}
+
+// #*# 未来大概率无效需废弃
+void RouteLineLayerManager::add(const RoutePlanID& id, const FillRoutePlan& routePlan) {
+//    ShapeAnnotationImpl& impl = *shapeAnnotations.emplace(id,
+//        std::make_unique<FillAnnotationImpl>(id, annotation)).first->second;
+//    impl.updateStyle(*style.get().impl);
+}
 
 //}
 

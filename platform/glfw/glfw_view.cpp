@@ -30,6 +30,8 @@
 #include <mapbox/geometry.hpp>
 #include <mapbox/geojson.hpp>
 
+#include <mbgl/route/route_plan.hpp>
+
 #if MBGL_USE_GLES2
 #define GLFW_INCLUDE_ES2
 #endif // MBGL_USE_GLES2
@@ -418,7 +420,7 @@ void GLFWView::onKey(int key, int action, int mods) {
             
             addLineAnnotations(targetLatLng);
             addTargetPointAnnotations(targetLatLng);
-            addRouteLines();
+            addRoutePlans();
 
             animateRouteCallback = [this, route](mbgl::Map* routeMap) {
                 // 导航模式暂停时，不处理任何逻辑直接返回
@@ -758,7 +760,7 @@ void GLFWView::addRandomPointAnnotations(int count) {
 }
 
 
-void GLFWView::addRouteLines() {
+void GLFWView::addRoutePlans() {
     mbgl::LineString<double> lineString;
     lineString.push_back({ -74.013841, 40.702449 });
     lineString.push_back({ -74.013863, 40.702462 });
@@ -767,7 +769,8 @@ void GLFWView::addRouteLines() {
     lineString.push_back({ -74.01438, 40.711171 });
     lineString.push_back({ -74.01436, 40.71125 });
     lineString.push_back({ -74.014147, 40.712245 });
-//    mbgl::RouteLineLayerManager::getInstance().setRouteGeometry(lineString);
+    
+    mbgl::RoutePlanID id = map->addRoutePlans(mbgl::LineRoutePlan(lineString, nav::stringid("route")));
 }
 
 void GLFWView::addLineAnnotations(const mbgl::LatLng& tagPosition) {

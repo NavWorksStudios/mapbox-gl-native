@@ -107,7 +107,7 @@ private:
     void toggleLocationIndicatorLayer(bool visibility);
     
     // test route
-    void addRouteLines();
+    void addRoutePlans();
 
     void cycleDebugOptions();
     void clearAnnotations();

@@ -30,8 +30,8 @@ const std::string& url() {
                            //        "mapbox://styles/notheorem/clxrac32800o901qw94ryfkdz" // light
                            
                            // 色彩模式
-                           "mapbox://styles/navworks/clxx105i700yr01po4zbn2jc1"
-//                           "mapbox://styles/navworks/clyxyqksj00ap01qnc17kbs8x"
+//                           "mapbox://styles/navworks/clxx105i700yr01po4zbn2jc1"
+                           "mapbox://styles/navworks/clyxyqksj00ap01qnc17kbs8x"
                            );
     
     return url;
