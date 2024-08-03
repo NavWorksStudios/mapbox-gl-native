@@ -1000,7 +1000,7 @@ void GLFWView::onMouseClick(int button, int action, int modifiers) {
             const float duration = pos.time - from.time;
             const mbgl::ScreenCoordinate moved(pos.coord.x - from.coord.x, pos.coord.y - from.coord.y);
             const mbgl::ScreenCoordinate fling(moved.x / duration,
-                                               moved.y / duration * (moved.y > 0 ? .25 : 1.5));
+                                               moved.y / duration * (moved.y > 0 ? .35 : 1.8));
             map->moveBy(fling, mbgl::AnimationOptions{{mbgl::Milliseconds((long)(mean_v * 3))}});
 
             nav::log::w("Fling", "t:%.1lfs v:%.1lf(%.1lf) moved(%.1lf,%.1lf) fling(%.1lf,%.1lf)",

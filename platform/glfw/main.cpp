@@ -218,7 +218,7 @@ void init(bool headless) {
     cameraOptions.zoom = 15.722247;
     cameraOptions.pitch = 71.050945;
     cameraOptions.bearing = 147.869345;
-    mbgl::AnimationOptions animationOptions(mbgl::Seconds(15));
+    mbgl::AnimationOptions animationOptions(mbgl::Seconds(10));
     map->flyTo(cameraOptions, animationOptions);
 
 }
