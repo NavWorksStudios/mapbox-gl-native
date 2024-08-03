@@ -27,7 +27,7 @@ struct Source {
 #define FILL
 #define SYMBOL
 #define EXTRUSION
-//#define ROUTE_LINE
+#define ROUTE_LINE
 
 static const std::unordered_map<std::string, Source> layerIds = {
     { "land", { "background", "", "", } },

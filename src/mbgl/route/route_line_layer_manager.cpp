@@ -133,14 +133,14 @@ void RouteLineLayerManager::updateStyle() {
         Layer* layer = style.get().impl->getLayer(RouteShapeLayerID);
         if(layer) {
             layer->setSourceLayer(RouteSourceID.get());
-//            layer->setSourceID(RouteSourceID.get());
+            layer->setSourceID(RouteSourceID.get());
         }
         else {
             std::unique_ptr<LineLayer> layer = std::make_unique<LineLayer>(RouteShapeLayerID, RouteSourceID);
-//            using namespace expression::dsl;
             layer->setSourceLayer(RouteSourceID.get());
+            layer->setSourceID(RouteSourceID.get());
             layer->setLineColor(mbgl::Color{0.05, 0.85, 0.05, 1.0});
-            layer->setLineWidth(12);
+            layer->setLineWidth(24);
             style.get().impl->addLayer(std::move(layer));
         }
     }
