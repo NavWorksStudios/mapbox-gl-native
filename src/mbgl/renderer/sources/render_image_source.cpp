@@ -174,7 +174,7 @@ void RenderImageSource::update(Immutable<style::Source::Impl> baseImpl_,
 
     bool hasVisibleTile = false;
     // Add additional wrapped tile ids if neccessary
-    util::tileCover(idealTiles, util::strategy::Standard, transformState, transformState.getZoom());
+    util::tileCover(idealTiles, util::strategy::standard(transformState), transformState, transformState.getZoom());
     for (auto tile : idealTiles) {
         if (tile.wrap != 0 && tileCover[0].canonical.isChildOf(tile.canonical)) {
             tileIds.emplace_back(tile.wrap, tileCover[0].canonical);

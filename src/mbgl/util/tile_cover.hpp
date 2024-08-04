@@ -39,9 +39,8 @@ struct Type {
     const float LOD_INTENSITY;
     Range<uint8_t> Z_RANGE;
 };
-
-constexpr Type Standard = { 8, {0, 22} };
-constexpr Type Detailed = { 1, {15, 16} };
+Type standard(const TransformState& state);
+Type detailed();
 }
 
 void tileCover(std::vector<OverscaledTileID>& ids, const strategy::Type& strategy,

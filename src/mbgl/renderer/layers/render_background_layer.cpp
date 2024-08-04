@@ -119,7 +119,7 @@ void RenderBackgroundLayer::render(PaintParameters& parameters) {
             return;
 
         uint32_t i = 0;
-        util::tileCover(tileIDs, util::strategy::Standard, parameters.state, parameters.state.getIntegerZoom());
+        util::tileCover(tileIDs, util::strategy::standard(parameters.state), parameters.state, parameters.state.getIntegerZoom());
         for (const auto& tileID : tileIDs) {
             const UnwrappedTileID unwrappedTileID = tileID.toUnwrapped();
             draw(parameters.programs.getBackgroundLayerPrograms().backgroundPattern,
@@ -149,7 +149,7 @@ void RenderBackgroundLayer::render(PaintParameters& parameters) {
         };
         
         uint32_t i = 0;
-        util::tileCover(tileIDs, util::strategy::Standard, parameters.state, parameters.state.getIntegerZoom());
+        util::tileCover(tileIDs, util::strategy::standard(parameters.state), parameters.state, parameters.state.getIntegerZoom());
         for (const auto& tileID : tileIDs) {
             layoutUniforms.template get<uniforms::matrix>() = parameters.matrixForTile(tileID.toUnwrapped());
             draw(parameters.programs.getBackgroundLayerPrograms().background,

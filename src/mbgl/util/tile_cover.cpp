@@ -149,6 +149,17 @@ int32_t coveringZoomLevel(double zoom, style::SourceType type, uint16_t size) {
     }
 }
 
+namespace strategy {
+
+Type standard(const TransformState& state) {
+    return { (float) (8. * state.getPitch() * RAD2DEG / 70.), {0, 22} };
+}
+
+Type detailed() {
+    return { 1, {15, 16} };
+}
+}
+
 void tileCover(std::vector<OverscaledTileID>& ids, const strategy::Type& strategy, const TransformState& state, uint8_t z, const optional<uint8_t>& overscaledZ) {
     ids.clear();
 
