@@ -21,7 +21,7 @@
 #include <mbgl/util/tile_coordinate.hpp>
 
 #include <utility>
-#include "mbgl/nav/nav_log.hpp"
+#include "mbgl/nav/nav.log.hpp"
 namespace mbgl {
 
 using namespace style;

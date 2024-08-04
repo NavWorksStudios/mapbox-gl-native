@@ -25,7 +25,7 @@
 
 #include <mbgl/programs/fill_program.hpp>
 #include <mbgl/renderer/buckets/fill_bucket.hpp>
-#include "mbgl/nav/nav_mb_layer.hpp"
+#include "mbgl/nav/nav.layer.hpp"
 #include <iostream>
 
 namespace mbgl {
@@ -39,22 +39,25 @@ GeometryTileWorker::GeometryTileWorker(ActorRef<GeometryTileWorker> self_,
                                        const std::atomic<bool>& obsolete_,
                                        const MapMode mode_,
                                        const float pixelRatio_,
-                                       const bool showCollisionBoxes_)
-    : self(std::move(self_)),
-      parent(std::move(parent_)),
-      id(id_),
-      sourceID(std::move(sourceID_)),
-      obsolete(obsolete_),
-      mode(mode_),
-      pixelRatio(pixelRatio_),
-      showCollisionBoxes(showCollisionBoxes_) {
+                                       const bool showCollisionBoxes_) :
+self(std::move(self_)),
+parent(std::move(parent_)),
+id(id_),
+sourceID(std::move(sourceID_)),
+obsolete(obsolete_),
+mode(mode_),
+pixelRatio(pixelRatio_),
+showCollisionBoxes(showCollisionBoxes_) {
     if (sourceID.find("annotation") == std::string::npos) {
         nav::log::i("GeometryTileWorker", "constructor (z:%d,x:%d,y:%d) %s", (int)id.canonical.z, (int)id.canonical.x, (int)id.canonical.y, sourceID.c_str());
     }
+          
+//    logger("(z:%d,x:%d,y:%d), ", (int)id.canonical.z, (int)id.canonical.x, (int)id.canonical.y);
 }
 
 GeometryTileWorker::~GeometryTileWorker() {
-    nav::log::i("GeometryTileWorker", "destructor (z:%d,x:%d,y:%d) %s", (int)id.canonical.z, (int)id.canonical.x, (int)id.canonical.y, sourceID.c_str());
+//    logger("destroy");
+//    logger.i("GeometryTileWorker");
 }
 
 /*
@@ -130,6 +133,8 @@ GeometryTileWorker::~GeometryTileWorker() {
 void GeometryTileWorker::setData(std::unique_ptr<const GeometryTileData> data_,
                                  const std::set<std::string>* availableImages_,
                                  uint64_t correlationID_) {
+//    logger("setData, ");
+    
     try {
         data = std::move(data_);
         correlationID = correlationID_;
@@ -155,6 +160,8 @@ void GeometryTileWorker::setData(std::unique_ptr<const GeometryTileData> data_,
 void GeometryTileWorker::setLayers(std::shared_ptr<std::vector<Immutable<LayerProperties>>> layers,
                                    const std::set<std::string>* availableImages_,
                                    uint64_t correlationID_) {
+//    logger("setLayers, ");
+    
     try {
         layerProperties = layers;
         correlationID = correlationID_;
@@ -180,6 +187,8 @@ void GeometryTileWorker::setLayers(std::shared_ptr<std::vector<Immutable<LayerPr
 }
 
 void GeometryTileWorker::reset(uint64_t correlationID_) {
+//    logger("reset, ");
+    
     layerProperties = nullptr;
     data = nullptr;
     correlationID = correlationID_;
@@ -196,6 +205,8 @@ void GeometryTileWorker::reset(uint64_t correlationID_) {
 }
 
 void GeometryTileWorker::setShowCollisionBoxes(bool showCollisionBoxes_, uint64_t correlationID_) {
+//    logger("setShowCollisionBoxes, ");
+    
     try {
         showCollisionBoxes = showCollisionBoxes_;
         correlationID = correlationID_;
@@ -224,6 +235,8 @@ void GeometryTileWorker::setShowCollisionBoxes(bool showCollisionBoxes_, uint64_
 }
 
 void GeometryTileWorker::symbolDependenciesChanged() {
+//    logger("symbolDependenciesChanged, ");
+    
     try {
         switch (state) {
         case Idle:
@@ -252,6 +265,8 @@ void GeometryTileWorker::symbolDependenciesChanged() {
 }
 
 void GeometryTileWorker::coalesced() {
+//    logger("coalesced, ");
+    
     try {
         switch (state) {
         case Idle:
@@ -281,11 +296,15 @@ void GeometryTileWorker::coalesced() {
 }
 
 void GeometryTileWorker::coalesce() {
+//    logger("coalesce, ");
+    
     state = Coalescing;
     self.invoke(&GeometryTileWorker::coalesced);
 }
 
 void GeometryTileWorker::onGlyphsAvailable(GlyphMap newGlyphMap) {
+//    logger("onGlyphsAvailable, ");
+    
     for (auto& newFontGlyphs : newGlyphMap) {
         FontStackHash fontStack = newFontGlyphs.first;
         Glyphs& newGlyphs = newFontGlyphs.second;
@@ -312,6 +331,8 @@ void GeometryTileWorker::onGlyphsAvailable(GlyphMap newGlyphMap) {
 }
 
 void GeometryTileWorker::onImagesAvailable(ImageMap newIconMap, ImageMap newPatternMap, ImageVersionMap newVersionMap, uint64_t imageCorrelationID_) {
+//    logger("onImagesAvailable, ");
+    
     if (imageCorrelationID != imageCorrelationID_) {
         return; // Ignore outdated image request replies.
     }
@@ -323,6 +344,8 @@ void GeometryTileWorker::onImagesAvailable(ImageMap newIconMap, ImageMap newPatt
 }
 
 void GeometryTileWorker::requestNewGlyphs(const GlyphDependencies& glyphDependencies) {
+//    logger("requestNewGlyphs, ");
+    
     for (auto& fontDependencies : glyphDependencies) {
         auto fontGlyphs = glyphMap.find(FontStackHasher()(fontDependencies.first));
         for (auto glyphID : fontDependencies.second) {
@@ -337,6 +360,8 @@ void GeometryTileWorker::requestNewGlyphs(const GlyphDependencies& glyphDependen
 }
 
 void GeometryTileWorker::requestNewImages(const ImageDependencies& imageDependencies) {
+//    logger("requestNewImages, ");
+    
     pendingImageDependencies = imageDependencies;
 
     if (!pendingImageDependencies.empty()) {
@@ -345,6 +370,8 @@ void GeometryTileWorker::requestNewImages(const ImageDependencies& imageDependen
 }
 
 void GeometryTileWorker::parse() {
+//    logger("parse, ");
+    
     if (!data || !layerProperties) {
         return;
     }
@@ -448,6 +475,8 @@ void GeometryTileWorker::parse() {
 }
 
 bool GeometryTileWorker::hasPendingDependencies() const {
+//    logger("hasPendingDependencies, ");
+    
     for (auto& glyphDependency : pendingGlyphDependencies) {
         if (!glyphDependency.second.empty()) {
             return true;
@@ -461,6 +490,8 @@ bool GeometryTileWorker::hasPendingParseResult() const {
 }
 
 void GeometryTileWorker::finalizeLayout() {
+//    logger("finalizeLayout, ");
+
     if (!data || !layerProperties || !hasPendingParseResult() || hasPendingDependencies()) {
         return;
     }

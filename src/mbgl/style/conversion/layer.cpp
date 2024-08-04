@@ -4,7 +4,6 @@
 #include <mbgl/style/conversion_impl.hpp>
 
 #include <mbgl/layermanager/layer_manager.hpp>
-//#include "mbgl/nav/nav_mb_style_displace.hpp"
 
 namespace mbgl {
 namespace style {

@@ -15,7 +15,7 @@
 #include <unordered_set>
 #include <unordered_map>
 
-#include "mbgl/nav/nav_stringid.hpp"
+#include "mbgl/nav/nav.stringid.hpp"
 
 namespace mbgl {
 

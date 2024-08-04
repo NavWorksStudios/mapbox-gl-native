@@ -4,7 +4,7 @@
 #include <mbgl/gfx/backend_scope.hpp>
 #include <mbgl/renderer/update_parameters.hpp>
 
-#include "mbgl/nav/nav_mb_style.hpp"
+#include "mbgl/nav/nav.style.hpp"
 
 GLFWRendererFrontend::GLFWRendererFrontend(std::unique_ptr<mbgl::Renderer> renderer_, GLFWView& glfwView_)
     : glfwView(glfwView_)

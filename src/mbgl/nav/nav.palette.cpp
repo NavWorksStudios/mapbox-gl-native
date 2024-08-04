@@ -1,11 +1,11 @@
 //
-//  nav_mb_palette.cpp
+//  nav.palette.cpp
 //
 //  Created by BernieZhao on 2024/7/9.
 //
 
-#include "mbgl/nav/nav_mb_palette.hpp"
-#include "mbgl/nav/nav_log.hpp"
+#include "mbgl/nav/nav.palette.hpp"
+#include "mbgl/nav/nav.log.hpp"
 
 
 namespace nav {
@@ -173,7 +173,8 @@ void setColorBase(const mbgl::Color& color) {
 }
 
 const mbgl::Color& getColorBase() {
-    return themeBaseColor;
+    return { .5, .5, .5, 1. };
+//    return themeBaseColor;
 }
 
 bool enableShaderPalette(const std::string& id) {
@@ -254,11 +255,11 @@ public:
                     uri_.find("pedestrian") != std::string::npos) {
 
                 } else if (uri_.find("tunnel") != std::string::npos) {
-                    color.l = normalize(color.l * 1.2);
+//                    color.l = normalize(color.l * 1.2);
                 } else if (uri_.find("road") != std::string::npos) {
-                    color.l = normalize(color.l * 1.4);
+//                    color.l = normalize(color.l * 1.4);
                 } else if (uri_.find("bridge") != std::string::npos) {
-                    color.l = normalize(color.l * 1.6);
+//                    color.l = normalize(color.l * 1.6);
                 }
             }
             return color;
@@ -277,7 +278,7 @@ std::vector<ColorBinding> paletteBindings;
 void bind(const std::string& uri, const mbgl::Color& color, const void* binder, const Binding& callback) {
     nav::log::i("Palette", "bind uri %s", uri.c_str());
     
-    if (uri.find("com.mapbox.annotations.shape.0") != std::string::npos) {
+    if (uri.find("mapbox") != std::string::npos) {
         return;
     }
 
@@ -301,7 +302,9 @@ void bind(const std::string& uri, const mbgl::Color& color, const void* binder, 
         }
     };
 
-    const bool fixed = isFixed(uri, color);
+//    const bool fixed = isFixed(uri, color);
+    const bool fixed = true;
+    
     ColorBinding binding(uri, Stylizer(hsla, fixed), binder, callback);
     binding.notify(themeBaseColor);
     paletteBindings.emplace_back(binding);
@@ -353,7 +356,7 @@ bool update() {
         }
     }
     
-    if (demo()) return true;
+//    if (demo()) return true;
 
     return themeBaseColor.needsUpdate();
 }

@@ -1,5 +1,5 @@
 //
-//  nav_log.hpp
+//  nav.log.hpp
 //  Mapbox GL Native
 //
 //  Created by BernieZhao on 2024/5/22.

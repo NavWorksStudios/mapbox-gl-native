@@ -108,6 +108,10 @@ private:
 
     bool showCollisionBoxes;
     bool firstLoad = true;
+
+private:
+//    mutable nav::log::Stream<50000> logger;
+
 };
 
 } // namespace mbgl

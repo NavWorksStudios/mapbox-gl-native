@@ -1,12 +1,12 @@
 //
-//  nav_mb_json.hpp
+//  nav.json.hpp
 //  Mapbox GL Native
 //
 //  Created by BernieZhao on 2023/11/23.
 //
 
-#ifndef nav_mb_json_h
-#define nav_mb_json_h
+#ifndef nav_json_h
+#define nav_json_h
 
 
 namespace nav {
@@ -3517,4 +3517,4 @@ void printJson(const std::string& json) {
  
 */
 
-#endif /* nav_mb_json_h */
+#endif /* nav_json_h */

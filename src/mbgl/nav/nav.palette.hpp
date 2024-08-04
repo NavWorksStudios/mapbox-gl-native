@@ -1,5 +1,5 @@
 //
-//  nav_mb_palette.hpp
+//  nav.palette.hpp
 //
 //  Created by BernieZhao on 2024/7/9.
 //

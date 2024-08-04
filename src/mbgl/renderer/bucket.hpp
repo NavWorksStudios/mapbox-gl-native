@@ -7,7 +7,7 @@
 #include <mbgl/tile/tile_id.hpp>
 #include <atomic>
 
-#include "mbgl/nav/nav_log.hpp"
+#include "mbgl/nav/nav.log.hpp"
 
 namespace mbgl {
 

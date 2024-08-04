@@ -9,7 +9,7 @@
 #include <mbgl/util/thread.hpp>
 #include <mbgl/util/url.hpp>
 
-#include "mbgl/nav/nav_log.hpp"
+#include "mbgl/nav/nav.log.hpp"
 
 namespace {
 bool acceptsURL(const std::string& url) {

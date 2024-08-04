@@ -304,16 +304,16 @@ set(all_files
     ${PROJECT_SOURCE_DIR}/include/mbgl/util/work_task.hpp
     ${PROJECT_SOURCE_DIR}/include/mbgl/util/work_task_impl.hpp
 
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav_log.hpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav_log.cpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav_mb_json.hpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav_mb_layer.hpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav_mb_layer.cpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav_mb_style.hpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav_mb_style.cpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav_mb_palette.hpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav_mb_palette.cpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav_stringid.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.log.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.log.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.json.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.layer.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.layer.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.style.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.style.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.palette.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.palette.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.stringid.hpp
 
     ${PROJECT_SOURCE_DIR}/src/mbgl/actor/mailbox.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/actor/scheduler.cpp

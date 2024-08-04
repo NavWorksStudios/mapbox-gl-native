@@ -8,8 +8,8 @@
 #include <mbgl/style/layer_properties.hpp>
 #include <mbgl/clipper2/clipper.h>
 
-#include "mbgl/nav/nav_log.hpp"
-#include "mbgl/nav/nav_mb_layer.hpp"
+#include "mbgl/nav/nav.log.hpp"
+#include "mbgl/nav/nav.layer.hpp"
 
 namespace mbgl {
 

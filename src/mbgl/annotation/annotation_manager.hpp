@@ -13,7 +13,7 @@
 
 #include <mapbox/std/weak.hpp>
 
-#include "mbgl/nav/nav_stringid.hpp"
+#include "mbgl/nav/nav.stringid.hpp"
 
 namespace mbgl {
 

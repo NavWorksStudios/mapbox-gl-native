@@ -8,8 +8,8 @@
 #include <mbgl/gfx/context.hpp>
 #include <mbgl/util/logging.hpp>
 
-#include "mbgl/nav/nav_mb_style.hpp"
-#include "mbgl/nav/nav_mb_palette.hpp"
+#include "mbgl/nav/nav.style.hpp"
+#include "mbgl/nav/nav.palette.hpp"
 
 namespace mbgl {
 

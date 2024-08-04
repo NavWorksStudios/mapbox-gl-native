@@ -6,8 +6,8 @@
 
 #include <memory>
 
-#include "mbgl/nav/nav_mb_palette.hpp"
-#include "mbgl/nav/nav_mb_style.hpp"
+#include "mbgl/nav/nav.palette.hpp"
+#include "mbgl/nav/nav.style.hpp"
 
 namespace mbgl {
 namespace style {

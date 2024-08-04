@@ -1,18 +1,18 @@
 //
-//  nav_mb_style.cpp
+//  nav.style.cpp
 //
 //  Created by BernieZhao on 2023/12/13.
 //
 
-#include "mbgl/nav/nav_mb_style.hpp"
-#include "mbgl/nav/nav_mb_palette.hpp"
+#include "mbgl/nav/nav.style.hpp"
+#include "mbgl/nav/nav.palette.hpp"
 
 #include <mbgl/style/image.hpp>
 #include <mbgl/util/io.hpp>
 
 #include <cmath>
 
-#include "mbgl/nav/nav_log.hpp"
+#include "mbgl/nav/nav.log.hpp"
 
 
 namespace nav {
@@ -24,15 +24,13 @@ bool update();
 namespace style {
 
 const std::string& url() {
-    static std::string url(
-       // 主题模式
-//       "mapbox://styles/notheorem/clxu5ehnm00ro01qqhhim0d4f" // dark
-//       "mapbox://styles/notheorem/clxrac32800o901qw94ryfkdz" // light
-       
-       // 色彩模式
-       "mapbox://styles/navworks/clxx105i700yr01po4zbn2jc1"
-   );
-    
+    static std::string url =
+    // 色彩模式
+//    "mapbox://styles/navworks/clxx105i700yr01po4zbn2jc1";
+
+    // 都市星汉
+    "mapbox://styles/navworks/clzdv9emu00f301r27uym15w9";
+
     return url;
 }
 

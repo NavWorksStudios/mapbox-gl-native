@@ -1,11 +1,11 @@
 //
-//  nav_log.cpp
+//  nav.log.cpp
 //  Mapbox GL Native
 //
 //  Created by BernieZhao on 2024/5/22.
 //
 
-#include "nav_log.hpp"
+#include "nav.log.hpp"
 #include <chrono>
 
 

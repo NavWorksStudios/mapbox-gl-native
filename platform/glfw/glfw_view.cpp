@@ -46,8 +46,8 @@
 #if defined(MBGL_RENDER_BACKEND_OPENGL) && !defined(MBGL_LAYER_LOCATION_INDICATOR_DISABLE_ALL)
 #include <mbgl/style/layers/location_indicator_layer.hpp>
 
-#include "mbgl/nav/nav_mb_style.hpp"
-#include "mbgl/nav/nav_log.hpp"
+#include "mbgl/nav/nav.style.hpp"
+#include "mbgl/nav/nav.log.hpp"
 
 namespace {
 const std::string mbglPuckAssetsPath{MAPBOX_PUCK_ASSETS_PATH};

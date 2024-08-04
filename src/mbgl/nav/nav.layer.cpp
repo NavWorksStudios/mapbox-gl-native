@@ -1,11 +1,11 @@
 //
-//  nav_mb_layer_filter.hpp
+//  nav.layer.hpp
 //
 //  Created by BernieZhao on 2023/11/21.
 //
 
-#include "mbgl/nav/nav_mb_layer.hpp"
-#include "mbgl/nav/nav_log.hpp"
+#include "mbgl/nav/nav.layer.hpp"
+#include "mbgl/nav/nav.log.hpp"
 
 #include <mutex>
 #include <unordered_map>

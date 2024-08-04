@@ -4,7 +4,7 @@
 #include <mbgl/util/rect.hpp>
 
 #include <mapbox/shelf-pack.hpp>
-#include "mbgl/nav/nav_stringid.hpp"
+#include "mbgl/nav/nav.stringid.hpp"
 
 #include <array>
 

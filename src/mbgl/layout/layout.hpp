@@ -5,8 +5,8 @@
 #include <mbgl/tile/geometry_tile_data.hpp>
 #include <memory>
 
-#include "mbgl/nav/nav_stringid.hpp"
-#include "mbgl/nav/nav_log.hpp"
+#include "mbgl/nav/nav.stringid.hpp"
+#include "mbgl/nav/nav.log.hpp"
 
 namespace mbgl {
 

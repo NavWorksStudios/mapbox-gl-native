@@ -20,9 +20,9 @@
 #include <algorithm>
 #include <set>
 
-#include "mbgl/nav/nav_mb_layer.hpp"
-#include "mbgl/nav/nav_mb_style.hpp"
-#include "mbgl/nav/nav_mb_json.hpp"
+#include "mbgl/nav/nav.layer.hpp"
+#include "mbgl/nav/nav.style.hpp"
+#include "mbgl/nav/nav.json.hpp"
 
 namespace mbgl {
 namespace style {

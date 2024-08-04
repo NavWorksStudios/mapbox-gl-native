@@ -6,7 +6,7 @@
 #include <mbgl/style/style.hpp>
 #include <mbgl/style/style_impl.hpp>
 
-#include "mbgl/nav/nav_mb_style.hpp"
+#include "mbgl/nav/nav.style.hpp"
 
 namespace mbgl {
 namespace style {

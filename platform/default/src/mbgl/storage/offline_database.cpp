@@ -10,7 +10,7 @@
 #include <mbgl/storage/offline_schema.hpp>
 #include <mbgl/storage/merge_sideloaded.hpp>
 
-#include "mbgl/nav/nav_log.hpp"
+#include "mbgl/nav/nav.log.hpp"
 
 namespace mbgl {
 

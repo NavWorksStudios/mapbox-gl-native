@@ -15,7 +15,7 @@
 #include <cstdio>
 #include <utility>
 
-#include "mbgl/nav/nav_log.hpp"
+#include "mbgl/nav/nav.log.hpp"
 
 namespace mbgl {
 
