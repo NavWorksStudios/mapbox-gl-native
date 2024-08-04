@@ -31,7 +31,7 @@ RouteTile::~RouteTile() {
 
 class RouteTileFeatureData {
 public:
-    RouteTileFeatureData(const AnnotationID id_,
+    RouteTileFeatureData(const RoutePlanID id_,
                               FeatureType type_,
                               GeometryCollection&& geometries_,
                               std::unordered_map<std::string, std::string>&& properties_)
@@ -41,7 +41,7 @@ public:
           properties(std::move(properties_)) {
     }
 
-    AnnotationID id;
+    RoutePlanID id;
     FeatureType type;
     GeometryCollection geometries;
     std::unordered_map<std::string, std::string> properties;
