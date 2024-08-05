@@ -152,7 +152,7 @@ int32_t coveringZoomLevel(double zoom, style::SourceType type, uint16_t size) {
 namespace strategy {
 
 Type standard(const TransformState& state) {
-    return { (float) (8. * state.getPitch() * RAD2DEG / 70.), {0, 22} };
+    return { (float) (10. * state.getPitch() * RAD2DEG / 90.), {0, 22} };
 }
 
 Type detailed() {
