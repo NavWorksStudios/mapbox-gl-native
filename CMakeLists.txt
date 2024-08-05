@@ -883,6 +883,7 @@ set(all_files
     ${PROJECT_SOURCE_DIR}/src/mbgl/route/render_route_source.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/route/render_route_source.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/route/route_plan.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/route/route_plan_tile.hpp
 )
 
 source_group_by_dir(all_files)

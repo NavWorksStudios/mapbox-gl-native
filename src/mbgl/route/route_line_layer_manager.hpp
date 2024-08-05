@@ -15,9 +15,11 @@
 #include <mbgl/route/route_data.hpp>
 #include <mbgl/route/route_tile.hpp>
 #include <mbgl/route/route_plan.hpp>
+#include <mbgl/route/route_plan_tile.hpp>
 
 #include <unordered_set>
 #include <unordered_map>
+#include <mbgl/clipper2/clipper.h>
 
 #include "mbgl/nav/nav_stringid.hpp"
 
@@ -77,13 +79,19 @@ private:
     mapbox::geometry::line_string<double> line_string_past;     // past
     mapbox::geometry::line_string<double> line_string_unpast;   // unpast or all, mapbox::geometry::line_string<T>
     
-    style::PropertyValue<Color> color_f3 = Color::black();
-    style::PropertyValue<Color> color_f2 = Color::black();
-    style::PropertyValue<Color> color_f1 = Color::black();
-    style::PropertyValue<Color> color_normal = Color::black();
-    style::PropertyValue<Color> color_s1 = Color::black();
-    style::PropertyValue<Color> color_s2 = Color::black();
-    style::PropertyValue<Color> color_s3 = Color::black();
+    uint8_t zoom;
+    mbgl::Point<int64_t> last_point;
+    CanonicalTileID* last_tileID;
+    nav::stringid last_tile_id = {"not_set"};
+    std::unordered_map<nav::stringid, LineRoutePlanTile> planTiles;
+    
+//    style::PropertyValue<Color> color_f3 = Color::black();
+//    style::PropertyValue<Color> color_f2 = Color::black();
+//    style::PropertyValue<Color> color_f1 = Color::black();
+//    style::PropertyValue<Color> color_normal = Color::black();
+//    style::PropertyValue<Color> color_s1 = Color::black();
+//    style::PropertyValue<Color> color_s2 = Color::black();
+//    style::PropertyValue<Color> color_s3 = Color::black();
     
     bool inShowing = false;
     bool crossfade = true;
@@ -103,6 +111,9 @@ private:
     void updateStyle();
     void updateTileData(const CanonicalTileID& tileID, RouteTileData& data);
     const LineString<double>& geometry() const;
+    CanonicalTileID latLonToTileID(const mbgl::Point<double>& point, mbgl::Point<int64_t>& point_local, const int8_t z);
+    mbgl::Point<int64_t> latLonToTileCoodinates(const mbgl::Point<int64_t>& point, mbgl::CanonicalTileID& canonical);
+    Point<int64_t> intersectPoint(const LineString<int64_t>& line_, const CanonicalTileID& tileID);
 };
 
 //}

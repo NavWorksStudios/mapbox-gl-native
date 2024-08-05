@@ -25,6 +25,7 @@
 #include <mbgl/util/string.hpp>
 #include <mbgl/util/constants.hpp>
 #include <mbgl/util/geometry.hpp>
+#include <mbgl/clipper2/clipper.h>
 
 namespace mbgl {
 
@@ -256,6 +257,46 @@ RoutePlanID RouteLineLayerManager::addRoutePlan(const RoutePlan& routePlan) {
     return id;
 }
 
+CanonicalTileID RouteLineLayerManager::latLonToTileID(const mbgl::Point<double>& point, mbgl::Point<int64_t>& point_local, const int8_t z) {
+    const double size_local = mbgl::util::EXTENT * std::pow(2, z);
+    const double size = std::pow(2, z);
+    
+    auto x_local = (point.x + mbgl::util::LONGITUDE_MAX) * size_local / mbgl::util::DEGREES_MAX;
+    auto y_local =
+        (mbgl::util::LONGITUDE_MAX - (std::log(std::tan(point.y * M_PI / mbgl::util::DEGREES_MAX + M_PI / 4.0)) * mbgl::util::RAD2DEG)) *
+        size_local / mbgl::util::DEGREES_MAX;
+    
+    point_local.x = x_local;
+    point_local.y = y_local;
+    
+    auto x = (point.x + mbgl::util::LONGITUDE_MAX) * size / mbgl::util::DEGREES_MAX;
+    auto y =
+        (mbgl::util::LONGITUDE_MAX - (std::log(std::tan(point.y * M_PI / mbgl::util::DEGREES_MAX + M_PI / 4.0)) * mbgl::util::RAD2DEG)) *
+        size / mbgl::util::DEGREES_MAX;
+
+    CanonicalTileID p(z,
+                      (mbgl::util::clamp<int64_t>(x, std::numeric_limits<int64_t>::min(), std::numeric_limits<int64_t>::max())),
+                      (mbgl::util::clamp<int64_t>(y, std::numeric_limits<int64_t>::min(), std::numeric_limits<int64_t>::max())));
+    return p;
+};
+
+Point<int64_t> RouteLineLayerManager::intersectPoint(const LineString<int64_t>& line_, const CanonicalTileID& tileID ) {
+    
+    Clipper2Lib::Rect64 rect = {tileID.x * 8192, tileID.y * 8192, (tileID.x+1) * 8192, (tileID.y+1) * 8192};
+    Clipper2Lib::Path64 line;
+    for (auto point_ : line_) {
+        Clipper2Lib::Point<int64_t> point = {point_.x, point_.y};
+        line.emplace_back(point);
+    }
+    Clipper2Lib::Paths64 solution;
+    solution = Clipper2Lib::RectClipLines(rect, line);
+    
+    if(solution.size() > 0 && solution[0].size() > 0) {
+        return Point<int64_t>(solution[0][0].x, solution[0][0].y);
+    }
+    return Point<int64_t>(0, 0);
+}
+
 // #*# 未来大概率需要用于路况插标
 void RouteLineLayerManager::add(const RoutePlanID& id, const SymbolRoutePlan& routePlan) {
 //    auto impl = std::make_shared<SymbolAnnotationImpl>(id, annotation);
@@ -264,10 +305,48 @@ void RouteLineLayerManager::add(const RoutePlanID& id, const SymbolRoutePlan& ro
 }
 
 void RouteLineLayerManager::add(const RoutePlanID& id, const LineRoutePlan& routePlan) {
-//    ShapeAnnotationImpl& impl = *shapeAnnotations.emplace(id,
-//        std::make_unique<LineAnnotationImpl>(id, annotation)).first->second;
-//    impl.updateStyle(*style.get().impl);
+
     line_string_unpast = routePlan.geometry;
+    
+    int8_t default_z = 16;
+    bool first_point = true;
+    for (Point<double>& point_location : line_string_unpast) {
+        mbgl::Point<int64_t> point_local;
+        CanonicalTileID tileID = latLonToTileID(point_location, point_local, default_z);
+        nav::stringid cur_tile_id = nav::stringid(util::toString(tileID));
+        // 建立新的tile
+        if(first_point) {
+            LineRoutePlanTile tile(tileID);
+            tile.addPoint(point_local, true);
+            first_point = false;
+            planTiles.emplace(cur_tile_id, tile);
+        }
+        else {
+            if(cur_tile_id == last_tile_id) {
+                auto last_tile = planTiles.find(last_tile_id);
+                last_tile->second.addPoint(point_local);
+            }
+            else {
+                // 需要计算两点的连接线与tile边界的交点，以交点对两个tile进行补点处理
+                LineString<int64_t> tmp_line;
+                tmp_line.push_back(last_point);
+                tmp_line.push_back(point_local);
+                // 计算出连接线与tile边界的交点
+                mbgl::Point<int64_t> tmp_point = intersectPoint(tmp_line, tileID);
+                // 在上一个tile末尾补点
+                auto last_tile = planTiles.find(last_tile_id);
+                last_tile->second.addPoint(tmp_point);
+                // 在新tile首位补点
+                LineRoutePlanTile tile(tileID);
+                tile.addPoint(tmp_point, true);
+                tile.addPoint(point_local);
+                planTiles.emplace(cur_tile_id, tile);
+            }
+        }
+        last_tileID = &tileID;
+        last_tile_id = cur_tile_id;
+        last_point = point_local;
+    }
 }
 
 // #*# 未来大概率无效需废弃
