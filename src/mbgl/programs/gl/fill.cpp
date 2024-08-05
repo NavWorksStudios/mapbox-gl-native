@@ -216,13 +216,13 @@ varying lowp vec2 v_texture_pos;
 // -------------- color flow ---------------
         
 float spot_light(vec2 uv, vec2 C, float r, float b) {
-    return clamp(.2 / clamp(length(uv-C)-r, 0., 1.), 0., b) / 5.;
+    return clamp(.2 / clamp(length(uv-C)-r, 0., 1.), 0., b) * .3;
 }
 
 vec3 color_flow(lowp vec2 fragCoord, lowp vec2 resolution) {
     lowp float time = u_render_time * .01;
     lowp vec2 uv = (fragCoord*2. - resolution.xy) / resolution.y;
-    lowp vec3 rgb = cos(time * 31. + uv.xyx + vec3(1.0,2.0,4.0)) * .2;
+    lowp vec3 rgb = cos(time * 31. + uv.xyx + vec3(1.0,2.0,4.0)) * .3;
 
     lowp vec3 spots;
     for(int i = 0; i < 10; i++){
