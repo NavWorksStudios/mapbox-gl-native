@@ -101,8 +101,8 @@ void RenderFillLayer::render(PaintParameters& parameters) {
             uniforms::palette_lightness::Value( enableShaderPalette ? (color.r+color.g+color.b)/3. : 0. ),
             uniforms::water_wave::Value( enableWaterEffect ? util::clamp((parameters.state.getZoom()-13.)*.3,0.,1.) : 0. ),
             uniforms::water_data_z_scale::Value(),
-            uniforms::clip_region::Value( nav::style::display::clip_region() ),
-            uniforms::focus_region::Value( nav::style::display::focus_region() ),
+            uniforms::clip_region::Value( nav::display::clip_region() ),
+            uniforms::focus_region::Value( nav::display::focus_region() ),
         };
         
         size_t renderIndex = -1;

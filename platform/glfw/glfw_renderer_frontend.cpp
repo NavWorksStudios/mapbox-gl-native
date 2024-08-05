@@ -36,7 +36,7 @@ void GLFWRendererFrontend::render() {
     
     mbgl::gfx::BackendScope guard { glfwView.getRendererBackend(), mbgl::gfx::BackendScope::ScopeType::Implicit };
     
-    nav::style::display::update(updateParameters->transformState.getZoom());
+    nav::display::update(updateParameters->transformState.getZoom());
 
     // onStyleImageMissing might be called during a render. The user implemented method
     // could trigger a call to MGLRenderFrontend#update which overwrites `updateParameters`.

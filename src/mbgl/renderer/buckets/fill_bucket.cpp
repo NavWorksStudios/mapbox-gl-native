@@ -136,7 +136,7 @@ void FillBucket::upload(gfx::UploadPass& uploadPass) {
         pair.second.upload(uploadPass);
     }
     
-    nav::style::texture::upload(uploadPass);
+    nav::runtime::texture::upload(uploadPass);
 
     uploaded = true;
 }

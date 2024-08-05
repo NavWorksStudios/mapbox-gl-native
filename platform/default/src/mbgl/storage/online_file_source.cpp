@@ -368,8 +368,8 @@ public:
     }
 
     std::string getAccessToken() const {
-        std::lock_guard<std::mutex> lock(cachedAccessTokenMutex);
-        return nav::style::accessToken();
+        return nav::accessToken();
+//        std::lock_guard<std::mutex> lock(cachedAccessTokenMutex);
 //        return cachedAccessToken;
     }
 

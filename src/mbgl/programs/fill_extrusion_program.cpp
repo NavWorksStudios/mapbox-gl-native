@@ -44,8 +44,8 @@ FillExtrusionProgram::LayoutUniformValues FillExtrusionProgram::layoutUniformVal
         uniforms::vertical_gradient::Value( verticalGradient ),
         uniforms::spotlight::Value( nav::runtime::spotlight::value() ),
         uniforms::render_time::Value( nav::runtime::rendertime::value() ),
-        uniforms::clip_region::Value( nav::style::display::clip_region() ),
-        uniforms::focus_region::Value( nav::style::display::focus_region() ),
+        uniforms::clip_region::Value( nav::display::clip_region() ),
+        uniforms::focus_region::Value( nav::display::focus_region() ),
         uniforms::render_reflection::Value( renderingReflection ),
     };
 }
@@ -83,8 +83,8 @@ FillExtrusionPatternProgram::layoutUniformValues(mat4 matrix,
         uniforms::spotlight::Value( nav::runtime::spotlight::value() ),
         uniforms::render_reflection::Value( renderingReflection ),
         uniforms::render_time::Value( nav::runtime::rendertime::value() ),
-        uniforms::clip_region::Value( nav::style::display::clip_region() ),
-        uniforms::focus_region::Value( nav::style::display::focus_region() ),
+        uniforms::clip_region::Value( nav::display::clip_region() ),
+        uniforms::focus_region::Value( nav::display::focus_region() ),
     };
 }
 

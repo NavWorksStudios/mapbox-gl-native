@@ -12,9 +12,6 @@
 
 namespace nav {
 
-namespace style {
-
-const std::string& url();
 const std::string& accessToken();
 
 namespace display {
@@ -25,6 +22,9 @@ float clip_region();
 float focus_region();
 }
 
+namespace style {
+const std::string& url();
+
 struct Domain {
     Domain(const std::string& name);
     ~Domain();
@@ -32,14 +32,6 @@ struct Domain {
 private:
     const size_t pos;
 };
-
-namespace texture {
-void load(const std::string& path);
-void release();
-void upload(mbgl::gfx::UploadPass& uploadPass);
-mbgl::gfx::TextureResource& get(const std::string& name);
-}
-
 }
 
 namespace runtime {
@@ -57,15 +49,21 @@ float value();
 }
 
 enum ViewMode : int8_t {
-    Landscape,
-    Normal,
-    Spotlight,
+Landscape,
+Browse,
+Spotlight,
 };
 
 void setViewMode(ViewMode mode);
-
 bool update();
 bool needsUpdate();
+
+namespace texture {
+void load(const std::string& path);
+void release();
+void upload(mbgl::gfx::UploadPass& uploadPass);
+mbgl::gfx::TextureResource& get(const std::string& name);
+}
 
 }
 

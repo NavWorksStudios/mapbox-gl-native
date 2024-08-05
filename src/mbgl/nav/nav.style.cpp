@@ -5,6 +5,7 @@
 //
 
 #include "mbgl/nav/nav.style.hpp"
+#include "mbgl/nav/nav.theme.hpp"
 #include "mbgl/nav/nav.palette.hpp"
 
 #include <mbgl/style/image.hpp>
@@ -18,20 +19,7 @@
 namespace nav {
 
 namespace palette {
-bool update();
-}
-
-namespace style {
-
-const std::string& url() {
-    static std::string url =
-    // 色彩模式
-//    "mapbox://styles/navworks/clxx105i700yr01po4zbn2jc1";
-
-    // 都市星汉
-    "mapbox://styles/navworks/clzdv9emu00f301r27uym15w9";
-
-    return url;
+    bool update();
 }
 
 const std::string& accessToken() {
@@ -40,7 +28,6 @@ const std::string& accessToken() {
 }
 
 namespace display {
-
 int width() {
     return 2048;
 }
@@ -64,7 +51,12 @@ float focus_region() {
     static float region = (pow(width(), 2) + pow(height(),2));
     return region;
 }
+}
 
+namespace style {
+
+const std::string& url() {
+    return theme::style();
 }
 
 std::string parsing_domain;
@@ -80,37 +72,6 @@ Domain::~Domain() {
 
 Domain::operator const std::string& () const {
     return parsing_domain;
-}
-
-namespace texture {
-
-struct ImageData {
-    mbgl::PremultipliedImage image;
-    mbgl::optional<mbgl::gfx::Texture> texture { mbgl::nullopt };
-};
-
-std::map<std::string, ImageData> imageMap;
-
-void load(const std::string& path) {
-//    imageMap["gray_noise_medium"].image = mbgl::decodeImage(mbgl::util::read_file(path + "gray_noise_medium.png"));
-}
-
-void release() {
-    imageMap.clear();
-}
-
-void upload(mbgl::gfx::UploadPass& uploadPass) {
-    for (auto& i : imageMap) {
-        if (!i.second.texture) {
-            i.second.texture = uploadPass.createTexture(i.second.image);
-        }
-    }
-}
-
-mbgl::gfx::TextureResource& get(const std::string& name) {
-    return imageMap[name].texture->getResource();
-}
-
 }
 
 }
@@ -137,7 +98,6 @@ double value() {
 }
 
 }
-
 
 struct ToggleValue {
     bool _enabled = false;
@@ -172,11 +132,9 @@ ToggleValue toggle;
 float value() {
     return toggle;
 }
-
 }
 
 namespace landscape {
-
 ToggleValue toggle;
 
 float value() {
@@ -192,7 +150,7 @@ void setViewMode(ViewMode mode) {
             landscape::toggle.enable();
             break;
             
-        case Normal:
+        case Browse:
             spotlight::toggle.disable();
             landscape::toggle.disable();
             break;
@@ -223,6 +181,37 @@ bool update() {
 
 bool needsUpdate() {
     return isNeedUpdate;
+}
+
+namespace texture {
+
+struct ImageData {
+    mbgl::PremultipliedImage image;
+    mbgl::optional<mbgl::gfx::Texture> texture { mbgl::nullopt };
+};
+
+std::map<std::string, ImageData> imageMap;
+
+void load(const std::string& path) {
+//    imageMap["gray_noise_medium"].image = mbgl::decodeImage(mbgl::util::read_file(path + "gray_noise_medium.png"));
+}
+
+void release() {
+    imageMap.clear();
+}
+
+void upload(mbgl::gfx::UploadPass& uploadPass) {
+    for (auto& i : imageMap) {
+        if (!i.second.texture) {
+            i.second.texture = uploadPass.createTexture(i.second.image);
+        }
+    }
+}
+
+mbgl::gfx::TextureResource& get(const std::string& name) {
+    return imageMap[name].texture->getResource();
+}
+
 }
 
 }

@@ -137,8 +137,8 @@ private:
     bool pitching = false;
     bool show3DExtrusions = false;
 
-    int width = nav::style::display::width();
-    int height = nav::style::display::height();
+    int width = nav::display::width();
+    int height = nav::display::height();
     float pixelRatio;
 
     struct Mouse {

@@ -5,6 +5,7 @@
 //
 
 #include "mbgl/nav/nav.palette.hpp"
+#include "mbgl/nav/nav.theme.hpp"
 #include "mbgl/nav/nav.log.hpp"
 
 
@@ -187,19 +188,14 @@ bool enableShaderPalette(const std::string& id) {
 }
 
 class Stylizer {
-    bool fixed = false;
+    bool stylible = false;
     float hcoef=0, scoef=0, lcoef=0, acoef=0;
 
 public:
     Stylizer() = default;
 
-    Stylizer(const Hsla& color, bool fixed) : fixed(fixed) {
-        if (fixed) {
-            hcoef = color.h;
-            scoef = color.s;
-            lcoef = color.l;
-            acoef = color.a;
-        } else {
+    Stylizer(const Hsla& color, bool stylible) : stylible(stylible) {
+        if (stylible) {
             static const Hsla SAMPLE_CENTER = { 200., .5, .5, 1. };
             
             hcoef = color.h - SAMPLE_CENTER.h;
@@ -211,19 +207,24 @@ public:
             assert(!std::isnan(scoef));
             assert(!std::isnan(lcoef));
             assert(!std::isnan(acoef));
+        } else {
+            hcoef = color.h;
+            scoef = color.s;
+            lcoef = color.l;
+            acoef = color.a;
         }
     }
     
     Hsla operator () (const Hsla& baseColor) {
-        if (fixed) {
-            return Hsla(hcoef, scoef, lcoef, acoef);
-        } else {
+        if (stylible) {
             return Hsla(
                 fmod(baseColor.h + hcoef + 360., 360.),     // h [0,360]
                 fmin(fmax(baseColor.s + scoef, 0.), 1.),    // s [0,1]
                 pow(baseColor.l, lcoef),                    // l [0,1]
                 fmin(fmax(baseColor.a * acoef, 0.), 1.)     // a [0,1]
             );
+        } else {
+            return Hsla(hcoef, scoef, lcoef, acoef);
         }
     }
 };
@@ -282,7 +283,7 @@ void bind(const std::string& uri, const mbgl::Color& color, const void* binder, 
         return;
     }
 
-    static const auto fixColor = [] (const std::string& uri, Hsla color) {
+    static const auto prefixColor = [] (const std::string& uri, Hsla color) {
         if (uri.find("water-depth") != std::string::npos) {
             color.s = 0;
         } else if(uri.find("hillshade") != std::string::npos) {
@@ -291,21 +292,10 @@ void bind(const std::string& uri, const mbgl::Color& color, const void* binder, 
         return color;
     };
 
-    const Hsla hsla = fixColor(uri, color);
-    
-    static const auto isFixed = [] (const std::string& uri, const mbgl::Color& color) {
-        if (uri.find("water-depth") != std::string::npos || 
-            uri.find("hillshade") != std::string::npos) {
-            return true;
-        } else {
-            return false;
-        }
-    };
+    const Hsla hsla = prefixColor(uri, color);
+    const bool stylible = theme::isStylibleColor(uri);
 
-//    const bool fixed = isFixed(uri, color);
-    const bool fixed = true;
-    
-    ColorBinding binding(uri, Stylizer(hsla, fixed), binder, callback);
+    ColorBinding binding(uri, Stylizer(hsla, stylible), binder, callback);
     binding.notify(themeBaseColor);
     paletteBindings.emplace_back(binding);
 }
@@ -322,6 +312,8 @@ void unbind(const void* binder) {
 }
 
 bool demo() {
+    if (!theme::needsUpdate()) return false;
+
     static int counter = 0;
     if (counter++ > 30) {
         counter = 0;
@@ -356,9 +348,10 @@ bool update() {
         }
     }
     
-//    if (demo()) return true;
-
-    return themeBaseColor.needsUpdate();
+    bool needsUpdate = false;
+    needsUpdate |= demo();
+    needsUpdate |= themeBaseColor.needsUpdate();
+    return needsUpdate;
 }
 
 }
