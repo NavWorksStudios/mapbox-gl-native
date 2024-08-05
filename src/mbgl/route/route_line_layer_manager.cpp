@@ -220,7 +220,6 @@ void RouteLineLayerManager::updateTileData(const CanonicalTileID& tileID, RouteT
         return;
 
     auto layer = data.addLayer(RouteShapeLayerID);
-//    auto layer = data.getAndNewLayer(RouteShapeLayerID);
 
     ToGeometryCollection toGeometryCollection;
     ToFeatureType toFeatureType;

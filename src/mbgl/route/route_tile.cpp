@@ -1,5 +1,4 @@
 
-#include <mbgl/annotation/annotation_manager.hpp>
 #include <mbgl/util/constants.hpp>
 #include <mbgl/renderer/tile_parameters.hpp>
 #include <mbgl/route/route_line_layer_manager.hpp>
@@ -115,14 +114,6 @@ std::unique_ptr<GeometryTileLayer> RouteTileData::getLayer(const nav::stringid& 
         return std::make_unique<RouteTileLayer>(it->second);
     }
     return nullptr;
-}
-
-std::unique_ptr<RouteTileLayer> RouteTileData::getAndNewLayer(const nav::stringid& name) {
-    auto it = layers.find(name);
-    if (it != layers.end()) {
-        return std::make_unique<RouteTileLayer>(it->second);
-    }
-    return addLayer(name);
 }
 
 std::unique_ptr<RouteTileLayer> RouteTileData::addLayer(const nav::stringid& name) {

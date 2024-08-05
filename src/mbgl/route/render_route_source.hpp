@@ -1,6 +1,5 @@
 #pragma once
 
-#include <mbgl/annotation/annotation_source.hpp>
 #include <mbgl/route/route_source.hpp>
 #include <mbgl/renderer/sources/render_tile_source.hpp>
 

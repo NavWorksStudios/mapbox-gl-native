@@ -1,5 +1,3 @@
-#include <mbgl/annotation/render_annotation_source.hpp>
-#include <mbgl/annotation/annotation_tile.hpp>
 #include <mbgl/route/route_tile.hpp>
 #include <mbgl/renderer/render_tile.hpp>
 #include <mbgl/renderer/paint_parameters.hpp>

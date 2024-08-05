@@ -1,5 +1,3 @@
-#include <mbgl/annotation/annotation_manager.hpp>
-#include <mbgl/annotation/annotation_source.hpp>
 #include <mbgl/style/layer.hpp>
 #include <mbgl/route/route_line_layer_manager.hpp>
 #include <mbgl/route/route_source.hpp>

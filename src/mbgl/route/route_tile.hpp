@@ -1,6 +1,5 @@
 #pragma once
 
-#include <mbgl/annotation/annotation.hpp>
 #include <mbgl/tile/geometry_tile.hpp>
 #include <mbgl/tile/geometry_tile_data.hpp>
 #include <mbgl/route/route_plan.hpp>
@@ -9,7 +8,6 @@ namespace mbgl {
 
 //namespace route {
 
-class AnnotationManager;
 class RouteLineLayerManager;
 class TileParameters;
 
@@ -61,8 +59,6 @@ class RouteTileData : public GeometryTileData {
 public:
     std::unique_ptr<GeometryTileData> clone() const override;
     std::unique_ptr<GeometryTileLayer> getLayer(const nav::stringid&) const override;
-    
-    std::unique_ptr<RouteTileLayer> getAndNewLayer(const nav::stringid&);
     std::unique_ptr<RouteTileLayer> addLayer(const nav::stringid&);
 
 private:
