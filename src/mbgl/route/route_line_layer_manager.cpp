@@ -306,6 +306,8 @@ void RouteLineLayerManager::add(const RoutePlanID& id, const SymbolRoutePlan& ro
 
 void RouteLineLayerManager::add(const RoutePlanID& id, const LineRoutePlan& routePlan) {
 
+    // 清理之前的tile数据
+    planTiles.clear();
     line_string_unpast = routePlan.geometry;
     
     int8_t default_z = 16;
@@ -347,6 +349,14 @@ void RouteLineLayerManager::add(const RoutePlanID& id, const LineRoutePlan& rout
         last_tile_id = cur_tile_id;
         last_point = point_local;
     }
+    
+    // #*# 当前planTiles中的全部坐标为zoom16下tile{0,0}的坐标
+    // #*# 需要将全部坐标转换为对应tiled内的局部坐标
+    for(auto& tile : planTiles) {
+        
+        
+    }
+    
 }
 
 // #*# 未来大概率无效需废弃
