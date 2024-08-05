@@ -14,7 +14,7 @@ namespace nav {
 namespace layer {
 
 void print(const char* id, const char* type, const char* source, const char* sourceLayer) {
-    printf("{ \"%s\", { \"%s\", \"%s\", \"%s\", } }, ", id, type, source, sourceLayer);
+    printf("layer : { \"%s\", { \"%s\", \"%s\", \"%s\", } }, \n", id, type, source, sourceLayer);
 }
 
 struct Source {
