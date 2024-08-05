@@ -6,6 +6,7 @@
 
 #include "mbgl/nav/nav.theme.hpp"
 #include <functional>
+#include <unordered_map>
 
 
 namespace nav {
@@ -18,6 +19,7 @@ struct Config {
     std::string style;
     bool needsUpdate;
     std::function<bool(const std::string&)> isStylibleColor;
+    std::function<bool(const nav::stringid&)> enableLayerMonoPalette;
 };
 
 const Config COLORFUL = {
@@ -33,6 +35,14 @@ const Config COLORFUL = {
             return true;
         }
     },
+    [] (const nav::stringid& layer) {
+        static std::unordered_map<std::string, bool> layerIds = {
+            { "water-depth", true },
+            { "hillshade", true },
+        };
+
+        return layerIds.find(layer) != layerIds.end();
+    }
 };
 
 const Config GOLDEN_BLACK = {
@@ -43,10 +53,13 @@ const Config GOLDEN_BLACK = {
     [] (const std::string&) {
         return false;
     },
+    [] (const nav::stringid&) {
+        return false;
+    },
 };
 
-const Config& THEME = COLORFUL;
-//const Config& THEME = GOLDEN_BLACK;
+//const Config& THEME = COLORFUL;
+const Config& THEME = GOLDEN_BLACK;
 
 const std::string& style() {
     return THEME.style;
@@ -58,6 +71,10 @@ bool needsUpdate() {
 
 bool isStylibleColor(const std::string& uri) {
     return THEME.isStylibleColor(uri);
+}
+
+bool enableLayerMonoPalette(const nav::stringid& layer) {
+    return THEME.enableLayerMonoPalette(layer);
 }
 
 }

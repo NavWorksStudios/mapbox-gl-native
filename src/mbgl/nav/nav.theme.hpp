@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "mbgl/nav/nav.stringid.hpp"
 #include <string>
 
 namespace nav {
@@ -15,6 +16,7 @@ namespace theme {
 const std::string& style();
 bool needsUpdate();
 bool isStylibleColor(const std::string& uri);
+bool enableLayerMonoPalette(const nav::stringid& layer);
 
 }
 

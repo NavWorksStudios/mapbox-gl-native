@@ -174,17 +174,11 @@ void setColorBase(const mbgl::Color& color) {
 }
 
 const mbgl::Color& getColorBase() {
-    return { .5, .5, .5, 1. };
-//    return themeBaseColor;
+    return themeBaseColor;
 }
 
-bool enableShaderPalette(const std::string& id) {
-    static std::map<std::string, bool> layerIds = {
-        { "water-depth", true },
-        { "hillshade", true },
-    };
-
-    return layerIds.find(id) != layerIds.end();
+bool enableLayerMonoPalette(const std::string& layer) {
+    return theme::enableLayerMonoPalette(layer);
 }
 
 class Stylizer {
@@ -277,13 +271,13 @@ public:
 std::vector<ColorBinding> paletteBindings;
 
 void bind(const std::string& uri, const mbgl::Color& color, const void* binder, const Binding& callback) {
-    nav::log::i("Palette", "bind uri %s", uri.c_str());
+    nav::log::i("Palette", "bind uri %s (%d,%d,%d)", uri.c_str(), (int)(color.r*255), (int)(color.g*255), (int)(color.b*255));
     
     if (uri.find("mapbox") != std::string::npos) {
         return;
     }
 
-    static const auto prefixColor = [] (const std::string& uri, Hsla color) {
+    static const auto fixColor = [] (const std::string& uri, Hsla color) {
         if (uri.find("water-depth") != std::string::npos) {
             color.s = 0;
         } else if(uri.find("hillshade") != std::string::npos) {
@@ -292,7 +286,7 @@ void bind(const std::string& uri, const mbgl::Color& color, const void* binder, 
         return color;
     };
 
-    const Hsla hsla = prefixColor(uri, color);
+    const Hsla hsla = fixColor(uri, color);
     const bool stylible = theme::isStylibleColor(uri);
 
     ColorBinding binding(uri, Stylizer(hsla, stylible), binder, callback);

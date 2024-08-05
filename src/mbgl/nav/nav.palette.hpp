@@ -15,7 +15,7 @@ namespace palette {
 void setColorBase(const mbgl::Color& color);
 const mbgl::Color& getColorBase();
 
-bool enableShaderPalette(const std::string& id);
+bool enableLayerMonoPalette(const std::string& layer);
 
 using Binding = std::function<void(const mbgl::Color& color)>;
 void bind(const std::string& uri, const mbgl::Color& color, const void* binder, const Binding& binding);
