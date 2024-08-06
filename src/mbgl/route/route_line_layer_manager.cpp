@@ -35,8 +35,9 @@ using namespace style;
 
 //static RouteLineLayerManager instance;
 const nav::stringid RouteLineLayerManager::RouteSourceID( "route" );
-//const nav::stringid RouteLineLayerManager::PointLayerID( "route" );
+//const nav::stringid RouteLineLayerManager::RouteSymbolLayerID( "route-symbol" );
 const nav::stringid RouteLineLayerManager::RouteShapeLayerID( "route" );
+const nav::stringid RouteLineLayerManager::RouteDimmedLayerID( "route-dimmed");
 
 //RouteLineLayerManager& RouteLineLayerManager::getInstance() {
 //    return instance;
@@ -130,7 +131,7 @@ void RouteLineLayerManager::updateStyle() {
     if (!style.get().impl->getSource(RouteSourceID.get())) {
         style.get().impl->addSource(std::make_unique<RouteSource>());
 
-        // #*#
+        // #*# 导航主线路图层 - 未行驶
         Layer* layer = style.get().impl->getLayer(RouteShapeLayerID);
         if(layer) {
             layer->setSourceLayer(RouteSourceID.get());
@@ -144,6 +145,22 @@ void RouteLineLayerManager::updateStyle() {
             layer->setLineWidth(24);
             style.get().impl->addLayer(std::move(layer));
         }
+        
+        // #*# 导航主线路图层 - 已行驶
+        Layer* layer_dimmed = style.get().impl->getLayer(RouteDimmedLayerID);
+        if(layer_dimmed) {
+            layer_dimmed->setSourceLayer(RouteSourceID.get());
+            layer_dimmed->setSourceID(RouteSourceID.get());
+        }
+        else {
+            std::unique_ptr<LineLayer> layer_dimmed = std::make_unique<LineLayer>(RouteDimmedLayerID, RouteSourceID);
+            layer_dimmed->setSourceLayer(RouteSourceID.get());
+            layer_dimmed->setSourceID(RouteSourceID.get());
+            layer_dimmed->setLineColor(mbgl::Color{0.05, 0.85, 0.05, 1.0});
+            layer_dimmed->setLineWidth(24);
+            style.get().impl->addLayer(std::move(layer_dimmed));
+        }
+        
     }
 
 //    std::lock_guard<std::mutex> lock(mutex);
@@ -392,7 +409,6 @@ void RouteLineLayerManager::add(const RoutePlanID& id, const LineRoutePlan& rout
                 point.x = point.x - tileID.x * mbgl::util::EXTENT;
                 point.y = point.y - tileID.y * mbgl::util::EXTENT;
             }
-            
         }
     }
     

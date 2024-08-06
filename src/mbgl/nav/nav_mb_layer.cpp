@@ -193,7 +193,7 @@ static const std::unordered_map<std::string, Source> layerIds = {
 
 #ifdef ROUTE_LINE
     { "route", { "line", "composite", "road", } },
-    { "road-dimmed", { "line", "composite", "road", } },
+    { "route-dimmed", { "line", "composite", "road", } },
 #endif
     
 };
