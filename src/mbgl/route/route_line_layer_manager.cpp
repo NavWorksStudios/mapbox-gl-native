@@ -199,8 +199,35 @@ std::unique_ptr<RouteTileData> RouteLineLayerManager::getTileData(const Canonica
 
 #if 1
 void RouteLineLayerManager::updateTileData(const CanonicalTileID& tileID, RouteTileData& data) {
+    
+    nav::stringid tile_id = nav::stringid(util::toString(tileID));
+    auto plan_tile = planTiles.find(tile_id);
+    if(plan_tile == planTiles.end())
+        return;
+    if(plan_tile->second.segments.size() == 0)
+        return;
+    
+    auto layer = data.addLayer(RouteShapeLayerID);
+    
+    ToGeometryCollection toGeometryCollection;
+    ToFeatureType toFeatureType;
+    FeatureType featureType = FeatureType::LineString;
+    GeometryCollection renderGeometry;
+    for(auto& segment : plan_tile->second.segments) {
+        GeometryCoordinates points;
+        for (auto& point : segment.points) {
+            points.push_back(Point<int16_t>{static_cast<int16_t>(point.x), static_cast<int16_t>(point.y)});
+        }
+        renderGeometry.push_back(points);
+    }
+    
+    // #*# id
+    layer->addFeature(1, featureType, renderGeometry);
+    
+    // #*# 原逻辑，将废弃
+    return;
+#if 0
     static const double baseTolerance = 4;
-
     if (!shapeTiler) {
         mapbox::feature::feature_collection<double> features;
 //        features.emplace_back(ShapeAnnotationGeometry::visit(
@@ -238,6 +265,7 @@ void RouteLineLayerManager::updateTileData(const CanonicalTileID& tileID, RouteT
         // #*# id
         layer->addFeature(1, featureType, renderGeometry);
     }
+#endif
 }
 
 const LineString<double>& RouteLineLayerManager::geometry() const {
@@ -282,7 +310,12 @@ CanonicalTileID RouteLineLayerManager::latLonToTileID(const mbgl::Point<double>&
 
 Point<int64_t> RouteLineLayerManager::intersectPoint(const LineString<int64_t>& line_, const CanonicalTileID& tileID ) {
     
-    Clipper2Lib::Rect64 rect = {tileID.x * 8192, tileID.y * 8192, (tileID.x+1) * 8192, (tileID.y+1) * 8192};
+    // #*# 跨tile补点的碰撞偏移，未来或需调整
+    const int16_t clipper_offset = 256;
+    Clipper2Lib::Rect64 rect = {tileID.x * mbgl::util::EXTENT - clipper_offset,
+                                tileID.y * mbgl::util::EXTENT - clipper_offset,
+                                (tileID.x+1) * mbgl::util::EXTENT + clipper_offset,
+                                (tileID.y+1) * mbgl::util::EXTENT + clipper_offset};
     Clipper2Lib::Path64 line;
     for (auto point_ : line_) {
         Clipper2Lib::Point<int64_t> point = {point_.x, point_.y};
@@ -334,13 +367,14 @@ void RouteLineLayerManager::add(const RoutePlanID& id, const LineRoutePlan& rout
                 tmp_line.push_back(last_point);
                 tmp_line.push_back(point_local);
                 // 计算出连接线与tile边界的交点
+                mbgl::Point<int64_t> tmp_point_last = intersectPoint(tmp_line, *last_tileID);
                 mbgl::Point<int64_t> tmp_point = intersectPoint(tmp_line, tileID);
                 // 在上一个tile末尾补点
                 auto last_tile = planTiles.find(last_tile_id);
-                last_tile->second.addPoint(tmp_point);
+                last_tile->second.addPoint(point_local);
                 // 在新tile首位补点
                 LineRoutePlanTile tile(tileID);
-                tile.addPoint(tmp_point, true);
+                tile.addPoint(last_point, true);
                 tile.addPoint(point_local);
                 planTiles.emplace(cur_tile_id, tile);
             }
@@ -350,11 +384,16 @@ void RouteLineLayerManager::add(const RoutePlanID& id, const LineRoutePlan& rout
         last_point = point_local;
     }
     
-    // #*# 当前planTiles中的全部坐标为zoom16下tile{0,0}的坐标
-    // #*# 需要将全部坐标转换为对应tiled内的局部坐标
+    // #*# 当前planTiles中的全部坐标为zoom16下tile{0,0}的坐标，需要将全部坐标转换为对应tiled内的局部坐标
     for(auto& tile : planTiles) {
-        
-        
+        CanonicalTileID& tileID = tile.second.tileID;
+        for(auto& segment : tile.second.segments) {
+            for (auto& point : segment.points) {
+                point.x = point.x - tileID.x * mbgl::util::EXTENT;
+                point.y = point.y - tileID.y * mbgl::util::EXTENT;
+            }
+            
+        }
     }
     
 }
