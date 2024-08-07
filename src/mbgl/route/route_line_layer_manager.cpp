@@ -130,20 +130,13 @@ void RouteLineLayerManager::updateStyle() {
     // because we don't want annotation mutations to trigger Style::Impl::styleMutated to be set.
     if (!style.get().impl->getSource(RouteSourceID.get())) {
         style.get().impl->addSource(std::make_unique<RouteSource>());
-
+        
         // #*# 导航主线路图层 - 未行驶
         Layer* layer = style.get().impl->getLayer(RouteShapeLayerID);
         if(layer) {
             layer->setSourceLayer(RouteSourceID.get());
             layer->setSourceID(RouteSourceID.get());
-        }
-        else {
-            std::unique_ptr<LineLayer> layer = std::make_unique<LineLayer>(RouteShapeLayerID, RouteSourceID);
-            layer->setSourceLayer(RouteSourceID.get());
-            layer->setSourceID(RouteSourceID.get());
-            layer->setLineColor(mbgl::Color{0.05, 0.85, 0.05, 1.0});
-            layer->setLineWidth(24);
-            style.get().impl->addLayer(std::move(layer));
+            hasRouteLayer = true;
         }
         
         // #*# 导航主线路图层 - 已行驶
@@ -151,14 +144,7 @@ void RouteLineLayerManager::updateStyle() {
         if(layer_dimmed) {
             layer_dimmed->setSourceLayer(RouteSourceID.get());
             layer_dimmed->setSourceID(RouteSourceID.get());
-        }
-        else {
-            std::unique_ptr<LineLayer> layer_dimmed = std::make_unique<LineLayer>(RouteDimmedLayerID, RouteSourceID);
-            layer_dimmed->setSourceLayer(RouteSourceID.get());
-            layer_dimmed->setSourceID(RouteSourceID.get());
-            layer_dimmed->setLineColor(mbgl::Color{0.05, 0.85, 0.05, 1.0});
-            layer_dimmed->setLineWidth(24);
-            style.get().impl->addLayer(std::move(layer_dimmed));
+            hasRouteDimmedLayer = true;
         }
         
     }
@@ -183,9 +169,13 @@ void RouteLineLayerManager::updateStyle() {
 }
 
 std::unique_ptr<RouteTileData> RouteLineLayerManager::getTileData(const CanonicalTileID& tileID) {
-    // #*#
+    // #*# 如果没有导航数据，直接返回nullptr
     if (line_string_unpast.empty() && line_string_past.empty())
         return nullptr;
+    // #*# 如果没有导航数据相关layer，直接返回nullptr
+    if(!hasRouteLayer || !hasRouteDimmedLayer) {
+        return nullptr;
+    }
 
     auto tileData = std::make_unique<RouteTileData>();
 
@@ -214,12 +204,23 @@ std::unique_ptr<RouteTileData> RouteLineLayerManager::getTileData(const Canonica
     return tileData;
 }
 
-#if 1
+
 void RouteLineLayerManager::updateTileData(const CanonicalTileID& tileID, RouteTileData& data) {
     
+    std::unordered_map<nav::stringid, LineRoutePlanTile>* planTiles_ = nullptr;
+    if(tileID.z == 16) {
+        planTiles_ = &planTiles16;
+    }
+    else if(tileID.z == 12) {
+         planTiles_ = &planTiles12;
+    }
+    else if(tileID.z == 8) {
+         planTiles_ = &planTiles8;
+    }
+    else planTiles_ = &planTiles16;
     nav::stringid tile_id = nav::stringid(util::toString(tileID));
-    auto plan_tile = planTiles.find(tile_id);
-    if(plan_tile == planTiles.end())
+    auto plan_tile = planTiles_->find(tile_id);
+    if(plan_tile == planTiles_->end())
         return;
     if(plan_tile->second.segments.size() == 0)
         return;
@@ -289,7 +290,6 @@ const LineString<double>& RouteLineLayerManager::geometry() const {
     return line_string_unpast;
 }
 
-#endif
 
 RoutePlanID RouteLineLayerManager::addRoutePlan(const RoutePlan& routePlan) {
 //    CHECK_ROUTE_ENABLED_AND_RETURN(nextID++);
@@ -357,10 +357,24 @@ void RouteLineLayerManager::add(const RoutePlanID& id, const SymbolRoutePlan& ro
 void RouteLineLayerManager::add(const RoutePlanID& id, const LineRoutePlan& routePlan) {
 
     // 清理之前的tile数据
-    planTiles.clear();
+    planTiles16.clear();
+    planTiles12.clear();
+    planTiles8.clear();
     line_string_unpast = routePlan.geometry;
     
-    int8_t default_z = 16;
+    convertTileData(routePlan, planTiles16, 16);
+    convertTileData(routePlan, planTiles12, 12);
+    convertTileData(routePlan, planTiles8, 8);
+}
+
+void RouteLineLayerManager::convertTileData(const LineRoutePlan& routePlan,
+                                            std::unordered_map<nav::stringid, LineRoutePlanTile>& planTiles_,
+                                            int8_t zoom) {
+    
+    int8_t default_z = zoom;
+    if(default_z != 16 && default_z != 12 && default_z != 8)
+        default_z = 16;
+    
     bool first_point = true;
     for (Point<double>& point_location : line_string_unpast) {
         mbgl::Point<int64_t> point_local;
@@ -371,11 +385,11 @@ void RouteLineLayerManager::add(const RoutePlanID& id, const LineRoutePlan& rout
             LineRoutePlanTile tile(tileID);
             tile.addPoint(point_local, true);
             first_point = false;
-            planTiles.emplace(cur_tile_id, tile);
+            planTiles_.emplace(cur_tile_id, tile);
         }
         else {
             if(cur_tile_id == last_tile_id) {
-                auto last_tile = planTiles.find(last_tile_id);
+                auto last_tile = planTiles_.find(last_tile_id);
                 last_tile->second.addPoint(point_local);
             }
             else {
@@ -387,13 +401,13 @@ void RouteLineLayerManager::add(const RoutePlanID& id, const LineRoutePlan& rout
                 mbgl::Point<int64_t> tmp_point_last = intersectPoint(tmp_line, *last_tileID);
                 mbgl::Point<int64_t> tmp_point = intersectPoint(tmp_line, tileID);
                 // 在上一个tile末尾补点
-                auto last_tile = planTiles.find(last_tile_id);
+                auto last_tile = planTiles_.find(last_tile_id);
                 last_tile->second.addPoint(point_local);
                 // 在新tile首位补点
                 LineRoutePlanTile tile(tileID);
                 tile.addPoint(last_point, true);
                 tile.addPoint(point_local);
-                planTiles.emplace(cur_tile_id, tile);
+                planTiles_.emplace(cur_tile_id, tile);
             }
         }
         last_tileID = &tileID;
@@ -402,7 +416,7 @@ void RouteLineLayerManager::add(const RoutePlanID& id, const LineRoutePlan& rout
     }
     
     // #*# 当前planTiles中的全部坐标为zoom16下tile{0,0}的坐标，需要将全部坐标转换为对应tiled内的局部坐标
-    for(auto& tile : planTiles) {
+    for(auto& tile : planTiles_) {
         CanonicalTileID& tileID = tile.second.tileID;
         for(auto& segment : tile.second.segments) {
             for (auto& point : segment.points) {
@@ -411,7 +425,6 @@ void RouteLineLayerManager::add(const RoutePlanID& id, const LineRoutePlan& rout
             }
         }
     }
-    
 }
 
 // #*# 未来大概率无效需废弃

@@ -80,11 +80,15 @@ private:
     mapbox::geometry::line_string<double> line_string_past;     // past
     mapbox::geometry::line_string<double> line_string_unpast;   // unpast or all, mapbox::geometry::line_string<T>
     
+    bool hasRouteLayer = false;
+    bool hasRouteDimmedLayer = false;
     uint8_t zoom;
     mbgl::Point<int64_t> last_point;
     CanonicalTileID* last_tileID;
     nav::stringid last_tile_id = {"not_set"};
-    std::unordered_map<nav::stringid, LineRoutePlanTile> planTiles;
+    std::unordered_map<nav::stringid, LineRoutePlanTile> planTiles16;
+    std::unordered_map<nav::stringid, LineRoutePlanTile> planTiles12;
+    std::unordered_map<nav::stringid, LineRoutePlanTile> planTiles8;
     
 //    style::PropertyValue<Color> color_f3 = Color::black();
 //    style::PropertyValue<Color> color_f2 = Color::black();
@@ -115,6 +119,8 @@ private:
     CanonicalTileID latLonToTileID(const mbgl::Point<double>& point, mbgl::Point<int64_t>& point_local, const int8_t z);
     mbgl::Point<int64_t> latLonToTileCoodinates(const mbgl::Point<int64_t>& point, mbgl::CanonicalTileID& canonical);
     Point<int64_t> intersectPoint(const LineString<int64_t>& line_, const CanonicalTileID& tileID);
+    
+    void convertTileData(const LineRoutePlan& routePlan, std::unordered_map<nav::stringid, LineRoutePlanTile>& planTiles_, int8_t zoom = 16);
 };
 
 //}
