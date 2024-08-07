@@ -87,8 +87,8 @@ private:
     CanonicalTileID* last_tileID;
     nav::stringid last_tile_id = {"not_set"};
     std::unordered_map<nav::stringid, LineRoutePlanTile> planTiles16;
-    std::unordered_map<nav::stringid, LineRoutePlanTile> planTiles12;
-    std::unordered_map<nav::stringid, LineRoutePlanTile> planTiles8;
+    std::unordered_map<nav::stringid, LineRoutePlanTile> planTiles11;
+    std::unordered_map<nav::stringid, LineRoutePlanTile> planTiles6;
     
 //    style::PropertyValue<Color> color_f3 = Color::black();
 //    style::PropertyValue<Color> color_f2 = Color::black();

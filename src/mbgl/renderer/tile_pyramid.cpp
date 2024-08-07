@@ -238,7 +238,7 @@ void TilePyramid::update(const std::vector<Immutable<style::LayerProperties>>& l
         }
     }
 
-    if (type != SourceType::Annotations) {
+    if (type != SourceType::Annotations && type != SourceType::Route) {
         size_t conservativeCacheSize =
             std::max(static_cast<float>(parameters.transformState.getSize().width) / tileSize, 1.0f) *
             std::max(static_cast<float>(parameters.transformState.getSize().height) / tileSize, 1.0f) *

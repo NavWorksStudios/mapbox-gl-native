@@ -94,16 +94,30 @@ void RouteLineLayerManager::updateData() {
 //    CHECK_ROUTE_ENABLED_AND_RETURN();
     std::lock_guard<std::mutex> lock(mutex);
     if (dirty) {
-        for (auto& tile : tiles) {
-            tile->setData(getTileData(tile->id.canonical));
-        }
-        dirty = false;
+//        for (auto& tile : tiles) {
+//            if(tile->id.canonical.z != 6 && tile->id.canonical.z != 11 && tile->id.canonical.z != 16) {
+//                tile->setRenderable(false);
+//            }
+//            else tile->setData(getTileData(tile->id.canonical));
+//        }
+//        dirty = false;
     }
 }
 
 void RouteLineLayerManager::addTile(RouteTile& tile) {
 //    CHECK_ROUTE_ENABLED_AND_RETURN();
     std::lock_guard<std::mutex> lock(mutex);
+//    if(tile.id.canonical.z != 6 && tile.id.canonical.z != 11 && tile.id.canonical.z != 16) {
+//        tile.setRenderable(false);
+//        return;
+//    }
+//    tiles.insert(&tile);
+//    tile.setData(getTileData(tile.id.canonical));
+
+    if(tile.id.canonical.z < 6) {
+        tile.setRenderable(false);
+        return;
+    }
     tiles.insert(&tile);
     tile.setData(getTileData(tile.id.canonical));
 }
@@ -181,13 +195,13 @@ std::unique_ptr<RouteTileData> RouteLineLayerManager::getTileData(const Canonica
 
     auto pointLayer = tileData->addLayer(RouteSourceID);
 
-    LatLngBounds tileBounds(tileID);
-    // Hack for https://github.com/mapbox/mapbox-gl-native/issues/12472
-    // To handle precision issues, query a slightly larger area than the tile bounds
-    // Symbols at a border can be included in vector data for both tiles
-    // The rendering/querying logic will make sure the symbols show up in only one of the tiles
-    tileBounds.extend(LatLng(tileBounds.south() - 0.000000001, tileBounds.west() - 0.000000001));
-    tileBounds.extend(LatLng(tileBounds.north() + 0.000000001, tileBounds.east() + 0.000000001));
+//    LatLngBounds tileBounds(tileID);
+//    // Hack for https://github.com/mapbox/mapbox-gl-native/issues/12472
+//    // To handle precision issues, query a slightly larger area than the tile bounds
+//    // Symbols at a border can be included in vector data for both tiles
+//    // The rendering/querying logic will make sure the symbols show up in only one of the tiles
+//    tileBounds.extend(LatLng(tileBounds.south() - 0.000000001, tileBounds.west() - 0.000000001));
+//    tileBounds.extend(LatLng(tileBounds.north() + 0.000000001, tileBounds.east() + 0.000000001));
     
     // #*# 未来可能添加路况插标图
 //    symbolTree.query(boost::geometry::index::intersects(tileBounds),
@@ -208,16 +222,16 @@ std::unique_ptr<RouteTileData> RouteLineLayerManager::getTileData(const Canonica
 void RouteLineLayerManager::updateTileData(const CanonicalTileID& tileID, RouteTileData& data) {
     
     std::unordered_map<nav::stringid, LineRoutePlanTile>* planTiles_ = nullptr;
-    if(tileID.z == 16) {
+    if(tileID.z == 6) {
+        planTiles_ = &planTiles6;
+    }
+    else if(tileID.z == 11) {
+        planTiles_ = &planTiles11;
+    }
+    else {
         planTiles_ = &planTiles16;
     }
-    else if(tileID.z == 12) {
-         planTiles_ = &planTiles12;
-    }
-    else if(tileID.z == 8) {
-         planTiles_ = &planTiles8;
-    }
-    else planTiles_ = &planTiles16;
+    
     nav::stringid tile_id = nav::stringid(util::toString(tileID));
     auto plan_tile = planTiles_->find(tile_id);
     if(plan_tile == planTiles_->end())
@@ -358,13 +372,13 @@ void RouteLineLayerManager::add(const RoutePlanID& id, const LineRoutePlan& rout
 
     // 清理之前的tile数据
     planTiles16.clear();
-    planTiles12.clear();
-    planTiles8.clear();
+    planTiles11.clear();
+    planTiles6.clear();
     line_string_unpast = routePlan.geometry;
     
     convertTileData(routePlan, planTiles16, 16);
-    convertTileData(routePlan, planTiles12, 12);
-    convertTileData(routePlan, planTiles8, 8);
+    convertTileData(routePlan, planTiles11, 11);
+    convertTileData(routePlan, planTiles6, 6);
 }
 
 void RouteLineLayerManager::convertTileData(const LineRoutePlan& routePlan,
@@ -372,7 +386,7 @@ void RouteLineLayerManager::convertTileData(const LineRoutePlan& routePlan,
                                             int8_t zoom) {
     
     int8_t default_z = zoom;
-    if(default_z != 16 && default_z != 12 && default_z != 8)
+    if(default_z != 16 && default_z != 11 && default_z != 6)
         default_z = 16;
     
     bool first_point = true;

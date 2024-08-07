@@ -16,6 +16,7 @@ public:
     RouteTile(const OverscaledTileID&, const TileParameters&);
     ~RouteTile() override;
 
+    void setRenderable(bool);
 private:
     mapbox::base::WeakPtr<RouteLineLayerManager> routeManager;
 };

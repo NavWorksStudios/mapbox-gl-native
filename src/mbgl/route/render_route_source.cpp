@@ -38,9 +38,30 @@ void RenderRouteSource::update(Immutable<style::Source::Impl> baseImpl_,
         util::tileSize,
         // Zoom level 16 is typically sufficient for annotations.
         // See https://github.com/mapbox/mapbox-gl-native/issues/10197
-        {0, 16},
+        {0, 11},
         optional<LatLngBounds>{},
-        [&](const OverscaledTileID& tileID) { return std::make_unique<RouteTile>(tileID, parameters); });
+        [&](const OverscaledTileID& tileID) {
+        // #*# 未来可能有用的代码
+//        OverscaledTileID id = tileID;
+//        int8_t z = id.canonical.z;
+//        if(z >= 16) {
+//            z = 16;
+//        }
+//        else if(z >= 11) {
+//            z = 11;
+//        }
+//        else if(z >= 6) {
+//            z = 6;
+//        }
+//        if(z < 6) {
+//            return std::make_unique<RouteTile>(tileID, parameters);
+//        }
+//        id.canonical.x >> (id.canonical.z-z);
+//        id.canonical.y >> (id.canonical.z-z);
+//        id.canonical.z = z;
+//        return std::make_unique<RouteTile>(id, parameters);
+        return std::make_unique<RouteTile>(tileID, parameters);
+    });
 }
 
 std::unordered_map<nav::stringid, std::vector<Feature>>

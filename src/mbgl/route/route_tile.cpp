@@ -28,6 +28,10 @@ RouteTile::~RouteTile() {
     }
 }
 
+void RouteTile::setRenderable(bool able) {
+    renderable = able;
+}
+
 class RouteTileFeatureData {
 public:
     RouteTileFeatureData(const RoutePlanID id_,
