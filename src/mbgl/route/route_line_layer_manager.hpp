@@ -68,8 +68,8 @@ public:
     
 public:
     
+    static const int8_t MaxRenderaleZoom;
     static const nav::stringid RouteSourceID;
-//    static const nav::stringid PointLayerID;
     static const nav::stringid RouteShapeLayerID;
     static const nav::stringid RouteDimmedLayerID;
     

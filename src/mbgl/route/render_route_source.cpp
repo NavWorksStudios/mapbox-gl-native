@@ -42,6 +42,7 @@ void RenderRouteSource::update(Immutable<style::Source::Impl> baseImpl_,
         optional<LatLngBounds>{},
         [&](const OverscaledTileID& tileID) {
         // #*# 未来可能有用的代码
+# if 0
 //        OverscaledTileID id = tileID;
 //        int8_t z = id.canonical.z;
 //        if(z >= 16) {
@@ -60,6 +61,7 @@ void RenderRouteSource::update(Immutable<style::Source::Impl> baseImpl_,
 //        id.canonical.y >> (id.canonical.z-z);
 //        id.canonical.z = z;
 //        return std::make_unique<RouteTile>(id, parameters);
+#endif
         return std::make_unique<RouteTile>(tileID, parameters);
     });
 }

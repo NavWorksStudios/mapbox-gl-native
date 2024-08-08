@@ -33,9 +33,8 @@ using namespace style;
 
 //namespace route {
 
-//static RouteLineLayerManager instance;
+const int8_t RouteLineLayerManager::MaxRenderaleZoom = 6;
 const nav::stringid RouteLineLayerManager::RouteSourceID( "route" );
-//const nav::stringid RouteLineLayerManager::RouteSymbolLayerID( "route-symbol" );
 const nav::stringid RouteLineLayerManager::RouteShapeLayerID( "route" );
 const nav::stringid RouteLineLayerManager::RouteDimmedLayerID( "route-dimmed");
 
@@ -94,27 +93,22 @@ void RouteLineLayerManager::updateData() {
 //    CHECK_ROUTE_ENABLED_AND_RETURN();
     std::lock_guard<std::mutex> lock(mutex);
     if (dirty) {
+        // #*# 根据导航状态（车载定位变化及路况变化等）修改route line状态
 //        for (auto& tile : tiles) {
 //            if(tile->id.canonical.z != 6 && tile->id.canonical.z != 11 && tile->id.canonical.z != 16) {
 //                tile->setRenderable(false);
 //            }
 //            else tile->setData(getTileData(tile->id.canonical));
 //        }
-//        dirty = false;
+        dirty = false;
     }
 }
 
 void RouteLineLayerManager::addTile(RouteTile& tile) {
 //    CHECK_ROUTE_ENABLED_AND_RETURN();
     std::lock_guard<std::mutex> lock(mutex);
-//    if(tile.id.canonical.z != 6 && tile.id.canonical.z != 11 && tile.id.canonical.z != 16) {
-//        tile.setRenderable(false);
-//        return;
-//    }
-//    tiles.insert(&tile);
-//    tile.setData(getTileData(tile.id.canonical));
-
-    if(tile.id.canonical.z < 6) {
+    // zooxm小于6级的tile直接忽略
+    if(tile.id.canonical.z < MaxRenderaleZoom) {
         tile.setRenderable(false);
         return;
     }
@@ -161,14 +155,13 @@ void RouteLineLayerManager::updateStyle() {
             hasRouteDimmedLayer = true;
         }
         
+        // #*# 导航路况指示牌插标
+//        std::lock_guard<std::mutex> lock(mutex);
+//        for (const auto& shape : shapeAnnotations) {
+//            shape.second->updateStyle(*style.get().impl);
+//        }
+        
     }
-
-//    std::lock_guard<std::mutex> lock(mutex);
-
-    // #*#
-//    for (const auto& shape : shapeAnnotations) {
-//        shape.second->updateStyle(*style.get().impl);
-//    }
 
     // #*# 未来可能添加导航使用图片 - 如：鱼骨线
 //    for (const auto& image : images) {
@@ -183,10 +176,10 @@ void RouteLineLayerManager::updateStyle() {
 }
 
 std::unique_ptr<RouteTileData> RouteLineLayerManager::getTileData(const CanonicalTileID& tileID) {
-    // #*# 如果没有导航数据，直接返回nullptr
+    // #*# 如果没有原始导航数据，直接返回nullptr
     if (line_string_unpast.empty() && line_string_past.empty())
         return nullptr;
-    // #*# 如果没有导航数据相关layer，直接返回nullptr
+    // #*# 如果没有导航显示所需的相关layer，直接返回nullptr
     if(!hasRouteLayer || !hasRouteDimmedLayer) {
         return nullptr;
     }
@@ -195,6 +188,7 @@ std::unique_ptr<RouteTileData> RouteLineLayerManager::getTileData(const Canonica
 
     auto pointLayer = tileData->addLayer(RouteSourceID);
 
+    // #*# 基于经纬坐标的地理围栏，未来可能有用
 //    LatLngBounds tileBounds(tileID);
 //    // Hack for https://github.com/mapbox/mapbox-gl-native/issues/12472
 //    // To handle precision issues, query a slightly larger area than the tile bounds
