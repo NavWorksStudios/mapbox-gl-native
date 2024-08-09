@@ -310,6 +310,15 @@ RoutePlanID RouteLineLayerManager::addRoutePlan(const RoutePlan& routePlan) {
     return id;
 }
 
+void RouteLineLayerManager::updateRoutePlan(const RoutePlanID& id, const RoutePlan& routePlan) {
+    //    CHECK_ROUTE_ENABLED_AND_RETURN(nextID++);
+    std::lock_guard<std::mutex> lock(mutex);
+    RoutePlan::visit(routePlan, [&] (const auto& routePlan_) {
+        this->update(id, routePlan_);
+    });
+    dirty = true;
+}
+
 CanonicalTileID RouteLineLayerManager::latLonToTileID(const mbgl::Point<double>& point, mbgl::Point<int64_t>& point_local, const int8_t z) {
     const double size_local = mbgl::util::EXTENT * std::pow(2, z);
     const double size = std::pow(2, z);
@@ -364,15 +373,70 @@ void RouteLineLayerManager::add(const RoutePlanID& id, const SymbolRoutePlan& ro
 
 void RouteLineLayerManager::add(const RoutePlanID& id, const LineRoutePlan& routePlan) {
 
+    // #*# 根据不同id保存导航方案，mainPlan和非mainPlan使用不同配色方案（layer paint property）显示
+    // #*# 暂时只处理mainPlan数据解析和显示逻辑
     // 清理之前的tile数据
     planTiles16.clear();
     planTiles11.clear();
     planTiles6.clear();
+    
     line_string_unpast = routePlan.geometry;
+    trafficInfo = routePlan.trafficInfo;
+    totol_distance = countTotolDistance(line_string_unpast);
     
     convertTileData(routePlan, planTiles16, 16);
     convertTileData(routePlan, planTiles11, 11);
     convertTileData(routePlan, planTiles6, 6);
+}
+
+#define pi 3.1415926535
+double DistanceHaversine_bak(double lat1, double lon1, double lat2, double lon2)
+{
+    static const double radio = 6378137.0;
+    double dlat, dlon;
+    //computing procedure
+    double a, c, distance;
+    dlon = fabs((lon2 - lon1)) * pi / 180;
+    dlat = fabs((lat2 - lat1)) * pi / 180;
+    a = (sin(dlat / 2) * sin(dlat / 2)) + cos(lat1 * pi / 180) * cos(lat2 * pi / 180) * (sin(dlon / 2) * sin(dlon / 2));
+    if(a == 1.0)
+        c = pi;
+    else
+        c = 2 * atan(sqrt(a) / sqrt(1 - a));
+    distance = radio * c;
+
+    return distance;
+}
+
+double DistanceHaversine(double lat1, double lon1, double lat2, double lon2)
+{
+    static const double EARTH_RADIUS = 6371.0;//km 地球半径 平均值，千米
+    //用haversine公式计算球面两点间的距离。
+    //经纬度转换成弧度
+    lat1 = lat1 * pi / 180;
+    lon1 = lon1 * pi / 180;
+    lat2 = lat2 * pi / 180;
+    lon2 = lon2 * pi / 180;
+    //差值
+    double vLon = fabs(lon1 - lon2);
+    double vLat = fabs(lat1 - lat2);
+    //h is the great circle distance in radians, great circle就是一个球体上的切面，它的圆心即是球心的一个周长最大的圆。
+    double h = pow(sin(vLat / 2), 2) + cos(lat1) * cos(lat2) * pow(sin(vLon / 2), 2);
+    double distance = 2 * EARTH_RADIUS * asin(sqrt(h));
+    return distance;
+}
+
+int64_t RouteLineLayerManager::countTotolDistance(LineString<double>& line_string_) {
+    double dis = 0;
+    if(line_string_.size() <= 1)
+        return 0;
+    for(int32_t i = 1; i < line_string_.size(); i++) {
+        Point<double> point1 = line_string_[i-1];
+        Point<double> point2 = line_string_[i];
+//        dis += DistanceHaversine_bak(point1.y, point1.x, point2.y, point2.x);
+        dis += DistanceHaversine(point1.y, point1.x, point2.y, point2.x);
+    }
+    return dis;
 }
 
 void RouteLineLayerManager::convertTileData(const LineRoutePlan& routePlan,
@@ -441,6 +505,15 @@ void RouteLineLayerManager::add(const RoutePlanID& id, const FillRoutePlan& rout
 //        std::make_unique<FillAnnotationImpl>(id, annotation)).first->second;
 //    impl.updateStyle(*style.get().impl);
 }
+
+void RouteLineLayerManager::update(const RoutePlanID& id, const LineRoutePlan& routePlan) {
+    
+    
+    
+}
+
+void RouteLineLayerManager::update(const RoutePlanID& id, const SymbolRoutePlan& routePlan) {}
+void RouteLineLayerManager::update(const RoutePlanID& id, const FillRoutePlan& routePlan) {}
 
 //}
 

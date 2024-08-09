@@ -124,6 +124,7 @@ public:
     void removeAnnotation(AnnotationID);
     
     RoutePlanID addRoutePlans(const RoutePlan& routePlan);
+    void updateRoutePlans(RoutePlanID, const RoutePlan&);
 
     // Tile prefetching
     //

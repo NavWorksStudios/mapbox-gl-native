@@ -36,22 +36,34 @@ using ShapeRoutePlanGeometry = variant<
     MultiLineString<double>,
     MultiPolygon<double>>;
 
+class TrafficInfo {
+public:
+    int16_t percent;
+    int16_t condition;
+};
+
+class LineRouteTrafficInfo {
+public:
+    std::vector<TrafficInfo> infos;
+};
+
 class LineRoutePlan {
 public:
     LineRoutePlan(LineString<double> geometry_,
-                  nav::stringid layerId_)
+                  LineRouteTrafficInfo trafficInfo_,
+                  bool mainPlan_ = false)
         : geometry(std::move(geometry_)),
-          layerId(layerId_) {}
+          trafficInfo(std::move(trafficInfo_)),
+          mainPlan(mainPlan_) {}
     LineString<double> geometry;
-    nav::stringid layerId;  // 关联的style中的layer
+    LineRouteTrafficInfo trafficInfo;
+    bool mainPlan;
 };
 
 class FillRoutePlan {
 public:
-    FillRoutePlan(ShapeRoutePlanGeometry geometry_,
-                  nav::stringid layerId_)
-    : geometry(std::move(geometry_)),
-      layerId(layerId_) {}
+    FillRoutePlan(ShapeRoutePlanGeometry geometry_)
+        : geometry(std::move(geometry_)) {}
 
     ShapeRoutePlanGeometry geometry;
     nav::stringid layerId;  // 关联的style中的layer

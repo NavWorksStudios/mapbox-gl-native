@@ -107,6 +107,7 @@ private:
     void toggleLocationIndicatorLayer(bool visibility);
     
     // test route
+    mbgl::Point<int64_t> latLonToTileCoodinates(const mbgl::Point<double>& point, const mbgl::CanonicalTileID& canonical);
     void addRoutePlans();
 
     void cycleDebugOptions();

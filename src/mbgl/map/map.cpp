@@ -473,6 +473,13 @@ RoutePlanID Map::addRoutePlans(const RoutePlan& routePlan) {
     return 0;
 }
 
+void Map::updateRoutePlans(RoutePlanID id, const RoutePlan& routePlan) {
+    if (LayerManager::routelineEnabled) {
+        impl->routeManager.addRoutePlan(routePlan);
+        impl->onUpdate();
+    }
+}
+
 AnnotationID Map::addAnnotation(const Annotation& annotation) {
     if (LayerManager::annotationsEnabled) {
         auto result = impl->annotationManager.addAnnotation(annotation);

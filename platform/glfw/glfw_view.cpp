@@ -852,7 +852,19 @@ void GLFWView::addRoutePlans() {
     lineString.push_back({ -74.01436, 40.71125 });
     lineString.push_back({ -74.014147, 40.712245 });
     
-    mbgl::RoutePlanID id = map->addRoutePlans(mbgl::LineRoutePlan(lineString, nav::stringid("route")));
+    mbgl::LineRouteTrafficInfo info;
+    info.infos.push_back({ 10, 0 });
+    info.infos.push_back({ 20, -1 });
+    info.infos.push_back({ 30, 1 });
+    info.infos.push_back({ 40, 2 });
+    info.infos.push_back({ 50, -2 });
+    info.infos.push_back({ 60, 3 });
+    info.infos.push_back({ 70, 0 });
+    info.infos.push_back({ 80, -3 });
+    info.infos.push_back({ 90, 1 });
+    info.infos.push_back({ 100, 0 });
+    
+    mbgl::RoutePlanID id = map->addRoutePlans(mbgl::LineRoutePlan(lineString, info, true));
 }
 
 void GLFWView::addLineAnnotations(const mbgl::LatLng& tagPosition) {
