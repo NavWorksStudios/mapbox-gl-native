@@ -448,6 +448,7 @@ double RouteLineLayerManager::countTotalDistance(LineString<double>& line_string
 }
 
 void RouteLineLayerManager::insertNodesForTrafficCondition() {
+    #define EPSILON 0.0000001
     route_points_inserted.clear();
     int32_t cond_index = 0;
     double dis_percent_count = 0.0; // 起点到a点的全路百分占比
@@ -461,7 +462,7 @@ void RouteLineLayerManager::insertNodesForTrafficCondition() {
         for(; cond_index < trafficInfo.size(); cond_index++) {
             double dis_percent_count_tmp = dis_percent_count + dis_percent; // 起点到b(a + a->b)点的全路百分占比
             double cond_percent_tmp = trafficInfo[cond_index].percent;  // 路况节点的全路百分占比
-            if(dis_percent_count_tmp >= (cond_percent_tmp-0.0000001)) {
+            if(fabs(dis_percent_count_tmp - cond_percent_tmp) < EPSILON) {
                 double node_percent = (cond_percent_tmp - dis_percent_count) / dis_percent;
                 Point<double> point_insert;
                 point_insert.x = (point2.x - point1.x) * node_percent + point1.x;
