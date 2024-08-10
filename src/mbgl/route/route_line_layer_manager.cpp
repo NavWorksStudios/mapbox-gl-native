@@ -63,7 +63,7 @@ void RouteLineLayerManager::setPuckLocation(const mbgl::LatLng& location) {
 void RouteLineLayerManager::setRouteGeometry(const mapbox::geometry::line_string<double>& line_strings) {
     
     // 保存导航路线的型点数据
-    line_string_unpast = std::move(line_strings);
+    route_points = std::move(line_strings);
     
     // 根据layer manager中的金字塔的tile列表切分型点数据
     
@@ -177,7 +177,7 @@ void RouteLineLayerManager::updateStyle() {
 
 std::unique_ptr<RouteTileData> RouteLineLayerManager::getTileData(const CanonicalTileID& tileID) {
     // #*# 如果没有原始导航数据，直接返回nullptr
-    if (line_string_unpast.empty() && line_string_past.empty())
+    if (route_points.empty() && line_string_past.empty())
         return nullptr;
     // #*# 如果没有导航显示所需的相关layer，直接返回nullptr
     if(!hasRouteLayer || !hasRouteDimmedLayer) {
@@ -295,7 +295,7 @@ void RouteLineLayerManager::updateTileData(const CanonicalTileID& tileID, RouteT
 }
 
 const LineString<double>& RouteLineLayerManager::geometry() const {
-    return line_string_unpast;
+    return route_points;
 }
 
 
@@ -373,6 +373,12 @@ void RouteLineLayerManager::add(const RoutePlanID& id, const SymbolRoutePlan& ro
 
 void RouteLineLayerManager::add(const RoutePlanID& id, const LineRoutePlan& routePlan) {
 
+    // #*# 导航数据或路况数据不合法，直接返回
+    if(routePlan.geometry.size() <= 1)
+        return;
+    if(routePlan.trafficInfo.size() < 1)
+        return;
+    
     // #*# 根据不同id保存导航方案，mainPlan和非mainPlan使用不同配色方案（layer paint property）显示
     // #*# 暂时只处理mainPlan数据解析和显示逻辑
     // 清理之前的tile数据
@@ -380,9 +386,11 @@ void RouteLineLayerManager::add(const RoutePlanID& id, const LineRoutePlan& rout
     planTiles11.clear();
     planTiles6.clear();
     
-    line_string_unpast = routePlan.geometry;
+    route_points = routePlan.geometry;
     trafficInfo = routePlan.trafficInfo;
-    totol_distance = countTotalDistance(line_string_unpast);
+    totol_distance = countTotalDistance(route_points);
+    
+    insertNodesForTrafficCondition();
     
     convertTileData(routePlan, planTiles16, 16);
     convertTileData(routePlan, planTiles11, 11);
@@ -439,6 +447,36 @@ double RouteLineLayerManager::countTotalDistance(LineString<double>& line_string
     return dis;
 }
 
+void RouteLineLayerManager::insertNodesForTrafficCondition() {
+    route_points_inserted.clear();
+    int32_t cond_index = 0;
+    double dis_percent_count = 0.0; // 起点到a点的全路百分占比
+    Point<double> point_start = route_points[0];
+    route_points_inserted.emplace_back(point_start);
+    for(int32_t i = 1; i < route_points.size(); i++) {
+        Point<double> point1 = route_points[i-1];
+        Point<double> point2 = route_points[i];
+        double dis = DistanceHaversine(point1.y, point1.x, point2.y, point2.x);
+        double dis_percent = dis / totol_distance;  // a->b点的全路百分占比
+        for(; cond_index < trafficInfo.size(); cond_index++) {
+            double dis_percent_count_tmp = dis_percent_count + dis_percent; // 起点到b(a + a->b)点的全路百分占比
+            double cond_percent_tmp = trafficInfo[cond_index].percent;  // 路况节点的全路百分占比
+            if(dis_percent_count_tmp >= (cond_percent_tmp-0.0000001)) {
+                double node_percent = (cond_percent_tmp - dis_percent_count) / dis_percent;
+                Point<double> point_insert;
+                point_insert.x = (point2.x - point1.x) * node_percent + point1.x;
+                point_insert.y = (point2.y - point1.y) * node_percent + point1.y;
+                route_points_inserted.emplace_back(point_insert);
+            }
+            else
+                break;
+        }
+        route_points_inserted.emplace_back(point2);
+        dis_percent_count += dis_percent;
+    }
+    cond_index = 0;
+}
+
 void RouteLineLayerManager::convertTileData(const LineRoutePlan& routePlan,
                                             std::unordered_map<nav::stringid, LineRoutePlanTile>& planTiles_,
                                             int8_t zoom) {
@@ -448,7 +486,7 @@ void RouteLineLayerManager::convertTileData(const LineRoutePlan& routePlan,
         default_z = 16;
     
     bool first_point = true;
-    for (Point<double>& point_location : line_string_unpast) {
+    for (Point<double>& point_location : route_points) {
         mbgl::Point<int64_t> point_local;
         CanonicalTileID tileID = latLonToTileID(point_location, point_local, default_z);
         nav::stringid cur_tile_id = nav::stringid(util::toString(tileID));

@@ -38,25 +38,25 @@ using ShapeRoutePlanGeometry = variant<
 
 class TrafficInfo {
 public:
-    int16_t percent;
+    double percent;
     int16_t condition;
 };
 
-class LineRouteTrafficInfo {
-public:
-    std::vector<TrafficInfo> infos;
-};
+//class LineRouteTrafficInfo {
+//public:
+//    std::vector<TrafficInfo> infos;
+//};
 
 class LineRoutePlan {
 public:
     LineRoutePlan(LineString<double> geometry_,
-                  LineRouteTrafficInfo trafficInfo_,
+                  std::vector<TrafficInfo> trafficInfo_,
                   bool mainPlan_ = false)
         : geometry(std::move(geometry_)),
           trafficInfo(std::move(trafficInfo_)),
           mainPlan(mainPlan_) {}
     LineString<double> geometry;
-    LineRouteTrafficInfo trafficInfo;
+    std::vector<TrafficInfo> trafficInfo;
     bool mainPlan;
 };
 

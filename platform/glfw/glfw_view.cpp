@@ -852,19 +852,19 @@ void GLFWView::addRoutePlans() {
     lineString.push_back({ -74.01436, 40.71125 });
     lineString.push_back({ -74.014147, 40.712245 });
     
-    mbgl::LineRouteTrafficInfo info;
-    info.infos.push_back({ 10, 0 });
-    info.infos.push_back({ 20, -1 });
-    info.infos.push_back({ 30, 1 });
-    info.infos.push_back({ 40, 2 });
-    info.infos.push_back({ 50, -2 });
-    info.infos.push_back({ 60, 3 });
-    info.infos.push_back({ 70, 0 });
-    info.infos.push_back({ 80, -3 });
-    info.infos.push_back({ 90, 1 });
-    info.infos.push_back({ 100, 0 });
+    std::vector<mbgl::TrafficInfo> infos;
+    infos.push_back({ 0.10, 0 });
+    infos.push_back({ 0.20, -1 });
+    infos.push_back({ 0.30, 1 });
+    infos.push_back({ 0.40, 2 });
+    infos.push_back({ 0.50, -2 });
+    infos.push_back({ 0.60, 3 });
+    infos.push_back({ 0.70, 0 });
+    infos.push_back({ 0.80, -3 });
+    infos.push_back({ 0.90, 1 });
+    infos.push_back({ 1.0, 0 });
     
-    mbgl::RoutePlanID id = map->addRoutePlans(mbgl::LineRoutePlan(lineString, info, true));
+    mbgl::RoutePlanID id = map->addRoutePlans(mbgl::LineRoutePlan(lineString, infos, true));
 }
 
 void GLFWView::addLineAnnotations(const mbgl::LatLng& tagPosition) {

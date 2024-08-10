@@ -79,11 +79,18 @@ public:
     mapbox::base::WeakPtr<RouteLineLayerManager> makeWeakPtr() { return weakFactory.makeWeakPtr(); }
     
 private:
+    //
     // Dynamic line geometry vector for road conditions
-    mapbox::geometry::line_string<double> line_string_past;     // past
-    mapbox::geometry::line_string<double> line_string_unpast;   // unpast or all, mapbox::geometry::line_string<T>
-    LineRouteTrafficInfo trafficInfo;
+    mapbox::geometry::line_string<double> line_string_past;         // past
+//    mapbox::geometry::line_string<double> line_string_unpast;     // unpast or all, mapbox::geometry::line_string<T>
+    
+    mapbox::geometry::line_string<double> route_points;             // all points of current route plan, mapbox::geometry::line_string<T>
+    mapbox::geometry::line_string<double> route_points_inserted;    // route_points inserted traffic node point
+    std::vector<TrafficInfo> trafficInfo;
     double totol_distance = 0.0;
+    
+    bool updateRoute = false;
+    bool updateTrafficInfo = false;
     
     bool hasRouteLayer = false;
     bool hasRouteDimmedLayer = false;
@@ -125,6 +132,7 @@ private:
     mbgl::Point<int64_t> latLonToTileCoodinates(const mbgl::Point<int64_t>& point, mbgl::CanonicalTileID& canonical);
     Point<int64_t> intersectPoint(const LineString<int64_t>& line_, const CanonicalTileID& tileID);
     
+    void insertNodesForTrafficCondition();
     void convertTileData(const LineRoutePlan& routePlan, std::unordered_map<nav::stringid, LineRoutePlanTile>& planTiles_, int8_t zoom = 16);
     double countTotalDistance(LineString<double>& line_string_);
 };
