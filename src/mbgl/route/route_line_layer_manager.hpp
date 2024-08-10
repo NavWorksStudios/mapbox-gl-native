@@ -85,8 +85,9 @@ private:
 //    mapbox::geometry::line_string<double> line_string_unpast;     // unpast or all, mapbox::geometry::line_string<T>
     
     mapbox::geometry::line_string<double> route_points;             // all points of current route plan, mapbox::geometry::line_string<T>
-    mapbox::geometry::line_string<double> route_points_inserted;    // route_points inserted traffic node point
     std::vector<TrafficInfo> trafficInfo;
+    mapbox::geometry::line_string<double> route_points_inserted;    // route_points inserted traffic node point
+    std::vector<int16_t> route_conds_inserted;
     double totol_distance = 0.0;
     
     bool updateRoute = false;
