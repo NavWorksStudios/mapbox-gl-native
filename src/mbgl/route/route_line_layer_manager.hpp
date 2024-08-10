@@ -83,7 +83,7 @@ private:
     mapbox::geometry::line_string<double> line_string_past;     // past
     mapbox::geometry::line_string<double> line_string_unpast;   // unpast or all, mapbox::geometry::line_string<T>
     LineRouteTrafficInfo trafficInfo;
-    int64_t totol_distance = 0;
+    double totol_distance = 0.0;
     
     bool hasRouteLayer = false;
     bool hasRouteDimmedLayer = false;
@@ -126,7 +126,7 @@ private:
     Point<int64_t> intersectPoint(const LineString<int64_t>& line_, const CanonicalTileID& tileID);
     
     void convertTileData(const LineRoutePlan& routePlan, std::unordered_map<nav::stringid, LineRoutePlanTile>& planTiles_, int8_t zoom = 16);
-    int64_t countTotolDistance(LineString<double>& line_string_);
+    double countTotalDistance(LineString<double>& line_string_);
 };
 
 //}

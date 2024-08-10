@@ -382,7 +382,7 @@ void RouteLineLayerManager::add(const RoutePlanID& id, const LineRoutePlan& rout
     
     line_string_unpast = routePlan.geometry;
     trafficInfo = routePlan.trafficInfo;
-    totol_distance = countTotolDistance(line_string_unpast);
+    totol_distance = countTotalDistance(line_string_unpast);
     
     convertTileData(routePlan, planTiles16, 16);
     convertTileData(routePlan, planTiles11, 11);
@@ -408,7 +408,7 @@ double DistanceHaversine_bak(double lat1, double lon1, double lat2, double lon2)
     return distance;
 }
 
-double DistanceHaversine(double lat1, double lon1, double lat2, double lon2)
+double DistanceHaversine(double lat1, double lon1, double lat2, double lon2, int16_t prec = 100, int16_t factor = 1000)
 {
     static const double EARTH_RADIUS = 6371.0;//km 地球半径 平均值，千米
     //用haversine公式计算球面两点间的距离。
@@ -422,11 +422,11 @@ double DistanceHaversine(double lat1, double lon1, double lat2, double lon2)
     double vLat = fabs(lat1 - lat2);
     //h is the great circle distance in radians, great circle就是一个球体上的切面，它的圆心即是球心的一个周长最大的圆。
     double h = pow(sin(vLat / 2), 2) + cos(lat1) * cos(lat2) * pow(sin(vLon / 2), 2);
-    double distance = 2 * EARTH_RADIUS * asin(sqrt(h));
+    double distance = round(2 * EARTH_RADIUS * asin(sqrt(h)) * factor * prec) / prec;
     return distance;
 }
 
-int64_t RouteLineLayerManager::countTotolDistance(LineString<double>& line_string_) {
+double RouteLineLayerManager::countTotalDistance(LineString<double>& line_string_) {
     double dis = 0;
     if(line_string_.size() <= 1)
         return 0;
