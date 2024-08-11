@@ -390,7 +390,7 @@ void RouteLineLayerManager::add(const RoutePlanID& id, const LineRoutePlan& rout
     trafficInfo = routePlan.trafficInfo;
     totol_distance = countTotalDistance(route_points);
     
-    insertNodesForTrafficCondition();
+    insertNodesForTrafficCondition(routePlan);
     
     convertTileData(routePlan, planTiles16, 16);
     convertTileData(routePlan, planTiles11, 11);
@@ -447,26 +447,29 @@ double RouteLineLayerManager::countTotalDistance(LineString<double>& line_string
     return dis;
 }
 
-void RouteLineLayerManager::insertNodesForTrafficCondition() {
+void RouteLineLayerManager::insertNodesForTrafficCondition(const LineRoutePlan& routePlan) {
     #define EPSILON 0.0000001
     route_points_inserted.clear();
     route_conds_inserted.clear();
     
+    const LineString<double>& route_points_ = routePlan.geometry;
+    const std::vector<TrafficInfo>& trafficInfo_ = routePlan.trafficInfo;
+    
     double dis_percent_count = 0.0; // 起点到a点的全路百分占比
-    Point<double> point_start = route_points[0];
+    Point<double> point_start = route_points_[0];
     route_points_inserted.emplace_back(point_start);
     int32_t cond_index = 0;
     int16_t current_cond = 0;
     route_conds_inserted.emplace_back(current_cond);   // 路况详细信息首位，默认填充为标准状态
-    for(int32_t i = 1; i < route_points.size(); i++) {
-        Point<double> point1 = route_points[i-1];
-        Point<double> point2 = route_points[i];
+    for(int32_t i = 1; i < route_points_.size(); i++) {
+        Point<double> point1 = route_points_[i-1];
+        Point<double> point2 = route_points_[i];
         double dis = DistanceHaversine(point1.y, point1.x, point2.y, point2.x);
         double dis_percent = dis / totol_distance;  // a->b点的全路百分占比
         for(; cond_index < trafficInfo.size(); cond_index++) {
             double dis_percent_count_tmp = dis_percent_count + dis_percent; // 起点到b(a + a->b)点的全路百分占比
-            double cond_percent_tmp = trafficInfo[cond_index].percent;  // 路况节点的全路百分占比
-            current_cond = trafficInfo[cond_index].condition;
+            double cond_percent_tmp = trafficInfo_[cond_index].percent;  // 路况节点的全路百分占比
+            current_cond = trafficInfo_[cond_index].condition;
             if(fabs(dis_percent_count_tmp - cond_percent_tmp) < EPSILON) {  // 累加路程==某个路况节点百分比
                 cond_index++;
                 break;
@@ -487,6 +490,7 @@ void RouteLineLayerManager::insertNodesForTrafficCondition() {
         route_conds_inserted.emplace_back(current_cond);
         dis_percent_count += dis_percent;
     }
+    // #*# for debug breakpoint
     cond_index = 0;
 }
 
@@ -499,7 +503,7 @@ void RouteLineLayerManager::convertTileData(const LineRoutePlan& routePlan,
         default_z = 16;
     
     bool first_point = true;
-    for (Point<double>& point_location : route_points) {
+    for (Point<double>& point_location : route_points_inserted) {
         mbgl::Point<int64_t> point_local;
         CanonicalTileID tileID = latLonToTileID(point_location, point_local, default_z);
         nav::stringid cur_tile_id = nav::stringid(util::toString(tileID));

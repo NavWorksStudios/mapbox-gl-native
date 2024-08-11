@@ -133,7 +133,7 @@ private:
     mbgl::Point<int64_t> latLonToTileCoodinates(const mbgl::Point<int64_t>& point, mbgl::CanonicalTileID& canonical);
     Point<int64_t> intersectPoint(const LineString<int64_t>& line_, const CanonicalTileID& tileID);
     
-    void insertNodesForTrafficCondition();
+    void insertNodesForTrafficCondition(const LineRoutePlan&);
     void convertTileData(const LineRoutePlan& routePlan, std::unordered_map<nav::stringid, LineRoutePlanTile>& planTiles_, int8_t zoom = 16);
     double countTotalDistance(LineString<double>& line_string_);
 };
