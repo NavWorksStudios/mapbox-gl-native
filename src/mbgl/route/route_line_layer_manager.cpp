@@ -503,21 +503,23 @@ void RouteLineLayerManager::convertTileData(const LineRoutePlan& routePlan,
         default_z = 16;
     
     bool first_point = true;
-    for (Point<double>& point_location : route_points_inserted) {
+    int16_t point_index = 0;
+    for (auto& point_location : route_points_inserted) {
+        int16_t condition = route_conds_inserted[point_index];
         mbgl::Point<int64_t> point_local;
         CanonicalTileID tileID = latLonToTileID(point_location, point_local, default_z);
         nav::stringid cur_tile_id = nav::stringid(util::toString(tileID));
         // 建立新的tile
         if(first_point) {
             LineRoutePlanTile tile(tileID);
-            tile.addPoint(point_local, true);
+            tile.addPoint(point_local, condition, true);
             first_point = false;
             planTiles_.emplace(cur_tile_id, tile);
         }
         else {
             if(cur_tile_id == last_tile_id) {
                 auto last_tile = planTiles_.find(last_tile_id);
-                last_tile->second.addPoint(point_local);
+                last_tile->second.addPoint(point_local, condition);
             }
             else {
                 // 需要计算两点的连接线与tile边界的交点，以交点对两个tile进行补点处理
@@ -529,17 +531,18 @@ void RouteLineLayerManager::convertTileData(const LineRoutePlan& routePlan,
                 mbgl::Point<int64_t> tmp_point = intersectPoint(tmp_line, tileID);
                 // 在上一个tile末尾补点
                 auto last_tile = planTiles_.find(last_tile_id);
-                last_tile->second.addPoint(point_local);
+                last_tile->second.addPoint(point_local, condition);
                 // 在新tile首位补点
                 LineRoutePlanTile tile(tileID);
-                tile.addPoint(last_point, true);
-                tile.addPoint(point_local);
+                tile.addPoint(last_point, condition, true);
+                tile.addPoint(point_local, condition);
                 planTiles_.emplace(cur_tile_id, tile);
             }
         }
         last_tileID = &tileID;
         last_tile_id = cur_tile_id;
         last_point = point_local;
+        point_index++;
     }
     
     // #*# 当前planTiles中的全部坐标为zoom16下tile{0,0}的坐标，需要将全部坐标转换为对应tiled内的局部坐标
