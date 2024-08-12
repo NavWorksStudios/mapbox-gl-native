@@ -94,6 +94,30 @@ void LineBucket::addFeature(const GeometryTileFeature& feature,
     }
 }
 
+void LineBucket::addFeature(const GeometryTileFeature& feature,
+                            const GeometryCollection& geometryCollection,
+                            const std::vector<std::vector<int16_t>>& conditions,
+                            const ImagePositions& patternPositions,
+                            const PatternLayerMap& patternDependencies,
+                            std::size_t index,
+                            const CanonicalTileID& canonical) {
+    
+    // 遍历所有线
+    for (auto& line : geometryCollection) {
+        addGeometry(line, feature, canonical, {true, true});
+    }
+    
+    for (auto& pair : paintPropertyBinders) {
+        const auto it = patternDependencies.find(pair.first);
+        if (it != patternDependencies.end()){
+            pair.second.populateVertexVectors(
+                feature, vertices.elements(), index, patternPositions, it->second, canonical);
+        } else {
+            pair.second.populateVertexVectors(feature, vertices.elements(), index, patternPositions, {}, canonical);
+        }
+    }
+}
+
 /*
  * Sharp corners cause dashed lines to tilt because the distance along the line
  * is the same at both the inner and outer corners. To improve the appearance of

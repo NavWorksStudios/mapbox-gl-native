@@ -185,17 +185,7 @@ std::unique_ptr<RouteTileData> RouteLineLayerManager::getTileData(const Canonica
     }
 
     auto tileData = std::make_unique<RouteTileData>();
-
     auto pointLayer = tileData->addLayer(RouteSourceID);
-
-    // #*# 基于经纬坐标的地理围栏，未来可能有用
-//    LatLngBounds tileBounds(tileID);
-//    // Hack for https://github.com/mapbox/mapbox-gl-native/issues/12472
-//    // To handle precision issues, query a slightly larger area than the tile bounds
-//    // Symbols at a border can be included in vector data for both tiles
-//    // The rendering/querying logic will make sure the symbols show up in only one of the tiles
-//    tileBounds.extend(LatLng(tileBounds.south() - 0.000000001, tileBounds.west() - 0.000000001));
-//    tileBounds.extend(LatLng(tileBounds.north() + 0.000000001, tileBounds.east() + 0.000000001));
     
     // #*# 未来可能添加路况插标图
 //    symbolTree.query(boost::geometry::index::intersects(tileBounds),
@@ -208,7 +198,6 @@ std::unique_ptr<RouteTileData> RouteLineLayerManager::getTileData(const Canonica
 //        shape.second->updateTileData(tileID, *tileData);
 //    }
     updateTileData(tileID, *tileData);
-
     return tileData;
 }
 
@@ -239,20 +228,26 @@ void RouteLineLayerManager::updateTileData(const CanonicalTileID& tileID, RouteT
     ToFeatureType toFeatureType;
     FeatureType featureType = FeatureType::LineString;
     GeometryCollection renderGeometry;
+    std::vector<std::vector<int16_t>> conditions;
     for(auto& segment : plan_tile->second.segments) {
         GeometryCoordinates points;
+        std::vector<int16_t> seg_conditions;
+        int16_t index = 0;
         for (auto& point : segment.points) {
             points.push_back(Point<int16_t>{static_cast<int16_t>(point.x), static_cast<int16_t>(point.y)});
+            seg_conditions.push_back(segment.conditions[index]);
+            index++;
         }
         renderGeometry.push_back(points);
+        conditions.push_back(seg_conditions);
     }
     
-    // #*# id
-    layer->addFeature(1, featureType, renderGeometry);
+    // #*# id = 1，未来需要根据逻辑调增
+    layer->addFeature(1, featureType, renderGeometry, conditions);
     
-    // #*# 原逻辑，将废弃
     return;
-#if 0
+    
+#if 0 // #*# 原逻辑，将废弃
     static const double baseTolerance = 4;
     if (!shapeTiler) {
         mapbox::feature::feature_collection<double> features;
@@ -272,7 +267,6 @@ void RouteLineLayerManager::updateTileData(const CanonicalTileID& tileID, RouteT
     const auto& shapeTile = shapeTiler->getTile(tileID.z, tileID.x, tileID.y);
     if (shapeTile.features.empty())
         return;
-
     auto layer = data.addLayer(RouteShapeLayerID);
 
     ToGeometryCollection toGeometryCollection;
@@ -280,15 +274,11 @@ void RouteLineLayerManager::updateTileData(const CanonicalTileID& tileID, RouteT
     for (const auto& shapeFeature : shapeTile.features) {
         FeatureType featureType = apply_visitor(toFeatureType, shapeFeature.geometry);
         GeometryCollection renderGeometry = apply_visitor(toGeometryCollection, shapeFeature.geometry);
-
         assert(featureType != FeatureType::Unknown);
-
         // https://github.com/mapbox/geojson-vt-cpp/issues/44
         if (featureType == FeatureType::Polygon) {
             renderGeometry = fixupPolygons(renderGeometry);
         }
-
-        // #*# id
         layer->addFeature(1, featureType, renderGeometry);
     }
 #endif
@@ -441,7 +431,6 @@ double RouteLineLayerManager::countTotalDistance(LineString<double>& line_string
     for(int32_t i = 1; i < line_string_.size(); i++) {
         Point<double> point1 = line_string_[i-1];
         Point<double> point2 = line_string_[i];
-//        dis += DistanceHaversine_bak(point1.y, point1.x, point2.y, point2.x);
         dis += DistanceHaversine(point1.y, point1.x, point2.y, point2.x);
     }
     return dis;
@@ -555,6 +544,8 @@ void RouteLineLayerManager::convertTileData(const LineRoutePlan& routePlan,
             }
         }
     }
+    // #*# for debug breakpoint
+    point_index = 0;
 }
 
 // #*# 未来大概率无效需废弃

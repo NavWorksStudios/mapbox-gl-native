@@ -29,9 +29,11 @@ class LineRoutePlanSegment {    // #*# 同一tile下的一段连续点
 public:
     std::vector<LineRoutePlanLink> links;  // every link is needed for diff condition
     LineString<int64_t> points;
+    std::vector<int16_t> conditions;
 public:
     void addPoint(mbgl::Point<int64_t>& point_, int16_t condition_ = 0) {
         points.emplace_back(point_);
+        conditions.emplace_back(condition_);
         
         if(links.size() == 0) {
             LineRoutePlanLink link(condition_);

@@ -424,7 +424,9 @@ void GeometryTileWorker::parse() {
                 if (!filter(expression::EvaluationContext(e)))
                     continue;
 
+                // #*#*# 此处需要添加route line condition的逻辑
                 const GeometryCollection& geometries = feature->getGeometries();
+                const std::vector<std::vector<int16_t>>& conditions = feature->getConditions();
                 bucket->addFeature(*feature, geometries, {}, PatternLayerMap(), i, id.canonical);
                 featureIndex->insert(geometries, i, sourceLayerID, leaderImpl.id);
             }

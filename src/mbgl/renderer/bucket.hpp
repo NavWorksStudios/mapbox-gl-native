@@ -43,6 +43,14 @@ public:
                             const PatternLayerMap&,
                             std::size_t,
                             const CanonicalTileID&){};
+    
+    virtual void addFeature(const GeometryTileFeature&,
+                            const GeometryCollection&,
+                            const std::vector<std::vector<int16_t>>&,
+                            const ImagePositions&,
+                            const PatternLayerMap&,
+                            std::size_t,
+                            const CanonicalTileID&){};
 
     virtual void update(const FeatureStates&, const GeometryTileLayer&, const nav::stringid&, const ImagePositions&) {}
 

@@ -31,6 +31,14 @@ public:
                     const PatternLayerMap&,
                     std::size_t,
                     const CanonicalTileID&) override;
+    
+    void addFeature(const GeometryTileFeature&,
+                    const GeometryCollection&,
+                    const std::vector<std::vector<int16_t>>&,
+                    const ImagePositions&,
+                    const PatternLayerMap&,
+                    std::size_t,
+                    const CanonicalTileID&) override;
 
     bool hasData() const override;
 

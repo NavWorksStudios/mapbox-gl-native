@@ -243,9 +243,12 @@ public:
                     std::unique_ptr<GeometryTileFeature> feature = std::move(patternFeature.feature);
                     const PatternLayerMap& patterns = patternFeature.patterns;
                     const GeometryCollection& geometries = feature->getGeometries();
+                    // #*#*# 此处需要添加route line condition的逻辑
+                    const std::vector<std::vector<int16_t>>& conditions = feature->getConditions();
 
                     bucket->layerHeight = nav::layer::getHeight(bucketLeaderID.get());
-                    bucket->addFeature(*feature, geometries, patternPositions, patterns, i, canonical);
+//                    bucket->addFeature(*feature, geometries, patternPositions, patterns, i, canonical);
+                    bucket->addFeature(*feature, geometries, conditions, patternPositions, patterns, i, canonical);
                     featureIndex->insert(geometries, i, sourceLayerID, bucketLeaderID);
                 }
             }
