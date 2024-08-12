@@ -216,13 +216,13 @@ varying lowp vec2 v_texture_pos;
 // -------------- color flow ---------------
         
 float spot_light(vec2 uv, vec2 C, float r, float b) {
-    return clamp(.2 / clamp(length(uv-C)-r, 0., 1.), 0., b) * .3;
+    return clamp(.2 / clamp(length(uv-C)-r, 0., 1.), 0., b) * .2;
 }
 
 vec3 color_flow(lowp vec2 fragCoord, lowp vec2 resolution) {
     lowp float time = u_render_time * .01;
     lowp vec2 uv = (fragCoord*2. - resolution.xy) / resolution.y;
-    lowp vec3 rgb = cos(time * 31. + uv.xyx + vec3(1.0,2.0,4.0)) * .3;
+    lowp vec3 rgb = cos(time * 31. + uv.xyx + vec3(1.0,2.0,4.0)) * .2;
 
     lowp vec3 spots;
     for(int i = 0; i < 10; i++){
@@ -332,7 +332,7 @@ void main() {
             lowp float fadeout=clamp(1.-distance/(u_focus_region*.3),0.,u_spotlight);
             fadeout=pow(fadeout,3.);
 
-            vec3 colorflow=color_flow(gl_FragCoord.xy,vec2(2000.));
+            vec3 colorflow=color_flow(gl_FragCoord.xy,vec2(3000.));
             gl_FragColor.rgb=mix(color.rgb,colorflow,fadeout)*opacity; // 距离屏幕中心点越近，越亮
             gl_FragColor.a=color.a*opacity;
 
@@ -344,8 +344,8 @@ void main() {
 
     }
 
-    lowp float radial_fadeout=1.-min(distance/u_clip_region,1.)*.3;
-    gl_FragColor.rgb *= radial_fadeout;
+    lowp float radial_fadeout=min(distance/(u_clip_region*2.),1.)*.2;
+    gl_FragColor.rgb-=radial_fadeout;
         
 #ifdef OVERDRAW_INSPECTOR
     gl_FragColor=vec4(1.0);
