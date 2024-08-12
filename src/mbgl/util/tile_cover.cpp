@@ -347,7 +347,7 @@ void tileCover(std::vector<UnwrappedTileID>& ids, const Geometry<double>& geomet
         ids.push_back(*tc.next());
     };
 
-    return ids;
+//    return ids;
 }
 
 // Taken from https://github.com/mapbox/sphericalmercator#xyzbbox-zoom-tms_style-srs
