@@ -311,6 +311,8 @@ set(all_files
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.layer.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.style.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.style.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.hsla.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.hsla.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.palette.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.palette.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.theme.hpp

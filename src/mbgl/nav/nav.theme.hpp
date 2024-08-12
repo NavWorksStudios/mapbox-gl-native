@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "mbgl/nav/nav.hsla.hpp"
 #include "mbgl/nav/nav.stringid.hpp"
 #include <string>
 
@@ -15,7 +16,7 @@ namespace theme {
 
 const std::string& style();
 bool needsUpdate();
-bool isStylibleColor(const std::string& uri);
+std::tuple<Hsla,bool> colorProperty(const std::string& uri, Hsla color);
 bool enableLayerMonoPalette(const nav::stringid& layer);
 
 }
