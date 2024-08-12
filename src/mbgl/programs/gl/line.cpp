@@ -273,19 +273,17 @@ struct ShaderSource<LineProgram> {
     #ifdef HAS_UNIFORM_u_opacity
         lowp float opacity=u_opacity;
     #endif
-    
-        // zoom越小，会亮一些 [1, 1.44]
-        lowp float brightness=1.+(22.-u_zoom)*.02;
-        // 开灯，提亮
-        brightness*=.7+.3*u_spotlight;
 
-        // 越中心越亮 [1, 0]
-        lowp float radius=u_focus_region*(1.-.9*u_spotlight); // 开灯，光圈缩小
+        // 中心，亮 [1, 0]
+        lowp float radius=u_focus_region*.4*(1.-.8*u_spotlight); // 开灯，光圈缩小
         lowp float distance=pow(v_pos.x,2.)+pow(v_pos.y,2.);
-        lowp float radial_fadeout=1.-min(distance/radius,1.);
-        radial_fadeout=pow(radial_fadeout,2.);
-        color.rgb*=.7+brightness*radial_fadeout;
+        lowp float radial_fadeout=1.4-min(distance/radius,1.);
     
+        // zoom小，亮 [1.2, 1.44]
+        lowp float brightness=1.2+(22.-u_zoom)*.01;
+        color.rgb*=(brightness+u_spotlight*.5)*radial_fadeout; // 开灯，提亮
+    
+        // 远处，透
         radius=u_focus_region*20.;
         distance=pow(v_pos.x,2.)+pow(v_pos.z,2.);
         radial_fadeout=1.-min(distance/radius,1.);
