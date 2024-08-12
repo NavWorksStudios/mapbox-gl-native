@@ -182,14 +182,14 @@ struct ShaderSource<FillExtrusionProgram> {
             color+=ambientlight;
 
             // mix color
-            v_color.r=clamp(color.r*directional*u_lightcolor.r, 0.3*(1.0-u_lightcolor.r), 1.25);
-            v_color.g=clamp(color.g*directional*u_lightcolor.g, 0.3*(1.0-u_lightcolor.g), 1.25);
-            v_color.b=clamp(color.b*directional*u_lightcolor.b, 0.3*(1.0-u_lightcolor.b), 1.25);
+            v_color.r=clamp(color.r*directional*u_lightcolor.r, 0.3*(1.0-u_lightcolor.r), 1.);
+            v_color.g=clamp(color.g*directional*u_lightcolor.g, 0.3*(1.0-u_lightcolor.g), 1.);
+            v_color.b=clamp(color.b*directional*u_lightcolor.b, 0.3*(1.0-u_lightcolor.b), 1.);
             v_color.a=1.;
     
             // 远近透明
             lowp float radial_fadeout=clamp((1.-distance/u_clip_region)*2.,0.,1.);
-            v_color*=u_opacity*radial_fadeout*(u_render_reflection?.1:.9);
+            v_color*=u_opacity*radial_fadeout*(u_render_reflection?.2:.9);
 
             // ----------------------------- building detail -----------------------------
     
@@ -203,14 +203,14 @@ struct ShaderSource<FillExtrusionProgram> {
             // |_____| 1.0
             //
             lowp float tall=abs(height-base);
-            v_top_edge=1.-min(300.,tall*1.4)/tall;
-            v_bottom_edge=min(20.,tall*.6)/tall;
+            v_top_edge=1.-min(300./tall,1.2);
+            v_bottom_edge=min(20./tall,.6);
             v_height=h?1.:0.;
 
             // point light in fragment shader
             const lowp vec3 cameraPos=vec3(0.,500.,0.);
             const lowp vec3 lightPos=vec3(0.,1000.,2000.);
-            const lowp float specular=1.; // 镜面反射强度
+            const lowp float specular=1.5; // 镜面反射强度
             const lowp float shininess=1.; // 反光度
             lowp vec3 lightDir=normalize(gl_Position.xyz-lightPos);
             lowp vec3 viewDir=normalize(cameraPos-gl_Position.xyz);
@@ -256,22 +256,27 @@ struct ShaderSource<FillExtrusionProgram> {
             if (v_color.a > 0.) {
                 lowp float brighten=v_specular; // 楼顶 镜面反射
                 if (v_height<1.) { // 楼体发光
-                    brighten=max((v_height-v_top_edge)/(1.-v_top_edge), // 上边缘发光
-                                 (1.-v_height/v_bottom_edge)); // 下边缘发光
-                    brighten=pow(brighten,4.);
+                    brighten=max(
+                        (v_height-v_top_edge)/(1.-v_top_edge), // 上边缘
+                        (1.-v_height/v_bottom_edge) // 下边缘
+                    );
                 }
+                brighten = pow(brighten,3.);
+//                brighten = pow(brighten,2.);
 
-                // 聚光灯透明，距离屏幕中心点越近越透明。聚光灯不开为1
-                // u_spotlight=0，[1,1], u_spotlight>0，[1,.2]
-                lowp float radial_spotlight_alpha = 1.;
+                // 如果开聚光灯，屏幕中心透明
+                lowp float radial_alpha = 1.;
                 if (u_spotlight > 0.) {
-                    lowp float distance=pow(v_pos.x,2.)+pow(v_pos.y,2.);
-                    radial_spotlight_alpha = clamp(4.*distance/u_focus_region+.1,1.-u_spotlight,1.);
+                    lowp float distance=pow(v_pos.x,2.)+pow(v_pos.z,2.);
+                    radial_alpha=clamp(distance/u_focus_region+.1,1.-u_spotlight,1.);
                 }
 
-                gl_FragColor.rgb=v_color.rgb+brighten;
-                gl_FragColor.a=1.;
-                gl_FragColor*=v_color.a*radial_spotlight_alpha;
+                gl_FragColor.rgb=v_color.rgb*(.8+brighten);
+                gl_FragColor.a=v_color.a;
+                gl_FragColor*=radial_alpha;
+//                gl_FragColor.rgb=v_color.rgb+brighten;
+//                gl_FragColor.a=1.;
+//                gl_FragColor*=v_color.a*radial_alpha;
             }
         
         #ifdef OVERDRAW_INSPECTOR
