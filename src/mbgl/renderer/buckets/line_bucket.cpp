@@ -96,7 +96,7 @@ void LineBucket::addFeature(const GeometryTileFeature& feature,
 
 void LineBucket::addFeature(const GeometryTileFeature& feature,
                             const GeometryCollection& geometryCollection,
-                            const std::vector<std::vector<int16_t>>& conditions,
+                            const std::vector<int16_t>& conditions,
                             const ImagePositions& patternPositions,
                             const PatternLayerMap& patternDependencies,
                             std::size_t index,
@@ -104,7 +104,7 @@ void LineBucket::addFeature(const GeometryTileFeature& feature,
     
     // 遍历所有线
     for (auto& line : geometryCollection) {
-        addGeometry(line, feature, canonical, {true, true});
+        addGeometry(line, feature, canonical, {true, true}, conditions);
     }
     
     for (auto& pair : paintPropertyBinders) {
@@ -171,7 +171,8 @@ private:
 void LineBucket::addGeometry(const GeometryCoordinates& coordinates,
                              const GeometryTileFeature& feature,
                              const CanonicalTileID& canonical,
-                             const IsTermination& isTermination) {
+                             const IsTermination& isTermination,
+                             const std::vector<int16_t>& conditions) {
     
     const FeatureType type = feature.getType();
 

@@ -46,7 +46,7 @@ public:
     
     virtual void addFeature(const GeometryTileFeature&,
                             const GeometryCollection&,
-                            const std::vector<std::vector<int16_t>>&,
+                            const std::vector<int16_t>&,
                             const ImagePositions&,
                             const PatternLayerMap&,
                             std::size_t,

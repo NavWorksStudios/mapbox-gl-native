@@ -32,7 +32,7 @@ public:
     optional<Value> getValue(const std::string&) const override;
     FeatureIdentifier getID() const override;
     const GeometryCollection& getGeometries() const override;
-    const std::vector<std::vector<int16_t>>& getConditions() const override;
+    const std::vector<int16_t>& getConditions() const override;
 
 private:
     std::shared_ptr<const RouteTileFeatureData> data;
@@ -51,7 +51,7 @@ public:
     void addFeature(RoutePlanID,
                     FeatureType,
                     GeometryCollection,
-                    std::vector<std::vector<int16_t>>,
+                    std::vector<int16_t>,
                     std::unordered_map<std::string, std::string> properties = {{}});
 
 private:

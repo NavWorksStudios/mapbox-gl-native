@@ -244,7 +244,7 @@ public:
                     const PatternLayerMap& patterns = patternFeature.patterns;
                     const GeometryCollection& geometries = feature->getGeometries();
                     // #*#*# 此处需要添加route line condition的逻辑
-                    const std::vector<std::vector<int16_t>>& conditions = feature->getConditions();
+                    const std::vector<int16_t>& conditions = feature->getConditions();
 
                     bucket->layerHeight = nav::layer::getHeight(bucketLeaderID.get());
 //                    bucket->addFeature(*feature, geometries, patternPositions, patterns, i, canonical);

@@ -34,7 +34,7 @@ public:
     
     void addFeature(const GeometryTileFeature&,
                     const GeometryCollection&,
-                    const std::vector<std::vector<int16_t>>&,
+                    const std::vector<int16_t>&,
                     const ImagePositions&,
                     const PatternLayerMap&,
                     std::size_t,
@@ -65,7 +65,12 @@ public:
 
 private:
     using IsTermination = std::array<bool, 2>;
-    void addGeometry(const GeometryCoordinates&, const GeometryTileFeature&, const CanonicalTileID&, const IsTermination&);
+    
+    void addGeometry(const GeometryCoordinates&,
+                     const GeometryTileFeature&,
+                     const CanonicalTileID&,
+                     const IsTermination&,
+                     const std::vector<int16_t>& conditions = std::vector<int16_t>());
 
     struct TriangleElement {
         TriangleElement(uint16_t a_, uint16_t b_, uint16_t c_) : a(a_), b(b_), c(c_) {}

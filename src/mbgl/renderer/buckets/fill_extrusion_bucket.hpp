@@ -32,7 +32,7 @@ public:
                     const CanonicalTileID&) override;
     void addFeature(const GeometryTileFeature& feature,
                     const GeometryCollection& geometryCollection,
-                    const std::vector<std::vector<int16_t>>& conditions,
+                    const std::vector<int16_t>& conditions,
                     const ImagePositions& patternPositions,
                     const PatternLayerMap& patternDependencies,
                     std::size_t index,
