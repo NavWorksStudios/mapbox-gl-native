@@ -103,9 +103,19 @@ void LineBucket::addFeature(const GeometryTileFeature& feature,
                             const CanonicalTileID& canonical) {
     
     // 遍历所有线
-    for (auto& line : geometryCollection) {
-        addGeometry(line, feature, canonical, {true, true}, conditions);
+    if(conditions.size() > 0 && conditions.size() == geometryCollection.size()) {
+        int16_t index_condtion = 0;
+        for (auto& line : geometryCollection) {
+            addGeometry(line, feature, canonical, {true, true}, conditions[index_condtion]);
+            index_condtion++;
+        }
     }
+    else {
+        for (auto& line : geometryCollection) {
+            addGeometry(line, feature, canonical, {true, true}, 0);
+        }
+    }
+    
     
     for (auto& pair : paintPropertyBinders) {
         const auto it = patternDependencies.find(pair.first);
@@ -172,7 +182,7 @@ void LineBucket::addGeometry(const GeometryCoordinates& coordinates,
                              const GeometryTileFeature& feature,
                              const CanonicalTileID& canonical,
                              const IsTermination& isTermination,
-                             const std::vector<int16_t>& conditions) {
+                             const int16_t condition) {
     
     const FeatureType type = feature.getType();
 

@@ -70,7 +70,7 @@ private:
                      const GeometryTileFeature&,
                      const CanonicalTileID&,
                      const IsTermination&,
-                     const std::vector<int16_t>& conditions = std::vector<int16_t>());
+                     const int16_t condition = 0);
 
     struct TriangleElement {
         TriangleElement(uint16_t a_, uint16_t b_, uint16_t c_) : a(a_), b(b_), c(c_) {}
