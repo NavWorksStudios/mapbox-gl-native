@@ -231,15 +231,19 @@ void RouteLineLayerManager::updateTileData(const CanonicalTileID& tileID, RouteT
     std::vector<int16_t> conditions;
 //    std::vector<std::vector<int16_t>> conditions;
     for(auto& segment : plan_tile->second.segments) {
+#if 0   // #*# 旧逻辑，可能还原
         int16_t index = 0;
-        // #*# 旧逻辑，可能还原
-//        GeometryCoordinates points;
-//        std::vector<int16_t> seg_conditions;
-//        for (auto& point : segment.points) {
-//            points.push_back(Point<int16_t>{static_cast<int16_t>(point.x), static_cast<int16_t>(point.y)});
+        GeometryCoordinates points;
+        std::vector<int16_t> seg_conditions;
+        for (auto& point : segment.points) {
+            points.push_back(Point<int16_t>{static_cast<int16_t>(point.x), static_cast<int16_t>(point.y)});
 //            seg_conditions.push_back(segment.conditions[index]);
-//            index++;
-//        }
+            index++;
+        }
+        renderGeometry.push_back(points);
+//        conditions.push_back(seg_conditions);
+#endif
+#if 1
         std::vector<int16_t> seg_conditions;
         for (auto& link : segment.links) {
             GeometryCoordinates points;
@@ -249,8 +253,7 @@ void RouteLineLayerManager::updateTileData(const CanonicalTileID& tileID, RouteT
             renderGeometry.push_back(points);
             conditions.push_back(link.condition);
         }
-//        renderGeometry.push_back(points);
-//        conditions.push_back(seg_conditions);
+#endif
     }
     
     // #*# id = 1，未来需要根据逻辑调增
@@ -552,6 +555,12 @@ void RouteLineLayerManager::convertTileData(const LineRoutePlan& routePlan,
             for (auto& point : segment.points) {
                 point.x = point.x - tileID.x * mbgl::util::EXTENT;
                 point.y = point.y - tileID.y * mbgl::util::EXTENT;
+            }
+            for(auto& link : segment.links) {
+                for (auto& point : link.points) {
+                    point.x = point.x - tileID.x * mbgl::util::EXTENT;
+                    point.y = point.y - tileID.y * mbgl::util::EXTENT;
+                }
             }
         }
     }

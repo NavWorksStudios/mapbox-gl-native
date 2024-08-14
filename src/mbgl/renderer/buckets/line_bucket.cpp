@@ -116,7 +116,6 @@ void LineBucket::addFeature(const GeometryTileFeature& feature,
         }
     }
     
-    
     for (auto& pair : paintPropertyBinders) {
         const auto it = patternDependencies.find(pair.first);
         if (it != patternDependencies.end()){
