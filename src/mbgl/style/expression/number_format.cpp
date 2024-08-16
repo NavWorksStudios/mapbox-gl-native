@@ -70,11 +70,12 @@ EvaluationResult NumberFormat::evaluate(const EvaluationContext& params) const {
     }
 
     std::string output;
-    output = platform::formatNumber(evaluatedNumber,
-                                    evaluatedLocale,
-                                    evaluatedCurrency,
-                                    evaluatedMinFractionDigits,
-                                    evaluatedMaxFractionDigits);
+// todo： liujunqi 解决Android平台的编译问题，暂时注释，联调主工程，没有发现调用点。
+//    output = platform::formatNumber(evaluatedNumber,
+//                                    evaluatedLocale,
+//                                    evaluatedCurrency,
+//                                    evaluatedMinFractionDigits,
+//                                    evaluatedMaxFractionDigits);
     return output;
 }
 
