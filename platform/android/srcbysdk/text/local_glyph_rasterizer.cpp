@@ -89,7 +89,7 @@ private:
     android::LocalGlyphRasterizer androidLocalGlyphRasterizer;
 };
 
-LocalGlyphRasterizer::LocalGlyphRasterizer(const optional<std::string> fontFamily)
+LocalGlyphRasterizer::LocalGlyphRasterizer(const optional<std::string>& fontFamily)
     : impl(std::make_unique<Impl>(fontFamily))
 {}
 

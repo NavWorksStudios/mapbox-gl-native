@@ -93,8 +93,10 @@ target_sources(
         ${PROJECT_SOURCE_DIR}/platform/android/srcbysdk/logging_android.cpp
         ${PROJECT_SOURCE_DIR}/platform/android/srcbysdk/logger.cpp
         ${PROJECT_SOURCE_DIR}/platform/android/srcbysdk/java_types.cpp
+        ${PROJECT_SOURCE_DIR}/platform/android/srcbysdk/unaccent.cpp
         ${PROJECT_SOURCE_DIR}/platform/android/srcbysdk/text/collator.cpp
-        # ${PROJECT_SOURCE_DIR}/platform/android/srcbysdk/text/local_glyph_rasterizer.cpp
+        ${PROJECT_SOURCE_DIR}/platform/android/srcbysdk/text/local_glyph_rasterizer.cpp
+        # ${PROJECT_SOURCE_DIR}/platform/android/srcbysdk/text/number_format.cpp
         ${PROJECT_SOURCE_DIR}/platform/default/src/mbgl/storage/sqlite3.cpp
         ${PROJECT_SOURCE_DIR}/platform/default/src/mbgl/text/bidi.cpp
         ${PROJECT_SOURCE_DIR}/platform/default/src/mbgl/util/compression.cpp

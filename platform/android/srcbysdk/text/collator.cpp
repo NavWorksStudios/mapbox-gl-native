@@ -1,4 +1,4 @@
-#include <mbgl/style/expression/collator.hpp>
+#include <mbgl/i18n/collator.hpp>
 #include <mbgl/text/language_tag.hpp>
 #include <mbgl/util/platform.hpp>
 
@@ -96,8 +96,7 @@ jni::Local<jni::Object<Locale>> Locale::New(jni::JNIEnv& env, const jni::String&
 
 } // namespace android
 
-namespace style {
-namespace expression {
+namespace platform {
 
 class Collator::Impl {
 public:
@@ -177,9 +176,8 @@ private:
     jni::Global<jni::Object<android::Locale>> locale;
 };
 
-
-Collator::Collator(bool caseSensitive, bool diacriticSensitive, optional<std::string> locale_)
-    : impl(std::make_shared<Impl>(caseSensitive, diacriticSensitive, std::move(locale_)))
+Collator::Collator(bool caseSensitive, bool diacriticSensitive, const optional<std::string>& locale)
+    : impl(std::make_shared<Impl>(caseSensitive, diacriticSensitive, std::move(locale)))
 {}
 
 bool Collator::operator==(const Collator& other) const {
@@ -194,6 +192,5 @@ std::string Collator::resolvedLocale() const {
     return impl->resolvedLocale();
 }
 
-} // namespace expression
-} // namespace style
+} // namespace platform
 } // namespace mbgl
