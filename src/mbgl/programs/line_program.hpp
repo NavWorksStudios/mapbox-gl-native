@@ -29,7 +29,8 @@ MBGL_DEFINE_UNIFORM_VECTOR(float, 2, units_to_pixels);
 using LineLayoutAttributes = TypeList<
     attributes::pos_normal,
     attributes::data<uint8_t, 4>,
-    attributes::height>;
+    attributes::height,
+    attributes::condition>;
 
 class LineProgram : public Program<
     LineProgram,
@@ -57,7 +58,7 @@ public:
      * @param up whether the line normal points up or down
      * @param dir direction of the line cap (-1/0/1)
      */
-    static LayoutVertex layoutVertex(Point<int16_t> p, float height, Point<double> e, bool round, bool up, int8_t dir, int32_t linesofar = 0) {
+    static LayoutVertex layoutVertex(Point<int16_t> p, float height, int16_t condition, Point<double> e, bool round, bool up, int8_t dir, int32_t linesofar = 0) {
         return LayoutVertex {
             {{
                 static_cast<int16_t>((p.x * 2) | (round ? 1 : 0)),
@@ -83,6 +84,9 @@ public:
             }},
             {
                 height
+            },
+            {
+                condition
             }
         };
     }

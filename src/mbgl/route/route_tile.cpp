@@ -37,7 +37,7 @@ public:
     RouteTileFeatureData(const RoutePlanID id_,
                               FeatureType type_,
                               GeometryCollection&& geometries_,
-                              std::vector<int16_t>&& conditions_,
+                              std::vector<std::vector<int16_t>>&& conditions_,
                               std::unordered_map<std::string, std::string>&& properties_)
         : id(id_),
           type(type_),
@@ -49,7 +49,7 @@ public:
     RoutePlanID id;
     FeatureType type;
     GeometryCollection geometries;
-    std::vector<int16_t> conditions;
+    std::vector<std::vector<int16_t>> conditions;
     std::unordered_map<std::string, std::string> properties;
 };
 
@@ -79,7 +79,7 @@ const GeometryCollection& RouteTileFeature::getGeometries() const {
     return data->geometries;
 }
 
-const std::vector<int16_t>& RouteTileFeature::getConditions() const {
+const std::vector<std::vector<int16_t>>& RouteTileFeature::getConditions() const {
     return data->conditions;
 }
 
@@ -109,7 +109,7 @@ std::string RouteTileLayer::getName() const {
 void RouteTileLayer::addFeature(const RoutePlanID id,
                                      FeatureType type,
                                      GeometryCollection geometries,
-                                     std::vector<int16_t> conditions,
+                                     std::vector<std::vector<int16_t>> conditions,
                                      std::unordered_map<std::string, std::string> properties) {
 
     layer->features.emplace_back(std::make_shared<RouteTileFeatureData>(

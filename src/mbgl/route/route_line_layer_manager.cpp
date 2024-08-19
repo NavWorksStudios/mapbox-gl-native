@@ -228,22 +228,23 @@ void RouteLineLayerManager::updateTileData(const CanonicalTileID& tileID, RouteT
     ToFeatureType toFeatureType;
     FeatureType featureType = FeatureType::LineString;
     GeometryCollection renderGeometry;
-    std::vector<int16_t> conditions;
-//    std::vector<std::vector<int16_t>> conditions;
+//    std::vector<int16_t> conditions;
+    std::vector<std::vector<int16_t>> conditions;
     for(auto& segment : plan_tile->second.segments) {
-#if 0   // #*# 旧逻辑，可能还原
+#if 1   // #*# 不使用颜色切分路段
         int16_t index = 0;
         GeometryCoordinates points;
         std::vector<int16_t> seg_conditions;
         for (auto& point : segment.points) {
             points.push_back(Point<int16_t>{static_cast<int16_t>(point.x), static_cast<int16_t>(point.y)});
-//            seg_conditions.push_back(segment.conditions[index]);
+            seg_conditions.push_back(segment.conditions[index]);
             index++;
         }
         renderGeometry.push_back(points);
-//        conditions.push_back(seg_conditions);
+        conditions.push_back(seg_conditions);
 #endif
-#if 1
+        
+#if 0   // #*# 使用颜色切分路段
         std::vector<int16_t> seg_conditions;
         for (auto& link : segment.links) {
             GeometryCoordinates points;
@@ -396,9 +397,9 @@ void RouteLineLayerManager::add(const RoutePlanID& id, const LineRoutePlan& rout
     
     insertNodesForTrafficCondition(routePlan);
     
-    convertTileData(routePlan, planTiles16, 16);
+//    convertTileData(routePlan, planTiles16, 16);
     convertTileData(routePlan, planTiles11, 11);
-    convertTileData(routePlan, planTiles6, 6);
+//    convertTileData(routePlan, planTiles6, 6);
 }
 
 #define pi 3.1415926535
@@ -451,11 +452,14 @@ double RouteLineLayerManager::countTotalDistance(LineString<double>& line_string
 }
 
 void RouteLineLayerManager::insertNodesForTrafficCondition(const LineRoutePlan& routePlan) {
-    #define EPSILON 0.0000001
+    #define EPSILON     0.0000001
+    #define EPSILON2    0.0000075
     route_points_inserted.clear();
     route_conds_inserted.clear();
     
     const LineString<double>& route_points_ = routePlan.geometry;
+    if(route_points_.size() < 2)
+        return;
     const std::vector<TrafficInfo>& trafficInfo_ = routePlan.trafficInfo;
     
     double dis_percent_count = 0.0; // 起点到a点的全路百分占比
@@ -463,12 +467,15 @@ void RouteLineLayerManager::insertNodesForTrafficCondition(const LineRoutePlan& 
     route_points_inserted.emplace_back(point_start);
     int32_t cond_index = 0;
     int16_t current_cond = 0;
+    int16_t last_cond = 0;
+    bool insert_point_after_pi = false;
     route_conds_inserted.emplace_back(current_cond);   // 路况详细信息首位，默认填充为标准状态
     for(int32_t i = 1; i < route_points_.size(); i++) {
         Point<double> point1 = route_points_[i-1];
         Point<double> point2 = route_points_[i];
         double dis = DistanceHaversine(point1.y, point1.x, point2.y, point2.x);
         double dis_percent = dis / totol_distance;  // a->b点的全路百分占比
+//        for(; cond_index < trafficInfo.size(); cond_index++) {
         for(; cond_index < trafficInfo.size(); cond_index++) {
             double dis_percent_count_tmp = dis_percent_count + dis_percent; // 起点到b(a + a->b)点的全路百分占比
             double cond_percent_tmp = trafficInfo_[cond_index].percent;  // 路况节点的全路百分占比
@@ -482,10 +489,35 @@ void RouteLineLayerManager::insertNodesForTrafficCondition(const LineRoutePlan& 
                 Point<double> point_insert;
                 point_insert.x = (point2.x - point1.x) * node_percent + point1.x;
                 point_insert.y = (point2.y - point1.y) * node_percent + point1.y;
+                // #*# 插入一个颜色过度点point1_s，距离为point1前进1(x,y)
+                Point<double> point1_s = point1;
+                if(point2.x > point1_s.x) point1_s.x += EPSILON2;
+                else point1_s.x -= EPSILON2;
+                if(point2.y > point1_s.y) point1_s.y += EPSILON2;
+                else point1_s.y -= EPSILON2;
+                route_points_inserted.emplace_back(point1_s);
+                route_conds_inserted.emplace_back(current_cond);
+                // #*# 先插入颜色过度点point1_s，再插入路况点point_insert
                 route_points_inserted.emplace_back(point_insert);
                 route_conds_inserted.emplace_back(current_cond);
+                // #*# 将point1赋值为point_insert
+                point1 = point_insert;
+                insert_point_after_pi = true;
             }
             else { // 累加距离 < 路况节点，不触发插点操作，不顺延下一个路况节点
+#if 1
+                if(insert_point_after_pi) {
+                    Point<double> point1_s = point1;
+                    if(point2.x > point1_s.x) point1_s.x += EPSILON2;
+                    else point1_s.x -= EPSILON2;
+                    if(point2.y > point1_s.y) point1_s.y += EPSILON2;
+                    else point1_s.y -= EPSILON2;
+                    route_points_inserted.emplace_back(point1_s);
+                    route_conds_inserted.emplace_back(current_cond);
+                    
+                    insert_point_after_pi = false;
+                }
+#endif
                 break;
             }
         }

@@ -34,7 +34,7 @@ public:
     
     void addFeature(const GeometryTileFeature&,
                     const GeometryCollection&,
-                    const std::vector<int16_t>&,
+                    const std::vector<std::vector<int16_t>>&,
                     const ImagePositions&,
                     const PatternLayerMap&,
                     std::size_t,
@@ -70,7 +70,7 @@ private:
                      const GeometryTileFeature&,
                      const CanonicalTileID&,
                      const IsTermination&,
-                     const int16_t condition = 0);
+                     const std::vector<int16_t>& condition = {});
 
     struct TriangleElement {
         TriangleElement(uint16_t a_, uint16_t b_, uint16_t c_) : a(a_), b(b_), c(c_) {}
@@ -87,12 +87,13 @@ private:
                           bool round,
                           std::size_t startVertex,
                           std::vector<LineBucket::TriangleElement>& triangleStore,
-                          optional<Distances> distances);
+                          optional<Distances> distances,
+                          int16_t condition);
 
     void addPieSliceVertex(const GeometryCoordinate& currentVertex, double distance,
             const Point<double>& extrude, bool lineTurnsLeft, std::size_t startVertex,
             std::vector<TriangleElement>& triangleStore,
-            optional<Distances> distances);
+            optional<Distances> distances, int16_t condition);
 
     std::ptrdiff_t e1;
     std::ptrdiff_t e2;

@@ -203,6 +203,7 @@ void RenderLineLayer::render(PaintParameters& parameters) {
                     textures::image::Value{ colorRampTexture->getResource(), gfx::TextureFilterType::Linear },
                 });
         } else {
+            // #*#*# route line 会调用此处逻辑
             draw(parameters.programs.getLineLayerPrograms().line,
                  LineProgram::layoutUniformValues(
                      evaluated,
