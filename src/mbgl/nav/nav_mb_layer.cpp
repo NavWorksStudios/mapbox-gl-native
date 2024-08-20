@@ -23,14 +23,19 @@ struct Source {
     const char* sourceLayer;
 };
 
+#define BACKGROUND
 #define LINE
 #define FILL
 #define SYMBOL
+#define SYMBOL_ARROW
 #define EXTRUSION
 #define ROUTE_LINE
 
 static const std::unordered_map<std::string, Source> layerIds = {
+    
+#ifdef BACKGROUND
     { "land", { "background", "", "", } },
+#endif
     
 #ifdef FILL
     { "national-park", { "fill", "composite", "landuse_overlay", } },
@@ -48,7 +53,6 @@ static const std::unordered_map<std::string, Source> layerIds = {
     
 #ifdef LINE
     { "aeroway-line", { "line", "composite", "aeroway", } },
-    
     { "tunnel-path-trail", { "line", "composite", "road", } },
     { "tunnel-path-cycleway-piste", { "line", "composite", "road", } },
     { "tunnel-path", { "line", "composite", "road", } },
@@ -70,7 +74,7 @@ static const std::unordered_map<std::string, Source> layerIds = {
     { "tunnel-motorway-trunk-navigation", { "line", "composite", "road", } },
 #endif
     
-#ifdef SYMBOL
+#ifdef SYMBOL_ARROW
     { "tunnel-oneway-arrow-blue-navigation", { "symbol", "composite", "road", } },
     { "tunnel-oneway-arrow-white-navigation", { "symbol", "composite", "road", } },
 #endif
@@ -82,7 +86,7 @@ static const std::unordered_map<std::string, Source> layerIds = {
     { "road-steps", { "line", "composite", "road", } },
     { "road-pedestrian", { "line", "composite", "road", } },
     { "turning-feature-outline-navigation", { "circle", "composite", "road", } },
-
+    
     { "road-minor-case-navigation", { "line", "composite", "road", } },
     { "road-street-case-navigation", { "line", "composite", "road", } },
     { "road-secondary-tertiary-case-navigation", { "line", "composite", "road", } },
@@ -99,12 +103,17 @@ static const std::unordered_map<std::string, Source> layerIds = {
     { "road-motorway-trunk-case-low-navigation", { "line", "composite", "road", } },
     { "road-motorway-trunk-navigation", { "line", "composite", "road", } },
 #endif
-
+    
 #ifdef SYMBOL
     { "level-crossing-navigation", { "symbol", "composite", "road", } },
+#endif
+    
+#ifdef SYMBOL_ARROW
     { "road-oneway-arrow-blue-navigation", { "symbol", "composite", "road", } },
     { "road-oneway-arrow-white-navigation", { "symbol", "composite", "road", } },
+#endif
     
+#ifdef SYMBOL
     { "turning-feature-navigation", { "circle", "composite", "road", } },
     { "crosswalks", { "symbol", "composite", "structure", } }, // 斑马线
 #endif
@@ -137,7 +146,7 @@ static const std::unordered_map<std::string, Source> layerIds = {
     { "bridge-motorway-trunk-2-navigation", { "line", "composite", "road", } },
 #endif
     
-#ifdef SYMBOL
+#ifdef SYMBOL_ARROW
     { "bridge-oneway-arrow-blue-navigation", { "symbol", "composite", "road", } },
     { "bridge-oneway-arrow-white-navigation", { "symbol", "composite", "road", } },
 #endif
@@ -190,7 +199,7 @@ static const std::unordered_map<std::string, Source> layerIds = {
     { "country-label", { "symbol", "composite", "place_label", } },
     { "continent-label", { "symbol", "composite", "natural_label", } },
 #endif
-
+    
 #ifdef ROUTE_LINE
     { "route", { "line", "composite", "road", } },
     { "route-dimmed", { "line", "composite", "road", } },
