@@ -9,6 +9,8 @@ target_compile_definitions(
 
 set(CMAKE_CXX_STANDARD 14)
 
+# set(PARENT_DIR "${CMAKE_SOURCE_DIR}/vendor/nunicode/include")
+include(${PROJECT_SOURCE_DIR}/vendor/nunicode.cmake)
 include(${PROJECT_SOURCE_DIR}/vendor/icu.cmake)
 include(${PROJECT_SOURCE_DIR}/vendor/sqlite.cmake)
 
@@ -26,7 +28,7 @@ target_link_libraries(
         $<$<CONFIG:Release>:-O2>
         $<$<CONFIG:Release>:-Wl,--icf=all>
         $<$<CONFIG:Release>:-flto>
-#        $<$<CONFIG:Release>:-fuse-ld=gold>
+        # $<$<CONFIG:Release>:-fuse-ld=gold>
 )
 
 target_include_directories(
@@ -53,6 +55,7 @@ target_link_libraries(
 target_sources(
     mbgl-core
     PRIVATE
+        ${PROJECT_SOURCE_DIR}/platform/android/src/native-lib.cpp
         ${PROJECT_SOURCE_DIR}/platform/android/src/async_task.cpp
         ${PROJECT_SOURCE_DIR}/platform/android/src/attach_env.cpp
         ${PROJECT_SOURCE_DIR}/platform/android/src/attach_env.hpp
@@ -85,6 +88,15 @@ target_sources(
         ${PROJECT_SOURCE_DIR}/platform/default/src/mbgl/storage/offline_database.cpp
         ${PROJECT_SOURCE_DIR}/platform/default/src/mbgl/storage/offline_download.cpp
         ${PROJECT_SOURCE_DIR}/platform/default/src/mbgl/storage/online_file_source.cpp
+        # ${PROJECT_SOURCE_DIR}/platform/default/src/mbgl/storage/http_file_source.cpp
+        ${PROJECT_SOURCE_DIR}/platform/android/srcbysdk/http_file_source.cpp
+        ${PROJECT_SOURCE_DIR}/platform/android/srcbysdk/logging_android.cpp
+        ${PROJECT_SOURCE_DIR}/platform/android/srcbysdk/logger.cpp
+        ${PROJECT_SOURCE_DIR}/platform/android/srcbysdk/java_types.cpp
+        ${PROJECT_SOURCE_DIR}/platform/android/srcbysdk/unaccent.cpp
+        ${PROJECT_SOURCE_DIR}/platform/android/srcbysdk/text/collator.cpp
+        ${PROJECT_SOURCE_DIR}/platform/android/srcbysdk/text/local_glyph_rasterizer.cpp
+        # ${PROJECT_SOURCE_DIR}/platform/android/srcbysdk/text/number_format.cpp
         ${PROJECT_SOURCE_DIR}/platform/default/src/mbgl/storage/sqlite3.cpp
         ${PROJECT_SOURCE_DIR}/platform/default/src/mbgl/text/bidi.cpp
         ${PROJECT_SOURCE_DIR}/platform/default/src/mbgl/util/compression.cpp
@@ -97,6 +109,23 @@ target_sources(
 )
 
 
+# target_sources(
+#     mbgl-core
+#     PRIVATE $<$<BOOL:${MBGL_PUBLIC_BUILD}>:${PROJECT_SOURCE_DIR}/platform/default/src/mbgl/storage/http_file_source.cpp>
+# )
+
+# include(${PROJECT_SOURCE_DIR}/vendor/curl.cmake)
+
+# target_link_libraries(
+#     mbgl-core
+#     PRIVATE mbgl-vendor-curl
+# )
+# 这个打开会报错 ld.lld: error: undefined symbol: fread_unlocked
+# include(${PROJECT_SOURCE_DIR}/vendor/curl.cmake)
+# target_link_libraries(
+#     mbgl-core
+#     PRIVATE mbgl-vendor-curl
+# )
 
 
 add_library(

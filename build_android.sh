@@ -6,10 +6,9 @@ cmake . -B  build \
   -DANDROID_NDK=/Users/liujunqi/Library/Android/sdk/ndk/27.0.12077973 \
   -DANDROID_PLATFORM=android-27 \
   -DANDROID_STL=c++_shared \
-  -DCMAKE_SYSTEM_NAME=Android \
+  -DSYSTEM_NAME=Android \
   -DCMAKE_SYSTEM_VERSION=27 \
-  -DCMAKE_ANDROID_ARCH_ABI=arm64-v8a \
-  -DANDROID_STL=c++_shared 
+  -DCMAKE_ANDROID_ARCH_ABI=arm64-v8a
   
 
 #  -DCMAKEANDROID_STL=c++_shared 
@@ -26,4 +25,4 @@ cmake --build build
 #  -- VERBOSE=1
 
 #file ./build/libmbgl-vendor-sqlite.so 
-file ./build/libmbgl-core.so
+# file ./build/libmbgl-core.so
