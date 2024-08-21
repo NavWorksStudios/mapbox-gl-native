@@ -87,8 +87,25 @@ const Config GOLDEN_BLACK = {
     },
 };
 
+const Config MANHATTAN = {
+    "曼哈顿",
+    "https://studio.mapbox.com/styles/navworks/clzqn4giv00a801pi06quhgz7/edit/#7.03/31.635/120.897",
+    "mapbox://styles/navworks/clzqn4giv00a801pi06quhgz7",
+    false,
+    [] (const std::string& uri, Hsla color) -> std::tuple<Hsla,bool> {
+        if (uri.find("building-extrusion") != std::string::npos) {
+        }
+        
+        return std::make_tuple(color, false);
+    },
+    [] (const nav::stringid&) {
+        return false;
+    },
+};
+
 const Config& THEME = COLORFUL;
 //const Config& THEME = GOLDEN_BLACK;
+//const Config& THEME = MANHATTAN;
 
 const std::string& style() {
     return THEME.style;
