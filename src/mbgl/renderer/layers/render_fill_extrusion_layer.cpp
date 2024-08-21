@@ -17,6 +17,8 @@
 #include <mbgl/util/intersection_tests.hpp>
 #include <mbgl/util/math.hpp>
 
+#include "mbgl/nav/nav.theme.hpp"
+
 namespace mbgl {
 
 using namespace style;
@@ -113,22 +115,24 @@ void RenderFillExtrusionLayer::render(PaintParameters& parameters) {
         checkRenderability(parameters, programInstance.activeBindingCount(allAttributeBindings));
         
         // draw reflection
-        layoutUniformValues.template get<uniforms::render_reflection>() = true;
-        programInstance.draw(
-            parameters.context,
-            *parameters.renderPass,
-            gfx::Triangles(),
-            depthMode,
-            stencilMode,
-            colorMode,
-            gfx::CullFaceMode::backCCW(),
-            *tileBucket.reflectionIndexBuffer,
-            tileBucket.triangleSegments,
-            layoutUniformValues,
-            paintUniformValues,
-            allAttributeBindings,
-            textureBindings,
-            uniqueName);
+        if (nav::theme::enableBuildingReflection()) {
+            layoutUniformValues.template get<uniforms::render_reflection>() = true;
+            programInstance.draw(
+                parameters.context,
+                *parameters.renderPass,
+                gfx::Triangles(),
+                depthMode,
+                stencilMode,
+                colorMode,
+                gfx::CullFaceMode::backCCW(),
+                *tileBucket.reflectionIndexBuffer,
+                tileBucket.triangleSegments,
+                layoutUniformValues,
+                paintUniformValues,
+                allAttributeBindings,
+                textureBindings,
+                uniqueName);
+        }
         
         // draw self
         layoutUniformValues.template get<uniforms::render_reflection>() = false;

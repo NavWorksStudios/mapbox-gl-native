@@ -16,6 +16,7 @@ namespace theme {
 
 const std::string& style();
 bool needsUpdate();
+bool enableBuildingReflection();
 std::tuple<Hsla,bool> colorProperty(const std::string& uri, Hsla color);
 bool enableLayerMonoPalette(const nav::stringid& layer);
 
