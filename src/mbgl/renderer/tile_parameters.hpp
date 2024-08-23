@@ -11,6 +11,7 @@ namespace mbgl {
 class TransformState;
 class FileSource;
 class AnnotationManager;
+class RouteLineLayerManager;
 class ImageManager;
 class GlyphManager;
 
@@ -22,6 +23,7 @@ public:
     std::shared_ptr<FileSource> fileSource;
     const MapMode mode;
     mapbox::base::WeakPtr<AnnotationManager> annotationManager;
+    mapbox::base::WeakPtr<RouteLineLayerManager> routeManager;
     ImageManager& imageManager;
     GlyphManager& glyphManager;
     const uint8_t prefetchZoomDelta;

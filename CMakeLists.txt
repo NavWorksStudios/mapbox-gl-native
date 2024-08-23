@@ -874,6 +874,20 @@ set(all_files
     ${PROJECT_SOURCE_DIR}/src/mbgl/clipper2/clipper.rectclip.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/clipper2/clipper.rectclip.h
     ${PROJECT_SOURCE_DIR}/src/mbgl/clipper2/clipper.version.h
+    ${PROJECT_SOURCE_DIR}/src/mbgl/route/route_data.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/route/route_data.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/route/route_line_layer_manager.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/route/route_line_layer_manager.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/route/render_route_line_layer.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/route/render_route_line_layer.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/route/route_tile.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/route/route_tile.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/route/route_source.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/route/route_source.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/route/render_route_source.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/route/render_route_source.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/route/route_plan.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/route/route_plan_tile.hpp
 )
 
 source_group_by_dir(all_files)
@@ -1006,6 +1020,7 @@ if(MBGL_WITH_OPENGL)
             ${PROJECT_SOURCE_DIR}/src/mbgl/style/layers/location_indicator_layer_impl.hpp
             ${PROJECT_SOURCE_DIR}/src/mbgl/style/layers/location_indicator_layer_properties.cpp
             ${PROJECT_SOURCE_DIR}/src/mbgl/style/layers/location_indicator_layer_properties.hpp
+
     )
 endif()
 

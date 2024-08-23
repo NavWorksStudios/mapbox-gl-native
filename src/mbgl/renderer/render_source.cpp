@@ -11,6 +11,8 @@
 #include <mbgl/tile/tile.hpp>
 
 #include <mbgl/layermanager/layer_manager.hpp>
+#include <mbgl/route/render_route_source.hpp>
+#include <mbgl/route/route_source.hpp>
 #include <mbgl/util/constants.hpp>
 #include <utility>
 
@@ -34,6 +36,13 @@ std::unique_ptr<RenderSource> RenderSource::create(const Immutable<Source::Impl>
     case SourceType::Annotations:
         if (LayerManager::annotationsEnabled) {
             return std::make_unique<RenderAnnotationSource>(staticImmutableCast<AnnotationSource::Impl>(impl));
+        } else {
+            assert(false);
+            return nullptr;
+        }
+    case SourceType::Route:
+        if (LayerManager::routelineEnabled) {
+            return std::make_unique<RenderRouteSource>(staticImmutableCast<RouteSource::Impl>(impl));
         } else {
             assert(false);
             return nullptr;

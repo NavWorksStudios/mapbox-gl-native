@@ -458,6 +458,23 @@ double Map::getTopOffsetPixelsForAnnotationImage(const std::string& id) {
     return 0.0;
 }
 
+RoutePlanID Map::addRoutePlans(const RoutePlan& routePlan) {
+    if (LayerManager::routelineEnabled) {
+        // #*#
+        auto result = impl->routeManager.addRoutePlan(routePlan);
+        impl->onUpdate();
+        return result;
+    }
+    return 0;
+}
+
+void Map::updateRoutePlans(RoutePlanID id, const RoutePlan& routePlan) {
+    if (LayerManager::routelineEnabled) {
+        impl->routeManager.addRoutePlan(routePlan);
+        impl->onUpdate();
+    }
+}
+
 AnnotationID Map::addAnnotation(const Annotation& annotation) {
     if (LayerManager::annotationsEnabled) {
         auto result = impl->annotationManager.addAnnotation(annotation);

@@ -45,6 +45,7 @@ void Layer::setSourceLayer(const std::string& sourceLayer) {
     auto impl_ = mutableBaseImpl();
     impl_->sourceLayer = sourceLayer;
     baseImpl = std::move(impl_);
+    observer->onLayerChanged(*this);
 }
 
 void Layer::setSourceID(const std::string& sourceID) {
@@ -52,6 +53,7 @@ void Layer::setSourceID(const std::string& sourceID) {
     auto impl_ = mutableBaseImpl();
     impl_->source = sourceID;
     baseImpl = std::move(impl_);
+    observer->onLayerChanged(*this);
 };
 
 const Filter& Layer::getFilter() const {

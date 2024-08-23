@@ -30,6 +30,8 @@
 #include <mapbox/geometry.hpp>
 #include <mapbox/geojson.hpp>
 
+#include <mbgl/route/route_plan.hpp>
+
 #if MBGL_USE_GLES2
 #define GLFW_INCLUDE_ES2
 #endif // MBGL_USE_GLES2
@@ -48,6 +50,8 @@
 
 #include "mbgl/nav/nav.style.hpp"
 #include "mbgl/nav/nav.log.hpp"
+
+#include <mbgl/route/route_line_layer_manager.hpp>
 
 namespace {
 const std::string mbglPuckAssetsPath{MAPBOX_PUCK_ASSETS_PATH};
@@ -412,6 +416,7 @@ void GLFWView::onKey(int key, int action, int mods) {
             
             addLineAnnotations(targetLatLng);
             addTargetPointAnnotations(targetLatLng);
+            addRoutePlans();
 
             animateRouteCallback = [this, route](mbgl::Map* routeMap) {
                 // 导航模式暂停时，不处理任何逻辑直接返回
@@ -746,6 +751,114 @@ void GLFWView::addRandomPointAnnotations(int count) {
     }
 }
 
+
+void GLFWView::addRoutePlans() {
+    mbgl::LineString<double> lineString;
+    
+    lineString.push_back({ -74.013841, 40.702449 });
+    lineString.push_back({ -74.013863, 40.702462 });
+    lineString.push_back({ -74.013977, 40.702548 });
+    lineString.push_back({ -74.014040, 40.702595 });
+    lineString.push_back({ -74.014152, 40.702685 });
+    lineString.push_back({ -74.014213, 40.702749 });
+    lineString.push_back({ -74.014284, 40.702835 });
+    lineString.push_back({ -74.014333, 40.702911 });
+    lineString.push_back({ -74.014368, 40.702978 });
+    lineString.push_back({ -74.014407, 40.703066 });
+    lineString.push_back({ -74.014438, 40.703152 });
+    lineString.push_back({ -74.014449, 40.703209 });
+    lineString.push_back({ -74.014450, 40.703263 });
+    lineString.push_back({ -74.014450, 40.703332 });
+    lineString.push_back({ -74.014442, 40.703401 });
+    lineString.push_back({ -74.014404, 40.703614 });
+    lineString.push_back({ -74.014245, 40.704524 });
+    lineString.push_back({ -74.014220, 40.704633 });
+    lineString.push_back({ -74.014329, 40.704667 });
+    lineString.push_back({ -74.014450, 40.704705 });
+    lineString.push_back({ -74.014548, 40.704733 });
+    lineString.push_back({ -74.014641, 40.704756 });
+    lineString.push_back({ -74.014727, 40.704776 });
+    lineString.push_back({ -74.014841, 40.704799 });
+    lineString.push_back({ -74.014977, 40.704827 });
+    lineString.push_back({ -74.015033, 40.704838 });
+    lineString.push_back({ -74.015365, 40.704905 });
+    lineString.push_back({ -74.015454, 40.704921 });
+    lineString.push_back({ -74.015541, 40.704933 });
+    lineString.push_back({ -74.015638, 40.704945 });
+    lineString.push_back({ -74.015699, 40.704950 });
+    lineString.push_back({ -74.015755, 40.704953 });
+    lineString.push_back({ -74.015830, 40.704952 });
+    lineString.push_back({ -74.015909, 40.704949 });
+    lineString.push_back({ -74.016073, 40.704935 });
+    lineString.push_back({ -74.016157, 40.704927 });
+    lineString.push_back({ -74.016224, 40.704921 });
+    lineString.push_back({ -74.016284, 40.704910 });
+    lineString.push_back({ -74.016416, 40.704882 });
+    lineString.push_back({ -74.016424, 40.704918 });
+    lineString.push_back({ -74.016437, 40.704962 });
+    lineString.push_back({ -74.016453, 40.705007 });
+    lineString.push_back({ -74.016462, 40.705041 });
+    lineString.push_back({ -74.016467, 40.705072 });
+    lineString.push_back({ -74.016463, 40.705112 });
+    lineString.push_back({ -74.016457, 40.705150 });
+    lineString.push_back({ -74.016447, 40.705189 });
+    lineString.push_back({ -74.016151, 40.705949 });
+    lineString.push_back({ -74.016121, 40.706032 });
+    lineString.push_back({ -74.016090, 40.706121 });
+    lineString.push_back({ -74.016060, 40.706214 });
+    lineString.push_back({ -74.016037, 40.706296 });
+    lineString.push_back({ -74.016016, 40.706383 });
+    lineString.push_back({ -74.016003, 40.706450 });
+    lineString.push_back({ -74.015986, 40.706549 });
+    lineString.push_back({ -74.015971, 40.706613 });
+    lineString.push_back({ -74.015953, 40.706677 });
+    lineString.push_back({ -74.015888, 40.706844 });
+    lineString.push_back({ -74.015805, 40.707053 });
+    lineString.push_back({ -74.015735, 40.707222 });
+    lineString.push_back({ -74.015697, 40.707307 });
+    lineString.push_back({ -74.015597, 40.707520 });
+    lineString.push_back({ -74.015512, 40.707701 });
+    lineString.push_back({ -74.015476, 40.707784 });
+    lineString.push_back({ -74.015442, 40.707859 });
+    lineString.push_back({ -74.015363, 40.708065 });
+    lineString.push_back({ -74.015197, 40.708495 });
+    lineString.push_back({ -74.014864, 40.709446 });
+    lineString.push_back({ -74.014760, 40.709725 });
+    lineString.push_back({ -74.014744, 40.709777 });
+    lineString.push_back({ -74.014729, 40.709827 });
+    lineString.push_back({ -74.014720, 40.709873 });
+    lineString.push_back({ -74.014712, 40.709925 });
+    lineString.push_back({ -74.014709, 40.709998 });
+    lineString.push_back({ -74.014699, 40.710139 });
+    lineString.push_back({ -74.014689, 40.710215 });
+    lineString.push_back({ -74.014674, 40.710286 });
+    lineString.push_back({ -74.014655, 40.710373 });
+    lineString.push_back({ -74.014631, 40.710477 });
+    lineString.push_back({ -74.014602, 40.710583 });
+    lineString.push_back({ -74.014523, 40.710825 });
+    lineString.push_back({ -74.014492, 40.710899 });
+    lineString.push_back({ -74.014463, 40.710966 });
+    lineString.push_back({ -74.014434, 40.711033 });
+    lineString.push_back({ -74.014406, 40.711098 });
+    lineString.push_back({ -74.014380, 40.711171 });
+    lineString.push_back({ -74.014360, 40.711250 });
+    lineString.push_back({ -74.014147, 40.712245 });
+    
+    std::vector<mbgl::TrafficInfo> infos;
+    infos.push_back({ 0.08, 0 });
+    infos.push_back({ 0.25, -1 });
+    infos.push_back({ 0.30, 1 });
+    infos.push_back({ 0.43, 2 });
+    infos.push_back({ 0.50, -2 });
+    infos.push_back({ 0.60, 3 });
+    infos.push_back({ 0.70, 0 });
+    infos.push_back({ 0.80, -3 });
+    infos.push_back({ 0.90, 1 });
+    infos.push_back({ 1.0, 0 });
+    
+    mbgl::RoutePlanID id = map->addRoutePlans(mbgl::LineRoutePlan(lineString, infos, true));
+}
+
 void GLFWView::addLineAnnotations(const mbgl::LatLng& tagPosition) {
     hideCurrentLineAnnotations();
     mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
@@ -765,13 +878,16 @@ void GLFWView::hideCurrentLineAnnotations() {
         mbgl::LineString<double> lineString;
         lineString.push_back({ mapCenter.longitude(), mapCenter.latitude() });
         lineString.push_back({ mapCenter.longitude(), mapCenter.latitude() });
-        map->updateAnnotation(annotationIDs[0], mbgl::LineAnnotation { lineString, 1.0f, 3.0f, { {0.0,0.0,0.0,0.0} } });
+        map->updateAnnotation(annotationIDs[0], mbgl::LineAnnotation { lineString, 0.0f, 0.0f, { {0.0,0.0,0.0,0.0} } });
     }
 }
 
 void GLFWView::updateLineAnnotations(const mbgl::LatLng& orgPosition, const mbgl::LatLng& tagPosition) {
     mbgl::LineString<double> lineString;
     lineString.push_back({ orgPosition.longitude(), orgPosition.latitude() });
+//    lineString.push_back({ tagPosition.longitude()-0.001, tagPosition.latitude()-0.001 });
+//    lineString.push_back({ tagPosition.longitude()-0.002, tagPosition.latitude()-0.002 });
+//    lineString.push_back({ tagPosition.longitude()+0.04, tagPosition.latitude()-0.05 });
     lineString.push_back({ tagPosition.longitude(), tagPosition.latitude() });
     if(annotationIDs.size() > 0) {
         map->updateAnnotation(annotationIDs[0], mbgl::LineAnnotation { lineString, 1.0f, 3.0f, { mbgl::Color::red() } });
@@ -928,12 +1044,12 @@ void GLFWView::onScroll(double yOffset) {
     }
 
     // #*# 需要改造
-#if defined(MBGL_RENDER_BACKEND_OPENGL) && !defined(MBGL_LAYER_CUSTOM_DISABLE_ALL)
+//#if defined(MBGL_RENDER_BACKEND_OPENGL) && !defined(MBGL_LAYER_CUSTOM_DISABLE_ALL)
 //    if (puck && puckFollowsCameraCenter) {
 //        mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
 //        puck->setLocation(toArray(mapCenter));
 //    }
-#endif
+//#endif
 }
 
 void GLFWView::onWindowResize(GLFWwindow *window, int width, int height) {
@@ -1048,13 +1164,13 @@ void GLFWView::onMouseMove(double x, double y) {
     _mouseHistory.push_back({x,y}, now);
     
 
-#if defined(MBGL_RENDER_BACKEND_OPENGL) && !defined(MBGL_LAYER_CUSTOM_DISABLE_ALL)
+//#if defined(MBGL_RENDER_BACKEND_OPENGL) && !defined(MBGL_LAYER_CUSTOM_DISABLE_ALL)
     // #*#目前逻辑没啥用
 //    if (puck && puckFollowsCameraCenter) {
 //        mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
 //        puck->setLocation(toArray(mapCenter));
 //    }
-#endif
+//#endif
 
     auto &style = map->getStyle();
     if (style.getLayer("state-fills")) {
@@ -1310,7 +1426,7 @@ void GLFWView::toggleLocationIndicatorLayer(bool visibility) {
 using Nanoseconds = std::chrono::nanoseconds;
 
 void GLFWView::onWillStartRenderingFrame() {
-#if defined(MBGL_RENDER_BACKEND_OPENGL) && !defined(MBGL_LAYER_LOCATION_INDICATOR_DISABLE_ALL)
+//#if defined(MBGL_RENDER_BACKEND_OPENGL) && !defined(MBGL_LAYER_LOCATION_INDICATOR_DISABLE_ALL)
 //    puck = static_cast<mbgl::style::LocationIndicatorLayer *>(map->getStyle().getLayer("puck"));
 //    if (puck) {
 //        // #*# 导航箭头方向
@@ -1320,5 +1436,5 @@ void GLFWView::onWillStartRenderingFrame() {
 //            puck->setBearing(mbgl::style::Rotation(bearing));
 //        }
 //    }
-#endif
+//#endif
 }

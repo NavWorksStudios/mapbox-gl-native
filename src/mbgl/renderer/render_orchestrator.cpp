@@ -28,6 +28,7 @@
 #include <mbgl/util/logging.hpp>
 
 #include "mbgl/nav/nav.style.hpp"
+#include <mbgl/route/route_line_layer_manager.hpp>
 
 namespace mbgl {
 
@@ -151,6 +152,14 @@ std::unique_ptr<RenderTree> RenderOrchestrator::createRenderTree(
             updateParameters->annotationManager->updateData();
         }
     }
+  
+    // #*# 更新导航线路数据
+    if (LayerManager::routelineEnabled) {
+        auto guard = updateParameters->routeManager.lock();
+        if (updateParameters->routeManager) {
+            updateParameters->routeManager->updateData();
+        }
+    }
 
     const bool zoomChanged =
         zoomHistory.update(updateParameters->transformState.getZoom(), updateParameters->timePoint);
@@ -172,6 +181,7 @@ std::unique_ptr<RenderTree> RenderOrchestrator::createRenderTree(
                                         updateParameters->fileSource,
                                         updateParameters->mode,
                                         updateParameters->annotationManager,
+                                        updateParameters->routeManager,
                                         *imageManager,
                                         *glyphManager,
                                         updateParameters->prefetchZoomDelta};
@@ -345,6 +355,9 @@ std::unique_ptr<RenderTree> RenderOrchestrator::createRenderTree(
                 }
                 renderItemsEmplaceHint = layerRenderItems.emplace_hint(renderItemsEmplaceHint, layer, nullptr, index);
             }
+        }
+        if(filteredLayersForSource.size()==0) {
+            ;
         }
         source->update(sourceImpl,
                        filteredLayersForSource,

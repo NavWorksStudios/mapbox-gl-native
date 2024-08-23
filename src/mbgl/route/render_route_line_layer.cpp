@@ -5,7 +5,7 @@
 #include <mbgl/programs/programs.hpp>
 #include <mbgl/renderer/buckets/line_bucket.hpp>
 #include <mbgl/renderer/image_manager.hpp>
-#include <mbgl/renderer/layers/render_line_layer.hpp>
+#include <mbgl/route/render_route_line_layer.hpp>
 #include <mbgl/renderer/paint_parameters.hpp>
 #include <mbgl/renderer/render_source.hpp>
 #include <mbgl/renderer/render_tile.hpp>
@@ -30,21 +30,21 @@ inline const LineLayer::Impl& impl_cast(const Immutable<style::Layer::Impl>& imp
 
 } // namespace
 
-RenderLineLayer::RenderLineLayer(Immutable<style::LineLayer::Impl> _impl)
+RenderRouteLineLayer::RenderRouteLineLayer(Immutable<style::LineLayer::Impl> _impl)
     : RenderLayer(makeMutable<LineLayerProperties>(std::move(_impl))),
       unevaluated(impl_cast(baseImpl).paint.untransitioned()),
       colorRamp({256, 1}) {
     bindToPalette(baseImpl->id, "line-color", unevaluated.get<LineColor>().value);
 }
 
-RenderLineLayer::~RenderLineLayer() = default;
+RenderRouteLineLayer::~RenderRouteLineLayer() = default;
 
-void RenderLineLayer::transition(const TransitionParameters& parameters) {
+void RenderRouteLineLayer::transition(const TransitionParameters& parameters) {
     unevaluated = impl_cast(baseImpl).paint.transitioned(parameters, std::move(unevaluated));
     updateColorRamp();
 }
 
-void RenderLineLayer::evaluate(const PropertyEvaluationParameters& parameters) {
+void RenderRouteLineLayer::evaluate(const PropertyEvaluationParameters& parameters) {
     auto&& properties = makeMutable<LineLayerProperties>(
         staticImmutableCast<LineLayer::Impl>(baseImpl),
         parameters.getCrossfadeParameters(),
@@ -59,21 +59,17 @@ void RenderLineLayer::evaluate(const PropertyEvaluationParameters& parameters) {
     evaluatedProperties = std::move(properties);
 }
 
-bool RenderLineLayer::hasTransition() const {
+bool RenderRouteLineLayer::hasTransition() const {
     return unevaluated.hasTransition();
 }
 
-bool RenderLineLayer::hasCrossfade() const {
+bool RenderRouteLineLayer::hasCrossfade() const {
     return getCrossfade<LineLayerProperties>(evaluatedProperties).t != 1;
 }
 
-void RenderLineLayer::prepare(const LayerPrepareParameters& params) {
+void RenderRouteLineLayer::prepare(const LayerPrepareParameters& params) {
     RenderLayer::prepare(params);
     for (const RenderTile& tile : *renderTiles) {
-        if (!tile.isRenderable(Tile::RenderMode::Standard)) {
-            continue;
-        }
-        
         const LayerRenderData* renderData = tile.getLayerRenderData(*baseImpl);
         if (!renderData) continue;
 
@@ -89,32 +85,23 @@ void RenderLineLayer::prepare(const LayerPrepareParameters& params) {
     }
 }
 
-void RenderLineLayer::upload(gfx::UploadPass& uploadPass) {
+void RenderRouteLineLayer::upload(gfx::UploadPass& uploadPass) {
     if (!unevaluated.get<LineGradient>().getValue().isUndefined() && !colorRampTexture) {
         colorRampTexture = uploadPass.createTexture(colorRamp);
     }
 }
 
-void RenderLineLayer::render(PaintParameters& parameters) {
+void RenderRouteLineLayer::render(PaintParameters& parameters) {
     assert(renderTiles);
     if (parameters.pass == RenderPass::Opaque) {
         return;
     }
-    
-    bool refreshPaintUniforms = true;
-    using Properties = style::LinePaintProperties::DataDrivenProperties;
-    mbgl::PaintPropertyBinders<Properties>::UniformValues paintUniformValues;
 
     parameters.renderTileClippingMasks(renderTiles);
 
     size_t renderIndex = -1;
     for (const RenderTile& tile : *renderTiles) {
         renderIndex++;
-        
-        if (!tile.isRenderable(Tile::RenderMode::Standard)) {
-            continue;
-        }
-        
         const LayerRenderData* renderData = getRenderDataForPass(renderIndex, parameters.pass);
         if (!renderData) {
             continue;
@@ -125,14 +112,10 @@ void RenderLineLayer::render(PaintParameters& parameters) {
         
         auto& bucket = static_cast<LineBucket&>(*renderData->bucket);
         const auto& paintPropertyBinders = bucket.paintBinders ? *bucket.paintBinders : bucket.getPaintPropertyBinders().at(getID());
-
-        if (refreshPaintUniforms) {
-            paintPropertyBinders.fillUniformValues(paintUniformValues, parameters.state.getZoom(), evaluated);
-            refreshPaintUniforms = false;
-        }
+        const auto& paintUniforms = paintPropertyBinders.makeUniformValues(parameters.state.getZoom(), evaluated);
 
         const auto draw = [&](auto& programInstance,
-                              const auto&& layoutUniformValues,
+                              const auto&& layoutUniforms,
                               const optional<ImagePosition>& patternPositionA,
                               const optional<ImagePosition>& patternPositionB, auto&& textureBindings) {
             paintPropertyBinders.setPatternParameters(patternPositionA, patternPositionB, crossfade);
@@ -151,8 +134,8 @@ void RenderLineLayer::render(PaintParameters& parameters) {
                                  gfx::CullFaceMode::disabled(),
                                  *bucket.indexBuffer,
                                  bucket.segments,
-                                 layoutUniformValues,
-                                 paintUniformValues,
+                                 layoutUniforms,
+                                 paintUniforms,
                                  allAttributeBindings,
                                  std::forward<decltype(textureBindings)>(textureBindings),
                                  getID());
@@ -220,7 +203,6 @@ void RenderLineLayer::render(PaintParameters& parameters) {
                     textures::image::Value{ colorRampTexture->getResource(), gfx::TextureFilterType::Linear },
                 });
         } else {
-            // #*#*# route line 会调用此处逻辑
             draw(parameters.programs.getLineLayerPrograms().line,
                  LineProgram::layoutUniformValues(
                      evaluated,
@@ -273,7 +255,7 @@ GeometryCollection offsetLine(const GeometryCollection& rings, double offset) {
 
 } // namespace
 
-bool RenderLineLayer::queryIntersectsFeature(const GeometryCoordinates& queryGeometry,
+bool RenderRouteLineLayer::queryIntersectsFeature(const GeometryCoordinates& queryGeometry,
                                              const GeometryTileFeature& feature, const float zoom,
                                              const TransformState& transformState, const float pixelsToTileUnits,
                                              const mat4&, const FeatureState& featureState) const {
@@ -307,7 +289,7 @@ bool RenderLineLayer::queryIntersectsFeature(const GeometryCoordinates& queryGeo
         halfWidth);
 }
 
-void RenderLineLayer::updateColorRamp() {
+void RenderRouteLineLayer::updateColorRamp() {
     const auto colorValue = unevaluated.get<LineGradient>().getValue();
     if (colorValue.isUndefined()) {
         return;
@@ -328,7 +310,7 @@ void RenderLineLayer::updateColorRamp() {
     }
 }
 
-float RenderLineLayer::getLineWidth(const GeometryTileFeature& feature, const float zoom,
+float RenderRouteLineLayer::getLineWidth(const GeometryTileFeature& feature, const float zoom,
                                     const FeatureState& featureState) const {
     const auto& evaluated = static_cast<const LineLayerProperties&>(*evaluatedProperties).evaluated;
     float lineWidth =
