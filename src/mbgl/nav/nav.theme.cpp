@@ -107,9 +107,27 @@ const Config MANHATTAN = {
     },
 };
 
+const Config ROUTE_TEST = {
+    "导航测试",
+    "https://studio.mapbox.com/styles/navworks/clzqn4giv00a801pi06quhgz7/edit/#7.03/31.635/120.897",
+    "mapbox://styles/navworks/clyxyqksj00ap01qnc17kbs8x",
+    false,
+    false,
+    [] (const std::string& uri, Hsla color) -> std::tuple<Hsla,bool> {
+        if (uri.find("building-extrusion") != std::string::npos) {
+        }
+        
+        return std::make_tuple(color, false);
+    },
+    [] (const nav::stringid&) {
+        return false;
+    },
+};
+
 //const Config& THEME = COLORFUL;
 //const Config& THEME = GOLDEN_BLACK;
-const Config& THEME = MANHATTAN;
+//const Config& THEME = MANHATTAN;
+const Config& THEME = ROUTE_TEST;
 
 const std::string& style() {
     return THEME.style;
