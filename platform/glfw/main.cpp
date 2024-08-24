@@ -304,19 +304,17 @@ JavaVM* theJVM;
 jobject glesView;
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_example_learnogles_MainActivity_Init(
+Java_com_navworksstudios_navworksandroid_GLESView_Init(
         JNIEnv* env,
-        jobject) {
-    glClearColor(0.7f,0.5f,0.8f,1.0f);
-}
-
-void updateGlesView(JNIEnv* env, jobject glesview) {
+        jobject glesview) {
     glesView = env->NewGlobalRef(glesview);;
     env->GetJavaVM(&theJVM);
+    
+    glClearColor(1.0f,0.0f,1.0f,1.0f);
 }
  
 extern "C" JNIEXPORT void JNICALL
-Java_com_example_learnogles_MainActivity_OnViewportChanged(
+Java_com_navworksstudios_navworksandroid_GLESView_OnViewportChanged(
         JNIEnv* env,
         jobject,
         jint width,
@@ -325,28 +323,28 @@ Java_com_example_learnogles_MainActivity_OnViewportChanged(
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_example_learnogles_MainActivity_StartNav(
+Java_com_navworksstudios_navworksandroid_GLESView_StartNav(
         JNIEnv* env,
         jobject /* this */) {
     
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_example_learnogles_MainActivity_StopNav(
+Java_com_navworksstudios_navworksandroid_GLESView_StopNav(
         JNIEnv* env,
         jobject /* this */) {
     
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_example_learnogles_MainActivity_Render(
+Java_com_navworksstudios_navworksandroid_GLESView_Render(
         JNIEnv* env,
         jobject /* this */) {
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_example_learnogles_MainActivity_SetZoom(   // 设置相机zoom级别
+Java_com_navworksstudios_navworksandroid_GLESView_SetZoom(   // 设置相机zoom级别
         JNIEnv* env,
         jobject /* this */,
         jint zoom) {
@@ -354,7 +352,7 @@ Java_com_example_learnogles_MainActivity_SetZoom(   // 设置相机zoom级别
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_example_learnogles_MainActivity_SetCamerPostion(   // 设置相机位(经纬度)
+Java_com_navworksstudios_navworksandroid_GLESView_SetCamerPostion(   // 设置相机位(经纬度)
         JNIEnv* env,
         jobject /* this */,
         jdouble longitude,
@@ -363,7 +361,7 @@ Java_com_example_learnogles_MainActivity_SetCamerPostion(   // 设置相机位(�
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_example_learnogles_MainActivity_SetBearing(    // 设置相机方位
+Java_com_navworksstudios_navworksandroid_GLESView_SetBearing(    // 设置相机方位
         JNIEnv* env,
         jobject /* this */,
         jdouble bearing) {
@@ -371,7 +369,7 @@ Java_com_example_learnogles_MainActivity_SetBearing(    // 设置相机方位
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_example_learnogles_MainActivity_SetTilt(   // 设置相机倾角
+Java_com_navworksstudios_navworksandroid_GLESView_SetTilt(   // 设置相机倾角
         JNIEnv* env,
         jobject /* this */,
         jdouble pitch) {
@@ -379,7 +377,7 @@ Java_com_example_learnogles_MainActivity_SetTilt(   // 设置相机倾角
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_example_learnogles_MainActivity_SetPetelltColor(   // 设置主题基色，color(r,g,b,a)
+Java_com_navworksstudios_navworksandroid_GLESView_SetPetelltColor(   // 设置主题基色，color(r,g,b,a)
         JNIEnv* env,
         jobject /* this */,
         jint rgb_r,
@@ -390,14 +388,14 @@ Java_com_example_learnogles_MainActivity_SetPetelltColor(   // 设置主题基�
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_example_learnogles_MainActivity_SetTheme(   // 设置主题(编号)
+Java_com_navworksstudios_navworksandroid_GLESView_SetTheme(   // 设置主题(编号)
         JNIEnv* env,
         jobject /* this */,
         jint theme) {
     
 }
 
-void navRequestRender() {
+void jni_navRequestRender() {
     JNIEnv* theENV;
     theJVM->AttachCurrentThread(&theENV,NULL);
     jobject glesview = glesView;//theENV->NewGlobalRef(glesView);
