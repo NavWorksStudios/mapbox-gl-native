@@ -306,6 +306,7 @@ jobject glesView;
 extern "C" JNIEXPORT void JNICALL
 Java_com_navworksstudios_navworksandroid_GLESView_Init(
         JNIEnv* env,
+        jobject pthis,
         jobject glesview) {
     glesView = env->NewGlobalRef(glesview);;
     env->GetJavaVM(&theJVM);
