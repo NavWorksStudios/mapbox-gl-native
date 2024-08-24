@@ -874,6 +874,7 @@ set(all_files
     ${PROJECT_SOURCE_DIR}/src/mbgl/clipper2/clipper.rectclip.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/clipper2/clipper.rectclip.h
     ${PROJECT_SOURCE_DIR}/src/mbgl/clipper2/clipper.version.h
+
     ${PROJECT_SOURCE_DIR}/src/mbgl/route/route_data.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/route/route_data.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/route/route_line_layer_manager.hpp
@@ -888,6 +889,15 @@ set(all_files
     ${PROJECT_SOURCE_DIR}/src/mbgl/route/render_route_source.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/route/route_plan.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/route/route_plan_tile.hpp
+
+    ${PROJECT_SOURCE_DIR}/src/mbgl/platform/jni.h
+    ${PROJECT_SOURCE_DIR}/src/mbgl/platform/native_window.h
+    ${PROJECT_SOURCE_DIR}/src/mbgl/platform/native_window_jni.h
+    ${PROJECT_SOURCE_DIR}/src/mbgl/platform/KHR/khrplatform.h
+    ${PROJECT_SOURCE_DIR}/src/mbgl/platform/GLES2/gl2.h
+    ${PROJECT_SOURCE_DIR}/src/mbgl/platform/GLES2/gl2ext.h
+    ${PROJECT_SOURCE_DIR}/src/mbgl/platform/GLES2/gl2platform.h
+
 )
 
 source_group_by_dir(all_files)
