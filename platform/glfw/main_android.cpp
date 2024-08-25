@@ -1,7 +1,7 @@
 
 
-#define __CALLED_BY_ANDROID_JNi__
-#ifdef __CALLED_BY_ANDROID_JNi__
+#define __CALLED_BY_ANDROID_JNI__
+#ifdef __CALLED_BY_ANDROID_JNI__
 
 #include <stdio.h>
 #include <string.h>
@@ -12,6 +12,14 @@
 #include <mbgl/platform/GLES2/gl2platform.h>
 
 #endif
+
+#include "glfw_view.hpp"
+#include "glfw_renderer_frontend.hpp"
+#include "settings_json.hpp"
+
+std::shared_ptr<GLFWView> view_android;
+std::shared_ptr<mbgl::Map> map_android;
+std::shared_ptr<GLFWRendererFrontend> rendererFrontend_android;
 
 // API exported
 JavaVM* theJVM;
@@ -25,7 +33,7 @@ Java_com_navworksstudios_navworksandroid_GLESView_Init(
     glesView = env->NewGlobalRef(glesview);;
     env->GetJavaVM(&theJVM);
     
-    glClearColor(1.0f,0.0f,1.0f,1.0f);
+    glClearColor(1.0f, 0.0f, 1.0f, 1.0f);
 }
  
 extern "C" JNIEXPORT void JNICALL
@@ -34,7 +42,7 @@ Java_com_navworksstudios_navworksandroid_GLESView_OnViewportChanged(
         jobject,
         jint width,
         jint height) {
-    glViewport(0,0,width,height);
+    glViewport(0, 0, width, height);
 }
 
 extern "C" JNIEXPORT void JNICALL
@@ -62,7 +70,7 @@ extern "C" JNIEXPORT void JNICALL
 Java_com_navworksstudios_navworksandroid_GLESView_SetZoom(   // 设置相机zoom级别
         JNIEnv* env,
         jobject /* this */,
-        jint zoom) {
+        jdouble zoom) {
     
 }
 
@@ -112,7 +120,9 @@ Java_com_navworksstudios_navworksandroid_GLESView_SetTheme(   // 设置主题(�
 
 void jni_navRequestRender() {
     JNIEnv* theENV;
-    theJVM->AttachCurrentThread(&theENV,NULL);
+    theJVM->AttachCurrentThread(&theENV, NULL);
+    if(!glesView)
+        return;
     jobject glesview = glesView;//theENV->NewGlobalRef(glesView);
     //  1.找到类
     jclass GLESViewClass = theENV->FindClass("com/navworksstudios/navworksandroid/GLESView");//第一种方式
