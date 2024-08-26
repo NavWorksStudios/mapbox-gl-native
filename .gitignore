@@ -69,7 +69,6 @@ mapbox-gl-native.code-workspace
 /CMakeFiles/
 /CMakeScripts/
 /test/
-/platform/
 /render-test/
 /benchmark/
 /bin/
