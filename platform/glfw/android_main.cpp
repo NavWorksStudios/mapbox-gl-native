@@ -33,6 +33,7 @@ std::shared_ptr<mbgl::Map> map_android;
 std::shared_ptr<GLFWRendererFrontend> rendererFrontend_android;
 
 void init() {
+#if 0
     mbgl::ResourceOptions resourceOptions;
     resourceOptions.withCachePath("/tmp/mbgl-cache.db").withAccessToken("");
     
@@ -121,6 +122,7 @@ void init() {
     
     mbgl::AnimationOptions animationOptions(mbgl::Seconds(10));
     map_android->flyTo(cameraOptions, animationOptions);
+#endif
 }
 
 
