@@ -1,4 +1,4 @@
-#include "glfw_view.hpp"
+#include "android_view.hpp"
 #include "glfw_backend.hpp"
 #include "glfw_renderer_frontend.hpp"
 #include "route_demo_data.hpp"
@@ -54,16 +54,17 @@
 #include <mbgl/route/route_line_layer_manager.hpp>
 
 namespace {
-const std::string mbglPuckAssetsPath{MAPBOX_PUCK_ASSETS_PATH};
+//const std::string mbglPuckAssetsPath{MAPBOX_PUCK_ASSETS_PATH};
+const std::string mbglPuckAssetsPath{""};
 
-mbgl::Color premultiply(mbgl::Color c) {
+mbgl::Color premultiply2(mbgl::Color c) {
     c.r *= c.a;
     c.g *= c.a;
     c.b *= c.a;
     return c;
 }
 
-std::array<double, 3> toArray(const mbgl::LatLng &crd) {
+std::array<double, 3> toArray2(const mbgl::LatLng &crd) {
     return {crd.latitude(), crd.longitude(), 0};
 }
 } // namespace
@@ -80,54 +81,10 @@ public:
     std::function<void()> didFinishLoadingStyleCallback;
 };
 
-namespace {
-
-void addFillExtrusionLayer(mbgl::style::Style &style, bool visible) {
-//    using namespace mbgl::style;
-//    using namespace mbgl::style::expression::dsl;
-//
-//    // Satellite-only style does not contain building extrusions data.
-//    if (!style.getSource("composite")) {
-//        return;
-//    }
-//
-//    if (auto layer = style.getLayer("3d-buildings")) {
-//        layer->setVisibility(VisibilityType(!visible));
-//        return;
-//    }
-//
-//    auto extrusionLayer = std::make_unique<FillExtrusionLayer>("3d-buildings", "composite");
-//    extrusionLayer->setSourceLayer("building");
-//    extrusionLayer->setMinZoom(15.0f);
-//    extrusionLayer->setFilter(Filter(eq(get("extrude"), literal("true"))));
-//    
-//    auto e = interpolate(
-//                linear(),
-//                number(get("height")),
-//                0.f, toColor(literal("#FFFFFF")),
-//                100.f, toColor(literal("#FFFFFF")));
-//                
-//    extrusionLayer->setFillExtrusionColor(PropertyExpression<mbgl::Color>(std::move(e)));
-//    
-//    extrusionLayer->setFillExtrusionOpacity(.7f);
-//    extrusionLayer->setFillExtrusionHeight(PropertyExpression<float>(get("height")));
-//    extrusionLayer->setFillExtrusionBase(PropertyExpression<float>(get("min_height")));
-//    style.addLayer(std::move(extrusionLayer));
-}
-
-} // namespace
-
-void glfwError(int error, const char *description) {
-    mbgl::Log::Error(mbgl::Event::OpenGL, "GLFW error (%i): %s", error, description);
-    assert(false);
-}
-
-GLFWView::GLFWView(bool fullscreen_, bool benchmark_, const mbgl::ResourceOptions &options, bool headless)
+AndroidView::AndroidView(bool fullscreen_, bool benchmark_, const mbgl::ResourceOptions &options, bool headless)
     : fullscreen(fullscreen_),
       benchmark(benchmark_),
-      snapshotterObserver(std::make_unique<SnapshotObserver>()),
       mapResourceOptions(options.clone()) {
-    glfwSetErrorCallback(glfwError);
 
     std::srand(static_cast<unsigned int>(std::time(nullptr)));
 
@@ -246,31 +203,31 @@ GLFWView::GLFWView(bool fullscreen_, bool benchmark_, const mbgl::ResourceOption
     nav::runtime::texture::load(mbglPuckAssetsPath);
 }
 
-GLFWView::~GLFWView() {
+AndroidView::~AndroidView() {
     if (window) glfwDestroyWindow(window);
     glfwTerminate();
     nav::runtime::texture::release();
 }
 
-void GLFWView::setMap(mbgl::Map *map_) {
+void AndroidView::setMap(mbgl::Map *map_) {
     map = map_;
     map->addAnnotationImage(makeImage("default_marker", 22, 22, 1));
 }
 
-void GLFWView::setRenderFrontend(GLFWRendererFrontend* rendererFrontend_) {
+void AndroidView::setRenderFrontend(GLFWRendererFrontend* rendererFrontend_) {
     rendererFrontend = rendererFrontend_;
 }
 
-mbgl::gfx::RendererBackend &GLFWView::getRendererBackend() {
+mbgl::gfx::RendererBackend &AndroidView::getRendererBackend() {
     return renderBackend->getRendererBackend();
 }
 
-void GLFWView::onKey(GLFWwindow *window, int key, int /*scancode*/, int action, int mods) {
-    auto *view = reinterpret_cast<GLFWView *>(glfwGetWindowUserPointer(window));
+void AndroidView::onKey(GLFWwindow *window, int key, int /*scancode*/, int action, int mods) {
+    auto *view = reinterpret_cast<AndroidView *>(glfwGetWindowUserPointer(window));
     view->onKey(key, action, mods);
 }
 
-void GLFWView::onKey(int key, int action, int mods) {
+void AndroidView::onKey(int key, int action, int mods) {
     if (action == GLFW_RELEASE) {
         /*
          * 优先处理空格键对于导航模式的控制
@@ -396,6 +353,7 @@ void GLFWView::onKey(int key, int action, int mods) {
             nextPlace = nextPlace % places.size();
         } break;
         case GLFW_KEY_R: {
+#if 0
             nav::runtime::setViewMode(nav::runtime::ViewMode::Spotlight);
             
             static int index = 0;
@@ -480,10 +438,8 @@ void GLFWView::onKey(int key, int action, int mods) {
             toggleLocationIndicatorLayer(true);
             firstFrameForRoute = true;
             animateRouteCallback(map);
+#endif
         } break;
-        case GLFW_KEY_E:
-            toggle3DExtrusions(!show3DExtrusions);
-            break;
         case GLFW_KEY_D: {
             static const std::vector<mbgl::LatLngBounds> bounds = {
                 mbgl::LatLngBounds::hull(mbgl::LatLng{-45.0, -170.0}, mbgl::LatLng{45.0, 170.0}),  // inside
@@ -519,9 +475,6 @@ void GLFWView::onKey(int key, int action, int mods) {
                 }
             }
         } break;
-        case GLFW_KEY_T:
-            toggleCustomSource();
-            break;
         case GLFW_KEY_F: {
             using namespace mbgl;
             using namespace mbgl::style;
@@ -593,13 +546,6 @@ void GLFWView::onKey(int key, int action, int mods) {
                 map->setBounds(mbgl::BoundOptions().withMinPitch(0).withMaxPitch(60));
             }
         } break;
-        case GLFW_KEY_H: {
-            makeSnapshot();
-        } break;
-        case GLFW_KEY_J: {
-            // Snapshot with overlay
-            makeSnapshot(true);
-        } break;
         case GLFW_KEY_G: {
             toggleLocationIndicatorLayer(false);
             hideCurrentLineAnnotations();
@@ -617,16 +563,6 @@ void GLFWView::onKey(int key, int action, int mods) {
     if (action == GLFW_RELEASE || action == GLFW_REPEAT) {
         switch (key) {
         case GLFW_KEY_W: popAnnotation(); break;
-        case GLFW_KEY_1: addRandomPointAnnotations(1); break;
-        case GLFW_KEY_2: addRandomPointAnnotations(10); break;
-        case GLFW_KEY_3: addRandomPointAnnotations(100); break;
-        case GLFW_KEY_4: addRandomPointAnnotations(1000); break;
-        case GLFW_KEY_5: addRandomPointAnnotations(10000); break;
-        case GLFW_KEY_6: addRandomPointAnnotations(100000); break;
-        case GLFW_KEY_7: addRandomShapeAnnotations(1); break;
-        case GLFW_KEY_8: addRandomShapeAnnotations(10); break;
-        case GLFW_KEY_9: addRandomShapeAnnotations(100); break;
-        case GLFW_KEY_0: addRandomShapeAnnotations(1000); break;
         case GLFW_KEY_M: addAnimatedAnnotation(); break;
         }
     }
@@ -648,7 +584,7 @@ struct Interpolator<mbgl::LatLng> {
 } // namespace util
 } // namespace mbgl
 
-void GLFWView::updateFreeCameraDemo() {
+void AndroidView::updateFreeCameraDemo() {
     const mbgl::LatLng trainStartPos = {60.171367, 24.941359};
     const mbgl::LatLng trainEndPos = {60.185147, 24.936668};
     const mbgl::LatLng cameraStartPos = {60.167443, 24.927176};
@@ -678,14 +614,14 @@ void GLFWView::updateFreeCameraDemo() {
     }
 }
 
-mbgl::Color GLFWView::makeRandomColor() const {
+mbgl::Color AndroidView::makeRandomColor() const {
     const float r = 1.0f * float(std::rand()) / float(RAND_MAX);
     const float g = 1.0f * float(std::rand()) / float(RAND_MAX);
     const float b = 1.0f * float(std::rand()) / float(RAND_MAX);
     return { r, g, b, 1.0f };
 }
 
-mbgl::Point<double> GLFWView::makeRandomPoint() const {
+mbgl::Point<double> AndroidView::makeRandomPoint() const {
     const double x = width * double(std::rand()) / RAND_MAX;
     const double y = height * double(std::rand()) / RAND_MAX;
     mbgl::LatLng latLng = map->latLngForPixel({ x, y });
@@ -693,7 +629,7 @@ mbgl::Point<double> GLFWView::makeRandomPoint() const {
 }
 
 std::unique_ptr<mbgl::style::Image>
-GLFWView::makeImage(const std::string& id, int width, int height, float pixelRatio) {
+AndroidView::makeImage(const std::string& id, int width, int height, float pixelRatio) {
     const int r = 255 * (double(std::rand()) / RAND_MAX);
     const int g = 255 * (double(std::rand()) / RAND_MAX);
     const int b = 255 * (double(std::rand()) / RAND_MAX);
@@ -721,7 +657,7 @@ GLFWView::makeImage(const std::string& id, int width, int height, float pixelRat
     return std::make_unique<mbgl::style::Image>(id, std::move(image), pixelRatio);
 }
 
-void GLFWView::nextOrientation() {
+void AndroidView::nextOrientation() {
     using NO = mbgl::NorthOrientation;
     switch (map->getMapOptions().northOrientation()) {
         case NO::Upwards: map->setNorthOrientation(NO::Rightwards); break;
@@ -731,28 +667,28 @@ void GLFWView::nextOrientation() {
     }
 }
 
-void GLFWView::addTargetPointAnnotations(const mbgl::LatLng& tagPosition) {
+void AndroidView::addTargetPointAnnotations(const mbgl::LatLng& tagPosition) {
     hideCurrentTargetPointAnnotations();
     map->addAnnotationImage(std::make_unique<mbgl::style::Image>("marker-destination",
                                                                  mbgl::decodeImage(mbgl::util::read_file(mbglPuckAssetsPath + "target.png")), 1.0));
     targetAnnotationIDs.push_back(map->addAnnotation(mbgl::SymbolAnnotation { { tagPosition.longitude(), tagPosition.latitude() }, "marker-destination" }));
 }
 
-void GLFWView::hideCurrentTargetPointAnnotations() {
+void AndroidView::hideCurrentTargetPointAnnotations() {
     if(targetAnnotationIDs.size() > 0) {
         map->removeAnnotation(targetAnnotationIDs[0]);
         targetAnnotationIDs.clear();
     }
 }
 
-void GLFWView::addRandomPointAnnotations(int count) {
+void AndroidView::addRandomPointAnnotations(int count) {
     for (int i = 0; i < count; ++i) {
         annotationIDs.push_back(map->addAnnotation(mbgl::SymbolAnnotation { makeRandomPoint(), "marker-destination" }));
     }
 }
 
 
-void GLFWView::addRoutePlans() {
+void AndroidView::addRoutePlans() {
     mbgl::LineString<double> lineString;
     
     lineString.push_back({ -74.013841, 40.702449 });
@@ -859,7 +795,7 @@ void GLFWView::addRoutePlans() {
     mbgl::RoutePlanID id = map->addRoutePlans(mbgl::LineRoutePlan(lineString, infos, true));
 }
 
-void GLFWView::addLineAnnotations(const mbgl::LatLng& tagPosition) {
+void AndroidView::addLineAnnotations(const mbgl::LatLng& tagPosition) {
     hideCurrentLineAnnotations();
     mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
     mbgl::LineString<double> lineString;
@@ -872,7 +808,7 @@ void GLFWView::addLineAnnotations(const mbgl::LatLng& tagPosition) {
     }
 }
 
-void GLFWView::hideCurrentLineAnnotations() {
+void AndroidView::hideCurrentLineAnnotations() {
     if(annotationIDs.size() > 0) {
         mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
         mbgl::LineString<double> lineString;
@@ -882,7 +818,7 @@ void GLFWView::hideCurrentLineAnnotations() {
     }
 }
 
-void GLFWView::updateLineAnnotations(const mbgl::LatLng& orgPosition, const mbgl::LatLng& tagPosition) {
+void AndroidView::updateLineAnnotations(const mbgl::LatLng& orgPosition, const mbgl::LatLng& tagPosition) {
     mbgl::LineString<double> lineString;
     lineString.push_back({ orgPosition.longitude(), orgPosition.latitude() });
 //    lineString.push_back({ tagPosition.longitude()-0.001, tagPosition.latitude()-0.001 });
@@ -894,7 +830,7 @@ void GLFWView::updateLineAnnotations(const mbgl::LatLng& orgPosition, const mbgl
     }
 }
 
-void GLFWView::addRandomShapeAnnotations(int count) {
+void AndroidView::addRandomShapeAnnotations(int count) {
     for (int i = 0; i < count; ++i) {
         mbgl::Polygon<double> triangle;
         triangle.push_back({ makeRandomPoint(), makeRandomPoint(), makeRandomPoint() });
@@ -902,13 +838,13 @@ void GLFWView::addRandomShapeAnnotations(int count) {
     }
 }
 
-void GLFWView::addAnimatedAnnotation() {
+void AndroidView::addAnimatedAnnotation() {
     const double started = glfwGetTime();
     animatedAnnotationIDs.push_back(map->addAnnotation(mbgl::SymbolAnnotation { { 0, 0 } , "default_marker" }));
     animatedAnnotationAddedTimes.push_back(started);
 }
 
-void GLFWView::updateAnimatedAnnotations() {
+void AndroidView::updateAnimatedAnnotations() {
     const double time = glfwGetTime();
     for (size_t i = 0; i < animatedAnnotationIDs.size(); i++) {
         auto dt = time - animatedAnnotationAddedTimes[i];
@@ -920,7 +856,7 @@ void GLFWView::updateAnimatedAnnotations() {
     }
 }
 
-void GLFWView::cycleDebugOptions() {
+void AndroidView::cycleDebugOptions() {
     auto debug = map->getDebug();
 #if not MBGL_USE_GLES2
     if (debug & mbgl::MapDebugOptions::StencilClip)
@@ -944,7 +880,7 @@ void GLFWView::cycleDebugOptions() {
     map->setDebug(debug);
 }
 
-void GLFWView::clearAnnotations() {
+void AndroidView::clearAnnotations() {
     for (const auto& id : annotationIDs) {
         map->removeAnnotation(id);
     }
@@ -958,7 +894,7 @@ void GLFWView::clearAnnotations() {
     animatedAnnotationIDs.clear();
 }
 
-void GLFWView::popAnnotation() {
+void AndroidView::popAnnotation() {
     if (annotationIDs.empty()) {
         return;
     }
@@ -967,49 +903,12 @@ void GLFWView::popAnnotation() {
     annotationIDs.pop_back();
 }
 
-void GLFWView::makeSnapshot(bool withOverlay) {
-    if (!snapshotter || snapshotter->getStyleURL() != map->getStyle().getURL()) {
-        snapshotter = std::make_unique<mbgl::MapSnapshotter>(
-            map->getMapOptions().size(), map->getMapOptions().pixelRatio(), mapResourceOptions, *snapshotterObserver);
-        snapshotter->setStyleURL(map->getStyle().getURL());
-    }
-
-    auto snapshot = [&] {
-        snapshotter->setCameraOptions(map->getCameraOptions());
-        snapshotter->snapshot([](const std::exception_ptr &ptr,
-                                 mbgl::PremultipliedImage image,
-                                 const mbgl::MapSnapshotter::Attributions &,
-                                 const mbgl::MapSnapshotter::PointForFn &,
-                                 const mbgl::MapSnapshotter::LatLngForFn &) {
-            if (!ptr) {
-                mbgl::Log::Info(mbgl::Event::General,
-                                "Made snapshot './snapshot.png' with size w:%dpx h:%dpx",
-                                image.size.width,
-                                image.size.height);
-                std::ofstream file("./snapshot.png");
-                file << mbgl::encodePNG(image);
-            } else {
-                mbgl::Log::Error(mbgl::Event::General, "Failed to make a snapshot!");
-            }
-        });
-    };
-
-    if (withOverlay) {
-        snapshotterObserver->didFinishLoadingStyleCallback = [&] {
-            addFillExtrusionLayer(snapshotter->getStyle(), withOverlay);
-            snapshot();
-        };
-    } else {
-        snapshot();
-    }
-}
-
-void GLFWView::onScroll(GLFWwindow *window, double /*xOffset*/, double yOffset) {
-    auto *view = reinterpret_cast<GLFWView *>(glfwGetWindowUserPointer(window));
+void AndroidView::onScroll(GLFWwindow *window, double /*xOffset*/, double yOffset) {
+    auto *view = reinterpret_cast<AndroidView *>(glfwGetWindowUserPointer(window));
     view->onScroll(yOffset);
 }
 
-void GLFWView::onScroll(double yOffset) {
+void AndroidView::onScroll(double yOffset) {
     
     if(puck) {
         if(puckFollowsCameraCenter) {
@@ -1052,15 +951,15 @@ void GLFWView::onScroll(double yOffset) {
 //#endif
 }
 
-void GLFWView::onWindowResize(GLFWwindow *window, int width, int height) {
-    auto *view = reinterpret_cast<GLFWView *>(glfwGetWindowUserPointer(window));
+void AndroidView::onWindowResize(GLFWwindow *window, int width, int height) {
+    auto *view = reinterpret_cast<AndroidView *>(glfwGetWindowUserPointer(window));
     view->width = width;
     view->height = height;
     view->map->setSize({ static_cast<uint32_t>(view->width), static_cast<uint32_t>(view->height) });
 }
 
-void GLFWView::onFramebufferResize(GLFWwindow *window, int width, int height) {
-    auto *view = reinterpret_cast<GLFWView *>(glfwGetWindowUserPointer(window));
+void AndroidView::onFramebufferResize(GLFWwindow *window, int width, int height) {
+    auto *view = reinterpret_cast<AndroidView *>(glfwGetWindowUserPointer(window));
     
     if (view->renderBackend)
     view->renderBackend->setSize({ static_cast<uint32_t>(width), static_cast<uint32_t>(height) });
@@ -1072,12 +971,12 @@ void GLFWView::onFramebufferResize(GLFWwindow *window, int width, int height) {
     view->invalidate();
 }
 
-void GLFWView::onMouseClick(GLFWwindow *window, int button, int action, int modifiers) {
-    auto *view = reinterpret_cast<GLFWView *>(glfwGetWindowUserPointer(window));
+void AndroidView::onMouseClick(GLFWwindow *window, int button, int action, int modifiers) {
+    auto *view = reinterpret_cast<AndroidView *>(glfwGetWindowUserPointer(window));
     view->onMouseClick(button, action, modifiers);
 }
 
-void GLFWView::onMouseClick(int button, int action, int modifiers) {
+void AndroidView::onMouseClick(int button, int action, int modifiers) {
     double now = glfwGetTime();
     if (action == GLFW_PRESS) {
         map->setGestureInProgress(true);
@@ -1116,12 +1015,12 @@ void GLFWView::onMouseClick(int button, int action, int modifiers) {
     }
 }
 
-void GLFWView::onMouseMove(GLFWwindow *window, double x, double y) {
-    auto *view = reinterpret_cast<GLFWView *>(glfwGetWindowUserPointer(window));
+void AndroidView::onMouseMove(GLFWwindow *window, double x, double y) {
+    auto *view = reinterpret_cast<AndroidView *>(glfwGetWindowUserPointer(window));
     view->onMouseMove(x, y);
 }
 
-void GLFWView::onMouseMove(double x, double y) {
+void AndroidView::onMouseMove(double x, double y) {
     double now = glfwGetTime();
 
     const auto puckProgram = [&]() {
@@ -1208,14 +1107,14 @@ void GLFWView::onMouseMove(double x, double y) {
     }
 }
 
-void GLFWView::onWindowFocus(GLFWwindow *window, int focused) {
+void AndroidView::onWindowFocus(GLFWwindow *window, int focused) {
     if (focused == GLFW_FALSE) { // Focus lost.
-        auto *view = reinterpret_cast<GLFWView *>(glfwGetWindowUserPointer(window));
+        auto *view = reinterpret_cast<AndroidView *>(glfwGetWindowUserPointer(window));
         view->rendererFrontend->getRenderer()->reduceMemoryUse();
     }
 }
 
-void GLFWView::run() {
+void AndroidView::run() {
     auto callback = [&] {
         if (window && glfwWindowShouldClose(window)) {
             runLoop.stop();
@@ -1257,20 +1156,20 @@ void GLFWView::run() {
 #endif
 }
 
-float GLFWView::getPixelRatio() const {
+float AndroidView::getPixelRatio() const {
     return pixelRatio;
 }
 
-mbgl::Size GLFWView::getSize() const {
+mbgl::Size AndroidView::getSize() const {
     return { static_cast<uint32_t>(width), static_cast<uint32_t>(height) };
 }
 
-void GLFWView::invalidate() {
+void AndroidView::invalidate() {
     dirty = true;
     glfwPostEmptyEvent();
 }
 
-void GLFWView::report(float duration) {
+void AndroidView::report(float duration) {
     // Frame timer
     static int frameCounter = 0;
     static float frameCost = 0;
@@ -1293,80 +1192,26 @@ void GLFWView::report(float duration) {
     }
 }
 
-void GLFWView::setChangeStyleCallback(std::function<void()> callback) {
+void AndroidView::setChangeStyleCallback(std::function<void()> callback) {
     changeStyleCallback = std::move(callback);
 }
 
-void GLFWView::setShouldClose() {
+void AndroidView::setShouldClose() {
     if (window) glfwSetWindowShouldClose(window, true);
     glfwPostEmptyEvent();
 }
 
-void GLFWView::setWindowTitle(const std::string& title) {
+void AndroidView::setWindowTitle(const std::string& title) {
     if (window) glfwSetWindowTitle(window, (std::string { "Mapbox GL: " } + title).c_str());
 }
 
-void GLFWView::onDidFinishLoadingStyle() {
+void AndroidView::onDidFinishLoadingStyle() {
 #if defined(MBGL_RENDER_BACKEND_OPENGL) && !defined(MBGL_LAYER_CUSTOM_DISABLE_ALL)
     puck = nullptr;
 #endif
-
-    if (show3DExtrusions) {
-        toggle3DExtrusions(show3DExtrusions);
-    }
 }
 
-void GLFWView::toggle3DExtrusions(bool visible) {
-    show3DExtrusions = visible;
-    addFillExtrusionLayer(map->getStyle(), show3DExtrusions);
-}
-
-void GLFWView::toggleCustomSource() {
-    if (!map->getStyle().getSource("custom")) {
-        mbgl::style::CustomGeometrySource::Options options;
-        options.cancelTileFunction = [](const mbgl::CanonicalTileID&) {};
-        options.fetchTileFunction = [&](const mbgl::CanonicalTileID& tileID) {
-            double gridSpacing = 0.1;
-            mbgl::FeatureCollection features;
-            const mbgl::LatLngBounds bounds(tileID);
-            for (double y = ceil(bounds.north() / gridSpacing) * gridSpacing; y >= floor(bounds.south() / gridSpacing) * gridSpacing; y -= gridSpacing) {
-
-                mapbox::geojson::line_string gridLine;
-                gridLine.emplace_back(bounds.west(), y);
-                gridLine.emplace_back(bounds.east(), y);
-
-                features.emplace_back(gridLine);
-            }
-
-            for (double x = floor(bounds.west() / gridSpacing) * gridSpacing; x <= ceil(bounds.east() / gridSpacing) * gridSpacing; x += gridSpacing) {
-                mapbox::geojson::line_string gridLine;
-                gridLine.emplace_back(x, bounds.south());
-                gridLine.emplace_back(x, bounds.north());
-
-                features.emplace_back(gridLine);
-            }
-            auto source = static_cast<mbgl::style::CustomGeometrySource *>(map->getStyle().getSource("custom"));
-            if (source) {
-                source->setTileData(tileID, features);
-                source->invalidateTile(tileID);
-            }
-        };
-        map->getStyle().addSource(std::make_unique<mbgl::style::CustomGeometrySource>("custom", options));
-    }
-
-    auto* layer = map->getStyle().getLayer("grid");
-
-    if (!layer) {
-        auto lineLayer = std::make_unique<mbgl::style::LineLayer>("grid", "custom");
-        lineLayer->setLineColor(mbgl::Color{ 1.0, 0.0, 0.0, 1.0 });
-        map->getStyle().addLayer(std::move(lineLayer));
-    } else {
-        layer->setVisibility(layer->getVisibility() == mbgl::style::VisibilityType::Visible ?
-                             mbgl::style::VisibilityType::None : mbgl::style::VisibilityType::Visible);
-    }
-}
-
-void GLFWView::toggleLocationIndicatorLayer(bool visibility) {
+void AndroidView::toggleLocationIndicatorLayer(bool visibility) {
 #if defined(MBGL_RENDER_BACKEND_OPENGL) && !defined(MBGL_LAYER_LOCATION_INDICATOR_DISABLE_ALL)
     puck = static_cast<mbgl::style::LocationIndicatorLayer *>(map->getStyle().getLayer("puck"));
     static const mbgl::LatLng puckLocation{35.683389, 139.76525}; // A location on the crossing of 4 tiles
@@ -1377,14 +1222,14 @@ void GLFWView::toggleLocationIndicatorLayer(bool visibility) {
             mbgl::Duration::zero(), mbgl::Duration::zero())); // Note: This is used here for demo purpose.
                                                               // SDKs should not use this, or else the location
                                                               // will "jump" to positions.
-        puckLayer->setLocation(toArray(puckLocation));
+        puckLayer->setLocation(toArray2(puckLocation));
         puckLayer->setAccuracyRadius(15);
         puckLayer->setAccuracyRadiusColor(
-            premultiply(mbgl::Color{0.95, 0.95, 0.95, 0})); // Note: these must be fed premultiplied
+            premultiply2(mbgl::Color{0.95, 0.95, 0.95, 0})); // Note: these must be fed premultiplied
 
         puckLayer->setBearingTransition(mbgl::style::TransitionOptions(mbgl::Duration::zero(), mbgl::Duration::zero()));
         puckLayer->setBearing(mbgl::style::Rotation(0.0));
-        puckLayer->setAccuracyRadiusBorderColor(premultiply(mbgl::Color{0.95, 0.95, 0.95, 0}));
+        puckLayer->setAccuracyRadiusBorderColor(premultiply2(mbgl::Color{0.95, 0.95, 0.95, 0}));
         puckLayer->setTopImageSize(0.18);
         puckLayer->setBearingImageSize(0.26);
         puckLayer->setShadowImageSize(0.16);
@@ -1410,12 +1255,12 @@ void GLFWView::toggleLocationIndicatorLayer(bool visibility) {
 
 //    bool visible = puck->getVisibility() == mbgl::style::VisibilityType::Visible;
     if (visibility) {
-        puck->setLocation(toArray(puckLocation));
+        puck->setLocation(toArray2(puckLocation));
         puck->setVisibility(mbgl::style::VisibilityType(mbgl::style::VisibilityType::Visible));
         puckFollowsCameraCenter = true;
         routePaused = false;
     } else {
-        puck->setLocation(toArray(puckLocation));
+        puck->setLocation(toArray2(puckLocation));
         puck->setVisibility(mbgl::style::VisibilityType(mbgl::style::VisibilityType::None));
         puckFollowsCameraCenter = true;
         routePaused = true;
@@ -1425,7 +1270,7 @@ void GLFWView::toggleLocationIndicatorLayer(bool visibility) {
 
 using Nanoseconds = std::chrono::nanoseconds;
 
-void GLFWView::onWillStartRenderingFrame() {
+void AndroidView::onWillStartRenderingFrame() {
 //#if defined(MBGL_RENDER_BACKEND_OPENGL) && !defined(MBGL_LAYER_LOCATION_INDICATOR_DISABLE_ALL)
 //    puck = static_cast<mbgl::style::LocationIndicatorLayer *>(map->getStyle().getLayer("puck"));
 //    if (puck) {

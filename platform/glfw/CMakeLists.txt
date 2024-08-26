@@ -6,12 +6,16 @@ pkg_search_module(GLFW glfw3 REQUIRED)
 add_executable(
     mbgl-glfw
     ${PROJECT_SOURCE_DIR}/platform/glfw/main.cpp
-    ${PROJECT_SOURCE_DIR}/platform/glfw/main_android.cpp
+    ${PROJECT_SOURCE_DIR}/platform/glfw/android_main.cpp
     ${PROJECT_SOURCE_DIR}/platform/glfw/glfw_view.cpp
+    ${PROJECT_SOURCE_DIR}/platform/glfw/android_view.cpp
+    ${PROJECT_SOURCE_DIR}/platform/glfw/android_view.hpp
     ${PROJECT_SOURCE_DIR}/platform/glfw/glfw_renderer_frontend.cpp
     ${PROJECT_SOURCE_DIR}/platform/glfw/settings_json.cpp
     ${PROJECT_SOURCE_DIR}/platform/glfw/test_writer.cpp
     ${PROJECT_SOURCE_DIR}/platform/default/src/mbgl/map/map_snapshotter.cpp
+    ${PROJECT_SOURCE_DIR}/platform/glfw/route_demo_data.hpp
+    ${PROJECT_SOURCE_DIR}/platform/glfw/route_demo_data.cpp
 )
 
 set_property(
