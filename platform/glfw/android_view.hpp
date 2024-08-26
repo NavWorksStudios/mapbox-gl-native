@@ -1,7 +1,6 @@
 #pragma once
 
 #include <mbgl/map/map.hpp>
-#include <mbgl/map/map_snapshotter.hpp>
 #include <mbgl/util/geometry.hpp>
 #include <mbgl/util/optional.hpp>
 #include <mbgl/util/run_loop.hpp>
@@ -17,7 +16,6 @@
 struct GLFWwindow;
 class GLFWBackend;
 class GLFWRendererFrontend;
-class SnapshotObserver;
 
 namespace mbgl {
 namespace gfx {
@@ -37,8 +35,6 @@ public:
     void setRenderFrontend(GLFWRendererFrontend*);
 
     mbgl::gfx::RendererBackend& getRendererBackend();
-
-    void setTestDirectory(std::string dir) { testDirectory = std::move(dir); };
 
     // Callback called when the user presses the key mapped to style change.
     // The expected action is to set a new style, different to the current one.
@@ -124,8 +120,6 @@ private:
     mbgl::Map* map = nullptr;
     GLFWRendererFrontend* rendererFrontend = nullptr;
     std::unique_ptr<GLFWBackend> renderBackend;
-
-    std::string testDirectory = ".";
 
     double freeCameraDemoPhase = -1;
     mbgl::TimePoint freeCameraDemoStartTime;

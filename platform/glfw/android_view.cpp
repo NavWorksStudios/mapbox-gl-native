@@ -37,7 +37,7 @@
 #endif // MBGL_USE_GLES2
 
 #define GL_GLEXT_PROTOTYPES
-#include <GLFW/glfw3.h>
+//#include <GLFW/glfw3.h>
 
 #include <cassert>
 #include <cstdlib>
@@ -70,17 +70,6 @@ std::array<double, 3> toArray2(const mbgl::LatLng &crd) {
 } // namespace
 #endif
 
-class SnapshotObserver final : public mbgl::MapSnapshotterObserver {
-public:
-    ~SnapshotObserver() override = default;
-    void onDidFinishLoadingStyle() override {
-        if (didFinishLoadingStyleCallback) {
-            didFinishLoadingStyleCallback();
-        }
-    }
-    std::function<void()> didFinishLoadingStyleCallback;
-};
-
 AndroidView::AndroidView(bool fullscreen_, bool benchmark_, const mbgl::ResourceOptions &options, bool headless)
     : fullscreen(fullscreen_),
       benchmark(benchmark_),
@@ -88,75 +77,75 @@ AndroidView::AndroidView(bool fullscreen_, bool benchmark_, const mbgl::Resource
 
     std::srand(static_cast<unsigned int>(std::time(nullptr)));
 
-    if (!glfwInit()) {
-        mbgl::Log::Error(mbgl::Event::OpenGL, "failed to initialize glfw");
-        exit(1);
-    }
+//    if (!glfwInit()) {
+//        mbgl::Log::Error(mbgl::Event::OpenGL, "failed to initialize glfw");
+//        exit(1);
+//    }
 
-    GLFWmonitor *monitor = nullptr;
-    if (fullscreen) {
-        monitor = glfwGetPrimaryMonitor();
-        auto videoMode = glfwGetVideoMode(monitor);
-        width = videoMode->width;
-        height = videoMode->height;
-    }
+//    GLFWmonitor *monitor = nullptr;
+//    if (fullscreen) {
+//        monitor = glfwGetPrimaryMonitor();
+//        auto videoMode = glfwGetVideoMode(monitor);
+//        width = videoMode->width;
+//        height = videoMode->height;
+//    }
 
-#if __APPLE__
-    glfwWindowHint(GLFW_COCOA_GRAPHICS_SWITCHING, GL_TRUE);
-#endif
+//#if __APPLE__
+//    glfwWindowHint(GLFW_COCOA_GRAPHICS_SWITCHING, GL_TRUE);
+//#endif
+//
+//#if MBGL_WITH_EGL
+//    glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_EGL_CONTEXT_API);
+//#endif
+//
+//#ifdef DEBUG
+//    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+//#endif
+//
+//#if MBGL_USE_GLES2
+//    glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
+//    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
+//    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+//#endif
 
-#if MBGL_WITH_EGL
-    glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_EGL_CONTEXT_API);
-#endif
+//    if (mbgl::gfx::Backend::GetType() != mbgl::gfx::Backend::Type::OpenGL) {
+//        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+//    }
+//
+//    glfwWindowHint(GLFW_RED_BITS, 8);
+//    glfwWindowHint(GLFW_GREEN_BITS, 8);
+//    glfwWindowHint(GLFW_BLUE_BITS, 8);
+//    glfwWindowHint(GLFW_ALPHA_BITS, 8);
+//    glfwWindowHint(GLFW_STENCIL_BITS, 8);
+//    glfwWindowHint(GLFW_DEPTH_BITS, 16);
 
-#ifdef DEBUG
-    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
-#endif
-
-#if MBGL_USE_GLES2
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-#endif
-
-    if (mbgl::gfx::Backend::GetType() != mbgl::gfx::Backend::Type::OpenGL) {
-        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    }
-
-    glfwWindowHint(GLFW_RED_BITS, 8);
-    glfwWindowHint(GLFW_GREEN_BITS, 8);
-    glfwWindowHint(GLFW_BLUE_BITS, 8);
-    glfwWindowHint(GLFW_ALPHA_BITS, 8);
-    glfwWindowHint(GLFW_STENCIL_BITS, 8);
-    glfwWindowHint(GLFW_DEPTH_BITS, 16);
-
-    if (!headless) {
-        window = glfwCreateWindow(width, height, "Mapbox GL", monitor, nullptr);
-        
-        if (!window) {
-            glfwTerminate();
-            mbgl::Log::Error(mbgl::Event::OpenGL, "failed to initialize window");
-            exit(1);
-        }
-        
-        glfwSetWindowUserPointer(window, this);
-        glfwSetCursorPosCallback(window, onMouseMove);
-        glfwSetMouseButtonCallback(window, onMouseClick);
-        glfwSetWindowSizeCallback(window, onWindowResize);
-        glfwSetFramebufferSizeCallback(window, onFramebufferResize);
-        glfwSetScrollCallback(window, onScroll);
-        glfwSetKeyCallback(window, onKey);
-        glfwSetWindowFocusCallback(window, onWindowFocus);
-
-        glfwGetWindowSize(window, &width, &height);
-
-        renderBackend = GLFWBackend::Create(window, benchmark);
-
-        if (renderBackend)
-            pixelRatio = static_cast<float>(renderBackend->getSize().width) / width;
-    }
-
-    glfwMakeContextCurrent(nullptr);
+//    if (!headless) {
+//        window = glfwCreateWindow(width, height, "Mapbox GL", monitor, nullptr);
+//
+//        if (!window) {
+//            glfwTerminate();
+//            mbgl::Log::Error(mbgl::Event::OpenGL, "failed to initialize window");
+//            exit(1);
+//        }
+//
+//        glfwSetWindowUserPointer(window, this);
+//        glfwSetCursorPosCallback(window, onMouseMove);
+//        glfwSetMouseButtonCallback(window, onMouseClick);
+//        glfwSetWindowSizeCallback(window, onWindowResize);
+//        glfwSetFramebufferSizeCallback(window, onFramebufferResize);
+//        glfwSetScrollCallback(window, onScroll);
+//        glfwSetKeyCallback(window, onKey);
+//        glfwSetWindowFocusCallback(window, onWindowFocus);
+//
+//        glfwGetWindowSize(window, &width, &height);
+//
+//        renderBackend = GLFWBackend::Create(window, benchmark);
+//
+//        if (renderBackend)
+//            pixelRatio = static_cast<float>(renderBackend->getSize().width) / width;
+//    }
+//
+//    glfwMakeContextCurrent(nullptr);
 
     printf("\n");
     printf("================================================================================\n");
@@ -204,8 +193,8 @@ AndroidView::AndroidView(bool fullscreen_, bool benchmark_, const mbgl::Resource
 }
 
 AndroidView::~AndroidView() {
-    if (window) glfwDestroyWindow(window);
-    glfwTerminate();
+//    if (window) glfwDestroyWindow(window);
+//    glfwTerminate();
     nav::runtime::texture::release();
 }
 
@@ -223,349 +212,335 @@ mbgl::gfx::RendererBackend &AndroidView::getRendererBackend() {
 }
 
 void AndroidView::onKey(GLFWwindow *window, int key, int /*scancode*/, int action, int mods) {
-    auto *view = reinterpret_cast<AndroidView *>(glfwGetWindowUserPointer(window));
-    view->onKey(key, action, mods);
+//    auto *view = reinterpret_cast<AndroidView *>(glfwGetWindowUserPointer(window));
+//    view->onKey(key, action, mods);
 }
 
 void AndroidView::onKey(int key, int action, int mods) {
-    if (action == GLFW_RELEASE) {
-        /*
-         * 优先处理空格键对于导航模式的控制
-         * 1. 非导航模式：无任何操作
-         * 2. 导航模式 - 运行状态：导航暂停&相机回归屏幕中心
-         * 3. 导航模式 - 暂停状态：导航恢复&相机回归屏幕中心
-         */
-        if (key == GLFW_KEY_SPACE) {
-            // animateRouteCallback = nullptr;
-            if (puck != nullptr) {
-                if(!routePaused) {
-                    if(puckFollowsCameraCenter)
-                        routePaused = true;
-                    else;
-                    puckFollowsCameraCenter = true;
-                    notFollowCounter = 0;
-                    nav::runtime::setViewMode(nav::runtime::ViewMode::Browse);
-                }
-                else { // routePaused == true
-                    routePaused = false;
-                    puckFollowsCameraCenter = true;
-                    notFollowCounter = 0;
-                    nav::runtime::setViewMode(nav::runtime::ViewMode::Spotlight);
-                }
-            }
-        }
-
-        switch (key) {
-            case GLFW_KEY_ESCAPE:
-                if (this->window) glfwSetWindowShouldClose(window, true);
-                break;
-            case GLFW_KEY_TAB:
-                cycleDebugOptions();
-                break;
-            case GLFW_KEY_X:
-                if (!mods)
-                    map->jumpTo(
-                        mbgl::CameraOptions().withCenter(mbgl::LatLng{}).withZoom(0.0).withBearing(0.0).withPitch(0.0));
-                break;
-            case GLFW_KEY_O:
-                onlineStatusCallback();
-                break;
-            case GLFW_KEY_S:
-                if (changeStyleCallback) changeStyleCallback();
-                break;
-#if not MBGL_USE_GLES2
-        case GLFW_KEY_B: {
-            auto debug = map->getDebug();
-            if (debug & mbgl::MapDebugOptions::StencilClip) {
-                debug &= ~mbgl::MapDebugOptions::StencilClip;
-                debug |= mbgl::MapDebugOptions::DepthBuffer;
-            } else if (debug & mbgl::MapDebugOptions::DepthBuffer) {
-                debug &= ~mbgl::MapDebugOptions::DepthBuffer;
-            } else {
-                debug |= mbgl::MapDebugOptions::StencilClip;
-            }
-            map->setDebug(debug);
-        } break;
-#endif // MBGL_USE_GLES2
-        case GLFW_KEY_N:
-            if (!mods)
-                map->easeTo(mbgl::CameraOptions().withBearing(0.0), mbgl::AnimationOptions {{mbgl::Milliseconds(500)}});
-            break;
-        case GLFW_KEY_Z:
-            nextOrientation();
-            break;
-        case GLFW_KEY_Q: {
-            auto result = rendererFrontend->getRenderer()->queryPointAnnotations({ {}, { double(getSize().width), double(getSize().height) } });
-            printf("visible point annotations: %lu\n", result.size());
-            auto features = rendererFrontend->getRenderer()->queryRenderedFeatures(
-                mbgl::ScreenBox{{double(getSize().width * 0.5), double(getSize().height * 0.5)},
-                                {double(getSize().width * 0.5 + 1), double(getSize().height * 0.5 + 1)}},
-                {});
-            printf("Rendered features at the center of the screen: %lu\n", features.size());
-        } break;
-        case GLFW_KEY_P:
-            pauseResumeCallback();
-            break;
-        case GLFW_KEY_C:
-            clearAnnotations();
-            break;
-        case GLFW_KEY_I:
-            resetDatabaseCallback();
-            break;
-        case GLFW_KEY_K:
-            addTargetPointAnnotations({40.712245, -74.014147});
-            break;
-        case GLFW_KEY_L:
-            addLineAnnotations({40.712245, -74.014147});
-            break;
-        case GLFW_KEY_A: {
-            static const std::vector<std::tuple<mbgl::LatLng,float,float,float>> places = {
-//                { mbgl::LatLng { 22.294522, 114.157209 }, 15.722247, 71.050945, 147.869345 },
-                { mbgl::LatLng { 39.903563, 116.391363 }, 17.141364, 70.103668, -33.081634 },
-                { mbgl::LatLng { 31.242662, 121.495084 }, 15.445918, 71.050945, -179.947701 },
-                { mbgl::LatLng { 25.034055, 121.564515 }, 16.077729, 70.723858, 143.526270 },
-                { mbgl::LatLng { 3.157823, 101.711731 }, 16.335255, 57.806744, -38.003147 },
-                { mbgl::LatLng { 25.191752, 55.274737 }, 15.491167, 71.050945, -33.053848 },
-                { mbgl::LatLng { 25.129851, 55.132237 }, 15.150993, 67.077923, 177.527160 },
-                { mbgl::LatLng { 55.751815, 37.621716 }, 17.575426, 70.000000, -157.404684 },
-                { mbgl::LatLng { 50.087501, 14.421360 }, 16.215369, 70, 103.655584 },
-                { mbgl::LatLng { 41.889696, 12.491829 }, 17.483347, 67.692608, 50.031478 },
-                { mbgl::LatLng { 48.859491, 2.293157 }, 16.341660, 71.050945, 117.451230 },
-                { mbgl::LatLng { 51.500735, -0.124490 }, 17.808440, 71.050945, -141.514926 },
-                { mbgl::LatLng { 40.708050, -74.010099 }, 15.317721, 71.050945, 34.123000 },
-                { mbgl::LatLng { 35.884921, 138.527952 }, 7.137733, 0, 0 },
-                { mbgl::LatLng { 31.217935, 120.949375 }, 9.145968, 0, 0 },
-                { mbgl::LatLng { 22.670898, 115.953376 }, 5.778833, 0, 0 },
-                { mbgl::LatLng { 51.501716, -0.080117 }, 10.320973, 0, 0 },
-                { mbgl::LatLng { 40.709430, -74.027215 }, 11.335746, 0, 0 },
-            };
-
-            static size_t nextPlace = 0;
-            mbgl::CameraOptions cameraOptions;
-            const auto& place = places[nextPlace++];
-            cameraOptions.center = std::get<0>(place);
-            cameraOptions.zoom = std::get<1>(place);
-            cameraOptions.pitch = std::get<2>(place);
-            cameraOptions.bearing = std::get<3>(place);
-
-            mbgl::AnimationOptions animationOptions(mbgl::Seconds(10));
-            map->flyTo(cameraOptions, animationOptions);
-            nextPlace = nextPlace % places.size();
-        } break;
-        case GLFW_KEY_R: {
-#if 0
-            nav::runtime::setViewMode(nav::runtime::ViewMode::Spotlight);
-            
-            static int index = 0;
-            if (animateRouteCallback) {
-                index = fmod(index + 1, 4);
-            }
-            
-            targetLatLng = mbgl::platform::glfw::LonLatValue[index];
-            static mapbox::cheap_ruler::CheapRuler ruler { 0 };
-            ruler = mapbox::cheap_ruler::CheapRuler(mbgl::platform::glfw::LatitudeValue[index]);
-            const mapbox::geojson::geojson& route = mbgl::platform::glfw::RouteValue(index);
-            static double routeProgress = 0;
-
-            static double routeDistance;
-            const auto& geometry = route.get<mapbox::geometry::geometry<double>>();
-            const auto& lineString = geometry.get<mapbox::geometry::line_string<double>>();
-            routeDistance = ruler.lineDistance(lineString);
-            
-            addLineAnnotations(targetLatLng);
-            addTargetPointAnnotations(targetLatLng);
-            addRoutePlans();
-
-            animateRouteCallback = [this, route](mbgl::Map* routeMap) {
-                // 导航模式暂停时，不处理任何逻辑直接返回
-                if(puck == nullptr)
-                    return;
-                if(routePaused)
-                    return;
-                if(!puckFollowsCameraCenter) {
-                    if(notFollowCounter++>150) {
-                        notFollowCounter = 0;
-                        puckFollowsCameraCenter = true;
-                        nav::runtime::setViewMode(nav::runtime::ViewMode::Spotlight);
-                    }
-                }
-                
-                const auto& geometry = route.get<mapbox::geometry::geometry<double>>();
-                const auto& lineString = geometry.get<mapbox::geometry::line_string<double>>();
-                
-                double speed = mbgl::platform::glfw::SpeedValue[index] * 2;
-                double progress = fmod(routeProgress + speed, 1.0);
-                routeProgress = progress;
-
-                // 当前相机参数
-                auto camera = routeMap->getCameraOptions();
-                // 沿导航线路进行routeDistance距离的下一个坐标点
-                auto point = ruler.along(lineString, routeProgress * routeDistance);
-                // 下一个坐标点的经纬度坐标
-                const mbgl::LatLng center { point.y, point.x };
-                // 当前相机中心点的经纬度坐标
-                auto latLng = *camera.center;
-                // 通过当前puck坐标和下一个坐标点计算puck朝向
-                double bearing = ruler.bearing({ lastPoint.x, lastPoint.y }, point);
-                // 通过当前puck(上一次记录的)坐标和下一个坐标点计算puck朝向
-                double initialBearing = ruler.bearing({ lastPoint.x, lastPoint.y }, point);
-                // 计算puck朝向与当前相机方向的差值
-                double easing = bearing - *camera.bearing;
-                easing += easing > 180.0 ? -360.0 : easing < -180 ? 360.0 : 0;
-                // 将相机差值分成12帧进行修正
-                bearing = *camera.bearing + (easing / 20);
-                // 将本次route坐标点记录保存
-                lastPoint = point;
-                
-                if(puckFollowsCameraCenter) {
-                    if(firstFrameForRoute) {
-                        routeMap->jumpTo(mbgl::CameraOptions().withCenter(center).withZoom(18).withBearing(bearing).withPitch(70.0));
-                        mbgl::Size size = routeMap->getTranformStateSize();
-                        const auto& loc = routeMap->screenCoordinateToLatLng(mbgl::ScreenCoordinate{static_cast<double>(size.width)/2, static_cast<double>(size.height)*2/5});
-                        routeMap->jumpTo(mbgl::CameraOptions().withCenter(loc).withZoom(18).withBearing(bearing).withPitch(70.0));
-                    }
-                    puck->setLocation(toArray({point.y, point.x}));
-                    puck->setBearing(mbgl::style::Rotation(initialBearing));
-                    updateLineAnnotations({point.y, point.x}, targetLatLng);
-                }
-                else {
-                    puck->setLocation(toArray({point.y, point.x}));
-                    puck->setBearing(mbgl::style::Rotation(initialBearing));
-                    updateLineAnnotations({point.y, point.x}, targetLatLng);
-                }
-            };
-            
-            toggleLocationIndicatorLayer(true);
-            firstFrameForRoute = true;
-            animateRouteCallback(map);
-#endif
-        } break;
-        case GLFW_KEY_D: {
-            static const std::vector<mbgl::LatLngBounds> bounds = {
-                mbgl::LatLngBounds::hull(mbgl::LatLng{-45.0, -170.0}, mbgl::LatLng{45.0, 170.0}),  // inside
-                mbgl::LatLngBounds::hull(mbgl::LatLng{-45.0, -200.0}, mbgl::LatLng{45.0, -160.0}), // left IDL
-                mbgl::LatLngBounds::hull(mbgl::LatLng{-45.0, 160.0}, mbgl::LatLng{45.0, 200.0}),   // right IDL
-                mbgl::LatLngBounds()};
-            static size_t nextBound = 0u;
-            static mbgl::AnnotationID boundAnnotationID = std::numeric_limits<mbgl::AnnotationID>::max();
-
-            mbgl::LatLngBounds bound = bounds[nextBound++];
-            nextBound = nextBound % bounds.size();
-
-            map->setBounds(mbgl::BoundOptions().withLatLngBounds(bound));
-
-            if (bound == mbgl::LatLngBounds()) {
-                map->removeAnnotation(boundAnnotationID);
-                boundAnnotationID = std::numeric_limits<mbgl::AnnotationID>::max();
-            } else {
-                mbgl::Polygon<double> rect;
-                rect.push_back({
-                    mbgl::Point<double>{ bound.west(), bound.north() },
-                    mbgl::Point<double>{ bound.east(), bound.north() },
-                    mbgl::Point<double>{ bound.east(), bound.south() },
-                    mbgl::Point<double>{ bound.west(), bound.south() },
-                });
-
-                auto boundAnnotation = mbgl::FillAnnotation { rect, 0.5f, { makeRandomColor() }, { makeRandomColor() } };
-
-                if (boundAnnotationID == std::numeric_limits<mbgl::AnnotationID>::max()) {
-                    boundAnnotationID = map->addAnnotation(boundAnnotation);
-                } else {
-                    map->updateAnnotation(boundAnnotationID, boundAnnotation);
-                }
-            }
-        } break;
-        case GLFW_KEY_F: {
-            using namespace mbgl;
-            using namespace mbgl::style;
-            using namespace mbgl::style::expression::dsl;
-
-            auto &style = map->getStyle();
-            if (!style.getSource("states")) {
-                std::string url = "https://docs.mapbox.com/mapbox-gl-js/assets/us_states.geojson";
-                auto source = std::make_unique<GeoJSONSource>("states");
-                source->setURL(url);
-                style.addSource(std::move(source));
-
-                mbgl::CameraOptions cameraOptions;
-                cameraOptions.center = mbgl::LatLng{42.619626, -103.523181};
-                cameraOptions.zoom = 3;
-                cameraOptions.pitch = 0;
-                cameraOptions.bearing = 0;
-                map->jumpTo(cameraOptions);
-            }
-
-            auto layer = style.getLayer("state-fills");
-            if (!layer) {
-                auto fillLayer = std::make_unique<FillLayer>("state-fills", "states");
-                fillLayer->setFillColor(mbgl::Color{0.0, 0.0, 1.0, 0.5});
-                fillLayer->setFillOpacity(PropertyExpression<float>(
-                    createExpression(R"(["case", ["boolean", ["feature-state", "hover"], false], 1, 0.5])")));
-                style.addLayer(std::move(fillLayer));
-            } else {
-                layer->setVisibility(layer->getVisibility() == mbgl::style::VisibilityType::Visible
-                                         ? mbgl::style::VisibilityType::None
-                                         : mbgl::style::VisibilityType::Visible);
-            }
-
-            layer = style.getLayer("state-borders");
-            if (!layer) {
-                auto borderLayer = std::make_unique<LineLayer>("state-borders", "states");
-                borderLayer->setLineColor(mbgl::Color{0.0, 0.0, 1.0, 1.0});
-                borderLayer->setLineWidth(PropertyExpression<float>(
-                    createExpression(R"(["case", ["boolean", ["feature-state", "hover"], false], 2, 1])")));
-                style.addLayer(std::move(borderLayer));
-            } else {
-                layer->setVisibility(layer->getVisibility() == mbgl::style::VisibilityType::Visible
-                                         ? mbgl::style::VisibilityType::None
-                                         : mbgl::style::VisibilityType::Visible);
-            }
-        } break;
-        case GLFW_KEY_F1: {
-            bool success = TestWriter()
-                               .withInitialSize(mbgl::Size(width, height))
-                               .withStyle(map->getStyle())
-                               .withCameraOptions(map->getCameraOptions())
-                               .write(testDirectory);
-
-            if (success) {
-                mbgl::Log::Info(mbgl::Event::General, "Render test created!");
-            } else {
-                mbgl::Log::Error(mbgl::Event::General,
-                                 "Fail to create render test! Base directory does not exist or permission denied.");
-            }
-        } break;
-        case GLFW_KEY_U: {
-            auto bounds = map->getBounds();
-            if (bounds.minPitch == mbgl::util::PITCH_MIN * mbgl::util::RAD2DEG &&
-                bounds.maxPitch == mbgl::util::PITCH_MAX * mbgl::util::RAD2DEG) {
-                mbgl::Log::Info(mbgl::Event::General, "Limiting pitch bounds to [30, 40] degrees");
-                map->setBounds(mbgl::BoundOptions().withMinPitch(30).withMaxPitch(40));
-            } else {
-                mbgl::Log::Info(mbgl::Event::General, "Resetting pitch bounds to [0, 60] degrees");
-                map->setBounds(mbgl::BoundOptions().withMinPitch(0).withMaxPitch(60));
-            }
-        } break;
-        case GLFW_KEY_G: {
-            toggleLocationIndicatorLayer(false);
-            hideCurrentLineAnnotations();
-            puck = nullptr;
-            animateRouteCallback = nullptr;
-        } break;
-        case GLFW_KEY_Y: {
-            freeCameraDemoPhase = 0;
-            freeCameraDemoStartTime = mbgl::Clock::now();
-            invalidate();
-        } break;
-        }
-    }
-
-    if (action == GLFW_RELEASE || action == GLFW_REPEAT) {
-        switch (key) {
-        case GLFW_KEY_W: popAnnotation(); break;
-        case GLFW_KEY_M: addAnimatedAnnotation(); break;
-        }
-    }
+//    if (action == GLFW_RELEASE) {
+//        /*
+//         * 优先处理空格键对于导航模式的控制
+//         * 1. 非导航模式：无任何操作
+//         * 2. 导航模式 - 运行状态：导航暂停&相机回归屏幕中心
+//         * 3. 导航模式 - 暂停状态：导航恢复&相机回归屏幕中心
+//         */
+//        if (key == GLFW_KEY_SPACE) {
+//            // animateRouteCallback = nullptr;
+//            if (puck != nullptr) {
+//                if(!routePaused) {
+//                    if(puckFollowsCameraCenter)
+//                        routePaused = true;
+//                    else;
+//                    puckFollowsCameraCenter = true;
+//                    notFollowCounter = 0;
+//                    nav::runtime::setViewMode(nav::runtime::ViewMode::Browse);
+//                }
+//                else { // routePaused == true
+//                    routePaused = false;
+//                    puckFollowsCameraCenter = true;
+//                    notFollowCounter = 0;
+//                    nav::runtime::setViewMode(nav::runtime::ViewMode::Spotlight);
+//                }
+//            }
+//        }
+//
+//        switch (key) {
+//            case GLFW_KEY_ESCAPE:
+//                if (this->window) glfwSetWindowShouldClose(window, true);
+//                break;
+//            case GLFW_KEY_TAB:
+//                cycleDebugOptions();
+//                break;
+//            case GLFW_KEY_X:
+//                if (!mods)
+//                    map->jumpTo(
+//                        mbgl::CameraOptions().withCenter(mbgl::LatLng{}).withZoom(0.0).withBearing(0.0).withPitch(0.0));
+//                break;
+//            case GLFW_KEY_O:
+//                onlineStatusCallback();
+//                break;
+//            case GLFW_KEY_S:
+//                if (changeStyleCallback) changeStyleCallback();
+//                break;
+//#if not MBGL_USE_GLES2
+//        case GLFW_KEY_B: {
+//            auto debug = map->getDebug();
+//            if (debug & mbgl::MapDebugOptions::StencilClip) {
+//                debug &= ~mbgl::MapDebugOptions::StencilClip;
+//                debug |= mbgl::MapDebugOptions::DepthBuffer;
+//            } else if (debug & mbgl::MapDebugOptions::DepthBuffer) {
+//                debug &= ~mbgl::MapDebugOptions::DepthBuffer;
+//            } else {
+//                debug |= mbgl::MapDebugOptions::StencilClip;
+//            }
+//            map->setDebug(debug);
+//        } break;
+//#endif // MBGL_USE_GLES2
+//        case GLFW_KEY_N:
+//            if (!mods)
+//                map->easeTo(mbgl::CameraOptions().withBearing(0.0), mbgl::AnimationOptions {{mbgl::Milliseconds(500)}});
+//            break;
+//        case GLFW_KEY_Z:
+//            nextOrientation();
+//            break;
+//        case GLFW_KEY_Q: {
+//            auto result = rendererFrontend->getRenderer()->queryPointAnnotations({ {}, { double(getSize().width), double(getSize().height) } });
+//            printf("visible point annotations: %lu\n", result.size());
+//            auto features = rendererFrontend->getRenderer()->queryRenderedFeatures(
+//                mbgl::ScreenBox{{double(getSize().width * 0.5), double(getSize().height * 0.5)},
+//                                {double(getSize().width * 0.5 + 1), double(getSize().height * 0.5 + 1)}},
+//                {});
+//            printf("Rendered features at the center of the screen: %lu\n", features.size());
+//        } break;
+//        case GLFW_KEY_P:
+//            pauseResumeCallback();
+//            break;
+//        case GLFW_KEY_C:
+//            clearAnnotations();
+//            break;
+//        case GLFW_KEY_I:
+//            resetDatabaseCallback();
+//            break;
+//        case GLFW_KEY_K:
+//            addTargetPointAnnotations({40.712245, -74.014147});
+//            break;
+//        case GLFW_KEY_L:
+//            addLineAnnotations({40.712245, -74.014147});
+//            break;
+//        case GLFW_KEY_A: {
+//            static const std::vector<std::tuple<mbgl::LatLng,float,float,float>> places = {
+////                { mbgl::LatLng { 22.294522, 114.157209 }, 15.722247, 71.050945, 147.869345 },
+//                { mbgl::LatLng { 39.903563, 116.391363 }, 17.141364, 70.103668, -33.081634 },
+//                { mbgl::LatLng { 31.242662, 121.495084 }, 15.445918, 71.050945, -179.947701 },
+//                { mbgl::LatLng { 25.034055, 121.564515 }, 16.077729, 70.723858, 143.526270 },
+//                { mbgl::LatLng { 3.157823, 101.711731 }, 16.335255, 57.806744, -38.003147 },
+//                { mbgl::LatLng { 25.191752, 55.274737 }, 15.491167, 71.050945, -33.053848 },
+//                { mbgl::LatLng { 25.129851, 55.132237 }, 15.150993, 67.077923, 177.527160 },
+//                { mbgl::LatLng { 55.751815, 37.621716 }, 17.575426, 70.000000, -157.404684 },
+//                { mbgl::LatLng { 50.087501, 14.421360 }, 16.215369, 70, 103.655584 },
+//                { mbgl::LatLng { 41.889696, 12.491829 }, 17.483347, 67.692608, 50.031478 },
+//                { mbgl::LatLng { 48.859491, 2.293157 }, 16.341660, 71.050945, 117.451230 },
+//                { mbgl::LatLng { 51.500735, -0.124490 }, 17.808440, 71.050945, -141.514926 },
+//                { mbgl::LatLng { 40.708050, -74.010099 }, 15.317721, 71.050945, 34.123000 },
+//                { mbgl::LatLng { 35.884921, 138.527952 }, 7.137733, 0, 0 },
+//                { mbgl::LatLng { 31.217935, 120.949375 }, 9.145968, 0, 0 },
+//                { mbgl::LatLng { 22.670898, 115.953376 }, 5.778833, 0, 0 },
+//                { mbgl::LatLng { 51.501716, -0.080117 }, 10.320973, 0, 0 },
+//                { mbgl::LatLng { 40.709430, -74.027215 }, 11.335746, 0, 0 },
+//            };
+//
+//            static size_t nextPlace = 0;
+//            mbgl::CameraOptions cameraOptions;
+//            const auto& place = places[nextPlace++];
+//            cameraOptions.center = std::get<0>(place);
+//            cameraOptions.zoom = std::get<1>(place);
+//            cameraOptions.pitch = std::get<2>(place);
+//            cameraOptions.bearing = std::get<3>(place);
+//
+//            mbgl::AnimationOptions animationOptions(mbgl::Seconds(10));
+//            map->flyTo(cameraOptions, animationOptions);
+//            nextPlace = nextPlace % places.size();
+//        } break;
+//        case GLFW_KEY_R: {
+//#if 0
+//            nav::runtime::setViewMode(nav::runtime::ViewMode::Spotlight);
+//
+//            static int index = 0;
+//            if (animateRouteCallback) {
+//                index = fmod(index + 1, 4);
+//            }
+//
+//            targetLatLng = mbgl::platform::glfw::LonLatValue[index];
+//            static mapbox::cheap_ruler::CheapRuler ruler { 0 };
+//            ruler = mapbox::cheap_ruler::CheapRuler(mbgl::platform::glfw::LatitudeValue[index]);
+//            const mapbox::geojson::geojson& route = mbgl::platform::glfw::RouteValue(index);
+//            static double routeProgress = 0;
+//
+//            static double routeDistance;
+//            const auto& geometry = route.get<mapbox::geometry::geometry<double>>();
+//            const auto& lineString = geometry.get<mapbox::geometry::line_string<double>>();
+//            routeDistance = ruler.lineDistance(lineString);
+//
+//            addLineAnnotations(targetLatLng);
+//            addTargetPointAnnotations(targetLatLng);
+//            addRoutePlans();
+//
+//            animateRouteCallback = [this, route](mbgl::Map* routeMap) {
+//                // 导航模式暂停时，不处理任何逻辑直接返回
+//                if(puck == nullptr)
+//                    return;
+//                if(routePaused)
+//                    return;
+//                if(!puckFollowsCameraCenter) {
+//                    if(notFollowCounter++>150) {
+//                        notFollowCounter = 0;
+//                        puckFollowsCameraCenter = true;
+//                        nav::runtime::setViewMode(nav::runtime::ViewMode::Spotlight);
+//                    }
+//                }
+//
+//                const auto& geometry = route.get<mapbox::geometry::geometry<double>>();
+//                const auto& lineString = geometry.get<mapbox::geometry::line_string<double>>();
+//
+//                double speed = mbgl::platform::glfw::SpeedValue[index] * 2;
+//                double progress = fmod(routeProgress + speed, 1.0);
+//                routeProgress = progress;
+//
+//                // 当前相机参数
+//                auto camera = routeMap->getCameraOptions();
+//                // 沿导航线路进行routeDistance距离的下一个坐标点
+//                auto point = ruler.along(lineString, routeProgress * routeDistance);
+//                // 下一个坐标点的经纬度坐标
+//                const mbgl::LatLng center { point.y, point.x };
+//                // 当前相机中心点的经纬度坐标
+//                auto latLng = *camera.center;
+//                // 通过当前puck坐标和下一个坐标点计算puck朝向
+//                double bearing = ruler.bearing({ lastPoint.x, lastPoint.y }, point);
+//                // 通过当前puck(上一次记录的)坐标和下一个坐标点计算puck朝向
+//                double initialBearing = ruler.bearing({ lastPoint.x, lastPoint.y }, point);
+//                // 计算puck朝向与当前相机方向的差值
+//                double easing = bearing - *camera.bearing;
+//                easing += easing > 180.0 ? -360.0 : easing < -180 ? 360.0 : 0;
+//                // 将相机差值分成12帧进行修正
+//                bearing = *camera.bearing + (easing / 20);
+//                // 将本次route坐标点记录保存
+//                lastPoint = point;
+//
+//                if(puckFollowsCameraCenter) {
+//                    if(firstFrameForRoute) {
+//                        routeMap->jumpTo(mbgl::CameraOptions().withCenter(center).withZoom(18).withBearing(bearing).withPitch(70.0));
+//                        mbgl::Size size = routeMap->getTranformStateSize();
+//                        const auto& loc = routeMap->screenCoordinateToLatLng(mbgl::ScreenCoordinate{static_cast<double>(size.width)/2, static_cast<double>(size.height)*2/5});
+//                        routeMap->jumpTo(mbgl::CameraOptions().withCenter(loc).withZoom(18).withBearing(bearing).withPitch(70.0));
+//                    }
+//                    puck->setLocation(toArray({point.y, point.x}));
+//                    puck->setBearing(mbgl::style::Rotation(initialBearing));
+//                    updateLineAnnotations({point.y, point.x}, targetLatLng);
+//                }
+//                else {
+//                    puck->setLocation(toArray({point.y, point.x}));
+//                    puck->setBearing(mbgl::style::Rotation(initialBearing));
+//                    updateLineAnnotations({point.y, point.x}, targetLatLng);
+//                }
+//            };
+//
+//            toggleLocationIndicatorLayer(true);
+//            firstFrameForRoute = true;
+//            animateRouteCallback(map);
+//#endif
+//        } break;
+//        case GLFW_KEY_D: {
+//            static const std::vector<mbgl::LatLngBounds> bounds = {
+//                mbgl::LatLngBounds::hull(mbgl::LatLng{-45.0, -170.0}, mbgl::LatLng{45.0, 170.0}),  // inside
+//                mbgl::LatLngBounds::hull(mbgl::LatLng{-45.0, -200.0}, mbgl::LatLng{45.0, -160.0}), // left IDL
+//                mbgl::LatLngBounds::hull(mbgl::LatLng{-45.0, 160.0}, mbgl::LatLng{45.0, 200.0}),   // right IDL
+//                mbgl::LatLngBounds()};
+//            static size_t nextBound = 0u;
+//            static mbgl::AnnotationID boundAnnotationID = std::numeric_limits<mbgl::AnnotationID>::max();
+//
+//            mbgl::LatLngBounds bound = bounds[nextBound++];
+//            nextBound = nextBound % bounds.size();
+//
+//            map->setBounds(mbgl::BoundOptions().withLatLngBounds(bound));
+//
+//            if (bound == mbgl::LatLngBounds()) {
+//                map->removeAnnotation(boundAnnotationID);
+//                boundAnnotationID = std::numeric_limits<mbgl::AnnotationID>::max();
+//            } else {
+//                mbgl::Polygon<double> rect;
+//                rect.push_back({
+//                    mbgl::Point<double>{ bound.west(), bound.north() },
+//                    mbgl::Point<double>{ bound.east(), bound.north() },
+//                    mbgl::Point<double>{ bound.east(), bound.south() },
+//                    mbgl::Point<double>{ bound.west(), bound.south() },
+//                });
+//
+//                auto boundAnnotation = mbgl::FillAnnotation { rect, 0.5f, { makeRandomColor() }, { makeRandomColor() } };
+//
+//                if (boundAnnotationID == std::numeric_limits<mbgl::AnnotationID>::max()) {
+//                    boundAnnotationID = map->addAnnotation(boundAnnotation);
+//                } else {
+//                    map->updateAnnotation(boundAnnotationID, boundAnnotation);
+//                }
+//            }
+//        } break;
+//        case GLFW_KEY_F: {
+//            using namespace mbgl;
+//            using namespace mbgl::style;
+//            using namespace mbgl::style::expression::dsl;
+//
+//            auto &style = map->getStyle();
+//            if (!style.getSource("states")) {
+//                std::string url = "https://docs.mapbox.com/mapbox-gl-js/assets/us_states.geojson";
+//                auto source = std::make_unique<GeoJSONSource>("states");
+//                source->setURL(url);
+//                style.addSource(std::move(source));
+//
+//                mbgl::CameraOptions cameraOptions;
+//                cameraOptions.center = mbgl::LatLng{42.619626, -103.523181};
+//                cameraOptions.zoom = 3;
+//                cameraOptions.pitch = 0;
+//                cameraOptions.bearing = 0;
+//                map->jumpTo(cameraOptions);
+//            }
+//
+//            auto layer = style.getLayer("state-fills");
+//            if (!layer) {
+//                auto fillLayer = std::make_unique<FillLayer>("state-fills", "states");
+//                fillLayer->setFillColor(mbgl::Color{0.0, 0.0, 1.0, 0.5});
+//                fillLayer->setFillOpacity(PropertyExpression<float>(
+//                    createExpression(R"(["case", ["boolean", ["feature-state", "hover"], false], 1, 0.5])")));
+//                style.addLayer(std::move(fillLayer));
+//            } else {
+//                layer->setVisibility(layer->getVisibility() == mbgl::style::VisibilityType::Visible
+//                                         ? mbgl::style::VisibilityType::None
+//                                         : mbgl::style::VisibilityType::Visible);
+//            }
+//
+//            layer = style.getLayer("state-borders");
+//            if (!layer) {
+//                auto borderLayer = std::make_unique<LineLayer>("state-borders", "states");
+//                borderLayer->setLineColor(mbgl::Color{0.0, 0.0, 1.0, 1.0});
+//                borderLayer->setLineWidth(PropertyExpression<float>(
+//                    createExpression(R"(["case", ["boolean", ["feature-state", "hover"], false], 2, 1])")));
+//                style.addLayer(std::move(borderLayer));
+//            } else {
+//                layer->setVisibility(layer->getVisibility() == mbgl::style::VisibilityType::Visible
+//                                         ? mbgl::style::VisibilityType::None
+//                                         : mbgl::style::VisibilityType::Visible);
+//            }
+//        } break;
+//        case GLFW_KEY_U: {
+//            auto bounds = map->getBounds();
+//            if (bounds.minPitch == mbgl::util::PITCH_MIN * mbgl::util::RAD2DEG &&
+//                bounds.maxPitch == mbgl::util::PITCH_MAX * mbgl::util::RAD2DEG) {
+//                mbgl::Log::Info(mbgl::Event::General, "Limiting pitch bounds to [30, 40] degrees");
+//                map->setBounds(mbgl::BoundOptions().withMinPitch(30).withMaxPitch(40));
+//            } else {
+//                mbgl::Log::Info(mbgl::Event::General, "Resetting pitch bounds to [0, 60] degrees");
+//                map->setBounds(mbgl::BoundOptions().withMinPitch(0).withMaxPitch(60));
+//            }
+//        } break;
+//        case GLFW_KEY_G: {
+//            toggleLocationIndicatorLayer(false);
+//            hideCurrentLineAnnotations();
+//            puck = nullptr;
+//            animateRouteCallback = nullptr;
+//        } break;
+//        case GLFW_KEY_Y: {
+//            freeCameraDemoPhase = 0;
+//            freeCameraDemoStartTime = mbgl::Clock::now();
+//            invalidate();
+//        } break;
+//        }
+//    }
+//
+//    if (action == GLFW_RELEASE || action == GLFW_REPEAT) {
+//        switch (key) {
+//        case GLFW_KEY_W: popAnnotation(); break;
+//        case GLFW_KEY_M: addAnimatedAnnotation(); break;
+//        }
+//    }
 }
 
 namespace mbgl {
@@ -839,21 +814,21 @@ void AndroidView::addRandomShapeAnnotations(int count) {
 }
 
 void AndroidView::addAnimatedAnnotation() {
-    const double started = glfwGetTime();
-    animatedAnnotationIDs.push_back(map->addAnnotation(mbgl::SymbolAnnotation { { 0, 0 } , "default_marker" }));
-    animatedAnnotationAddedTimes.push_back(started);
+//    const double started = glfwGetTime();
+//    animatedAnnotationIDs.push_back(map->addAnnotation(mbgl::SymbolAnnotation { { 0, 0 } , "default_marker" }));
+//    animatedAnnotationAddedTimes.push_back(started);
 }
 
 void AndroidView::updateAnimatedAnnotations() {
-    const double time = glfwGetTime();
-    for (size_t i = 0; i < animatedAnnotationIDs.size(); i++) {
-        auto dt = time - animatedAnnotationAddedTimes[i];
-
-        const double period = 10;
-        const double x = dt / period * 360 - 180;
-        const double y = std::sin(dt/ period * M_PI * 2.0) * 80;
-        map->updateAnnotation(animatedAnnotationIDs[i], mbgl::SymbolAnnotation { {x, y }, "default_marker" });
-    }
+//    const double time = glfwGetTime();
+//    for (size_t i = 0; i < animatedAnnotationIDs.size(); i++) {
+//        auto dt = time - animatedAnnotationAddedTimes[i];
+//
+//        const double period = 10;
+//        const double x = dt / period * 360 - 180;
+//        const double y = std::sin(dt/ period * M_PI * 2.0) * 80;
+//        map->updateAnnotation(animatedAnnotationIDs[i], mbgl::SymbolAnnotation { {x, y }, "default_marker" });
+//    }
 }
 
 void AndroidView::cycleDebugOptions() {
@@ -904,8 +879,8 @@ void AndroidView::popAnnotation() {
 }
 
 void AndroidView::onScroll(GLFWwindow *window, double /*xOffset*/, double yOffset) {
-    auto *view = reinterpret_cast<AndroidView *>(glfwGetWindowUserPointer(window));
-    view->onScroll(yOffset);
+//    auto *view = reinterpret_cast<AndroidView *>(glfwGetWindowUserPointer(window));
+//    view->onScroll(yOffset);
 }
 
 void AndroidView::onScroll(double yOffset) {
@@ -952,208 +927,208 @@ void AndroidView::onScroll(double yOffset) {
 }
 
 void AndroidView::onWindowResize(GLFWwindow *window, int width, int height) {
-    auto *view = reinterpret_cast<AndroidView *>(glfwGetWindowUserPointer(window));
-    view->width = width;
-    view->height = height;
-    view->map->setSize({ static_cast<uint32_t>(view->width), static_cast<uint32_t>(view->height) });
+//    auto *view = reinterpret_cast<AndroidView *>(glfwGetWindowUserPointer(window));
+//    view->width = width;
+//    view->height = height;
+//    view->map->setSize({ static_cast<uint32_t>(view->width), static_cast<uint32_t>(view->height) });
 }
 
 void AndroidView::onFramebufferResize(GLFWwindow *window, int width, int height) {
-    auto *view = reinterpret_cast<AndroidView *>(glfwGetWindowUserPointer(window));
-    
-    if (view->renderBackend)
-    view->renderBackend->setSize({ static_cast<uint32_t>(width), static_cast<uint32_t>(height) });
-
-    // This is only triggered when the framebuffer is resized, but not the window. It can
-    // happen when you move the window between screens with a different pixel ratio.
-    // We are forcing a repaint my invalidating the view, which triggers a rerender with the
-    // new framebuffer dimensions.
-    view->invalidate();
+//    auto *view = reinterpret_cast<AndroidView *>(glfwGetWindowUserPointer(window));
+//
+//    if (view->renderBackend)
+//    view->renderBackend->setSize({ static_cast<uint32_t>(width), static_cast<uint32_t>(height) });
+//
+//    // This is only triggered when the framebuffer is resized, but not the window. It can
+//    // happen when you move the window between screens with a different pixel ratio.
+//    // We are forcing a repaint my invalidating the view, which triggers a rerender with the
+//    // new framebuffer dimensions.
+//    view->invalidate();
 }
 
 void AndroidView::onMouseClick(GLFWwindow *window, int button, int action, int modifiers) {
-    auto *view = reinterpret_cast<AndroidView *>(glfwGetWindowUserPointer(window));
-    view->onMouseClick(button, action, modifiers);
+//    auto *view = reinterpret_cast<AndroidView *>(glfwGetWindowUserPointer(window));
+//    view->onMouseClick(button, action, modifiers);
 }
 
 void AndroidView::onMouseClick(int button, int action, int modifiers) {
-    double now = glfwGetTime();
-    if (action == GLFW_PRESS) {
-        map->setGestureInProgress(true);
-        if (button == GLFW_MOUSE_BUTTON_LEFT) {
-            if (modifiers & GLFW_MOD_CONTROL) { // rotate & pitch
-                pitching = true;
-                rotating = false;
-            } else { // move
-                tracking = true;
-            }
-        }
-        
-        _mouseHistory.newSequence();
-    } else if (action == GLFW_RELEASE) {
-        const Mouse& pos = _mouseHistory[0];
-        const Mouse& from = _mouseHistory.prefer(now-0.5);
-        const double lastTime = now - pos.time;
-        const float mean_v = pos.velocity(from);
-        const float instant_v = pos.velocity(_mouseHistory.prefer(now-0.1));
-        
-        if (tracking && mean_v > 50 && instant_v > 100) {
-            const float duration = pos.time - from.time;
-            const mbgl::ScreenCoordinate moved(pos.coord.x - from.coord.x, pos.coord.y - from.coord.y);
-            const mbgl::ScreenCoordinate fling(moved.x / duration,
-                                               moved.y / duration * (moved.y > 0 ? .35 : 1.8));
-            map->moveBy(fling, mbgl::AnimationOptions{{mbgl::Milliseconds((long)(mean_v * 3))}});
-
-            nav::log::w("Fling", "t:%.1lfs v:%.1lf(%.1lf) moved(%.1lf,%.1lf) fling(%.1lf,%.1lf)",
-                        duration, mean_v, instant_v, moved.x, moved.y, fling.x, fling.y);
-        } else {
-            nav::log::w("Fling", "tracking:%d slow:%.1lfs v:%.1lf(%.1lf)", 
-                        (int)tracking, lastTime, mean_v, instant_v);
-        }
-
-        map->setGestureInProgress(rotating = pitching = tracking = false);
-    }
+//    double now = glfwGetTime();
+//    if (action == GLFW_PRESS) {
+//        map->setGestureInProgress(true);
+//        if (button == GLFW_MOUSE_BUTTON_LEFT) {
+//            if (modifiers & GLFW_MOD_CONTROL) { // rotate & pitch
+//                pitching = true;
+//                rotating = false;
+//            } else { // move
+//                tracking = true;
+//            }
+//        }
+//
+//        _mouseHistory.newSequence();
+//    } else if (action == GLFW_RELEASE) {
+//        const Mouse& pos = _mouseHistory[0];
+//        const Mouse& from = _mouseHistory.prefer(now-0.5);
+//        const double lastTime = now - pos.time;
+//        const float mean_v = pos.velocity(from);
+//        const float instant_v = pos.velocity(_mouseHistory.prefer(now-0.1));
+//
+//        if (tracking && mean_v > 50 && instant_v > 100) {
+//            const float duration = pos.time - from.time;
+//            const mbgl::ScreenCoordinate moved(pos.coord.x - from.coord.x, pos.coord.y - from.coord.y);
+//            const mbgl::ScreenCoordinate fling(moved.x / duration,
+//                                               moved.y / duration * (moved.y > 0 ? .35 : 1.8));
+//            map->moveBy(fling, mbgl::AnimationOptions{{mbgl::Milliseconds((long)(mean_v * 3))}});
+//
+//            nav::log::w("Fling", "t:%.1lfs v:%.1lf(%.1lf) moved(%.1lf,%.1lf) fling(%.1lf,%.1lf)",
+//                        duration, mean_v, instant_v, moved.x, moved.y, fling.x, fling.y);
+//        } else {
+//            nav::log::w("Fling", "tracking:%d slow:%.1lfs v:%.1lf(%.1lf)",
+//                        (int)tracking, lastTime, mean_v, instant_v);
+//        }
+//
+//        map->setGestureInProgress(rotating = pitching = tracking = false);
+//    }
 }
 
 void AndroidView::onMouseMove(GLFWwindow *window, double x, double y) {
-    auto *view = reinterpret_cast<AndroidView *>(glfwGetWindowUserPointer(window));
-    view->onMouseMove(x, y);
+//    auto *view = reinterpret_cast<AndroidView *>(glfwGetWindowUserPointer(window));
+//    view->onMouseMove(x, y);
 }
 
 void AndroidView::onMouseMove(double x, double y) {
-    double now = glfwGetTime();
-
-    const auto puckProgram = [&]() {
-        if(puck) {
-            notFollowCounter = 0;
-            
-            if(puckFollowsCameraCenter) {
-                puckFollowsCameraCenter = false;
-                nav::runtime::setViewMode(nav::runtime::ViewMode::Browse);
-            }
-        }
-    };
-    
-    if (tracking) {
-        const double dx = x - _mouseHistory[0].coord.x;
-        const double dy = y - _mouseHistory[0].coord.y;
-        if (dx || dy) {
-            map->moveBy(mbgl::ScreenCoordinate { dx, dy });
-        }
-        puckProgram();
-    }
-    
-    if (pitching) {
-        map->pitchBy((y - _mouseHistory[0].coord.y) / 2);
-        if (abs(x - _mouseHistory.prefer(now - 0.3).coord.x) > 25) {
-            pitching = false;
-            rotating = true;
-        }
-        puckProgram();
-    } else if (rotating) {
-        if (now - _mouseHistory[0].time > .2) {
-            pitching = true;
-            rotating = false;
-        } else {
-            map->rotateBy(_mouseHistory[0].coord, { x, y });
-        }
-        puckProgram();
-    }
-    
-    _mouseHistory.push_back({x,y}, now);
-    
-
-//#if defined(MBGL_RENDER_BACKEND_OPENGL) && !defined(MBGL_LAYER_CUSTOM_DISABLE_ALL)
-    // #*#目前逻辑没啥用
-//    if (puck && puckFollowsCameraCenter) {
-//        mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
-//        puck->setLocation(toArray(mapCenter));
+//    double now = glfwGetTime();
+//
+//    const auto puckProgram = [&]() {
+//        if(puck) {
+//            notFollowCounter = 0;
+//
+//            if(puckFollowsCameraCenter) {
+//                puckFollowsCameraCenter = false;
+//                nav::runtime::setViewMode(nav::runtime::ViewMode::Browse);
+//            }
+//        }
+//    };
+//
+//    if (tracking) {
+//        const double dx = x - _mouseHistory[0].coord.x;
+//        const double dy = y - _mouseHistory[0].coord.y;
+//        if (dx || dy) {
+//            map->moveBy(mbgl::ScreenCoordinate { dx, dy });
+//        }
+//        puckProgram();
 //    }
-//#endif
-
-    auto &style = map->getStyle();
-    if (style.getLayer("state-fills")) {
-        auto screenCoordinate = _mouseHistory[0].coord;
-        const mbgl::RenderedQueryOptions queryOptions({{{nav::stringid("state-fills")}}, {}});
-        auto result = rendererFrontend->getRenderer()->queryRenderedFeatures(screenCoordinate, queryOptions);
-        using namespace mbgl;
-        FeatureState newState;
-
-        if (!result.empty()) {
-            FeatureIdentifier id = result[0].id;
-            optional<std::string> idStr = featureIDtoString(id);
-
-            if (idStr) {
-                if (featureID && (*featureID != *idStr)) {
-                    newState["hover"] = false;
-                    rendererFrontend->getRenderer()->setFeatureState("states", {}, *featureID, newState);
-                    featureID = nullopt;
-                }
-
-                if (!featureID) {
-                    newState["hover"] = true;
-                    featureID = featureIDtoString(id);
-                    rendererFrontend->getRenderer()->setFeatureState("states", {}, *featureID, newState);
-                }
-            }
-        } else {
-            if (featureID) {
-                newState["hover"] = false;
-                rendererFrontend->getRenderer()->setFeatureState("states", {}, *featureID, newState);
-                featureID = nullopt;
-            }
-        }
-        invalidate();
-    }
+//
+//    if (pitching) {
+//        map->pitchBy((y - _mouseHistory[0].coord.y) / 2);
+//        if (abs(x - _mouseHistory.prefer(now - 0.3).coord.x) > 25) {
+//            pitching = false;
+//            rotating = true;
+//        }
+//        puckProgram();
+//    } else if (rotating) {
+//        if (now - _mouseHistory[0].time > .2) {
+//            pitching = true;
+//            rotating = false;
+//        } else {
+//            map->rotateBy(_mouseHistory[0].coord, { x, y });
+//        }
+//        puckProgram();
+//    }
+//
+//    _mouseHistory.push_back({x,y}, now);
+//
+//
+////#if defined(MBGL_RENDER_BACKEND_OPENGL) && !defined(MBGL_LAYER_CUSTOM_DISABLE_ALL)
+//    // #*#目前逻辑没啥用
+////    if (puck && puckFollowsCameraCenter) {
+////        mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
+////        puck->setLocation(toArray(mapCenter));
+////    }
+////#endif
+//
+//    auto &style = map->getStyle();
+//    if (style.getLayer("state-fills")) {
+//        auto screenCoordinate = _mouseHistory[0].coord;
+//        const mbgl::RenderedQueryOptions queryOptions({{{nav::stringid("state-fills")}}, {}});
+//        auto result = rendererFrontend->getRenderer()->queryRenderedFeatures(screenCoordinate, queryOptions);
+//        using namespace mbgl;
+//        FeatureState newState;
+//
+//        if (!result.empty()) {
+//            FeatureIdentifier id = result[0].id;
+//            optional<std::string> idStr = featureIDtoString(id);
+//
+//            if (idStr) {
+//                if (featureID && (*featureID != *idStr)) {
+//                    newState["hover"] = false;
+//                    rendererFrontend->getRenderer()->setFeatureState("states", {}, *featureID, newState);
+//                    featureID = nullopt;
+//                }
+//
+//                if (!featureID) {
+//                    newState["hover"] = true;
+//                    featureID = featureIDtoString(id);
+//                    rendererFrontend->getRenderer()->setFeatureState("states", {}, *featureID, newState);
+//                }
+//            }
+//        } else {
+//            if (featureID) {
+//                newState["hover"] = false;
+//                rendererFrontend->getRenderer()->setFeatureState("states", {}, *featureID, newState);
+//                featureID = nullopt;
+//            }
+//        }
+//        invalidate();
+//    }
 }
 
 void AndroidView::onWindowFocus(GLFWwindow *window, int focused) {
-    if (focused == GLFW_FALSE) { // Focus lost.
-        auto *view = reinterpret_cast<AndroidView *>(glfwGetWindowUserPointer(window));
-        view->rendererFrontend->getRenderer()->reduceMemoryUse();
-    }
+//    if (focused == GLFW_FALSE) { // Focus lost.
+//        auto *view = reinterpret_cast<AndroidView *>(glfwGetWindowUserPointer(window));
+//        view->rendererFrontend->getRenderer()->reduceMemoryUse();
+//    }
 }
 
 void AndroidView::run() {
-    auto callback = [&] {
-        if (window && glfwWindowShouldClose(window)) {
-            runLoop.stop();
-        } else {
-            glfwPollEvents();
-
-            if (dirty && rendererFrontend) {
-                dirty = false;
-                
-                const double started = glfwGetTime();
-
-                if (nav::runtime::update()) invalidate();
-
-                if (animateRouteCallback) animateRouteCallback(map);
-
-                updateAnimatedAnnotations();
-
-                mbgl::gfx::BackendScope scope { getRendererBackend() };
-
-                rendererFrontend->render();
-
-                if (freeCameraDemoPhase >= 0.0) updateFreeCameraDemo();
-
-                report(1000 * (glfwGetTime() - started));
-
-                if (benchmark) invalidate();
-            }
-        }
-    };
-
-    frameTick.start(mbgl::Duration::zero(), mbgl::Milliseconds(1000 / 60), callback);
-
-#if defined(__APPLE__)
-    while (window && !glfwWindowShouldClose(window)) {
-        runLoop.run();
-    }
-#else
-    runLoop.run();
-#endif
+//    auto callback = [&] {
+//        if (window && glfwWindowShouldClose(window)) {
+//            runLoop.stop();
+//        } else {
+//            glfwPollEvents();
+//
+//            if (dirty && rendererFrontend) {
+//                dirty = false;
+//
+//                const double started = glfwGetTime();
+//
+//                if (nav::runtime::update()) invalidate();
+//
+//                if (animateRouteCallback) animateRouteCallback(map);
+//
+//                updateAnimatedAnnotations();
+//
+//                mbgl::gfx::BackendScope scope { getRendererBackend() };
+//
+//                rendererFrontend->render();
+//
+//                if (freeCameraDemoPhase >= 0.0) updateFreeCameraDemo();
+//
+//                report(1000 * (glfwGetTime() - started));
+//
+//                if (benchmark) invalidate();
+//            }
+//        }
+//    };
+//
+//    frameTick.start(mbgl::Duration::zero(), mbgl::Milliseconds(1000 / 60), callback);
+//
+//#if defined(__APPLE__)
+////    while (window && !glfwWindowShouldClose(window)) {
+////        runLoop.run();
+////    }
+//#else
+//    runLoop.run();
+//#endif
 }
 
 float AndroidView::getPixelRatio() const {
@@ -1166,30 +1141,30 @@ mbgl::Size AndroidView::getSize() const {
 
 void AndroidView::invalidate() {
     dirty = true;
-    glfwPostEmptyEvent();
+//    glfwPostEmptyEvent();
 }
 
 void AndroidView::report(float duration) {
-    // Frame timer
-    static int frameCounter = 0;
-    static float frameCost = 0;
-    static double lastReported = 0;
-    
-    frameCounter++;
-    frameCost += duration;
-
-    const double currentTime = glfwGetTime();
-    if (currentTime - lastReported >= 1) {
-        frameCost /= frameCounter;
-        mbgl::Log::Info(mbgl::Event::OpenGL, "Fps:%d (Avg-Cost:%6.2fms, Max-Fps:%6.2f)",
-                        frameCounter,
-                        frameCost,
-                        1000 / frameCost);
-
-        frameCounter = 0;
-        frameCost = 0;
-        lastReported = currentTime;
-    }
+//    // Frame timer
+//    static int frameCounter = 0;
+//    static float frameCost = 0;
+//    static double lastReported = 0;
+//
+//    frameCounter++;
+//    frameCost += duration;
+//
+//    const double currentTime = glfwGetTime();
+//    if (currentTime - lastReported >= 1) {
+//        frameCost /= frameCounter;
+//        mbgl::Log::Info(mbgl::Event::OpenGL, "Fps:%d (Avg-Cost:%6.2fms, Max-Fps:%6.2f)",
+//                        frameCounter,
+//                        frameCost,
+//                        1000 / frameCost);
+//
+//        frameCounter = 0;
+//        frameCost = 0;
+//        lastReported = currentTime;
+//    }
 }
 
 void AndroidView::setChangeStyleCallback(std::function<void()> callback) {
@@ -1197,12 +1172,12 @@ void AndroidView::setChangeStyleCallback(std::function<void()> callback) {
 }
 
 void AndroidView::setShouldClose() {
-    if (window) glfwSetWindowShouldClose(window, true);
-    glfwPostEmptyEvent();
+//    if (window) glfwSetWindowShouldClose(window, true);
+//    glfwPostEmptyEvent();
 }
 
 void AndroidView::setWindowTitle(const std::string& title) {
-    if (window) glfwSetWindowTitle(window, (std::string { "Mapbox GL: " } + title).c_str());
+//    if (window) glfwSetWindowTitle(window, (std::string { "Mapbox GL: " } + title).c_str());
 }
 
 void AndroidView::onDidFinishLoadingStyle() {
