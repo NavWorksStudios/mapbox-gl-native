@@ -5,12 +5,17 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <mbgl/platform/jni.h>
 #include <iostream>
 #include <mbgl/platform/GLES2/gl2.h>
 #include <mbgl/platform/GLES2/gl2ext.h>
 #include <mbgl/platform/GLES2/gl2platform.h>
 
+#if __APPLE__
+#include <mbgl/platform/jni.h>
+#else
+#include <jni.h>
+#include "../../platform/android/src/jni.hpp"
+#endif
 #endif
 
 #include <mbgl/gfx/backend.hpp>
@@ -22,7 +27,6 @@
 #include <mbgl/util/logging.hpp>
 #include <mbgl/util/platform.hpp>
 #include <mbgl/util/string.hpp>
-
 
 #include "android_view.hpp"
 #include "android_renderer_frontend.hpp"

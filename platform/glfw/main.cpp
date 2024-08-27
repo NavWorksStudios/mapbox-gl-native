@@ -20,18 +20,11 @@
 #include <cstdlib>
 #include <cstdio>
 #include <array>
-
-#if 1
-
 #include <stdio.h>
 #include <string.h>
-#include <mbgl/platform/jni.h>
 #include <iostream>
-#include <mbgl/platform/GLES2/gl2.h>
-#include <mbgl/platform/GLES2/gl2ext.h>
-#include <mbgl/platform/GLES2/gl2platform.h>
 
-#endif
+#include <GLFW/glfw3.h>
 
 std::shared_ptr<GLFWView> view;
 std::shared_ptr<mbgl::Map> map;

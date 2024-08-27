@@ -889,8 +889,7 @@ set(all_files
     ${PROJECT_SOURCE_DIR}/src/mbgl/route/render_route_source.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/route/route_plan.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/route/route_plan_tile.hpp
-
-    ${PROJECT_SOURCE_DIR}/src/mbgl/platform/jni.h
+    
     ${PROJECT_SOURCE_DIR}/src/mbgl/platform/native_window.h
     ${PROJECT_SOURCE_DIR}/src/mbgl/platform/native_window_jni.h
     ${PROJECT_SOURCE_DIR}/src/mbgl/platform/KHR/khrplatform.h
