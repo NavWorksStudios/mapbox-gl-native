@@ -139,7 +139,11 @@ Java_com_navworksstudios_navworksandroid_GLESView_Init(
         jobject glesview) {
     glesView = env->NewGlobalRef(glesview);;
     env->GetJavaVM(&theJVM);
-    
+#if __APPLE__
+#else
+    mbgl::android::theJVM = theJVM;
+    mbgl::android::registerNatives(theJVM);
+#endif
     init();
     
     glClearColor(1.0f, 0.0f, 1.0f, 1.0f);

@@ -55,7 +55,9 @@ target_link_libraries(
 target_sources(
     mbgl-core
     PRIVATE
-        ${PROJECT_SOURCE_DIR}/platform/glfw/main_android.cpp
+        ${PROJECT_SOURCE_DIR}/platform/glfw/android_main.cpp
+        ${PROJECT_SOURCE_DIR}/platform/glfw/android_view.cpp
+        ${PROJECT_SOURCE_DIR}/platform/glfw/android_renderer_frontend.cpp
         ${PROJECT_SOURCE_DIR}/platform/android/src/native-lib.cpp
         ${PROJECT_SOURCE_DIR}/platform/android/src/async_task.cpp
         ${PROJECT_SOURCE_DIR}/platform/android/src/attach_env.cpp
