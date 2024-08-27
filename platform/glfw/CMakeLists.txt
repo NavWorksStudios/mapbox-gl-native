@@ -5,17 +5,23 @@ pkg_search_module(GLFW glfw3 REQUIRED)
 
 add_executable(
     mbgl-glfw
-    ${PROJECT_SOURCE_DIR}/platform/glfw/main.cpp
-    ${PROJECT_SOURCE_DIR}/platform/glfw/android_main.cpp
-    ${PROJECT_SOURCE_DIR}/platform/glfw/glfw_view.cpp
-    ${PROJECT_SOURCE_DIR}/platform/glfw/android_view.cpp
-    ${PROJECT_SOURCE_DIR}/platform/glfw/android_view.hpp
-    ${PROJECT_SOURCE_DIR}/platform/glfw/glfw_renderer_frontend.cpp
-    ${PROJECT_SOURCE_DIR}/platform/glfw/settings_json.cpp
-    ${PROJECT_SOURCE_DIR}/platform/glfw/test_writer.cpp
     ${PROJECT_SOURCE_DIR}/platform/default/src/mbgl/map/map_snapshotter.cpp
+    ${PROJECT_SOURCE_DIR}/platform/glfw/settings_json.hpp
+    ${PROJECT_SOURCE_DIR}/platform/glfw/settings_json.cpp
+    ${PROJECT_SOURCE_DIR}/platform/glfw/test_writer.hpp
+    ${PROJECT_SOURCE_DIR}/platform/glfw/test_writer.cpp
     ${PROJECT_SOURCE_DIR}/platform/glfw/route_demo_data.hpp
     ${PROJECT_SOURCE_DIR}/platform/glfw/route_demo_data.cpp
+    ${PROJECT_SOURCE_DIR}/platform/glfw/main.cpp
+    ${PROJECT_SOURCE_DIR}/platform/glfw/glfw_view.hpp
+    ${PROJECT_SOURCE_DIR}/platform/glfw/glfw_view.cpp
+    ${PROJECT_SOURCE_DIR}/platform/glfw/glfw_renderer_frontend.hpp
+    ${PROJECT_SOURCE_DIR}/platform/glfw/glfw_renderer_frontend.cpp
+    ${PROJECT_SOURCE_DIR}/platform/glfw/android_main.cpp
+    ${PROJECT_SOURCE_DIR}/platform/glfw/android_view.cpp
+    ${PROJECT_SOURCE_DIR}/platform/glfw/android_view.hpp
+    ${PROJECT_SOURCE_DIR}/platform/glfw/android_renderer_frontend.hpp
+    ${PROJECT_SOURCE_DIR}/platform/glfw/android_renderer_frontend.cpp
 )
 
 set_property(
@@ -26,6 +32,7 @@ set_property(
 if(MBGL_WITH_OPENGL)
     target_sources(
         mbgl-glfw
+        PRIVATE ${PROJECT_SOURCE_DIR}/platform/glfw/glfw_gl_backend.hpp
         PRIVATE ${PROJECT_SOURCE_DIR}/platform/glfw/glfw_gl_backend.cpp
     )
     target_compile_definitions(

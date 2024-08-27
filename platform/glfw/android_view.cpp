@@ -1,6 +1,6 @@
 #include "android_view.hpp"
 #include "glfw_backend.hpp"
-#include "glfw_renderer_frontend.hpp"
+#include "android_renderer_frontend.hpp"
 #include "route_demo_data.hpp"
 #include "test_writer.hpp"
 
@@ -44,6 +44,7 @@
 #include <fstream>
 #include <iostream>
 #include <utility>
+#include <chrono>
 
 #if defined(MBGL_RENDER_BACKEND_OPENGL) && !defined(MBGL_LAYER_LOCATION_INDICATOR_DISABLE_ALL)
 #include <mbgl/style/layers/location_indicator_layer.hpp>
@@ -203,7 +204,7 @@ void AndroidView::setMap(mbgl::Map *map_) {
     map->addAnnotationImage(makeImage("default_marker", 22, 22, 1));
 }
 
-void AndroidView::setRenderFrontend(GLFWRendererFrontend* rendererFrontend_) {
+void AndroidView::setRenderFrontend(AndroidRendererFrontend* rendererFrontend_) {
     rendererFrontend = rendererFrontend_;
 }
 
@@ -211,10 +212,10 @@ mbgl::gfx::RendererBackend &AndroidView::getRendererBackend() {
     return renderBackend->getRendererBackend();
 }
 
-void AndroidView::onKey(GLFWwindow *window, int key, int /*scancode*/, int action, int mods) {
+//void AndroidView::onKey(GLFWwindow *window, int key, int /*scancode*/, int action, int mods) {
 //    auto *view = reinterpret_cast<AndroidView *>(glfwGetWindowUserPointer(window));
 //    view->onKey(key, action, mods);
-}
+//}
 
 void AndroidView::onKey(int key, int action, int mods) {
 //    if (action == GLFW_RELEASE) {
@@ -878,10 +879,10 @@ void AndroidView::popAnnotation() {
     annotationIDs.pop_back();
 }
 
-void AndroidView::onScroll(GLFWwindow *window, double /*xOffset*/, double yOffset) {
+//void AndroidView::onScroll(GLFWwindow *window, double /*xOffset*/, double yOffset) {
 //    auto *view = reinterpret_cast<AndroidView *>(glfwGetWindowUserPointer(window));
 //    view->onScroll(yOffset);
-}
+//}
 
 void AndroidView::onScroll(double yOffset) {
     
@@ -926,14 +927,14 @@ void AndroidView::onScroll(double yOffset) {
 //#endif
 }
 
-void AndroidView::onWindowResize(GLFWwindow *window, int width, int height) {
+//void AndroidView::onWindowResize(GLFWwindow *window, int width, int height) {
 //    auto *view = reinterpret_cast<AndroidView *>(glfwGetWindowUserPointer(window));
 //    view->width = width;
 //    view->height = height;
 //    view->map->setSize({ static_cast<uint32_t>(view->width), static_cast<uint32_t>(view->height) });
-}
+//}
 
-void AndroidView::onFramebufferResize(GLFWwindow *window, int width, int height) {
+//void AndroidView::onFramebufferResize(GLFWwindow *window, int width, int height) {
 //    auto *view = reinterpret_cast<AndroidView *>(glfwGetWindowUserPointer(window));
 //
 //    if (view->renderBackend)
@@ -944,15 +945,20 @@ void AndroidView::onFramebufferResize(GLFWwindow *window, int width, int height)
 //    // We are forcing a repaint my invalidating the view, which triggers a rerender with the
 //    // new framebuffer dimensions.
 //    view->invalidate();
-}
+//}
 
-void AndroidView::onMouseClick(GLFWwindow *window, int button, int action, int modifiers) {
+//void AndroidView::onMouseClick(GLFWwindow *window, int button, int action, int modifiers) {
 //    auto *view = reinterpret_cast<AndroidView *>(glfwGetWindowUserPointer(window));
 //    view->onMouseClick(button, action, modifiers);
-}
+//}
 
 void AndroidView::onMouseClick(int button, int action, int modifiers) {
-//    double now = glfwGetTime();
+    auto now = std::chrono::system_clock::now();
+    auto duration = now.time_since_epoch();
+    double now_ts = std::chrono::duration_cast<std::chrono::seconds>(duration).count();
+    
+    std::time_t result = std::time(nullptr);
+    
 //    if (action == GLFW_PRESS) {
 //        map->setGestureInProgress(true);
 //        if (button == GLFW_MOUSE_BUTTON_LEFT) {
@@ -990,10 +996,10 @@ void AndroidView::onMouseClick(int button, int action, int modifiers) {
 //    }
 }
 
-void AndroidView::onMouseMove(GLFWwindow *window, double x, double y) {
+//void AndroidView::onMouseMove(GLFWwindow *window, double x, double y) {
 //    auto *view = reinterpret_cast<AndroidView *>(glfwGetWindowUserPointer(window));
 //    view->onMouseMove(x, y);
-}
+//}
 
 void AndroidView::onMouseMove(double x, double y) {
 //    double now = glfwGetTime();
@@ -1082,12 +1088,12 @@ void AndroidView::onMouseMove(double x, double y) {
 //    }
 }
 
-void AndroidView::onWindowFocus(GLFWwindow *window, int focused) {
+//void AndroidView::onWindowFocus(GLFWwindow *window, int focused) {
 //    if (focused == GLFW_FALSE) { // Focus lost.
 //        auto *view = reinterpret_cast<AndroidView *>(glfwGetWindowUserPointer(window));
 //        view->rendererFrontend->getRenderer()->reduceMemoryUse();
 //    }
-}
+//}
 
 void AndroidView::run() {
 //    auto callback = [&] {

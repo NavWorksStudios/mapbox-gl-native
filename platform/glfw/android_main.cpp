@@ -24,24 +24,34 @@
 #include <mbgl/util/string.hpp>
 
 
-#include "glfw_view.hpp"
-#include "glfw_renderer_frontend.hpp"
+#include "android_view.hpp"
+#include "android_renderer_frontend.hpp"
 #include "settings_json.hpp"
 
-std::shared_ptr<GLFWView> view_android;
+std::shared_ptr<AndroidView> view_android;
 std::shared_ptr<mbgl::Map> map_android;
-std::shared_ptr<GLFWRendererFrontend> rendererFrontend_android;
+std::shared_ptr<AndroidRendererFrontend> rendererFrontend_android;
 
 void init() {
-#if 0
+#if 1
     mbgl::ResourceOptions resourceOptions;
     resourceOptions.withCachePath("/tmp/mbgl-cache.db").withAccessToken("");
     
-    view_android = std::make_shared<GLFWView>(false, false, resourceOptions, false);
+    view_android = std::make_shared<AndroidView>(false, false, resourceOptions, false);
     
     // Resource loader controls top-level request processing and can resume / pause all managed sources simultaneously.
     std::shared_ptr<mbgl::FileSource> resourceFile =
     mbgl::FileSourceManager::get()->getFileSource(mbgl::FileSourceType::ResourceLoader, resourceOptions);
+    
+    view_android->setPauseResumeCallback([resourceFile]() {
+        static bool isPaused = false;
+        if (isPaused) {
+            resourceFile->resume();
+        } else {
+            resourceFile->pause();
+        }
+        isPaused = !isPaused;
+    });
     
     // Online file source.
     std::shared_ptr<mbgl::FileSource> onlineFile =
@@ -73,7 +83,7 @@ void init() {
     });
 
 
-    rendererFrontend_android = std::make_shared<GLFWRendererFrontend>(std::make_unique<mbgl::Renderer>(view_android->getRendererBackend(), view_android->getPixelRatio()), *view_android);
+    rendererFrontend_android = std::make_shared<AndroidRendererFrontend>(std::make_unique<mbgl::Renderer>(view_android->getRendererBackend(), view_android->getPixelRatio()), *view_android);
     
     map_android = std::make_shared<mbgl::Map>(*rendererFrontend_android,
                                       *view_android,
@@ -83,21 +93,8 @@ void init() {
     view_android->setMap(map_android.get());
     map_android->setDebug(mbgl::MapDebugOptions::NoDebug);
 
-    // Load style
-    std::string style;
-    if (style.empty()) {
-        const char *url = getenv("MAPBOX_STYLE_URL");
-        if (url == nullptr) {
-            mbgl::util::default_styles::DefaultStyle newStyle = mbgl::util::default_styles::orderedStyles[0];
-            style = newStyle.url;
-            view_android->setWindowTitle(newStyle.name);
-        } else {
-            style = url;
-            view_android->setWindowTitle(url);
-        }
-    }
-
-    map_android->getStyle().loadURL(style);
+    // Load style from default theme config
+    map_android->getStyle().loadURL("");
     
     view_android->setChangeStyleCallback([] () {
         static uint8_t currentStyleIndex;
@@ -108,7 +105,6 @@ void init() {
         
         mbgl::util::default_styles::DefaultStyle newStyle = mbgl::util::default_styles::orderedStyles[currentStyleIndex];
         map_android->getStyle().loadURL(newStyle.url);
-        view_android->setWindowTitle(newStyle.name);
         
         mbgl::Log::Info(mbgl::Event::Setup, "Changed style to: %s", newStyle.name);
     });
@@ -139,6 +135,8 @@ Java_com_navworksstudios_navworksandroid_GLESView_Init(
         jobject glesview) {
     glesView = env->NewGlobalRef(glesview);;
     env->GetJavaVM(&theJVM);
+    
+    init();
     
     glClearColor(1.0f, 0.0f, 1.0f, 1.0f);
 }

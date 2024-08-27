@@ -15,7 +15,7 @@
 
 struct GLFWwindow;
 class GLFWBackend;
-class GLFWRendererFrontend;
+class AndroidRendererFrontend;
 
 namespace mbgl {
 namespace gfx {
@@ -32,7 +32,7 @@ public:
 
     void setMap(mbgl::Map*);
     
-    void setRenderFrontend(GLFWRendererFrontend*);
+    void setRenderFrontend(AndroidRendererFrontend*);
 
     mbgl::gfx::RendererBackend& getRendererBackend();
 
@@ -69,15 +69,15 @@ public:
     void onMouseClick(int button, int action, int modifiers);
     void onMouseMove(double x, double y);
     
-private:
-    // Window callbacks
-    static void onKey(GLFWwindow *window, int key, int scancode, int action, int mods);
-    static void onScroll(GLFWwindow *window, double xoffset, double yoffset);
-    static void onWindowResize(GLFWwindow *window, int width, int height);
-    static void onFramebufferResize(GLFWwindow *window, int width, int height);
-    static void onMouseClick(GLFWwindow *window, int button, int action, int modifiers);
-    static void onMouseMove(GLFWwindow *window, double x, double y);
-    static void onWindowFocus(GLFWwindow *window, int focused);
+//private:
+//    // Window callbacks
+//    static void onKey(GLFWwindow *window, int key, int scancode, int action, int mods);
+//    static void onScroll(GLFWwindow *window, double xoffset, double yoffset);
+//    static void onWindowResize(GLFWwindow *window, int width, int height);
+//    static void onFramebufferResize(GLFWwindow *window, int width, int height);
+//    static void onMouseClick(GLFWwindow *window, int button, int action, int modifiers);
+//    static void onMouseMove(GLFWwindow *window, double x, double y);
+//    static void onWindowFocus(GLFWwindow *window, int focused);
 
     // Internal
     void report(float duration);
@@ -118,7 +118,7 @@ private:
 
 private:
     mbgl::Map* map = nullptr;
-    GLFWRendererFrontend* rendererFrontend = nullptr;
+    AndroidRendererFrontend* rendererFrontend = nullptr;
     std::unique_ptr<GLFWBackend> renderBackend;
 
     double freeCameraDemoPhase = -1;
