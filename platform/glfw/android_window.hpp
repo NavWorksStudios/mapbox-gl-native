@@ -10,5 +10,7 @@ class RendererBackend;
 
 class AndroidWindow {
 public:
-//    mbgl::Size;
+    // 屏幕宽高
+    int32_t width;
+    int32_t height;
 };

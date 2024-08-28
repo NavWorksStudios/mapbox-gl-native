@@ -76,9 +76,9 @@ AndroidView::AndroidView(bool fullscreen_, bool benchmark_, const mbgl::Resource
     : fullscreen(fullscreen_),
       benchmark(benchmark_),
       mapResourceOptions(options.clone()) {
-
-    std::srand(static_cast<unsigned int>(std::time(nullptr)));
-
+          
+          std::srand(static_cast<unsigned int>(std::time(nullptr)));
+          
 //    if (!glfwInit()) {
 //        mbgl::Log::Error(mbgl::Event::OpenGL, "failed to initialize glfw");
 //        exit(1);
@@ -149,50 +149,10 @@ AndroidView::AndroidView(bool fullscreen_, bool benchmark_, const mbgl::Resource
 //
 //    glfwMakeContextCurrent(nullptr);
           
-          AndroidWindow window_android;
-          renderBackend = AndroidBackend::Create(&window_android, benchmark);
-
-    printf("\n");
-    printf("================================================================================\n");
-    printf("\n");
-    printf("- Press `S` to cycle through bundled styles\n");
-    printf("- Press `X` to reset the transform\n");
-    printf("- Press `N` to reset north\n");
-    printf("- Press `R` to enable the route demo\n");
-    printf("- Press `E` to insert an example building extrusion layer\n");
-    printf("- Press `O` to toggle online connectivity\n");
-    printf("- Press `Z` to cycle through north orientations\n");
-    printf("- Press `X` to cycle through the viewport modes\n");
-    printf("- Press `I` to delete existing database and re-initialize\n");
-    printf("- Press `A` to cycle through Mapbox offices in the world + dateline monument\n");
-    printf("- Press `B` to cycle through the color, stencil, and depth buffer\n");
-    printf("- Press `D` to cycle through camera bounds: inside, crossing IDL at left, crossing IDL at right, and disabled\n");
-    printf("- Press `T` to add custom geometry source\n");
-    printf("- Press `F` to enable feature-state demo\n");
-    printf("- Press `U` to toggle pitch bounds\n");
-    printf("- Press `H` to take a snapshot of a current map.\n");
-    printf("- Press `J` to take a snapshot of a current map with an extrusions overlay.\n");
-    printf("- Press `Y` to start a camera fly-by demo\n");
-    printf("\n");
-    printf("- Press `1` through `6` to add increasing numbers of point annotations for testing\n");
-    printf("- Press `7` through `0` to add increasing numbers of shape annotations for testing\n");
-    printf("\n");
-    printf("- Press `Q` to remove annotations\n");
-    printf("- Press `K` to add a random custom runtime imagery annotation\n");
-    printf("- Press `L` to add a random line annotation\n");
-    printf("- Press `W` to pop the last-added annotation off\n");
-    printf("- Press `P` to pause tile requests\n");
-    printf("\n");
-    printf("- Hold `Control` + mouse drag to rotate\n");
-    printf("- Hold `Shift` + mouse drag to tilt\n");
-    printf("\n");
-    printf("- Press `F1` to generate a render test for the current view\n");
-    printf("\n");
-    printf("- Press `Tab` to cycle through the map debug options\n");
-    printf("- Press `Esc` to quit\n");
-    printf("\n");
-    printf("================================================================================\n");
-    printf("\n");
+    AndroidWindow window_android;
+    window_android.width = nav::display::width();
+    window_android.height = nav::display::height();
+    renderBackend = AndroidBackend::Create(&window_android, benchmark);
           
     nav::runtime::texture::load(mbglPuckAssetsPath);
 }

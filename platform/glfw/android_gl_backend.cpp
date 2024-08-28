@@ -2,6 +2,10 @@
 
 #include <mbgl/gfx/backend_scope.hpp>
 #include <mbgl/gl/renderable_resource.hpp>
+#include "mbgl/nav/nav.style.hpp"
+
+#include <mbgl/platform/GLES2/gl2.h>
+#include <mbgl/platform/GLES2/gl2ext.h>
 
 class AndroidGLRenderableResource final : public mbgl::gl::RenderableResource {
 public:
@@ -24,8 +28,8 @@ AndroidGLBackend::AndroidGLBackend(AndroidWindow* window_, const bool capFrameRa
     : mbgl::gl::RendererBackend(mbgl::gfx::ContextMode::Unique),
       mbgl::gfx::Renderable(
           [window_] {
-              int fbWidth;
-              int fbHeight;
+            int fbWidth = nav::display::width();
+            int fbHeight = nav::display::height();
                 // #*# android 适配屏蔽
 //              glfwGetFramebufferSize(window_, &fbWidth, &fbHeight);
               return mbgl::Size{ static_cast<uint32_t>(fbWidth), static_cast<uint32_t>(fbHeight) };
@@ -59,11 +63,12 @@ void AndroidGLBackend::deactivate() {
 mbgl::gl::ProcAddress AndroidGLBackend::getExtensionFunctionPointer(const char* name) {
     // #*# android 适配屏蔽
 //    return glfwGetProcAddress(name);
+    return nullptr;
 }
 
 void AndroidGLBackend::updateAssumedState() {
     // #*# android 适配屏蔽
-//    assumeFramebufferBinding(0);
+    assumeFramebufferBinding(0);
     setViewport(0, 0, size);
 }
 
