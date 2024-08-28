@@ -8,7 +8,7 @@ class RendererBackend;
 } // namespace gfx
 } // namespace mbgl
 
-class AndroidWindos {
+class AndroidWindow {
 public:
-    mbgl::Size;
+//    mbgl::Size;
 };

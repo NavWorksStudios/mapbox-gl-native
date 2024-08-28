@@ -20,7 +20,7 @@ private:
     AndroidGLBackend& backend;
 };
 
-AndroidGLBackend::AndroidGLBackend(AndroidWindos* window_, const bool capFrameRate)
+AndroidGLBackend::AndroidGLBackend(AndroidWindow* window_, const bool capFrameRate)
     : mbgl::gl::RendererBackend(mbgl::gfx::ContextMode::Unique),
       mbgl::gfx::Renderable(
           [window_] {
@@ -85,7 +85,7 @@ namespace gfx {
 
 template <>
 std::unique_ptr<AndroidBackend>
-Backend::Create<mbgl::gfx::Backend::Type::OpenGL>(AndroidWindos* window, bool capFrameRate) {
+Backend::Create<mbgl::gfx::Backend::Type::OpenGL>(AndroidWindow* window, bool capFrameRate) {
     return std::make_unique<AndroidGLBackend>(window, capFrameRate);
 }
 

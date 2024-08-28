@@ -13,7 +13,7 @@
 
 #include "mbgl/nav/nav.style.hpp"
 
-struct GLFWwindow;
+class AndroidWindow;
 class AndroidBackend;
 class AndroidRendererFrontend;
 
@@ -183,7 +183,7 @@ private:
     mbgl::util::RunLoop runLoop;
     mbgl::util::Timer frameTick;
 
-    GLFWwindow *window = nullptr;
+    AndroidWindow *window = nullptr;
     bool dirty = false;
     mbgl::optional<std::string> featureID;
     mbgl::ResourceOptions mapResourceOptions;

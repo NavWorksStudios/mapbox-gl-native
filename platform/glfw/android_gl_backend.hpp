@@ -5,13 +5,12 @@
 #include <mbgl/gfx/renderable.hpp>
 #include <mbgl/gl/renderer_backend.hpp>
 
-struct AndroidWindos;
-
+class AndroidWindow;
 class AndroidGLBackend final : public AndroidBackend,
                             public mbgl::gl::RendererBackend,
                             public mbgl::gfx::Renderable {
 public:
-    AndroidGLBackend(AndroidWindos*, bool capFrameRate);
+    AndroidGLBackend(AndroidWindow*, bool capFrameRate);
     ~AndroidGLBackend() override;
 
     void swap();
@@ -40,5 +39,5 @@ protected:
     void updateAssumedState() override;
 
 private:
-    AndroidWindos* window;
+    AndroidWindow* window;
 };

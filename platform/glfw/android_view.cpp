@@ -1,6 +1,7 @@
 #include "android_view.hpp"
 #include "android_gl_backend.hpp"
 #include "android_renderer_frontend.hpp"
+#include "android_window.hpp"
 #include "route_demo_data.hpp"
 #include "test_writer.hpp"
 
@@ -147,6 +148,9 @@ AndroidView::AndroidView(bool fullscreen_, bool benchmark_, const mbgl::Resource
 //    }
 //
 //    glfwMakeContextCurrent(nullptr);
+          
+          AndroidWindow window_android;
+          renderBackend = AndroidBackend::Create(&window_android, benchmark);
 
     printf("\n");
     printf("================================================================================\n");
