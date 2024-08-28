@@ -14,7 +14,7 @@
 #include "mbgl/nav/nav.style.hpp"
 
 struct GLFWwindow;
-class GLFWBackend;
+class AndroidBackend;
 class AndroidRendererFrontend;
 
 namespace mbgl {
@@ -119,7 +119,7 @@ public:
 private:
     mbgl::Map* map = nullptr;
     AndroidRendererFrontend* rendererFrontend = nullptr;
-    std::unique_ptr<GLFWBackend> renderBackend;
+    std::unique_ptr<AndroidBackend> renderBackend;
 
     double freeCameraDemoPhase = -1;
     mbgl::TimePoint freeCameraDemoStartTime;
