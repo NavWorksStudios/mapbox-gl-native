@@ -6,6 +6,10 @@ message(STATUS "ANDROID_ABI: ${ANDROID_ABI}")
 message(STATUS "ANDROID_NDK: ${ANDROID_NDK}")
 message(STATUS "ANDROID_PLATFORM: ${ANDROID_PLATFORM}")
 message(STATUS "ANDROID_STL: ${ANDROID_STL}")
+if(CMAKE_SYSTEM_NAME STREQUAL Android)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+endif()
+
 
 #add_definitions(-__ANDROID__) 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -889,7 +893,7 @@ set(all_files
     ${PROJECT_SOURCE_DIR}/src/mbgl/route/render_route_source.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/route/route_plan.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/route/route_plan_tile.hpp
-    
+
     ${PROJECT_SOURCE_DIR}/src/mbgl/platform/native_window.h
     ${PROJECT_SOURCE_DIR}/src/mbgl/platform/native_window_jni.h
     ${PROJECT_SOURCE_DIR}/src/mbgl/platform/KHR/khrplatform.h
