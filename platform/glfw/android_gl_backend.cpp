@@ -7,6 +7,11 @@
 #include <mbgl/platform/GLES2/gl2.h>
 #include <mbgl/platform/GLES2/gl2ext.h>
 
+#if __APPLE__
+#else
+#include <EGL/egl.h>
+#endif
+
 class AndroidGLRenderableResource final : public mbgl::gl::RenderableResource {
 public:
     explicit AndroidGLRenderableResource(AndroidGLBackend& backend_) : backend(backend_) {}
@@ -61,9 +66,12 @@ void AndroidGLBackend::deactivate() {
 }
 
 mbgl::gl::ProcAddress AndroidGLBackend::getExtensionFunctionPointer(const char* name) {
-    // #*# android 适配屏蔽
-//    return glfwGetProcAddress(name);
+    // #*# android适配，使用egl接口 - eglGetProcAddress
+#if __APPLE__
     return nullptr;
+#else
+    return eglGetProcAddress(name);
+#endif
 }
 
 void AndroidGLBackend::updateAssumedState() {

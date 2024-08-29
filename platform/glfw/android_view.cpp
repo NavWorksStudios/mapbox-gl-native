@@ -72,38 +72,21 @@ std::array<double, 3> toArray2(const mbgl::LatLng &crd) {
 } // namespace
 #endif
 
-AndroidView::AndroidView(bool fullscreen_, bool benchmark_, const mbgl::ResourceOptions &options, bool headless)
-    : fullscreen(fullscreen_),
-      benchmark(benchmark_),
-      mapResourceOptions(options.clone()) {
-          
-          std::srand(static_cast<unsigned int>(std::time(nullptr)));
-          
-//    if (!glfwInit()) {
-//        mbgl::Log::Error(mbgl::Event::OpenGL, "failed to initialize glfw");
-//        exit(1);
-//    }
+AndroidView::AndroidView(bool fullscreen_, bool benchmark_, const mbgl::ResourceOptions &options, bool headless) :
+    fullscreen(fullscreen_),
+    benchmark(benchmark_),
+    mapResourceOptions(options.clone()) {
+    
+    std::srand(static_cast<unsigned int>(std::time(nullptr)));
 
-//    GLFWmonitor *monitor = nullptr;
-//    if (fullscreen) {
-//        monitor = glfwGetPrimaryMonitor();
-//        auto videoMode = glfwGetVideoMode(monitor);
-//        width = videoMode->width;
-//        height = videoMode->height;
-//    }
-
-//#if __APPLE__
-//    glfwWindowHint(GLFW_COCOA_GRAPHICS_SWITCHING, GL_TRUE);
-//#endif
-//
 //#if MBGL_WITH_EGL
 //    glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_EGL_CONTEXT_API);
 //#endif
-//
+
 //#ifdef DEBUG
 //    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 //#endif
-//
+
 //#if MBGL_USE_GLES2
 //    glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
 //    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
@@ -113,7 +96,7 @@ AndroidView::AndroidView(bool fullscreen_, bool benchmark_, const mbgl::Resource
 //    if (mbgl::gfx::Backend::GetType() != mbgl::gfx::Backend::Type::OpenGL) {
 //        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 //    }
-//
+
 //    glfwWindowHint(GLFW_RED_BITS, 8);
 //    glfwWindowHint(GLFW_GREEN_BITS, 8);
 //    glfwWindowHint(GLFW_BLUE_BITS, 8);
@@ -121,39 +104,16 @@ AndroidView::AndroidView(bool fullscreen_, bool benchmark_, const mbgl::Resource
 //    glfwWindowHint(GLFW_STENCIL_BITS, 8);
 //    glfwWindowHint(GLFW_DEPTH_BITS, 16);
 
-//    if (!headless) {
-//        window = glfwCreateWindow(width, height, "Mapbox GL", monitor, nullptr);
-//
-//        if (!window) {
-//            glfwTerminate();
-//            mbgl::Log::Error(mbgl::Event::OpenGL, "failed to initialize window");
-//            exit(1);
-//        }
-//
-//        glfwSetWindowUserPointer(window, this);
-//        glfwSetCursorPosCallback(window, onMouseMove);
-//        glfwSetMouseButtonCallback(window, onMouseClick);
-//        glfwSetWindowSizeCallback(window, onWindowResize);
-//        glfwSetFramebufferSizeCallback(window, onFramebufferResize);
-//        glfwSetScrollCallback(window, onScroll);
-//        glfwSetKeyCallback(window, onKey);
-//        glfwSetWindowFocusCallback(window, onWindowFocus);
-//
-//        glfwGetWindowSize(window, &width, &height);
-//
-//        renderBackend = GLFWBackend::Create(window, benchmark);
-//
-//        if (renderBackend)
-//            pixelRatio = static_cast<float>(renderBackend->getSize().width) / width;
-//    }
-//
-//    glfwMakeContextCurrent(nullptr);
-          
+    // #*# 响应屏幕尺寸变化，需要从android jni获得
+//    glfwSetFramebufferSizeCallback(window, onFramebufferResize);
+      
     AndroidWindow window_android;
     window_android.width = nav::display::width();
     window_android.height = nav::display::height();
     renderBackend = AndroidBackend::Create(&window_android, benchmark);
-          
+    if (renderBackend) {
+      pixelRatio = 1.0; // or 2.0
+    }
     nav::runtime::texture::load(mbglPuckAssetsPath);
 }
 

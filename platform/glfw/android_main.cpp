@@ -12,7 +12,7 @@
 
 #if __APPLE__
 #include <mbgl/platform/jni.h>
-#else
+#else // #elif defined(__ANDROID__)
 #include <jni.h>
 #include "../../platform/android/src/jni.hpp"
 #endif
@@ -87,8 +87,10 @@ void init() {
     });
 
 
+    // 渲染前端
     rendererFrontend_android = std::make_shared<AndroidRendererFrontend>(std::make_unique<mbgl::Renderer>(view_android->getRendererBackend(), view_android->getPixelRatio()), *view_android);
     
+    // 地图引擎和渲染后端
     map_android = std::make_shared<mbgl::Map>(*rendererFrontend_android,
                                       *view_android,
                                       mbgl::MapOptions().withSize(view_android->getSize()).withPixelRatio(view_android->getPixelRatio()),
