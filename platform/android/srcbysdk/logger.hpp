@@ -10,7 +10,7 @@ namespace android {
 class Logger {
 public:
    static constexpr auto Name() {
-       return "com/mapbox/mapboxsdk/log/Logger";
+       return "com/navworksstudios/utils/log/Logger";
    };
    static void registerNative(jni::JNIEnv&);
 

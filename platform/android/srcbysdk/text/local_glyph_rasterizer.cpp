@@ -26,7 +26,7 @@
      mbgl::LocalGlyphRasterizer is the portable interface
      mbgl::LocalGlyphRasterizer::Impl stores platform-specific configuration data
      mbgl::android::LocalGlyphRasterizer is the JNI wrapper
-     com.mapbox.mapboxsdk.text.LocalGlyphRasterizer is the Java implementation that
+     com.navworksstudios.utils.text.LocalGlyphRasterizer is the Java implementation that
       actually does the drawing
  */
 

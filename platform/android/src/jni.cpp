@@ -2,6 +2,8 @@
 
 #include <mbgl/util/logging.hpp>
 
+#include "../srcbysdk/logger.hpp"
+
 namespace mbgl {
 namespace android {
 
@@ -56,6 +58,10 @@ void registerNatives(JavaVM *vm) {
     jni::JNIEnv& env = jni::GetEnv(*vm, jni::jni_version_1_6);
     // Http
     RegisterNativeHTTPRequest(env);
+    
+    // Logger
+    Logger::registerNative(env);
+    
 }
 
 } // namespace android

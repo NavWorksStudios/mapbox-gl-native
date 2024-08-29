@@ -104,7 +104,7 @@ Instead of using the latest stable release of the Maps SDK for Android, you can 
 
 ```java
 // Mapbox SDK dependency
-implementation 'com.mapbox.mapboxsdk:mapbox-android-sdk:7.3.0-SNAPSHOT'
+implementation 'com.navworksstudios.utils:mapbox-android-sdk:7.3.0-SNAPSHOT'
 ```
 
 You also need to have the section below in your build.gradle root folder to be able to resolve the SNAPSHOT dependencies:
