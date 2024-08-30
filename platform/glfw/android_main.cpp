@@ -178,7 +178,8 @@ extern "C" JNIEXPORT void JNICALL
 Java_com_navworksstudios_navworksandroid_GLESView_Render(
         JNIEnv* env,
         jobject /* this */) {
-    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
+//    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
+    view_android->run();
 }
 
 extern "C" JNIEXPORT void JNICALL
@@ -238,7 +239,7 @@ Java_com_navworksstudios_navworksandroid_GLESView_OnMouseClick(   // 鼠标(屏�
         JNIEnv* env,
         jobject /* this */,
         jint action) {
-    
+    view_android->onMouseClick(0, action, 0);
 }
 
 extern "C" JNIEXPORT void JNICALL
@@ -247,7 +248,7 @@ Java_com_navworksstudios_navworksandroid_GLESView_OnKey(   // 按键事件
         jobject /* this */,
         jint key,
         jint action) {
-    
+    view_android->onKey(key, action, 0);
 }
 
 extern "C" JNIEXPORT void JNICALL
@@ -256,7 +257,7 @@ Java_com_navworksstudios_navworksandroid_GLESView_OnMouseMove(   // 鼠标(屏�
         jobject /* this */,
         double x,
         double y) {
-    
+    view_android->onMouseMove(x, y);
 }
 
 void jni_navRequestRender() {

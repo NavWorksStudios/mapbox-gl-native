@@ -36,9 +36,7 @@
 #if MBGL_USE_GLES2
 #define GLFW_INCLUDE_ES2
 #endif // MBGL_USE_GLES2
-
 #define GL_GLEXT_PROTOTYPES
-//#include <GLFW/glfw3.h>
 
 #include <cassert>
 #include <cstdlib>
@@ -851,30 +849,22 @@ void AndroidView::onScroll(double yOffset) {
 //#endif
 }
 
-//void AndroidView::onWindowResize(GLFWwindow *window, int width, int height) {
-//    auto *view = reinterpret_cast<AndroidView *>(glfwGetWindowUserPointer(window));
-//    view->width = width;
-//    view->height = height;
+void AndroidView::onWindowResize(int width, int height) {
 //    view->map->setSize({ static_cast<uint32_t>(view->width), static_cast<uint32_t>(view->height) });
-//}
+    map->setSize({ static_cast<uint32_t>(width), static_cast<uint32_t>(height) });
+}
 
-//void AndroidView::onFramebufferResize(GLFWwindow *window, int width, int height) {
-//    auto *view = reinterpret_cast<AndroidView *>(glfwGetWindowUserPointer(window));
-//
-//    if (view->renderBackend)
-//    view->renderBackend->setSize({ static_cast<uint32_t>(width), static_cast<uint32_t>(height) });
-//
-//    // This is only triggered when the framebuffer is resized, but not the window. It can
-//    // happen when you move the window between screens with a different pixel ratio.
-//    // We are forcing a repaint my invalidating the view, which triggers a rerender with the
-//    // new framebuffer dimensions.
-//    view->invalidate();
-//}
+void AndroidView::onFramebufferResize(int width, int height) {
+    if (renderBackend)
+        renderBackend->setSize({ static_cast<uint32_t>(width), static_cast<uint32_t>(height) });
 
-//void AndroidView::onMouseClick(GLFWwindow *window, int button, int action, int modifiers) {
-//    auto *view = reinterpret_cast<AndroidView *>(glfwGetWindowUserPointer(window));
-//    view->onMouseClick(button, action, modifiers);
-//}
+    // This is only triggered when the framebuffer is resized, but not the window. It can
+    // happen when you move the window between screens with a different pixel ratio.
+    // We are forcing a repaint my invalidating the view, which triggers a rerender with the
+    // new framebuffer dimensions.
+    invalidate();
+}
+
 
 void AndroidView::onMouseClick(int button, int action, int modifiers) {
     auto now = std::chrono::system_clock::now();
@@ -919,11 +909,6 @@ void AndroidView::onMouseClick(int button, int action, int modifiers) {
 //        map->setGestureInProgress(rotating = pitching = tracking = false);
 //    }
 }
-
-//void AndroidView::onMouseMove(GLFWwindow *window, double x, double y) {
-//    auto *view = reinterpret_cast<AndroidView *>(glfwGetWindowUserPointer(window));
-//    view->onMouseMove(x, y);
-//}
 
 void AndroidView::onMouseMove(double x, double y) {
 //    double now = glfwGetTime();
@@ -1012,13 +997,6 @@ void AndroidView::onMouseMove(double x, double y) {
 //    }
 }
 
-//void AndroidView::onWindowFocus(GLFWwindow *window, int focused) {
-//    if (focused == GLFW_FALSE) { // Focus lost.
-//        auto *view = reinterpret_cast<AndroidView *>(glfwGetWindowUserPointer(window));
-//        view->rendererFrontend->getRenderer()->reduceMemoryUse();
-//    }
-//}
-
 void AndroidView::run() {
 //    auto callback = [&] {
 //        if (window && glfwWindowShouldClose(window)) {
@@ -1104,10 +1082,6 @@ void AndroidView::setChangeStyleCallback(std::function<void()> callback) {
 void AndroidView::setShouldClose() {
 //    if (window) glfwSetWindowShouldClose(window, true);
 //    glfwPostEmptyEvent();
-}
-
-void AndroidView::setWindowTitle(const std::string& title) {
-//    if (window) glfwSetWindowTitle(window, (std::string { "Mapbox GL: " } + title).c_str());
 }
 
 void AndroidView::onDidFinishLoadingStyle() {

@@ -48,8 +48,6 @@ public:
 
     void setShouldClose();
 
-    void setWindowTitle(const std::string&);
-
     void run();
     
     void invalidate();
@@ -68,6 +66,8 @@ public:
     void onScroll(double yoffset);
     void onMouseClick(int button, int action, int modifiers);
     void onMouseMove(double x, double y);
+    void onWindowResize(int width, int height);
+    void onFramebufferResize(int width, int height);
     
 //private:
 //    // Window callbacks
