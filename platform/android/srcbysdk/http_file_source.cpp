@@ -21,7 +21,9 @@ public:
 
 class HTTPRequest : public AsyncRequest {
 public:
-    static constexpr auto Name() { return "com/navworksstudios/utils/http/NativeHttpRequest"; };
+    static constexpr auto Name() {
+        return "com/navworksstudios/utils/http/NativeHttpRequest";
+    };
 
     HTTPRequest(jni::JNIEnv&, const Resource&, FileSource::Callback);
     ~HTTPRequest();
