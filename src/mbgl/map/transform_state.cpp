@@ -87,17 +87,17 @@ void TransformState::matrixFor(mat4& matrix, const UnwrappedTileID& tileID) cons
     matrix::scale(matrix, matrix, s / util::EXTENT, s / util::EXTENT, 1);
 }
 
-void TransformState::matrixFor(mat4& matrix, const UnwrappedTileID& tileID, double* ps) const {
+void TransformState::modelMatrixFor(mat4& matrix, const UnwrappedTileID& tileID) const {
     const uint64_t tileScale = 1ull << tileID.canonical.z;
-    const double s = Projection::worldSize(scale) / tileScale;
-    
-    ps[0] = int64_t(tileID.canonical.x + tileID.wrap * static_cast<int64_t>(tileScale)) * s;
-    ps[1] = int64_t(tileID.canonical.y) * s;
-    ps[3] = s / util::EXTENT;
+    const double s = 1. / tileScale;
 
     matrix::identity(matrix);
-    matrix::translate(matrix, matrix, ps[0], ps[1], 0);
-    matrix::scale(matrix, matrix, ps[3], ps[3], 1);
+    matrix::translate(matrix,
+                      matrix,
+                      int64_t(tileID.canonical.x + tileID.wrap * static_cast<int64_t>(tileScale)) * s,
+                      int64_t(tileID.canonical.y) * s,
+                      0);
+    matrix::scale(matrix, matrix, s / util::EXTENT, s / util::EXTENT, s / util::EXTENT);
 }
 
 void TransformState::getProjMatrix(mat4& projMatrix, uint16_t nearZ, bool aligned) const {
@@ -202,13 +202,13 @@ void TransformState::updateCameraState() const {
     const vec3 orbitPosition = {{-forward[0] * cameraToCenterDistance,
                                  -forward[1] * cameraToCenterDistance,
                                  -forward[2] * cameraToCenterDistance}};
-    vec3 cameraPosition = _cameraPosition = {{dx + orbitPosition[0], dy + orbitPosition[1], orbitPosition[2]}};
+    _cameraWorldPosition = _cameraPosition = {{dx + orbitPosition[0], dy + orbitPosition[1], orbitPosition[2]}};
 
-    cameraPosition[0] /= worldSize;
-    cameraPosition[1] /= worldSize;
-    cameraPosition[2] /= worldSize;
+    _cameraWorldPosition[0] /= worldSize;
+    _cameraWorldPosition[1] /= worldSize;
+    _cameraWorldPosition[2] /= worldSize;
 
-    camera.setPosition(cameraPosition);
+    camera.setPosition(_cameraWorldPosition);
 }
 
 void TransformState::updateStateFromCamera() {

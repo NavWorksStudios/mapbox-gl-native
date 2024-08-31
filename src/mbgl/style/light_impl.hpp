@@ -26,7 +26,8 @@ public:
 
 struct LightAnchor : LightProperty<LightAnchorType> {
     static LightAnchorType defaultValue() {
-        return LightAnchorType::Viewport;
+        return LightAnchorType::Map;
+//        return LightAnchorType::Viewport;
     }
 };
 

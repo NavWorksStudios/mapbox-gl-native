@@ -34,7 +34,9 @@ using FillExtrusionLayoutAttributes = TypeList<
 
 using FillExtrusionUniforms = TypeList<
     uniforms::matrix,
+    uniforms::model_matrix,
     uniforms::opacity,
+    uniforms::camera_pos,
     uniforms::lightcolor,
     uniforms::lightpos,
     uniforms::lightintensity,
@@ -43,7 +45,7 @@ using FillExtrusionUniforms = TypeList<
     uniforms::render_time,
     uniforms::clip_region,
     uniforms::focus_region,
-    uniforms::render_reflection>;
+    uniforms::is_reflection>;
 
 using FillExtrusionPatternUniforms = TypeList<
     uniforms::matrix,
@@ -62,7 +64,7 @@ using FillExtrusionPatternUniforms = TypeList<
     uniforms::render_time,
     uniforms::clip_region,
     uniforms::focus_region,
-    uniforms::render_reflection>;
+    uniforms::is_reflection>;
 
 class FillExtrusionProgram : public Program<
     FillExtrusionProgram,
@@ -97,7 +99,8 @@ public:
     }
 
     static LayoutUniformValues layoutUniformValues(
-        const mat4&, const TransformState&, float opacity, const EvaluatedLight&, float verticalGradient, bool renderingReflection);
+        const mat4&, const mat4&, const TransformState&,
+        float opacity, const EvaluatedLight&, float verticalGradient, bool renderingReflection);
 };
 
 class FillExtrusionPatternProgram : public Program<
@@ -105,8 +108,7 @@ class FillExtrusionPatternProgram : public Program<
     gfx::PrimitiveType::Triangle,
     FillExtrusionLayoutAttributes,
     FillExtrusionPatternUniforms,
-    TypeList<
-        textures::image>,
+    TypeList<textures::image>,
     style::FillExtrusionPaintProperties>
 {
 public:

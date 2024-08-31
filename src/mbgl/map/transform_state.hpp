@@ -114,7 +114,7 @@ public:
 
     // Matrix
     void matrixFor(mat4&, const UnwrappedTileID&) const;
-    void matrixFor(mat4&, const UnwrappedTileID&, double* ps) const;
+    void modelMatrixFor(mat4&, const UnwrappedTileID&) const;
     void getProjMatrix(mat4& matrix, uint16_t nearZ = 1, bool aligned = false) const;
 
     // Dimensions
@@ -303,10 +303,16 @@ private:
 
     mutable vec4 _cameraQuaternion;
     mutable vec3 _cameraPosition;
+    mutable vec3 _cameraWorldPosition;
     
 public:
     inline vec3f getCameraPosition() const {
         vec3f pos = { (float) _cameraPosition[0], (float) _cameraPosition[1], (float) _cameraPosition[2] };
+        return pos;
+    }
+    
+    vec3f getCameraWorldPosition() const {
+        vec3f pos = { (float) _cameraWorldPosition[0], (float) _cameraWorldPosition[1], (float) _cameraWorldPosition[2] };
         return pos;
     }
     

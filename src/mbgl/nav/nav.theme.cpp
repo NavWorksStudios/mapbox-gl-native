@@ -19,12 +19,13 @@ static const auto normalize = [] (float value) {
 
 struct Config {
     std::string name;
-    std::string url;
-    std::string style;
+    std::string mapbox_studio_url;
+    std::string style_url;
     bool needsUpdate;
     bool enableBuildReflection;
     std::function<std::tuple<Hsla,bool>(const std::string&, Hsla)> getConfig;
     std::function<bool(const nav::stringid&)> enableLayerMonoPalette;
+    int shaderIndex;
 };
 
 const Config COLORFUL = {
@@ -71,6 +72,7 @@ const Config COLORFUL = {
 
         return layerIds.find(layer) != layerIds.end();
     },
+    1,
 };
 
 const Config GOLDEN_BLACK = {
@@ -88,6 +90,7 @@ const Config GOLDEN_BLACK = {
     [] (const nav::stringid&) {
         return false;
     },
+    2,
 };
 
 const Config MANHATTAN = {
@@ -98,6 +101,8 @@ const Config MANHATTAN = {
     false,
     [] (const std::string& uri, Hsla color) -> std::tuple<Hsla,bool> {
         if (uri.find("building-extrusion") != std::string::npos) {
+            color.s = 0;
+            color.l = 1;
         }
         
         return std::make_tuple(color, false);
@@ -105,14 +110,15 @@ const Config MANHATTAN = {
     [] (const nav::stringid&) {
         return false;
     },
+    2,
 };
 
-//const Config& THEME = COLORFUL;
+const Config& THEME = COLORFUL;
 //const Config& THEME = GOLDEN_BLACK;
-const Config& THEME = MANHATTAN;
+//const Config& THEME = MANHATTAN;
 
 const std::string& style() {
-    return THEME.style;
+    return THEME.style_url;
 }
 
 bool needsUpdate() {
@@ -129,6 +135,10 @@ std::tuple<Hsla,bool> colorProperty(const std::string& uri, Hsla color) {
 
 bool enableLayerMonoPalette(const nav::stringid& layer) {
     return THEME.enableLayerMonoPalette(layer);
+}
+
+int shaderIndex() {
+    return THEME.shaderIndex;
 }
 
 }

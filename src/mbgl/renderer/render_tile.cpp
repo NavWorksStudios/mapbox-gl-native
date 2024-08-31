@@ -118,11 +118,12 @@ void RenderTile::prepare(const SourcePrepareParameters& parameters) {
         debugBucket.reset();
     }
 
-    // Calculate two matrices for this tile: matrix is the standard tile matrix; nearClippedMatrix
-    // has near plane moved further, to enhance depth buffer precision
+    // Calculate two matrices for this tile: 
+    // matrix is the standard tile matrix;
+    // nearClippedMatrix has near plane moved further, to enhance depth buffer precision
     const auto& transform = parameters.transform;
-    double ps[6];
-    transform.state.matrixFor(matrix, id, ps);
+    transform.state.matrixFor(matrix, id);
+    transform.state.modelMatrixFor(modelMatrix, id);
     
     matrix::invert(normalMatrix, matrix);
     matrix::transpose(normalMatrix);

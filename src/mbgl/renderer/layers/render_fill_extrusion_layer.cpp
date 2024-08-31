@@ -116,7 +116,7 @@ void RenderFillExtrusionLayer::render(PaintParameters& parameters) {
         
         // draw reflection
         if (nav::theme::enableBuildingReflection()) {
-            layoutUniformValues.template get<uniforms::render_reflection>() = true;
+            layoutUniformValues.template get<uniforms::is_reflection>() = true;
             programInstance.draw(
                 parameters.context,
                 *parameters.renderPass,
@@ -135,7 +135,7 @@ void RenderFillExtrusionLayer::render(PaintParameters& parameters) {
         }
         
         // draw self
-        layoutUniformValues.template get<uniforms::render_reflection>() = false;
+        layoutUniformValues.template get<uniforms::is_reflection>() = false;
         programInstance.draw(
             parameters.context,
             *parameters.renderPass,
@@ -159,11 +159,12 @@ void RenderFillExtrusionLayer::render(PaintParameters& parameters) {
         const auto drawTiles = [&](const gfx::StencilMode& stencilMode_, const gfx::ColorMode& colorMode_, const std::string& name) {
             auto layoutUniforms = FillExtrusionProgram::layoutUniformValues(
                 uniforms::matrix::Value(),
+                uniforms::matrix::Value(),
                 parameters.state,
                 evaluated.get<FillExtrusionOpacity>(),
                 parameters.evaluatedLight,
                 evaluated.get<FillExtrusionVerticalGradient>(),
-                uniforms::render_reflection::Value()
+                uniforms::is_reflection::Value()
             );
             
             const std::string uniqueName = getID().get() + "/" + name;
@@ -187,6 +188,8 @@ void RenderFillExtrusionLayer::render(PaintParameters& parameters) {
                 tile.translatedClipMatrix(evaluated.get<FillExtrusionTranslate>(),
                                           evaluated.get<FillExtrusionTranslateAnchor>(),
                                           parameters.state);
+                
+                layoutUniforms.template get<uniforms::model_matrix>() = tile.modelMatrix;
                 
                 draw(parameters.programs.getFillExtrusionLayerPrograms().fillExtrusion,
                      evaluated,

@@ -20,13 +20,16 @@ std::array<float, 3> lightColor(const EvaluatedLight& light) {
 
 std::array<float, 3> lightPosition(const EvaluatedLight& light, const TransformState& state) {
     auto lightPos = light.get<LightPosition>().getCartesian();
-    mat3 lightMat;
-    matrix::identity(lightMat);
-    if (light.get<LightAnchor>() == LightAnchorType::Viewport) {
+    if (light.get<LightAnchor>() == LightAnchorType::Map) {
+        return lightPos;
+    } else {
+        mat3 lightMat;
+        matrix::identity(lightMat);
         matrix::rotate(lightMat, lightMat, -state.getBearing());
+        std::array<float, 3> pos;
+        matrix::transformMat3f(pos, lightPos, lightMat);
+        return pos;
     }
-    matrix::transformMat3f(lightPos, lightPos, lightMat);
-    return lightPos;
 }
 
 float lightIntensity(const EvaluatedLight& light) {
@@ -34,10 +37,13 @@ float lightIntensity(const EvaluatedLight& light) {
 }
 
 FillExtrusionProgram::LayoutUniformValues FillExtrusionProgram::layoutUniformValues(
-    const mat4& matrix, const TransformState& state, float opacity, const EvaluatedLight& light, float verticalGradient, bool renderingReflection) {
+    const mat4& matrix, const mat4& model_matrix, const TransformState& state,
+    float opacity, const EvaluatedLight& light, float verticalGradient, bool isReflection) {
     return {
         uniforms::matrix::Value( matrix ),
+        uniforms::matrix::Value( model_matrix ),
         uniforms::opacity::Value( opacity ),
+        uniforms::camera_pos::Value( state.getCameraWorldPosition() ),
         uniforms::lightcolor::Value( lightColor(light) ),
         uniforms::lightpos::Value( lightPosition(light, state) ),
         uniforms::lightintensity::Value( lightIntensity(light) ),
@@ -46,7 +52,7 @@ FillExtrusionProgram::LayoutUniformValues FillExtrusionProgram::layoutUniformVal
         uniforms::render_time::Value( nav::runtime::rendertime::value() ),
         uniforms::clip_region::Value( nav::display::clip_region() ),
         uniforms::focus_region::Value( nav::display::focus_region() ),
-        uniforms::render_reflection::Value( renderingReflection ),
+        uniforms::is_reflection::Value( isReflection ),
     };
 }
 
@@ -61,7 +67,7 @@ FillExtrusionPatternProgram::layoutUniformValues(mat4 matrix,
                                            const float pixelRatio,
                                            const EvaluatedLight& light,
                                            const float verticalGradient,
-                                           const bool renderingReflection) {
+                                           const bool isReflection) {
     const auto tileRatio = 1 / tileID.pixelsToTileUnits(1, state.getIntegerZoom());
     int32_t tileSizeAtNearestZoom = util::tileSize * state.zoomScale(state.getIntegerZoom() - tileID.canonical.z);
     int32_t pixelX = tileSizeAtNearestZoom * (tileID.canonical.x + tileID.wrap * state.zoomScale(tileID.canonical.z));
@@ -81,7 +87,7 @@ FillExtrusionPatternProgram::layoutUniformValues(mat4 matrix,
         uniforms::lightintensity::Value( lightIntensity(light) ),
         uniforms::vertical_gradient::Value( verticalGradient ),
         uniforms::spotlight::Value( nav::runtime::spotlight::value() ),
-        uniforms::render_reflection::Value( renderingReflection ),
+        uniforms::is_reflection::Value( isReflection ),
         uniforms::render_time::Value( nav::runtime::rendertime::value() ),
         uniforms::clip_region::Value( nav::display::clip_region() ),
         uniforms::focus_region::Value( nav::display::focus_region() ),

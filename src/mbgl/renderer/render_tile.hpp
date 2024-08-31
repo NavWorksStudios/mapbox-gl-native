@@ -37,6 +37,7 @@ public:
 
     UnwrappedTileID id;
     mat4 matrix;
+    mat4 modelMatrix;
     mat4 normalMatrix;
     mat4 nearClippedMatrix;
     // Contains the tile ID string for painting debug information.
