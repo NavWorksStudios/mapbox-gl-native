@@ -134,11 +134,6 @@ mbgl::gfx::RendererBackend &AndroidView::getRendererBackend() {
     return renderBackend->getRendererBackend();
 }
 
-//void AndroidView::onKey(GLFWwindow *window, int key, int /*scancode*/, int action, int mods) {
-//    auto *view = reinterpret_cast<AndroidView *>(glfwGetWindowUserPointer(window));
-//    view->onKey(key, action, mods);
-//}
-
 void AndroidView::onKey(int key, int action, int mods) {
 //    if (action == GLFW_RELEASE) {
 //        /*
@@ -719,9 +714,6 @@ void AndroidView::hideCurrentLineAnnotations() {
 void AndroidView::updateLineAnnotations(const mbgl::LatLng& orgPosition, const mbgl::LatLng& tagPosition) {
     mbgl::LineString<double> lineString;
     lineString.push_back({ orgPosition.longitude(), orgPosition.latitude() });
-//    lineString.push_back({ tagPosition.longitude()-0.001, tagPosition.latitude()-0.001 });
-//    lineString.push_back({ tagPosition.longitude()-0.002, tagPosition.latitude()-0.002 });
-//    lineString.push_back({ tagPosition.longitude()+0.04, tagPosition.latitude()-0.05 });
     lineString.push_back({ tagPosition.longitude(), tagPosition.latitude() });
     if(annotationIDs.size() > 0) {
         map->updateAnnotation(annotationIDs[0], mbgl::LineAnnotation { lineString, 1.0f, 3.0f, { mbgl::Color::red() } });
@@ -734,24 +726,6 @@ void AndroidView::addRandomShapeAnnotations(int count) {
         triangle.push_back({ makeRandomPoint(), makeRandomPoint(), makeRandomPoint() });
         annotationIDs.push_back(map->addAnnotation(mbgl::FillAnnotation { triangle, 0.5f, { makeRandomColor() }, { makeRandomColor() } }));
     }
-}
-
-void AndroidView::addAnimatedAnnotation() {
-//    const double started = glfwGetTime();
-//    animatedAnnotationIDs.push_back(map->addAnnotation(mbgl::SymbolAnnotation { { 0, 0 } , "default_marker" }));
-//    animatedAnnotationAddedTimes.push_back(started);
-}
-
-void AndroidView::updateAnimatedAnnotations() {
-//    const double time = glfwGetTime();
-//    for (size_t i = 0; i < animatedAnnotationIDs.size(); i++) {
-//        auto dt = time - animatedAnnotationAddedTimes[i];
-//
-//        const double period = 10;
-//        const double x = dt / period * 360 - 180;
-//        const double y = std::sin(dt/ period * M_PI * 2.0) * 80;
-//        map->updateAnnotation(animatedAnnotationIDs[i], mbgl::SymbolAnnotation { {x, y }, "default_marker" });
-//    }
 }
 
 void AndroidView::cycleDebugOptions() {
@@ -801,11 +775,6 @@ void AndroidView::popAnnotation() {
     annotationIDs.pop_back();
 }
 
-//void AndroidView::onScroll(GLFWwindow *window, double /*xOffset*/, double yOffset) {
-//    auto *view = reinterpret_cast<AndroidView *>(glfwGetWindowUserPointer(window));
-//    view->onScroll(yOffset);
-//}
-
 void AndroidView::onScroll(double yOffset) {
     
     if(puck) {
@@ -850,7 +819,6 @@ void AndroidView::onScroll(double yOffset) {
 }
 
 void AndroidView::onWindowResize(int width, int height) {
-//    view->map->setSize({ static_cast<uint32_t>(view->width), static_cast<uint32_t>(view->height) });
     map->setSize({ static_cast<uint32_t>(width), static_cast<uint32_t>(height) });
 }
 
@@ -998,61 +966,32 @@ void AndroidView::onMouseMove(double x, double y) {
 }
 
 void AndroidView::run() {
-//    auto callback = [&] {
-//        if (window && glfwWindowShouldClose(window)) {
-//            runLoop.stop();
-//        } else {
-//            glfwPollEvents();
-//
-//            if (dirty && rendererFrontend) {
-//                dirty = false;
-//
-//                const double started = glfwGetTime();
-//
-//                if (nav::runtime::update()) invalidate();
-//
-//                if (animateRouteCallback) animateRouteCallback(map);
-//
-//                updateAnimatedAnnotations();
-//
-//                mbgl::gfx::BackendScope scope { getRendererBackend() };
-//
-//                rendererFrontend->render();
-//
-//                if (freeCameraDemoPhase >= 0.0) updateFreeCameraDemo();
-//
-//                report(1000 * (glfwGetTime() - started));
-//
-//                if (benchmark) invalidate();
-//            }
-//        }
-//    };
-//
-//    frameTick.start(mbgl::Duration::zero(), mbgl::Milliseconds(1000 / 60), callback);
-//
-//#if defined(__APPLE__)
-////    while (window && !glfwWindowShouldClose(window)) {
-////        runLoop.run();
-////    }
-//#else
-//    runLoop.run();
-//#endif
-}
 
-float AndroidView::getPixelRatio() const {
-    return pixelRatio;
-}
+    if (dirty && rendererFrontend) {
+        dirty = false;
 
-mbgl::Size AndroidView::getSize() const {
-    return { static_cast<uint32_t>(width), static_cast<uint32_t>(height) };
-}
+        // #*# android 适配暂时屏蔽
+//        const double started = glfwGetTime();
 
-void AndroidView::invalidate() {
-    dirty = true;
-//    glfwPostEmptyEvent();
+        if (nav::runtime::update()) invalidate();
+
+        if (animateRouteCallback) animateRouteCallback(map);
+
+        mbgl::gfx::BackendScope scope { getRendererBackend() };
+
+        rendererFrontend->render();
+
+        if (freeCameraDemoPhase >= 0.0) updateFreeCameraDemo();
+
+        // #*# android 适配暂时屏蔽
+//        report(1000 * (glfwGetTime() - started));
+
+        if (benchmark) invalidate();
+    }
 }
 
 void AndroidView::report(float duration) {
+    // #*# android 适配暂时屏蔽
 //    // Frame timer
 //    static int frameCounter = 0;
 //    static float frameCost = 0;
@@ -1075,13 +1014,21 @@ void AndroidView::report(float duration) {
 //    }
 }
 
-void AndroidView::setChangeStyleCallback(std::function<void()> callback) {
-    changeStyleCallback = std::move(callback);
+float AndroidView::getPixelRatio() const {
+    return pixelRatio;
 }
 
-void AndroidView::setShouldClose() {
-//    if (window) glfwSetWindowShouldClose(window, true);
+mbgl::Size AndroidView::getSize() const {
+    return { static_cast<uint32_t>(width), static_cast<uint32_t>(height) };
+}
+
+void AndroidView::invalidate() {
+    dirty = true;
 //    glfwPostEmptyEvent();
+}
+
+void AndroidView::setChangeStyleCallback(std::function<void()> callback) {
+    changeStyleCallback = std::move(callback);
 }
 
 void AndroidView::onDidFinishLoadingStyle() {

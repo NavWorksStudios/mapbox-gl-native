@@ -46,9 +46,10 @@ public:
 
     void setResetCacheCallback(std::function<void()> callback) { resetDatabaseCallback = std::move(callback); };
 
-    void setShouldClose();
-
     void run();
+    
+    // Internal
+    void report(float duration);
     
     void invalidate();
 
@@ -79,9 +80,6 @@ public:
 //    static void onMouseMove(GLFWwindow *window, double x, double y);
 //    static void onWindowFocus(GLFWwindow *window, int focused);
 
-    // Internal
-    void report(float duration);
-
     mbgl::Color makeRandomColor() const;
     mbgl::Point<double> makeRandomPoint() const;
     static std::unique_ptr<mbgl::style::Image> makeImage(const std::string& id, int width, int height, float pixelRatio);
@@ -96,9 +94,7 @@ public:
     void updateLineAnnotations(const mbgl::LatLng& orgPosition, const mbgl::LatLng& tagPosition);
     void addRandomShapeAnnotations(int count);
     void addRandomCustomPointAnnotations(int count);
-    void addAnimatedAnnotation();
     void updateFreeCameraDemo();
-    void updateAnimatedAnnotations();
     void toggleLocationIndicatorLayer(bool visibility);
     
     // test route
