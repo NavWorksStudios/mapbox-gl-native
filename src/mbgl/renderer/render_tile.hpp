@@ -77,7 +77,8 @@ private:
     Tile& tile;
     // The following members are reset at placement stage.
     std::unique_ptr<TileRenderData> renderData;
-    bool needsRendering = false;
+//    bool needsRendering = false;
+    bool needsRendering = true;
 };
 
 } // namespace mbgl

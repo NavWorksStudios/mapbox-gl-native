@@ -87,12 +87,15 @@ struct ShaderSource<LineProgram> {
         attribute vec2 a_pos_normal;
         attribute vec4 a_data;
         attribute float a_height;
+        attribute mediump float a_condition;
     
         varying vec2 v_normal;
         varying vec2 v_width2;
         varying float v_gamma_scale;
         varying highp float v_linesofar;
         varying vec3 v_pos;
+        varying vec4 v_condi_color;
+        varying mediump float v_condition;
         
         #ifndef HAS_UNIFORM_u_color
             uniform lowp float u_color_t;
@@ -205,8 +208,24 @@ struct ShaderSource<LineProgram> {
             float extrude_length_with_perspective=length(projected_extrude.xy/gl_Position.w*u_units_to_pixels);
             v_gamma_scale=extrude_length_without_perspective/extrude_length_with_perspective;
             v_width2=vec2(outset,inset);
-    
+            
             v_pos = gl_Position.xyz;
+            v_condition = a_condition;
+            
+            if(v_condition == 1.0)
+                v_condi_color = vec4(1.0, 0.0, 0.0, 1);
+            else if(v_condition == 2.0)
+                v_condi_color = vec4(0.0, 1.0, 0.0, 1);
+            else if(v_condition == 3.0)
+                v_condi_color = vec4(0.0, 0.0, 1.0, 1);
+            else if(v_condition == -1.0)
+                v_condi_color = vec4(1.0, 1.0, 0.0, 1);
+            else if(v_condition == -2.0)
+                v_condi_color = vec4(0.0, 1.0, 1.0, 1);
+            else if(v_condition == -3.0)
+                v_condi_color = vec4(1.0, 0.0, 1.0, 1);
+            else
+                v_condi_color = u_color;
         }
 
     )"; }
@@ -237,12 +256,14 @@ struct ShaderSource<LineProgram> {
         uniform lowp float u_device_pixel_ratio;
         uniform lowp float u_spotlight;
         uniform lowp float u_focus_region;
-
+        
         varying lowp vec2 v_width2;
         varying lowp vec2 v_normal;
         varying lowp float v_gamma_scale;
         varying vec3 v_pos;
-    
+        varying mediump float v_condition;
+        varying highp vec4 v_condi_color;
+        
     #ifndef HAS_UNIFORM_u_color
         varying highp vec4 color;
     #else
@@ -273,16 +294,18 @@ struct ShaderSource<LineProgram> {
     #ifdef HAS_UNIFORM_u_opacity
         lowp float opacity=u_opacity;
     #endif
-
+        
+        color = v_condi_color;
+    
         // 中心，亮 [1, 0]
         lowp float radius=u_focus_region*.4*(1.-.8*u_spotlight); // 开灯，光圈缩小
         lowp float distance=pow(v_pos.x,2.)+pow(v_pos.y,2.);
         lowp float radial_fadeout=1.4-min(distance/radius,1.);
-    
+        
         // zoom小，亮 [1.2, 1.44]
         lowp float brightness=1.2+(22.-u_zoom)*.01;
         color.rgb*=(brightness+u_spotlight*.5)*radial_fadeout; // 开灯，提亮
-    
+        
         // 远处，透
         radius=u_focus_region*20.;
         distance=pow(v_pos.x,2.)+pow(v_pos.z,2.);

@@ -20,6 +20,11 @@
 #include <cstdlib>
 #include <cstdio>
 #include <array>
+#include <stdio.h>
+#include <string.h>
+#include <iostream>
+
+#include <GLFW/glfw3.h>
 
 std::shared_ptr<GLFWView> view;
 std::shared_ptr<mbgl::Map> map;
@@ -285,9 +290,7 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
-
-
-
+    
 // API exported
 
 //extern "C" {

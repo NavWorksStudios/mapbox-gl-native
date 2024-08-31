@@ -6,6 +6,10 @@ message(STATUS "ANDROID_ABI: ${ANDROID_ABI}")
 message(STATUS "ANDROID_NDK: ${ANDROID_NDK}")
 message(STATUS "ANDROID_PLATFORM: ${ANDROID_PLATFORM}")
 message(STATUS "ANDROID_STL: ${ANDROID_STL}")
+if(CMAKE_SYSTEM_NAME STREQUAL Android)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+endif()
+
 
 #add_definitions(-__ANDROID__) 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -874,6 +878,29 @@ set(all_files
     ${PROJECT_SOURCE_DIR}/src/mbgl/clipper2/clipper.rectclip.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/clipper2/clipper.rectclip.h
     ${PROJECT_SOURCE_DIR}/src/mbgl/clipper2/clipper.version.h
+
+    ${PROJECT_SOURCE_DIR}/src/mbgl/route/route_data.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/route/route_data.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/route/route_line_layer_manager.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/route/route_line_layer_manager.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/route/render_route_line_layer.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/route/render_route_line_layer.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/route/route_tile.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/route/route_tile.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/route/route_source.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/route/route_source.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/route/render_route_source.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/route/render_route_source.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/route/route_plan.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/route/route_plan_tile.hpp
+
+    ${PROJECT_SOURCE_DIR}/src/mbgl/platform/native_window.h
+    ${PROJECT_SOURCE_DIR}/src/mbgl/platform/native_window_jni.h
+    ${PROJECT_SOURCE_DIR}/src/mbgl/platform/KHR/khrplatform.h
+    ${PROJECT_SOURCE_DIR}/src/mbgl/platform/GLES2/gl2.h
+    ${PROJECT_SOURCE_DIR}/src/mbgl/platform/GLES2/gl2ext.h
+    ${PROJECT_SOURCE_DIR}/src/mbgl/platform/GLES2/gl2platform.h
+
 )
 
 source_group_by_dir(all_files)
@@ -1006,6 +1033,7 @@ if(MBGL_WITH_OPENGL)
             ${PROJECT_SOURCE_DIR}/src/mbgl/style/layers/location_indicator_layer_impl.hpp
             ${PROJECT_SOURCE_DIR}/src/mbgl/style/layers/location_indicator_layer_properties.cpp
             ${PROJECT_SOURCE_DIR}/src/mbgl/style/layers/location_indicator_layer_properties.hpp
+
     )
 endif()
 

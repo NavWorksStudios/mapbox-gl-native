@@ -14,6 +14,7 @@ enum class SourceType : uint8_t {
     GeoJSON,
     Video,
     Annotations,
+    Route,
     Image,
     CustomVector
 };

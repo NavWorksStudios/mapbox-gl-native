@@ -35,6 +35,7 @@ struct data {
 
 MBGL_DEFINE_ATTRIBUTE(float, 2, color);
 MBGL_DEFINE_ATTRIBUTE(float, 2, fill_color);
+MBGL_DEFINE_ATTRIBUTE(int16_t, 1, condition);
 MBGL_DEFINE_ATTRIBUTE(float, 2, halo_color);
 MBGL_DEFINE_ATTRIBUTE(float, 2, stroke_color);
 MBGL_DEFINE_ATTRIBUTE(float, 2, outline_color);

@@ -4,7 +4,7 @@ android {
     compileSdkVersion 28
 
     defaultConfig {
-        applicationId = 'com.mapbox.mapboxsdk.maps.render_test_runner'
+        applicationId = 'com.navworksstudios.utils.maps.render_test_runner'
         minSdkVersion 14
         targetSdkVersion 28
         def abi = 'all'

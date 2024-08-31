@@ -9,6 +9,7 @@
 #include <mbgl/util/noncopyable.hpp>
 #include <mbgl/util/size.hpp>
 #include <mbgl/annotation/annotation.hpp>
+#include <mbgl/route/route_plan.hpp>
 #include <mbgl/map/camera.hpp>
 #include <mbgl/util/geometry.hpp>
 #include <mbgl/map/projection_mode.hpp>
@@ -121,6 +122,9 @@ public:
     AnnotationID addAnnotation(const Annotation&);
     void updateAnnotation(AnnotationID, const Annotation&);
     void removeAnnotation(AnnotationID);
+    
+    RoutePlanID addRoutePlans(const RoutePlan& routePlan);
+    void updateRoutePlans(RoutePlanID, const RoutePlan&);
 
     // Tile prefetching
     //

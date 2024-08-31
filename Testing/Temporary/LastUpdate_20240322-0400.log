@@ -1,0 +1,88 @@
+--- Begin Cleanup ---
+--- End Cleanup ---
+"/usr/bin/git" "rev-list" "-n" "1" "HEAD" "--"
+rl-out> e4deef26db7ca5bc568c2e1330df19312ee7cf1e
+--- Begin Update ---
+"/usr/bin/git" "fetch"
+fetch-err> From https://github.com/NavWorksStudios/mapbox-gl-native
+fetch-err>    e4deef26d..4fdbb9787  master     -> origin/master
+"/usr/bin/git" "rev-parse" "--git-dir"
+rev-parse-out> .git
+FETCH_HEAD> 4fdbb9787c48eb828068fc47ae349440ed3b91df		branch 'master' of https://github.com/NavWorksStudios/mapbox-gl-native
+"/usr/bin/git" "reset" "--hard" "4fdbb9787c48eb828068fc47ae349440ed3b91df"
+reset-err> Updating files:  18% (1468/7773)Updating files:  19% (1477/7773)Updating files:  20% (1555/7773)Updating files:  21% (1633/7773)Updating files:  22% (1711/7773)Updating files:  23% (1788/7773)Updating files:  24% (1866/7773)Updating files:  25% (1944/7773)Updating files:  26% (2021/7773)Updating files:  27% (2099/7773)Updating files:  28% (2177/7773)Updating files:  29% (2255/7773)Updating files:  30% (2332/7773)Updating files:  31% (2410/7773)Updating files:  32% (2488/7773)Updating files:  32% (2555/7773)Updating files:  33% (2566/7773)Updating files:  34% (2643/7773)Updating files:  35% (2721/7773)Updating files:  36% (2799/7773)Updating files:  37% (2877/7773)Updating files:  38% (2954/7773)Updating files:  39% (3032/7773)Updating files:  40% (3110/7773)Updating files:  41% (3187/7773)Updating files:  42% (3265/7773)Updating files:  43% (3343/7773)Updating files:  44% (3421/7773)Updating files:  45% (3498/7773)Updating files:  46% (3576/7773)Updating files:  47% (3654/7773)Updating files:  48% (3732/7773)Updating files:  49% (3809/7773)Updating files:  50% (3887/7773)Updating files:  51% (3965/7773)Updating files:  52% (4042/7773)Updating files:  53% (4120/7773)Updating files:  54% (4198/7773)Updating files:  55% (4276/7773)Updating files:  56% (4353/7773)Updating files:  57% (4431/7773)Updating files:  58% (4509/7773)Updating files:  59% (4587/7773)Updating files:  60% (4664/7773)Updating files:  61% (4742/7773)Updating files:  62% (4820/7773)Updating files:  63% (4897/7773)Updating files:  63% (4951/7773)Updating files:  64% (4975/7773)Updating files:  65% (5053/7773)Updating files:  66% (5131/7773)Updating files:  67% (5208/7773)Updating files:  68% (5286/7773)Updating files:  69% (5364/7773)Updating files:  70% (5442/7773)Updating files:  71% (5519/7773)Updating files:  72% (5597/7773)Updating files:  73% (5675/7773)Updating files:  74% (5753/7773)Updating files:  75% (5830/7773)Updating files:  76% (5908/7773)Updating files:  77% (5986/7773)Updating files:  78% (6063/7773)Updating files:  79% (6141/7773)Updating files:  80% (6219/7773)Updating files:  81% (6297/7773)Updating files:  82% (6374/7773)Updating files:  83% (6452/7773)Updating files:  84% (6530/7773)Updating files:  85% (6608/7773)Updating files:  86% (6685/7773)Updating files:  87% (6763/7773)Updating files:  88% (6841/7773)Updating files:  89% (6918/7773)Updating files:  89% (6939/7773)Updating files:  90% (6996/7773)Updating files:  91% (7074/7773)Updating files:  92% (7152/7773)Updating files:  93% (7229/7773)Updating files:  94% (7307/7773)Updating files:  95% (7385/7773)Updating files:  96% (7463/7773)Updating files:  97% (7540/7773)Updating files:  98% (7618/7773)Updating files:  99% (7696/7773)Updating files: 100% (7773/7773)Updating files: 100% (7773/7773), done.
+reset-out> HEAD is now at 4fdbb9787 test upload
+"/usr/bin/git" "rev-parse" "--show-cdup"
+rev-parse-out> 
+"/usr/bin/git" "--version"
+version-out> git version 2.24.3 (Apple Git-128)
+"/usr/bin/git" "submodule" "sync" "--recursive"
+submodule-out> Synchronizing submodule url for 'mapbox-gl-js'
+submodule-out> Synchronizing submodule url for 'vendor/benchmark'
+submodule-out> Synchronizing submodule url for 'vendor/boost'
+submodule-out> Synchronizing submodule url for 'vendor/cpp-httplib'
+submodule-out> Synchronizing submodule url for 'vendor/earcut.hpp'
+submodule-out> Synchronizing submodule url for 'vendor/earcut.hpp/glfw'
+submodule-out> Synchronizing submodule url for 'vendor/eternal'
+submodule-out> Synchronizing submodule url for 'vendor/eternal/vendor/benchmark'
+submodule-out> Synchronizing submodule url for 'vendor/googletest'
+submodule-out> Synchronizing submodule url for 'vendor/mapbox-base'
+submodule-out> Synchronizing submodule url for 'vendor/mapbox-base/deps/cheap-ruler-cpp'
+submodule-out> Synchronizing submodule url for 'vendor/mapbox-base/deps/geojson-vt-cpp'
+submodule-out> Synchronizing submodule url for 'vendor/mapbox-base/deps/geojson-vt-cpp/.mason'
+submodule-out> Synchronizing submodule url for 'vendor/mapbox-base/deps/geojson.hpp'
+submodule-out> Synchronizing submodule url for 'vendor/mapbox-base/deps/geojson.hpp/.mason'
+submodule-out> Synchronizing submodule url for 'vendor/mapbox-base/deps/geometry.hpp'
+submodule-out> Synchronizing submodule url for 'vendor/mapbox-base/deps/jni.hpp'
+submodule-out> Synchronizing submodule url for 'vendor/mapbox-base/deps/optional'
+submodule-out> Synchronizing submodule url for 'vendor/mapbox-base/deps/pixelmatch-cpp'
+submodule-out> Synchronizing submodule url for 'vendor/mapbox-base/deps/shelf-pack-cpp'
+submodule-out> Synchronizing submodule url for 'vendor/mapbox-base/deps/supercluster.hpp'
+submodule-out> Synchronizing submodule url for 'vendor/mapbox-base/deps/supercluster.hpp/.mason'
+submodule-out> Synchronizing submodule url for 'vendor/mapbox-base/deps/variant'
+submodule-out> Synchronizing submodule url for 'vendor/mapbox-base/deps/variant/.mason'
+submodule-out> Synchronizing submodule url for 'vendor/mapbox-base/extras/args'
+submodule-out> Synchronizing submodule url for 'vendor/mapbox-base/extras/expected-lite'
+submodule-out> Synchronizing submodule url for 'vendor/mapbox-base/extras/filesystem'
+submodule-out> Synchronizing submodule url for 'vendor/mapbox-base/extras/googletest'
+submodule-out> Synchronizing submodule url for 'vendor/mapbox-base/extras/kdbush.hpp'
+submodule-out> Synchronizing submodule url for 'vendor/mapbox-base/extras/kdbush.hpp/.mason'
+submodule-out> Synchronizing submodule url for 'vendor/mapbox-base/extras/rapidjson'
+submodule-out> Synchronizing submodule url for 'vendor/mapbox-base/extras/rapidjson/thirdparty/gtest'
+submodule-out> Synchronizing submodule url for 'vendor/mapbox-gl-native-curl'
+submodule-out> Synchronizing submodule url for 'vendor/polylabel'
+submodule-out> Synchronizing submodule url for 'vendor/polylabel/.mason'
+submodule-out> Synchronizing submodule url for 'vendor/protozero'
+submodule-out> Synchronizing submodule url for 'vendor/unique_resource'
+submodule-out> Synchronizing submodule url for 'vendor/vector-tile'
+submodule-out> Synchronizing submodule url for 'vendor/vector-tile/bench/mvt-bench-fixtures'
+submodule-out> Synchronizing submodule url for 'vendor/vector-tile/test/mvt-fixtures'
+submodule-out> Synchronizing submodule url for 'vendor/wagyu'
+submodule-out> Synchronizing submodule url for 'vendor/wagyu/tests/geometry-test-data'
+submodule-out> Synchronizing submodule url for 'vendor/zip-archive'
+"/usr/bin/git" "submodule" "update" "--recursive"
+--- End Update ---
+"/usr/bin/git" "rev-list" "-n" "1" "HEAD" "--"
+rl-out> 4fdbb9787c48eb828068fc47ae349440ed3b91df
+--- Begin Revisions ---
+"/usr/bin/git" "rev-list" "--reverse" "e4deef26db7ca5bc568c2e1330df19312ee7cf1e..4fdbb9787c48eb828068fc47ae349440ed3b91df" "--" | "/usr/bin/git" "diff-tree" "--stdin" "--always" "-z" "-r" "--pretty=raw" "--encoding=utf-8"
+dt-out> commit 4fdbb9787c48eb828068fc47ae349440ed3b91df
+dt-out> tree 2ae7d917dfd3658e51521e508bcc1bea608fa400
+dt-out> parent e4deef26db7ca5bc568c2e1330df19312ee7cf1e
+dt-out> author 张贺明 <101771156@qq.com> 1711094157 +0800
+dt-out> committer 张贺明 <101771156@qq.com> 1711094157 +0800
+dt-out> 
+dt-out>     test upload
+dt-out> 
+dt-out> :000000 100644 0000000000000000000000000000000000000000 ab256f46a7a5cbe7375e654b8e4b66de320ef905 A
+dt-out> README的副本.md
+dt-out> 
+Found revision 4fdbb9787c48eb828068fc47ae349440ed3b91df
+  author = 张贺明
+  date = 2024-03-22 07:55:57 +0800
+  A README的副本.md 
+"/usr/bin/git" "update-index" "--refresh"
+"/usr/bin/git" "diff-index" "-z" "HEAD" "--"
+di-out> :160000 160000 3dbd294c036d51d65b3bb12c628c6867d8b7b072 3dbd294c036d51d65b3bb12c628c6867d8b7b072 M
+di-out> vendor/mapbox-base
+--- End Revisions ---

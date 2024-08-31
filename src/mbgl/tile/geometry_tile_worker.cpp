@@ -449,6 +449,7 @@ void GeometryTileWorker::parse() {
                     continue;
 
                 const GeometryCollection& geometries = feature->getGeometries();
+                const std::vector<std::vector<int16_t>>& conditions = feature->getConditions();
                 bucket->addFeature(*feature, geometries, {}, PatternLayerMap(), i, id.canonical);
                 featureIndex->insert(geometries, i, sourceLayerID, leaderImpl.id);
             }

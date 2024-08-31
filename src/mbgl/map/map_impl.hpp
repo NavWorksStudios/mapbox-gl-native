@@ -12,6 +12,7 @@
 #include <mbgl/style/source.hpp>
 #include <mbgl/style/style.hpp>
 #include <mbgl/util/size.hpp>
+#include <mbgl/route/route_line_layer_manager.hpp>
 
 namespace mbgl {
 
@@ -66,6 +67,7 @@ public:
 
     std::unique_ptr<style::Style> style;
     AnnotationManager annotationManager;
+    RouteLineLayerManager routeManager;
 
     bool cameraMutated = false;
 

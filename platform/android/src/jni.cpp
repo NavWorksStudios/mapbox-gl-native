@@ -2,9 +2,12 @@
 
 #include <mbgl/util/logging.hpp>
 
+#include "../srcbysdk/logger.hpp"
+
 namespace mbgl {
 namespace android {
 
+void RegisterNativeHTTPRequest(JNIEnv&);
 JavaVM* theJVM;
 
 //TODO: remove
@@ -48,6 +51,17 @@ void detach_jni_thread(JavaVM* vm, JNIEnv** env, bool detach) {
         }
     }
     *env = nullptr;
+}
+
+void registerNatives(JavaVM *vm) {
+    theJVM = vm;
+    jni::JNIEnv& env = jni::GetEnv(*vm, jni::jni_version_1_6);
+    // Http
+    RegisterNativeHTTPRequest(env);
+    
+    // Logger
+    Logger::registerNative(env);
+    
 }
 
 } // namespace android
