@@ -34,9 +34,9 @@ PassRefPtr<FileSource> FileSourceManager::getFileSource(FileSourceType type, con
     std::lock_guard<std::recursive_mutex> lock(impl->mutex);
 
     // Remove released file sources.
-    for (auto it = impl->fileSources.begin(); it != impl->fileSources.end();) {
-        it = it->fileSource.expired() ? impl->fileSources.erase(it) : ++it;
-    }
+//    for (auto it = impl->fileSources.begin(); it != impl->fileSources.end();) {
+//        it = it->fileSource.expired() ? impl->fileSources.erase(it) : ++it;
+//    }
 
     const auto context = reinterpret_cast<uint64_t>(options.platformContext());
     std::string id =
