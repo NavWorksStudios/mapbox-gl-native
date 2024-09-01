@@ -35,7 +35,7 @@
 std::shared_ptr<AndroidView> view_android;
 std::shared_ptr<mbgl::Map> map_android;
 std::shared_ptr<AndroidRendererFrontend> rendererFrontend_android;
-static std::string __cache_db_url = "/data/user/0/com.navworksstudios.navworksandroid/files";
+static std::string __cache_db_url = "/data/user/0/com.navworksstudios.navworksandroid/files/mbgl-cache.db";
 
 void init() {
 #if 1
