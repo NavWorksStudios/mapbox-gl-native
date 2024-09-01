@@ -1,7 +1,7 @@
 #include "jni.hpp"
 
 #include <mbgl/util/logging.hpp>
-
+#include "../srcbysdk/text/local_glyph_rasterizer_jni.hpp"
 #include "../srcbysdk/logger.hpp"
 
 namespace mbgl {
@@ -58,10 +58,13 @@ void registerNatives(JavaVM *vm) {
     jni::JNIEnv& env = jni::GetEnv(*vm, jni::jni_version_1_6);
     // Http
     RegisterNativeHTTPRequest(env);
-    
+
+    // text
+    LocalGlyphRasterizer::registerNative(env);
+
     // Logger
     Logger::registerNative(env);
-    
+
 }
 
 } // namespace android

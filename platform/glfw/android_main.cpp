@@ -35,11 +35,12 @@
 std::shared_ptr<AndroidView> view_android;
 std::shared_ptr<mbgl::Map> map_android;
 std::shared_ptr<AndroidRendererFrontend> rendererFrontend_android;
+static std::string __cache_db_url = "/data/user/0/com.navworksstudios.navworksandroid/files";
 
 void init() {
 #if 1
     mbgl::ResourceOptions resourceOptions;
-    resourceOptions.withCachePath("/tmp/mbgl-cache.db").withAccessToken("");
+    resourceOptions.withCachePath(__cache_db_url).withAccessToken("");
     
     view_android = std::make_shared<AndroidView>(false, false, resourceOptions, false);
     
@@ -172,6 +173,28 @@ Java_com_navworksstudios_navworksandroid_GLESView_StopNav(
         JNIEnv* env,
         jobject /* this */) {
     
+}
+
+void CoverJstringToString(JNIEnv* env, jstring jValue, std::string& vValue) {
+    if (jValue == NULL) {
+        return;
+    }
+
+    char *szValu = (char *) env->GetStringUTFChars(jValue, 0);
+    if (szValu != NULL) {
+        vValue = szValu;
+    } else {
+        return;
+    }
+    env->ReleaseStringUTFChars(jValue, szValu);
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_navworksstudios_navworksandroid_GLESView_SetCacheDbUrl(   // 设置db缓存的url
+        JNIEnv* env,
+        jobject /* this */,
+        jstring url) {
+    CoverJstringToString(env, url, __cache_db_url);
 }
 
 extern "C" JNIEXPORT void JNICALL
