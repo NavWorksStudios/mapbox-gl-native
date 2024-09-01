@@ -258,7 +258,7 @@ float N2(vec2 p) {
 }
 
 float grid_color( vec2 fragCoord, lowp vec2 resolution ) {
-    float iTime = u_render_time * .4;
+    float iTime = u_render_time * .2;
 
     //create coordinates
     vec2 uv = (fragCoord - 0.5*resolution.xy)/resolution.y;
@@ -313,12 +313,12 @@ void main() {
         lowp float radial_fadeout=clamp(1.-distance/u_clip_region,0.,1.);
         radial_fadeout=pow(radial_fadeout,3.) * u_water_wave;
 
-        const lowp vec2 texture_size = vec2(5000.);
-        lowp vec2 coord=vec2(
-        mod(v_texture_pos.x*u_water_data_z_scale,texture_size.x),
-        mod(v_texture_pos.y*u_water_data_z_scale,texture_size.y));
-        lowp float gridcolor=grid_color(coord,texture_size);
-        gridcolor = pow(gridcolor,3.);
+        const lowp vec2 texture_size = vec2(3000.);
+        lowp vec2 coord = vec2(
+            mod(v_texture_pos.x * u_water_data_z_scale, texture_size.x),
+            mod(v_texture_pos.y * u_water_data_z_scale, texture_size.y));
+        lowp float gridcolor = grid_color(coord, texture_size);
+        gridcolor = pow(gridcolor, 15.);
 
         gl_FragColor=color;
         gl_FragColor.rgb += (gridcolor + brighten) * radial_fadeout * .2;
