@@ -838,9 +838,9 @@ void AndroidView::onMouseClick(int button, int action, int modifiers) {
     auto now = std::chrono::system_clock::now();
     auto duration = now.time_since_epoch();
     double now_ts = std::chrono::duration_cast<std::chrono::seconds>(duration).count();
-    
     std::time_t result = std::time(nullptr);
     
+//    double now = glfwGetTime();
 //    if (action == GLFW_PRESS) {
 //        map->setGestureInProgress(true);
 //        if (button == GLFW_MOUSE_BUTTON_LEFT) {
