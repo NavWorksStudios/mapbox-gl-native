@@ -26,7 +26,6 @@ struct FillExtrusionProgram {
     
         varying lowp vec4 v_color;
         varying lowp float v_height;
-        varying lowp float v_is_horizontal;
                 
         #ifndef HAS_UNIFORM_u_base
         uniform lowp float u_base_t;
@@ -72,7 +71,6 @@ struct FillExtrusionProgram {
     
             // normal
             lowp vec3 normal = a_normal_ed.xyz;
-            v_is_horizontal = (a_normal_ed.z == 0.) ? 1. : 0.;
         
             // height
             base = max(0.0, base);
@@ -92,17 +90,17 @@ struct FillExtrusionProgram {
 //            }
     
             // Ambient Lighting
-            const float ambient = .25;
+            const float ambient = .3;
     
             // Diffuse Lighting
             lowp vec3 norm = normalize(normal);
             lowp vec3 lightDir = normalize(u_lightpos);
-            lowp float diffuse = dot(norm, lightDir) * .35;
+            lowp float diffuse = (dot(norm, lightDir) * .5 + .5) * .3;
     
             // Specular Lighting
             lowp vec3 world_pos = (u_model_matrix * modelpos).xyz;
-            const lowp float indensity = .5; // 强度
-            const lowp float shininess = .3; // 反射率
+            const lowp float indensity = .4; // 强度
+            const lowp float shininess = .4; // 反射率
             lowp vec3 viewDir = normalize(u_camera_pos - world_pos);
             lowp vec3 reflectDir = reflect(-lightDir, norm); // reflect (genType I, genType N),返回反射向量
             lowp float specular = indensity * pow(dot(viewDir, reflectDir), shininess); // power(max(0,dot(N,H)),shininess)
@@ -115,8 +113,9 @@ struct FillExtrusionProgram {
             // |     |
             // |_____| 0.0
             //
-            lowp float tall = abs(height - base);
-            v_height = t > 0. ? (tall / 5.) : 0.;
+//            lowp float tall = abs(height - base);
+//            if (a_normal_ed.z == 0.) v_height = t > 0. ? (tall / 5.) : 0.;
+//            else v_height = 100.;
         }
         
     )"; }
@@ -128,7 +127,6 @@ struct FillExtrusionProgram {
     
         varying lowp vec4 v_color;
         varying lowp float v_height;
-        varying lowp float v_is_horizontal;
     
         void main() {
 //            if (v_color.a > 0.) {
@@ -143,7 +141,7 @@ struct FillExtrusionProgram {
 //            }
     
             gl_FragColor = v_color;
-            if (v_is_horizontal > 0. && v_height < 1.) gl_FragColor.rgb *= pow(v_height, .2);
+//            if (v_height < 1.) gl_FragColor.rgb *= pow(v_height, .2);
     
     
         #ifdef OVERDRAW_INSPECTOR
