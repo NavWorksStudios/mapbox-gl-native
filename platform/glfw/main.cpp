@@ -225,7 +225,7 @@ void init(bool headless) {
 //    cameraOptions.pitch = 71.050945;
 //    cameraOptions.bearing = 147.869345;
     
-    cameraOptions.center = mbgl::LatLng { 31.239624, 121.496711 };
+    cameraOptions.center = mbgl::LatLng { 31.235974, 121.476697 };
     cameraOptions.zoom = 16.257626;
     cameraOptions.pitch = 69.576946;
     cameraOptions.bearing = 78.500186;
