@@ -35,7 +35,7 @@
 std::shared_ptr<AndroidView> view_android;
 std::shared_ptr<mbgl::Map> map_android;
 std::shared_ptr<AndroidRendererFrontend> rendererFrontend_android;
-static std::string __cache_db_url = "/data/user/0/com.navworksstudios.navworksandroid/files";
+static std::string __cache_db_url = "/data/user/0/com.navworksstudios.navworksandroid/files/mbgl-cache.db";
 
 void init() {
 #if 1
@@ -62,19 +62,12 @@ void init() {
     std::shared_ptr<mbgl::FileSource> onlineFile =
     mbgl::FileSourceManager::get()->getFileSource(mbgl::FileSourceType::Network, resourceOptions);
     if (onlineFile) {
-        onlineFile->setProperty("online-status", false);
+        onlineFile->setProperty("online-status", true);
         mbgl::Log::Warning(mbgl::Event::Setup, "Application is offline. Press `O` to toggle online status.");
     } else {
+        onlineFile->setProperty("online-status", false);
         mbgl::Log::Warning(mbgl::Event::Setup, "Network resource provider is not available, only local requests are supported.");
     }
-    
-    view_android->setOnlineStatusCallback([onlineFile]() {
-        if (!onlineFile) {
-            mbgl::Log::Warning(mbgl::Event::Setup, "Cannot change online status. Network resource provider is not available.");
-        } else {
-            onlineFile->setProperty("online-status", true);
-        }
-    });
     
     // Database file source.
     std::shared_ptr<mbgl::DatabaseFileSource> databaseFile =
@@ -194,6 +187,7 @@ Java_com_navworksstudios_navworksandroid_GLESView_SetCacheDbUrl(   // 设置db�
         JNIEnv* env,
         jobject /* this */,
         jstring url) {
+    
     CoverJstringToString(env, url, __cache_db_url);
 }
 
@@ -201,7 +195,8 @@ extern "C" JNIEXPORT void JNICALL
 Java_com_navworksstudios_navworksandroid_GLESView_Render(
         JNIEnv* env,
         jobject /* this */) {
-//    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
+    
+    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
     view_android->run();
 }
 
