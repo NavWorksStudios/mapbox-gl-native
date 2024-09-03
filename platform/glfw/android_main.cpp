@@ -63,11 +63,18 @@ void init() {
     mbgl::FileSourceManager::get()->getFileSource(mbgl::FileSourceType::Network, resourceOptions);
     if (onlineFile) {
         onlineFile->setProperty("online-status", true);
-        mbgl::Log::Warning(mbgl::Event::Setup, "Application is offline. Press `O` to toggle online status.");
     } else {
         onlineFile->setProperty("online-status", false);
         mbgl::Log::Warning(mbgl::Event::Setup, "Network resource provider is not available, only local requests are supported.");
     }
+    
+    view_android->setOnlineStatusCallback([onlineFile]() {
+        if (!onlineFile) {
+            mbgl::Log::Warning(mbgl::Event::Setup, "Cannot change online status. Network resource provider is not available.");
+        } else {
+            mbgl::Log::Info(mbgl::Event::Setup, "Application is %s. Press `O` to toggle online status.", 1 ? "online" : "offline");
+        }
+    });
     
     // Database file source.
     std::shared_ptr<mbgl::DatabaseFileSource> databaseFile =
