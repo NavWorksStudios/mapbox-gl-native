@@ -15,6 +15,9 @@
 #include <mbgl/util/string.hpp>
 #include <mbgl/util/logging.hpp>
 
+#include "mbgl/nav/nav.ssao.hpp"
+
+
 namespace mbgl {
 
 using namespace style;
@@ -74,6 +77,8 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
     parameters.opaquePassCutoff = renderTreeParameters.opaquePassCutOff;
     const auto& sourceRenderItems = renderTree.getSourceRenderItems();
     const auto& layerRenderItems = renderTree.getLayerRenderItems();
+    
+    nav::ssao::genBufferAndTexture();
 
     // - UPLOAD PASS -------------------------------------------------------------------------------
     // Uploads all required buffers and images before we do any actual rendering.

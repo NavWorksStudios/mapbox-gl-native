@@ -131,8 +131,8 @@ const Config ROUTE_TEST = {
 
 //const Config& THEME = COLORFUL;
 //const Config& THEME = GOLDEN_BLACK;
-//const Config& THEME = MANHATTAN;
-const Config& THEME = ROUTE_TEST;
+const Config& THEME = MANHATTAN;
+//const Config& THEME = ROUTE_TEST;
 
 const std::string& style() {
     return THEME.style_url;
