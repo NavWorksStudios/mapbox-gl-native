@@ -321,8 +321,8 @@ set(all_files
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.palette.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.theme.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.theme.cpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.ssao.hpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.ssao.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.render.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.render.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.stringid.hpp
 
     ${PROJECT_SOURCE_DIR}/src/mbgl/actor/mailbox.cpp

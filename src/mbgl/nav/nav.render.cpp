@@ -1,10 +1,10 @@
 //
-//  nav.ssao.cpp
+//  nav.render.cpp
 //
 //  Created by BernieZhao on 2024/9/1.
 //
 
-#include "mbgl/nav/nav.ssao.hpp"
+#include "mbgl/nav/nav.render.hpp"
 
 #include <vector>
 #include <random>
@@ -13,8 +13,6 @@
 #include <mbgl/util/mat3.hpp>
 #include "mbgl/nav/nav.style.hpp"
 
-
-// https://zhuanlan.zhihu.com/p/547180466
 
 enum {
     GL_RGB16F = GL_RGB16F_ARB,
@@ -27,9 +25,10 @@ enum {
 
 namespace nav {
 
-namespace ssao {
+namespace render {
 
-namespace gbfbo {
+
+namespace gbuffer {
     
 GLuint gBuffer = 0;
 GLuint gPositionDepth = 0, gNormal = 0, gAlbedo = 0;
@@ -89,11 +88,11 @@ void genFramebuffer() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
     
-};
+}
 
 
 
-namespace aofbo {
+namespace aobuffer {
 
 GLuint ssaoFBO = 0, ssaoBlurFBO = 0;
 GLuint ssaoColorBuffer = 0, ssaoColorBufferBlur = 0;
@@ -134,7 +133,7 @@ void genFramebuffer() {
 
 
 
-namespace noise {
+namespace noisebuffer {
 
 GLuint noiseTexture = 0;
 
@@ -188,18 +187,18 @@ void genTexture() {
 }
 
 
-void genBufferAndTexture() {
-    gbfbo::genFramebuffer();
-    aofbo::genFramebuffer();
-    noise::genTexture();
+void createRenderbuffer() {
+    gbuffer::genFramebuffer();
+    aobuffer::genFramebuffer();
+    noisebuffer::genTexture();
 }
 
 GLuint gBuffer() {
-    return gbfbo::gBuffer;
+    return gbuffer::gBuffer;
 }
 
-void renderToGBuffer() {
-    glBindFramebuffer(GL_FRAMEBUFFER, gbfbo::gBuffer);
+void renderGBuffer() {
+    glBindFramebuffer(GL_FRAMEBUFFER, gbuffer::gBuffer);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
 //    glm::mat4 projection = glm::perspective(glm::radians(90.0F), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
@@ -230,20 +229,20 @@ void renderToGBuffer() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void renderGBufferToSSAO() {
-    glBindFramebuffer(GL_FRAMEBUFFER, aofbo::ssaoFBO);
+void renderAOBuffer() {
+    glBindFramebuffer(GL_FRAMEBUFFER, aobuffer::ssaoFBO);
     glClear(GL_COLOR_BUFFER_BIT);
     
 //    shaderSSAO.use();
     
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, gbfbo::gPositionDepth);
+    glBindTexture(GL_TEXTURE_2D, gbuffer::gPositionDepth);
     
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, gbfbo::gNormal);
+    glBindTexture(GL_TEXTURE_2D, gbuffer::gNormal);
     
     glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, noise::noiseTexture);
+    glBindTexture(GL_TEXTURE_2D, noisebuffer::noiseTexture);
     
     // Send kernel + rotation
 //    for (GLuint i = 0; i < 64; ++i)
@@ -254,38 +253,34 @@ void renderGBufferToSSAO() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void renderSSAO() {
-
-    glBindFramebuffer(GL_FRAMEBUFFER, aofbo::ssaoBlurFBO);
+void renderAO() {
+    glBindFramebuffer(GL_FRAMEBUFFER, aobuffer::ssaoBlurFBO);
     glClear(GL_COLOR_BUFFER_BIT);
     
 //    shaderSSAOBlur.use();
     
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, aofbo::ssaoColorBuffer);
+    glBindTexture(GL_TEXTURE_2D, aobuffer::ssaoColorBuffer);
     
 //    renderQuad();
     
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    
-    
     
     
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 //    shaderLightingPass.use();
     
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, gbfbo::gPositionDepth);
+    glBindTexture(GL_TEXTURE_2D, gbuffer::gPositionDepth);
     
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, gbfbo::gNormal);
+    glBindTexture(GL_TEXTURE_2D, gbuffer::gNormal);
     
     glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, gbfbo::gAlbedo);
+    glBindTexture(GL_TEXTURE_2D, gbuffer::gAlbedo);
     
     glActiveTexture(GL_TEXTURE3); // 模糊后的AO
-    glBindTexture(GL_TEXTURE_2D, aofbo::ssaoColorBufferBlur);
+    glBindTexture(GL_TEXTURE_2D, aobuffer::ssaoColorBufferBlur);
     
     // Also send light relevant uniforms
 //    glm::vec3 lightPosView = glm::vec3(camera.GetViewMatrix() * glm::vec4(lightPos, 1.0));
@@ -296,7 +291,7 @@ void renderSSAO() {
 //    const float constant = 1.0; // Note that we don't send this to the shader, we assume it is always 1.0 (in our case)
 //    const float linear = 0.09;
 //    const float quadratic = 0.032;
-//    
+
 //    glUniform1f(glGetUniformLocation(shaderLightingPass.ID, "light.Linear"), linear);
 //    glUniform1f(glGetUniformLocation(shaderLightingPass.ID, "light.Quadratic"), quadratic);
 //    glUniform1i(glGetUniformLocation(shaderLightingPass.ID, "draw_mode"), draw_mode);
