@@ -13,11 +13,6 @@
 #include <mbgl/util/mat3.hpp>
 #include "mbgl/nav/nav.style.hpp"
 
-enum {
-    GL_RGB16F = GL_RGB16F_ARB,
-    GL_RGBA16F = GL_RGBA16F_ARB,
-};
-
 #define SCR_WIDTH nav::display::width()
 #define SCR_HEIGHT nav::display::height()
 
