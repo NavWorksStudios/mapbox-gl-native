@@ -59,5 +59,10 @@ private:
     std::list<Runnable*> runnables;
 };
 
+class AndroidRunLoop : RunLoop {
+    // forward task to android looper
+    void push(Priority, std::shared_ptr<WorkTask> task);
+};
+
 } // namespace util
 } // namespace mbgl

@@ -85,7 +85,7 @@ public:
 
     class Impl;
 
-private:
+protected:
     MBGL_STORE_THREAD(tid)
 
     using Queue = std::queue<std::shared_ptr<WorkTask>>;
@@ -94,7 +94,7 @@ private:
     void wake();
 
     // Adds a WorkTask to the queue, and wakes it up.
-    void push(Priority priority, std::shared_ptr<WorkTask> task) {
+    virtual void push(Priority priority, std::shared_ptr<WorkTask> task) {
         std::lock_guard<std::mutex> lock(mutex);
         if (priority == Priority::High) {
             highPriorityQueue.emplace(std::move(task));

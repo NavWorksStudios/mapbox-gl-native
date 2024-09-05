@@ -17,11 +17,6 @@ add_executable(
     ${PROJECT_SOURCE_DIR}/platform/glfw/glfw_view.cpp
     ${PROJECT_SOURCE_DIR}/platform/glfw/glfw_renderer_frontend.hpp
     ${PROJECT_SOURCE_DIR}/platform/glfw/glfw_renderer_frontend.cpp
-    ${PROJECT_SOURCE_DIR}/platform/glfw/android_main.cpp
-    ${PROJECT_SOURCE_DIR}/platform/glfw/android_view.cpp
-    ${PROJECT_SOURCE_DIR}/platform/glfw/android_view.hpp
-    ${PROJECT_SOURCE_DIR}/platform/glfw/android_renderer_frontend.hpp
-    ${PROJECT_SOURCE_DIR}/platform/glfw/android_renderer_frontend.cpp
 )
 
 set_property(
@@ -34,10 +29,6 @@ if(MBGL_WITH_OPENGL)
         mbgl-glfw
         PRIVATE ${PROJECT_SOURCE_DIR}/platform/glfw/glfw_gl_backend.hpp
         PRIVATE ${PROJECT_SOURCE_DIR}/platform/glfw/glfw_gl_backend.cpp
-        PRIVATE ${PROJECT_SOURCE_DIR}/platform/glfw/android_backend.hpp
-        PRIVATE ${PROJECT_SOURCE_DIR}/platform/glfw/android_window.hpp
-        PRIVATE ${PROJECT_SOURCE_DIR}/platform/glfw/android_gl_backend.hpp
-        PRIVATE ${PROJECT_SOURCE_DIR}/platform/glfw/android_gl_backend.cpp
     )
     target_compile_definitions(
         mbgl-glfw
