@@ -31,9 +31,7 @@ namespace shader {
 
 /****************************** G-buffer vs（顶点传入观察空间）******************************/
 
-const char* vs_vert() { return
-    
-R"(
+const char* vs_vert() { return R"(
 
 #version 330 core
 layout (location = 0) in vec3 position;
@@ -64,9 +62,7 @@ void main()
 
 /****************************** G-buffer fs ******************************/
 
-const char* geometry_frag() { return
-    
-R"(
+const char* geometry_frag() { return R"(
 
 #version 330 core
 layout (location = 0) out vec4 gPositionDepth;
@@ -102,9 +98,7 @@ void main()
 
 /****************************** ssao fs ******************************/
 
-const char* SSAO_frag() { return
-    
-R"(
+const char* SSAO_frag() { return R"(
 
 #version 330 core
 out float FragColor;
@@ -129,10 +123,10 @@ void main()
     // 采样G-buffer
     vec3 fragPos = texture(gPositionDepth, TexCoords).xyz;
     vec3 normal = texture(gNormal, TexCoords).rgb;
-    vec3 randomVec = texture(texNoise, TexCoords * noiseScale).xyz;//随机向量
+    vec3 randomVec = texture(texNoise, TexCoords * noiseScale).xyz; //随机向量
 
     // 创建 TBN 矩阵：从切线空间到观察空间
-    vec3 tangent = normalize(randomVec - normal * dot(randomVec, normal));//用随机向量来构造切线
+    vec3 tangent = normalize(randomVec - normal * dot(randomVec, normal)); //用随机向量来构造切线
     vec3 bitangent = cross(normal, tangent);
     mat3 TBN = mat3(tangent, bitangent, normal);
 
@@ -144,7 +138,7 @@ void main()
         vec3 sample = TBN * samples[i]; // 从切线空间到观察空间
         sample = fragPos + sample * radius; //样本=位置 + 样本*半径
         
-        //生成屏幕UV
+        // 生成屏幕UV
         vec4 offset = vec4(sample, 1.0);
         offset = projection * offset; // 观察->裁剪空间
         offset.xyz /= offset.w; // 齐次除法
@@ -153,22 +147,20 @@ void main()
         float sampleDepth = -texture(gPositionDepth, offset.xy).w; //获取基于屏幕UV的深度值，offset.xy表示屏幕
         
         // 范围检查和生成AO
-        float rangeCheck = smoothstep(0.0, 1.0, radius / abs(fragPos.z - sampleDepth ));//范围检测
+        float rangeCheck = smoothstep(0.0, 1.0, radius / abs(fragPos.z - sampleDepth )); //范围检测
         occlusion += (sampleDepth >= sample.z ? 1.0 : 0.0) * rangeCheck; //当前深度值（sampleDepth）与存储的深度值(sample.z) 对比
     }
-    occlusion = 1-(occlusion / kernelSize);//对AO根据核心的大小标准化
+    occlusion = 1-(occlusion / kernelSize); //对AO根据核心的大小标准化
 
-      //结果
-    FragColor = occlusion;//FragColor以float传出
+    //结果
+    FragColor = occlusion; //FragColor以float传出
 }
 
 )"; }
 
 /****************************** ssao_blur.fs ******************************/
 
-const char* SSAOBlur_frag() { return
-    
-R"(
+const char* SSAOBlur_frag() { return R"(
 
 #version 330 core
 in vec2 TexCoords;
@@ -180,18 +172,18 @@ const int blurSize = 4;
 
 void main()
 {
-   vec2 texelSize = 1.0 / vec2(textureSize(ssaoInput, 0));//纹素大小[-2~2]
+   vec2 texelSize = 1.0 / vec2(textureSize(ssaoInput, 0)); // 纹素大小[-2~2]
    float result = 0.0;
-   for (int x = 0; x < blurSize; ++x) //X方向偏移4次
+   for (int x = 0; x < blurSize; ++x) // X方向偏移4次
    {
-      for (int y = 0; y < blurSize; ++y) //Y方向偏移4次
+      for (int y = 0; y < blurSize; ++y) // Y方向偏移4次
       {
          vec2 offset = (vec2(-2.0) + vec2(float(x), float(y))) * texelSize;
          result += texture(ssaoInput, TexCoords + offset).r;
       }
    }
  
-   fragColor = result / float(blurSize * blurSize);//ssaoBlurFBO
+   fragColor = result / float(blurSize * blurSize); //ssaoBlurFBO
 }
 
 )"; }
@@ -199,9 +191,7 @@ void main()
 
 /****************************** light.fs ******************************/
 
-const char* lighting_frag() { return
-    
-R"(
+const char* lighting_frag() { return R"(
 
 #version 330 core
 out vec4 FragColor;
@@ -215,6 +205,7 @@ uniform sampler2D ssao;
 struct Light {
     vec3 Position;
     vec3 Color;
+
     float Linear;
     float Quadratic;
 };
@@ -231,8 +222,8 @@ void main()
     
     // Blinn-Phong (观察空间中)
     vec3 ambient = vec3(0.3 * AmbientOcclusion); // 这里我们加上遮蔽因子
-    vec3 lighting  = ambient;
-    vec3 viewDir  = normalize(-FragPos);//Viewpos 为 (0.0.0)，在观察空间中
+    vec3 lighting = ambient;
+    vec3 viewDir = normalize(-FragPos); // Viewpos 为 (0.0.0)，在观察空间中
     // Diffuse
     vec3 lightDir = normalize(light.Position - FragPos);
     vec3 diffuse = max(dot(Normal, lightDir), 0.0) * Diffuse * light.Color;

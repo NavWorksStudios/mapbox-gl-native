@@ -59,6 +59,7 @@ target_sources(
         ${PROJECT_SOURCE_DIR}/platform/glfw/android_view.cpp
         ${PROJECT_SOURCE_DIR}/platform/glfw/android_renderer_frontend.cpp
         ${PROJECT_SOURCE_DIR}/platform/glfw/android_gl_backend.cpp
+        ${PROJECT_SOURCE_DIR}/platform/android/src/gl_headers.hpp
         ${PROJECT_SOURCE_DIR}/platform/android/src/native-lib.cpp
         ${PROJECT_SOURCE_DIR}/platform/android/src/async_task.cpp
         ${PROJECT_SOURCE_DIR}/platform/android/src/attach_env.cpp

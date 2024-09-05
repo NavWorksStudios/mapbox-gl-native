@@ -36,6 +36,8 @@ target_sources(
         ${PROJECT_SOURCE_DIR}/platform/darwin/src/run_loop.cpp
         ${PROJECT_SOURCE_DIR}/platform/darwin/src/string_nsstring.mm
         ${PROJECT_SOURCE_DIR}/platform/darwin/src/timer.cpp
+        ${PROJECT_SOURCE_DIR}/platform/darwin/src/gl_headers.hpp
+        
         ${PROJECT_SOURCE_DIR}/platform/default/src/mbgl/gfx/headless_backend.cpp
         ${PROJECT_SOURCE_DIR}/platform/default/src/mbgl/gfx/headless_frontend.cpp
         ${PROJECT_SOURCE_DIR}/platform/default/src/mbgl/layermanager/layer_manager.cpp
