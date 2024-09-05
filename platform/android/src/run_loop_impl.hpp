@@ -59,10 +59,21 @@ private:
     std::list<Runnable*> runnables;
 };
 
-class AndroidRunLoop : RunLoop {
-    // forward task to android looper
-    void push(Priority, std::shared_ptr<WorkTask> task);
+class AndroidRunLoop : public RunLoop {
+    void push(Priority, std::shared_ptr<WorkTask> task) override {
+        std::shared_ptr<WorkTask>* wrapper = new std::shared_ptr<WorkTask>(task);
+        // forward task to android looper
+        // java_post(wrapper);
+    }
 };
 
 } // namespace util
 } // namespace mbgl
+
+void execute_task(jlong wrapper) {
+    std::shared_ptr<WorkTask>* t = (std::shared_ptr<WorkTask>*) wrapper;
+    std::shared_ptr<WorkTask> task = *t;
+    delete t;
+
+    (*task)();
+}
