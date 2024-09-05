@@ -5,7 +5,8 @@
 //
 
 #include "mbgl/nav/nav.render.hpp"
-
+#include <jni.h>
+#include <GLES3/gl3.h>
 #include <vector>
 #include <random>
 #include <iostream>
@@ -67,7 +68,7 @@ void genFramebuffer() {
     
     // - Tell OpenGL which color attachments we'll use (of this framebuffer) for rendering
     GLuint attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-    glDrawBuffers(3, attachments);
+//    glDrawBuffers(3, attachments);
     
     // - Create and attach depth buffer (renderbuffer)
     glGenRenderbuffers(1, &rboDepth);

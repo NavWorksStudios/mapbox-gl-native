@@ -34,6 +34,7 @@ target_link_libraries(
 target_include_directories(
     mbgl-core
     PRIVATE ${PROJECT_SOURCE_DIR}/platform/default/include
+    PRIVATE ${PROJECT_SOURCE_DIR}/platform/android/src
 #    PRIVATE ${PROJECT_SOURCE_DIR}/vendor/mapbox-base/deps/jni.hpp/test/openjdk
 )
 
@@ -57,6 +58,8 @@ target_sources(
     PRIVATE
         ${PROJECT_SOURCE_DIR}/platform/glfw/android_main.cpp
         ${PROJECT_SOURCE_DIR}/platform/glfw/android_view.cpp
+        ${PROJECT_SOURCE_DIR}/platform/glfw/android_view.hpp
+        ${PROJECT_SOURCE_DIR}/platform/glfw/android_renderer_frontend.hpp
         ${PROJECT_SOURCE_DIR}/platform/glfw/android_renderer_frontend.cpp
         ${PROJECT_SOURCE_DIR}/platform/glfw/android_gl_backend.cpp
         ${PROJECT_SOURCE_DIR}/platform/android/src/gl_headers.hpp
@@ -114,10 +117,15 @@ target_sources(
 )
 
 
-# target_sources(
-#     mbgl-core
-#     PRIVATE $<$<BOOL:${MBGL_PUBLIC_BUILD}>:${PROJECT_SOURCE_DIR}/platform/default/src/mbgl/storage/http_file_source.cpp>
-# )
+target_sources(
+    mbgl-core
+    # PRIVATE $<$<BOOL:${MBGL_PUBLIC_BUILD}>:${PROJECT_SOURCE_DIR}/platform/default/src/mbgl/storage/http_file_source.cpp>
+    PRIVATE ${PROJECT_SOURCE_DIR}/platform/glfw/android_backend.hpp
+    PRIVATE ${PROJECT_SOURCE_DIR}/platform/glfw/android_window.hpp
+    PRIVATE ${PROJECT_SOURCE_DIR}/platform/glfw/android_gl_backend.hpp
+    PRIVATE ${PROJECT_SOURCE_DIR}/platform/glfw/android_gl_backend.cpp
+
+)
 
 # include(${PROJECT_SOURCE_DIR}/vendor/curl.cmake)
 

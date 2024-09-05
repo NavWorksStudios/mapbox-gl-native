@@ -3,8 +3,8 @@
 #include <mbgl/map/map.hpp>
 #include <mbgl/util/geometry.hpp>
 #include <mbgl/util/optional.hpp>
-#include <mbgl/util/run_loop_impl.hpp>
-#include <mbgl/util/android_timer.hpp>
+#include "run_loop_impl.hpp"
+
 #if defined(MBGL_RENDER_BACKEND_OPENGL) && !defined(MBGL_LAYER_CUSTOM_DISABLE_ALL)
 #include <mbgl/style/layers/location_indicator_layer.hpp>
 #endif
@@ -177,7 +177,7 @@ private:
     std::function<void(mbgl::Map*)> animateRouteCallback;
 
     mbgl::util::AndroidRunLoop runLoop;
-    mbgl::util::AndroidTimer frameTick;
+//    mbgl::util::AndroidTimer frameTick;
 
     AndroidWindow *window = nullptr;
     bool dirty = false;

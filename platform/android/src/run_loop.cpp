@@ -281,3 +281,11 @@ void RunLoop::removeWatch(int fd) {
 
 } // namespace util
 } // namespace mbgl
+
+void execute_task(jni::jlong wrapper) {
+    std::shared_ptr<mbgl::WorkTask>* t = (std::shared_ptr<mbgl::WorkTask>*) wrapper;
+    std::shared_ptr<mbgl::WorkTask> task = *t;
+    delete t;
+
+    (*task)();
+}

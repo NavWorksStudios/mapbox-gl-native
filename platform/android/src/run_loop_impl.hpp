@@ -70,10 +70,4 @@ class AndroidRunLoop : public RunLoop {
 } // namespace util
 } // namespace mbgl
 
-void execute_task(jlong wrapper) {
-    std::shared_ptr<WorkTask>* t = (std::shared_ptr<WorkTask>*) wrapper;
-    std::shared_ptr<WorkTask> task = *t;
-    delete t;
-
-    (*task)();
-}
+void execute_task(jni::jlong wrapper);
