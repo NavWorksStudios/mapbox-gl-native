@@ -5,8 +5,7 @@
 //
 
 #include "mbgl/nav/nav.render.hpp"
-#include <jni.h>
-#include <GLES3/gl3.h>
+
 #include <vector>
 #include <random>
 #include <iostream>
