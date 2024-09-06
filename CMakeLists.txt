@@ -327,6 +327,15 @@ set(all_files
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.shader.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.stringid.hpp
 
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/mat4.h
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/mat4.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/vec3.h
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/vec3.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.render.ssao.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.render.ssao.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.shader.ssao.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.shader.ssao.cpp
+
     ${PROJECT_SOURCE_DIR}/src/mbgl/actor/mailbox.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/actor/scheduler.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/algorithm/update_renderables.hpp
