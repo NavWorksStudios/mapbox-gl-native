@@ -15,7 +15,7 @@
 #include <mbgl/util/string.hpp>
 #include <mbgl/util/logging.hpp>
 
-#include "mbgl/nav/nav.render.hpp"
+#include "mbgl/nav/nav.render.ssao.hpp"
 
 
 namespace mbgl {
@@ -27,11 +27,13 @@ static RendererObserver& nullObserver() {
     return observer;
 }
 
-Renderer::Impl::Impl(gfx::RendererBackend& backend_, float pixelRatio_, const optional<std::string>& localFontFamily_)
-    : orchestrator(!backend_.contextIsShared(), localFontFamily_),
-      backend(backend_),
-      observer(&nullObserver()),
-      pixelRatio(pixelRatio_) {}
+Renderer::Impl::Impl(gfx::RendererBackend& backend_, float pixelRatio_, const optional<std::string>& localFontFamily_) :
+orchestrator(!backend_.contextIsShared(), localFontFamily_),
+backend(backend_),
+observer(&nullObserver()),
+pixelRatio(pixelRatio_) {
+    nav::render::ssao::initialize();
+}
 
 Renderer::Impl::~Impl() {
     assert(gfx::BackendScope::exists());
@@ -77,8 +79,6 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
     parameters.opaquePassCutoff = renderTreeParameters.opaquePassCutOff;
     const auto& sourceRenderItems = renderTree.getSourceRenderItems();
     const auto& layerRenderItems = renderTree.getLayerRenderItems();
-    
-    nav::render::createRenderbuffer();
 
     // - UPLOAD PASS -------------------------------------------------------------------------------
     // Uploads all required buffers and images before we do any actual rendering.
@@ -198,6 +198,8 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
         parameters.context.visualizeDepthBuffer(parameters.depthRangeSize);
     }
 #endif
+    
+    nav::render::ssao::draw();
 
     // Ends the RenderPass
     parameters.renderPass.reset();

@@ -14,10 +14,8 @@ namespace nav {
 namespace render {
 namespace ssao {
 
-void initSSAO();
-void drawModel();
-void doSSAO();
-void doBlur();
+void initialize();
+void draw();
 
 }
 }
