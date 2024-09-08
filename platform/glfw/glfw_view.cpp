@@ -1043,7 +1043,7 @@ void GLFWView::onScroll(double yOffset) {
         map->scaleBy(scale, _mouseHistory[0].coord);
     }
 
-    // #*# 需要改造
+    // #*# 需要改造 - 测试提交
 //#if defined(MBGL_RENDER_BACKEND_OPENGL) && !defined(MBGL_LAYER_CUSTOM_DISABLE_ALL)
 //    if (puck && puckFollowsCameraCenter) {
 //        mbgl::LatLng mapCenter = map->getCameraOptions().center.value();
