@@ -265,7 +265,6 @@ Vec3 lookat = Vec3(0, 0, 0);
 
 // Program functionality variables
 // Shading related
-int ambientOcclusionState = 1;
 float depthDiscontinuityRadius = 0.01f;
 
 // Framebuffers, textures to render to, renderbuffers, other textures
@@ -362,12 +361,6 @@ void initializeOpenGL()
     glBufferData(GL_ARRAY_BUFFER, 36 * sizeof(GLfloat), floorData, GL_STATIC_DRAW);
 }
 
-void initialize() {
-    initializeOpenGL();
-    loadShaders();
-    loadModel();
-}
-
 
 void drawModel(bool ssao)
 {
@@ -381,6 +374,7 @@ void drawModel(bool ssao)
     } else {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     glUseProgram(phongProg);
@@ -531,19 +525,20 @@ void draw() {
     static bool initized = false;
     if (!initized) {
         initized = true;
-        nav::render::ssao::initialize();
+        
+        initializeOpenGL();
+        loadShaders();
+        loadModel();
     }
     
-    glClearColor(1.0, 0, 0, 0);
+    glClearColor(0, 0, 0, 0);
     
     // If we're rendering with ambient occlusion
-    if (ambientOcclusionState) {
+    if (0) {
         drawModel(true);
         doSSAO();
         doBlur();
     } else {
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
         drawModel(false);
     }
 }

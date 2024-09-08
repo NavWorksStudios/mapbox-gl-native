@@ -240,7 +240,7 @@ static void ply_reverse(void *anydata, size_t size);
 static int ply_find_string(const char *item, const char* const list[]);
 static p_ply_element ply_find_element(p_ply ply, const char *name);
 static p_ply_property ply_find_property(p_ply_element element, 
-        const char *name);
+                                        const char *name);
 
 /* ----------------------------------------------------------------------
  * Header parsing
@@ -279,13 +279,13 @@ static int ply_type_check(void);
  * Auxiliary read functions
  * ---------------------------------------------------------------------- */
 static int ply_read_element(p_ply ply, p_ply_element element, 
-        p_ply_argument argument);
+                            p_ply_argument argument);
 static int ply_read_property(p_ply ply, p_ply_element element, 
-        p_ply_property property, p_ply_argument argument);
+                             p_ply_property property, p_ply_argument argument);
 static int ply_read_list_property(p_ply ply, p_ply_element element, 
-        p_ply_property property, p_ply_argument argument);
+                                  p_ply_property property, p_ply_argument argument);
 static int ply_read_scalar_property(p_ply ply, p_ply_element element, 
-        p_ply_property property, p_ply_argument argument);
+                                    p_ply_property property, p_ply_argument argument);
 
 /* ----------------------------------------------------------------------
  * Buffer support functions
@@ -335,7 +335,7 @@ static int ply_read_header_magic(p_ply ply) {
     }
     /* check if it is ply */
     if (magic[0] != 'p' || magic[1] != 'l' || magic[2] != 'y' 
-            || !isspace(magic[3])) {
+        || !isspace(magic[3])) {
         ply->error_cb(ply, "Wrong magic number. Expected 'ply'");
         return 0;
     }
@@ -353,7 +353,7 @@ static int ply_read_header_magic(p_ply ply) {
  * Read support functions
  * ---------------------------------------------------------------------- */
 p_ply ply_open(const char *name, p_ply_error_cb error_cb, 
-        long idata, void *pdata) {
+               long idata, void *pdata) {
     FILE *fp = NULL; 
     p_ply ply = ply_alloc();
     if (error_cb == NULL) error_cb = ply_error_cb;
@@ -393,8 +393,8 @@ int ply_read_header(p_ply ply) {
     /* parse elements, comments or obj_infos until the end of header */
     while (strcmp(BWORD(ply), "end_header")) {
         if (!ply_read_header_comment(ply) && 
-                !ply_read_header_element(ply) && 
-                !ply_read_header_obj_info(ply)) {
+            !ply_read_header_element(ply) && 
+            !ply_read_header_obj_info(ply)) {
             ply_ferror(ply, "Unexpected token '%s'", BWORD(ply));
             return 0;
         }
@@ -411,8 +411,8 @@ int ply_read_header(p_ply ply) {
 }
 
 long ply_set_read_cb(p_ply ply, const char *element_name, 
-        const char* property_name, p_ply_read_cb read_cb, 
-        void *pdata, long idata) {
+                     const char* property_name, p_ply_read_cb read_cb, 
+                     void *pdata, long idata) {
     p_ply_element element = NULL; 
     p_ply_property property = NULL;
     assert(ply && element_name && property_name);
@@ -445,7 +445,7 @@ int ply_read(p_ply ply) {
  * Write support functions
  * ---------------------------------------------------------------------- */
 p_ply ply_create(const char *name, e_ply_storage_mode storage_mode, 
-        p_ply_error_cb error_cb, long idata, void *pdata) {
+                 p_ply_error_cb error_cb, long idata, void *pdata) {
     FILE *fp = NULL;
     p_ply ply = ply_alloc();
     if (error_cb == NULL) error_cb = ply_error_cb;
@@ -513,7 +513,7 @@ int ply_add_scalar_property(p_ply ply, const char *name, e_ply_type type) {
 }
 
 int ply_add_list_property(p_ply ply, const char *name, 
-        e_ply_type length_type, e_ply_type value_type) {
+                          e_ply_type length_type, e_ply_type value_type) {
     p_ply_element element = NULL;
     p_ply_property property = NULL;
     assert(ply && ply->fp && ply->io_mode == PLY_WRITE);
@@ -539,7 +539,7 @@ int ply_add_list_property(p_ply ply, const char *name,
 }
 
 int ply_add_property(p_ply ply, const char *name, e_ply_type type,
-        e_ply_type length_type, e_ply_type value_type) {
+                     e_ply_type length_type, e_ply_type value_type) {
     if (type == PLY_LIST) 
         return ply_add_list_property(ply, name, length_type, value_type);
     else 
@@ -554,7 +554,7 @@ int ply_add_comment(p_ply ply, const char *comment) {
         return 0;
     }
     new_comment = (char *) ply_grow_array(ply, (void **) &ply->comment,
-            &ply->ncomments, LINESIZE);
+                                          &ply->ncomments, LINESIZE);
     if (!new_comment) return 0;
     strcpy(new_comment, comment);
     return 1;
@@ -568,7 +568,7 @@ int ply_add_obj_info(p_ply ply, const char *obj_info) {
         return 0;
     }
     new_obj_info = (char *) ply_grow_array(ply, (void **) &ply->obj_info,
-            &ply->nobj_infos, LINESIZE);
+                                           &ply->nobj_infos, LINESIZE);
     if (!new_obj_info) return 0;
     strcpy(new_obj_info, obj_info);
     return 1;
@@ -633,9 +633,9 @@ int ply_write(p_ply ply, double value) {
     }
     if (!ply->odriver->ohandler[type](ply, value)) {
         ply_ferror(ply, "Failed writing %s of %s %d (%s: %s)", 
-                    property->name, element->name, 
-                    ply->winstance_index, 
-                    ply->odriver->name, ply_type_list[type]);
+                   property->name, element->name, 
+                   ply->winstance_index, 
+                   ply->odriver->name, ply_type_list[type]);
         return 0;
     }
     ply->wvalue_index++;
@@ -662,7 +662,7 @@ int ply_close(p_ply ply) {
     assert(!ply->element || ply->nelements > 0);
     /* write last chunk to file */
     if (ply->io_mode == PLY_WRITE && 
-      fwrite(ply->buffer, 1, ply->buffer_last, ply->fp) < ply->buffer_last) {
+        fwrite(ply->buffer, 1, ply->buffer_last, ply->fp) < ply->buffer_last) {
         ply_ferror(ply, "Error closing up");
         return 0;
     }
@@ -685,7 +685,7 @@ int ply_close(p_ply ply) {
  * Query support functions
  * ---------------------------------------------------------------------- */
 p_ply_element ply_get_next_element(p_ply ply, 
-        p_ply_element last) {
+                                   p_ply_element last) {
     assert(ply);
     if (!last) return ply->element;
     last++;
@@ -694,7 +694,7 @@ p_ply_element ply_get_next_element(p_ply ply,
 }
 
 int ply_get_element_info(p_ply_element element, const char** name,
-        long *ninstances) {
+                         long *ninstances) {
     assert(element);
     if (name) *name = element->name;
     if (ninstances) *ninstances = (long) element->ninstances;
@@ -702,7 +702,7 @@ int ply_get_element_info(p_ply_element element, const char** name,
 }
 
 p_ply_property ply_get_next_property(p_ply_element element, 
-        p_ply_property last) {
+                                     p_ply_property last) {
     assert(element);
     if (!last) return element->property;
     last++;
@@ -711,14 +711,14 @@ p_ply_property ply_get_next_property(p_ply_element element,
 }
 
 int ply_get_property_info(p_ply_property property, const char** name,
-        e_ply_type *type, e_ply_type *length_type, e_ply_type *value_type) {
+                          e_ply_type *type, e_ply_type *length_type, e_ply_type *value_type) {
     assert(property);
     if (name) *name = property->name;
     if (type) *type = property->type;
     if (length_type) *length_type = property->length_type;
     if (value_type) *value_type = property->value_type;
     return 1;
-
+    
 }
 
 const char *ply_get_next_comment(p_ply ply, const char *last) {
@@ -741,7 +741,7 @@ const char *ply_get_next_obj_info(p_ply ply, const char *last) {
  * Callback argument support functions 
  * ---------------------------------------------------------------------- */
 int ply_get_argument_element(p_ply_argument argument, 
-        p_ply_element *element, long *instance_index) {
+                             p_ply_element *element, long *instance_index) {
     assert(argument);
     if (!argument) return 0;
     if (element) *element = argument->element;
@@ -750,7 +750,7 @@ int ply_get_argument_element(p_ply_argument argument,
 }
 
 int ply_get_argument_property(p_ply_argument argument, 
-        p_ply_property *property, long *length, long *value_index) {
+                              p_ply_property *property, long *length, long *value_index) {
     assert(argument);
     if (!argument) return 0;
     if (property) *property = argument->property;
@@ -760,7 +760,7 @@ int ply_get_argument_property(p_ply_argument argument,
 }
 
 int ply_get_argument_user_data(p_ply_argument argument, void **pdata, 
-        long *idata) {
+                               long *idata) {
     assert(argument);
     if (!argument) return 0;
     if (pdata) *pdata = argument->pdata;
@@ -786,7 +786,7 @@ int ply_get_ply_user_data(p_ply ply, void **pdata, long *idata) {
  * Internal functions
  * ---------------------------------------------------------------------- */
 static int ply_read_list_property(p_ply ply, p_ply_element element, 
-        p_ply_property property, p_ply_argument argument) {
+                                  p_ply_property property, p_ply_argument argument) {
     int l;
     p_ply_read_cb read_cb = property->read_cb;
     p_ply_ihandler *driver = ply->idriver->ihandler; 
@@ -795,7 +795,7 @@ static int ply_read_list_property(p_ply ply, p_ply_element element,
     double length;
     if (!handler(ply, &length)) {
         ply_ferror(ply, "Error reading '%s' of '%s' number %d",
-                property->name, element->name, argument->instance_index);
+                   property->name, element->name, argument->instance_index);
         return 0;
     }
     /* invoke callback to pass length in value field */
@@ -814,8 +814,8 @@ static int ply_read_list_property(p_ply ply, p_ply_element element,
         argument->value_index = l;
         if (!handler(ply, &argument->value)) {
             ply_ferror(ply, "Error reading value number %d of '%s' of "
-                    "'%s' number %d", l+1, property->name, 
-                    element->name, argument->instance_index);
+                       "'%s' number %d", l+1, property->name, 
+                       element->name, argument->instance_index);
             return 0;
         }
         /* invoke callback to pass value */
@@ -828,7 +828,7 @@ static int ply_read_list_property(p_ply ply, p_ply_element element,
 }
 
 static int ply_read_scalar_property(p_ply ply, p_ply_element element, 
-        p_ply_property property, p_ply_argument argument) {
+                                    p_ply_property property, p_ply_argument argument) {
     p_ply_read_cb read_cb = property->read_cb;
     p_ply_ihandler *driver = ply->idriver->ihandler; 
     p_ply_ihandler handler = driver[property->type];
@@ -836,7 +836,7 @@ static int ply_read_scalar_property(p_ply ply, p_ply_element element,
     argument->value_index = 0;
     if (!handler(ply, &argument->value)) {
         ply_ferror(ply, "Error reading '%s' of '%s' number %d",
-                property->name, element->name, argument->instance_index);
+                   property->name, element->name, argument->instance_index);
         return 0;
     }
     if (read_cb && !read_cb(argument)) {
@@ -847,7 +847,7 @@ static int ply_read_scalar_property(p_ply ply, p_ply_element element,
 }
 
 static int ply_read_property(p_ply ply, p_ply_element element, 
-        p_ply_property property, p_ply_argument argument) {
+                             p_ply_property property, p_ply_argument argument) {
     if (property->type == PLY_LIST) 
         return ply_read_list_property(ply, element, property, argument);
     else 
@@ -855,7 +855,7 @@ static int ply_read_property(p_ply ply, p_ply_element element,
 }
 
 static int ply_read_element(p_ply ply, p_ply_element element, 
-        p_ply_argument argument) {
+                            p_ply_argument argument) {
     long j, k;
     /* for each element of this type */
     for (j = 0; j < element->ninstances; j++) {
@@ -895,7 +895,7 @@ static p_ply_element ply_find_element(p_ply ply, const char *name) {
 }
 
 static p_ply_property ply_find_property(p_ply_element element, 
-        const char *name) {
+                                        const char *name) {
     p_ply_property property;
     int i, nproperties;
     assert(element && name); 
@@ -1118,7 +1118,7 @@ static p_ply ply_alloc(void) {
 }
 
 static void *ply_grow_array(p_ply ply, void **pointer, 
-        long *nmemb, long size) {
+                            long *nmemb, long size) {
     void *temp = *pointer;
     long count = *nmemb + 1;
     if (!temp) temp = malloc(count*size);
@@ -1138,7 +1138,7 @@ static p_ply_element ply_grow_element(p_ply ply) {
     assert(ply->element || ply->nelements == 0); 
     assert(!ply->element || ply->nelements > 0); 
     element = (p_ply_element) ply_grow_array(ply, (void **) &ply->element, 
-            &ply->nelements, sizeof(t_ply_element));
+                                             &ply->nelements, sizeof(t_ply_element));
     if (!element) return NULL;
     ply_element_init(element);
     return element; 
@@ -1151,8 +1151,8 @@ static p_ply_property ply_grow_property(p_ply ply, p_ply_element element) {
     assert(element->property || element->nproperties == 0);
     assert(!element->property || element->nproperties > 0);
     property = (p_ply_property) ply_grow_array(ply, 
-            (void **) &element->property, 
-            &element->nproperties, sizeof(t_ply_property));
+                                               (void **) &element->property, 
+                                               &element->nproperties, sizeof(t_ply_property));
     if (!property) return NULL;
     ply_property_init(property);
     return property;
@@ -1241,8 +1241,8 @@ static int ply_read_header_element(p_ply ply) {
     /* get all properties for this element */
     if (!ply_read_word(ply)) return 0;
     while (ply_read_header_property(ply) || 
-        ply_read_header_comment(ply) || ply_read_header_obj_info(ply))
-        /* do nothing */;
+           ply_read_header_comment(ply) || ply_read_header_obj_info(ply))
+    /* do nothing */;
     return 1;
 }
 

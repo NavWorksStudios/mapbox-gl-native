@@ -44,6 +44,9 @@ void Renderer::Impl::setObserver(RendererObserver* observer_) {
 }
 
 void Renderer::Impl::render(const RenderTree& renderTree) {
+    nav::render::ssao::draw();
+    return;
+    
     if (renderState == RenderState::Never) {
         observer->onWillStartRenderingMap();
     }
@@ -221,8 +224,6 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
         renderState = RenderState::Fully;
         observer->onDidFinishRenderingMap();
     }
-    
-    nav::render::ssao::draw();
 }
 
 void Renderer::Impl::reduceMemoryUse() {
