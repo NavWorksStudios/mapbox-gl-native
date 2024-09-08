@@ -261,7 +261,7 @@ void loadModel()
 
 // the camera info
 Vec3 eye = Vec3(0, 1.5f, 1.5f);
-Vec3 lookat = Vec3(0, 0, 0);
+Vec3 lookat = Vec3(1.5, 0.5, 0);
 
 // Program functionality variables
 // Shading related
@@ -377,69 +377,74 @@ void drawModel(bool ssao)
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-    glUseProgram(phongProg);
-    
-    const static double pi = acos(0.0) * 2;
-    Mat4 ident = Mat4::identityMatrix();
-    Mat4 view, viewNorm;
-    Mat4::lookAtMatrix(eye, lookat, Vec3(0, 1, 0), view, viewNorm);
-    Mat4 proj = Mat4::perspectiveMatrix(pi * 0.5, 1.333333f, 0.1f, 1000.0f);
-    
-    Mat4 mvp = proj * view;
-    glUniformMatrix4fv(phongProgModelViewMat, 1, GL_FALSE, reinterpret_cast<float*>(&view));
-    glUniformMatrix4fv(phongProgMvpMat, 1, GL_FALSE, reinterpret_cast<float*>(&mvp));
-    glUniformMatrix4fv(phongProgNormalMat, 1, GL_FALSE, reinterpret_cast<float*>(&ident));
-    
-    // Lighting uniforms
-    static GLfloat lAmb[3] = {1.0f, 1.0f, 1.0f};
-    static GLfloat lPos[3] = {0.0f, 0.0f, 0.5f};
-    static GLfloat lDif[3] = {1.0f, 1.0f, 1.0f};
-    static GLfloat lSpc[3] = {0.3f, 0.3f, 0.3f};
-    static GLfloat kAmb[3] = {0.2f, 0.1f, 0.0f};
-    static GLfloat kDif[3] = {0.6f, 0.2f, 0.1f};
-    static GLfloat kSpc[3] = {0.0f, 0.0f, 0.0f};
-    static GLfloat kShn = 0.0f;
-    glUniform3fv(phongProgLAmb, 1, lAmb);
-    glUniform3fv(phongProgLPos, 1, lPos);
-    glUniform3fv(phongProgLDif, 1, lDif);
-    glUniform3fv(phongProgLSpc, 1, lSpc);
-    glUniform3fv(phongProgKAmb, 1, kAmb);
-    glUniform3fv(phongProgKDif, 1, kDif);
-    glUniform3fv(phongProgKSpc, 1, kSpc);
-    glUniform1f(phongProgKShn, kShn);
-    
-    if (ssao) {
-        glUniform1f(phongProgDoSSAO, 1.0f);
-    }
-    else {
-        glUniform1f(phongProgDoSSAO, 0.0f);
+    {
+        glUseProgram(phongProg);
+        
+        const static double pi = acos(0.0) * 2;
+        Mat4 ident = Mat4::identityMatrix();
+        Mat4 view, viewNorm;
+        Mat4::lookAtMatrix(eye, lookat, Vec3(0, 1, 0), view, viewNorm);
+        Mat4 proj = Mat4::perspectiveMatrix(pi * 0.5, 1.333333f, 0.1f, 1000.0f);
+        
+        Mat4 mvp = proj * view;
+        glUniformMatrix4fv(phongProgModelViewMat, 1, GL_FALSE, reinterpret_cast<float*>(&view));
+        glUniformMatrix4fv(phongProgMvpMat, 1, GL_FALSE, reinterpret_cast<float*>(&mvp));
+        glUniformMatrix4fv(phongProgNormalMat, 1, GL_FALSE, reinterpret_cast<float*>(&ident));
     }
     
-    // Set up vertex attributes
-    glEnableVertexAttribArray(phongProgPosAttrib);
-    glEnableVertexAttribArray(phongProgNormAttrib);
+    {
+        // Lighting uniforms
+        static GLfloat lAmb[3] = {1.0f, 1.0f, 1.0f};
+        static GLfloat lPos[3] = {0.0f, 0.0f, 0.5f};
+        static GLfloat lDif[3] = {1.0f, 1.0f, 1.0f};
+        static GLfloat lSpc[3] = {0.3f, 0.3f, 0.3f};
+        static GLfloat kAmb[3] = {0.2f, 0.1f, 0.0f};
+        static GLfloat kDif[3] = {0.6f, 0.2f, 0.1f};
+        static GLfloat kSpc[3] = {0.0f, 0.0f, 0.0f};
+        static GLfloat kShn = 0.0f;
+        glUniform3fv(phongProgLAmb, 1, lAmb);
+        glUniform3fv(phongProgLPos, 1, lPos);
+        glUniform3fv(phongProgLDif, 1, lDif);
+        glUniform3fv(phongProgLSpc, 1, lSpc);
+        glUniform3fv(phongProgKAmb, 1, kAmb);
+        glUniform3fv(phongProgKDif, 1, kDif);
+        glUniform3fv(phongProgKSpc, 1, kSpc);
+        glUniform1f(phongProgKShn, kShn);
+        
+        glUniform1f(phongProgDoSSAO, ssao ? 1.0f : 0.0f);
+    }
     
-    glBindBuffer(GL_ARRAY_BUFFER, vertexDataBuf);
-    glVertexAttribPointer(phongProgPosAttrib, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(0));
-    glVertexAttribPointer(phongProgNormAttrib, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(3*sizeof(GLfloat)));
-    
-    glDrawArrays(GL_TRIANGLES, 0, faceIndexCount);
-    
-    static GLfloat floorKAmb[3] = {1.0f, 1.0f, 1.0f};
-    static GLfloat floorKDif[3] = {1.0f, 1.0f, 1.0f};
-    static GLfloat floorKSpc[3] = {1.0f, 1.0f, 1.0f};
-    static GLfloat floorKShn = 2.0f;
-    glUniform3fv(phongProgKAmb, 1, floorKAmb);
-    glUniform3fv(phongProgKDif, 1, floorKDif);
-    glUniform3fv(phongProgKSpc, 1, floorKSpc);
-    glUniform1f(phongProgKShn, floorKShn);
+    // obj
+    {
+        // Set up vertex attributes
+        glEnableVertexAttribArray(phongProgPosAttrib);
+        glEnableVertexAttribArray(phongProgNormAttrib);
+        
+        glBindBuffer(GL_ARRAY_BUFFER, vertexDataBuf);
+        glVertexAttribPointer(phongProgPosAttrib, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(0));
+        glVertexAttribPointer(phongProgNormAttrib, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(3*sizeof(GLfloat)));
+        
+        glDrawArrays(GL_TRIANGLES, 0, faceIndexCount);
+    }
     
     // Now draw the floor
-    glBindBuffer(GL_ARRAY_BUFFER, floorBuf);
-    glVertexAttribPointer(phongProgPosAttrib, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(0));
-    glVertexAttribPointer(phongProgNormAttrib, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(3*sizeof(GLfloat)));
-    
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    {
+        static GLfloat floorKAmb[3] = {1.0f, 1.0f, 1.0f};
+        static GLfloat floorKDif[3] = {1.0f, 1.0f, 1.0f};
+        static GLfloat floorKSpc[3] = {1.0f, 1.0f, 1.0f};
+        static GLfloat floorKShn = 2.0f;
+
+        glUniform3fv(phongProgKAmb, 1, floorKAmb);
+        glUniform3fv(phongProgKDif, 1, floorKDif);
+        glUniform3fv(phongProgKSpc, 1, floorKSpc);
+        glUniform1f(phongProgKShn, floorKShn);
+        
+        glBindBuffer(GL_ARRAY_BUFFER, floorBuf);
+        glVertexAttribPointer(phongProgPosAttrib, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(0));
+        glVertexAttribPointer(phongProgNormAttrib, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(3*sizeof(GLfloat)));
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+    }
+
 }
 
 void doSSAO()
@@ -451,45 +456,53 @@ void doSSAO()
         -0.243828, -0.177320, 0.121368, 0.079705, -0.237290, 0.292208, -0.333035, 0.151770, 0.264504,
         -0.027741, -0.338065, 0.401220, 0.421871, -0.422317, 0.105886, -0.619888, -0.288012, 0.120912,
         -0.485098, 0.605901, 0.142069, -0.783585, 0.276209, 0.321887 };
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-    glDrawBuffer(GL_COLOR_ATTACHMENT0);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, aoTexture, 0);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, 0, 0);
-    // Detach any depth textures
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, 0, 0);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthRenderbuffer);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+        glDrawBuffer(GL_COLOR_ATTACHMENT0);
+        
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, aoTexture, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, 0, 0);
+        // Detach any depth textures
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, 0, 0);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthRenderbuffer);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
+        glUseProgram(aoProg);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, depthTexture);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, normalTexture);
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, randomTexture);
+        glActiveTexture(GL_TEXTURE0);
+    }
     
-    glUseProgram(aoProg);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, depthTexture);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, normalTexture);
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, randomTexture);
-    glActiveTexture(GL_TEXTURE0);
+    {
+        static const double pi = acos(0.0) * 0.5;
+        Mat4 projMat = Mat4::perspectiveMatrix(pi * 0.5, 1.333333f, 0.1f, 1000.0f);
+        Mat4 invProjMat = Mat4::perspectiveInvMatrix(pi * 0.5, 1.3333333f, 0.1f, 1000.0f);
+        
+        glUniform1i(aoProgDepthTexture, 0);
+        glUniform1i(aoProgNormTexture, 1);
+        glUniform1i(aoProgRandomTexture, 2);
+        glUniform2f(aoProgRandomTexCoordScale, wWidth / 4, wHeight / 4);
+        glUniformMatrix4fv(aoProgProjMat, 1, GL_FALSE, reinterpret_cast<GLfloat*>(&projMat));
+        glUniformMatrix4fv(aoProgInvProjMat, 1, GL_FALSE, reinterpret_cast<GLfloat*>(&invProjMat));
+        glUniform3fv(aoProgSampleOffsets, 16, offsets);
+        glUniform1f(aoProgSampleRadius, depthDiscontinuityRadius);
+    }
     
-    static const double pi = acos(0.0) * 0.5;
-    Mat4 projMat = Mat4::perspectiveMatrix(pi * 0.5, 1.333333f, 0.1f, 1000.0f);
-    Mat4 invProjMat = Mat4::perspectiveInvMatrix(pi * 0.5, 1.3333333f, 0.1f, 1000.0f);
-    
-    glUniform1i(aoProgDepthTexture, 0);
-    glUniform1i(aoProgNormTexture, 1);
-    glUniform1i(aoProgRandomTexture, 2);
-    glUniform2f(aoProgRandomTexCoordScale, wWidth / 4, wHeight / 4);
-    glUniformMatrix4fv(aoProgProjMat, 1, GL_FALSE, reinterpret_cast<GLfloat*>(&projMat));
-    glUniformMatrix4fv(aoProgInvProjMat, 1, GL_FALSE, reinterpret_cast<GLfloat*>(&invProjMat));
-    glUniform3fv(aoProgSampleOffsets, 16, offsets);
-    glUniform1f(aoProgSampleRadius, depthDiscontinuityRadius);
-    
-    static const float verts[8] = { 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, -1.0f };
-    
-    glEnableVertexAttribArray(aoProgPosAttrib);
-    
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glVertexAttribPointer(aoProgPosAttrib, 2, GL_FLOAT, GL_FALSE, 0, verts);
-    
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    {
+        static const float verts[8] = { 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, -1.0f };
+        
+        glEnableVertexAttribArray(aoProgPosAttrib);
+        
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glVertexAttribPointer(aoProgPosAttrib, 2, GL_FLOAT, GL_FALSE, 0, verts);
+        
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    }
 }
 
 void doBlur()
@@ -498,26 +511,30 @@ void doBlur()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-    glUseProgram(blurProg);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, aoTexture);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, colorTexture);
-    glActiveTexture(GL_TEXTURE0);
+    {
+        glUseProgram(blurProg);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, aoTexture);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, colorTexture);
+        glActiveTexture(GL_TEXTURE0);
+        
+        glUniform1i(blurProgAoTexture, 0);
+        glUniform1i(blurProgColorTexture, 1);
+        
+        glUniform2f(blurProgInvRes, 1.0f / wWidth, 1.0f / wHeight);
+    }
     
-    glUniform1i(blurProgAoTexture, 0);
-    glUniform1i(blurProgColorTexture, 1);
-    
-    glUniform2f(blurProgInvRes, 1.0f / wWidth, 1.0f / wHeight);
-    
-    static const float verts[8] = { 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, -1.0f };
-    
-    glEnableVertexAttribArray(blurProgPosAttrib);
-    
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glVertexAttribPointer(blurProgPosAttrib, 2, GL_FLOAT, GL_FALSE, 0, verts);
-    
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    {
+        static const float verts[8] = { 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, -1.0f };
+        
+        glEnableVertexAttribArray(blurProgPosAttrib);
+        
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glVertexAttribPointer(blurProgPosAttrib, 2, GL_FLOAT, GL_FALSE, 0, verts);
+        
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    }
 }
 
 
@@ -534,7 +551,7 @@ void draw() {
     glClearColor(0, 0, 0, 0);
     
     // If we're rendering with ambient occlusion
-    if (0) {
+    if (1) {
         drawModel(true);
         doSSAO();
         doBlur();
