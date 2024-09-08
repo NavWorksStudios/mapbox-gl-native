@@ -110,8 +110,6 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
             parameters.staticData.depthRenderbuffer->getSize() != parameters.staticData.backendSize) {
             parameters.staticData.depthRenderbuffer =
                 parameters.context.createRenderbuffer<gfx::RenderbufferPixelType::Depth>(parameters.staticData.backendSize);
-            
-            nav::render::ssao::initialize();
         }
         parameters.staticData.depthRenderbuffer->setShouldClear(true);
 

@@ -14,7 +14,6 @@ namespace nav {
 namespace render {
 namespace ssao {
 
-void initialize();
 void draw();
 
 }

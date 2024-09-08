@@ -260,8 +260,8 @@ void loadModel()
 
 
 // the camera info
-Vec3 eye;
-Vec3 lookat;
+Vec3 eye = Vec3(0, 1.5f, 1.5f);
+Vec3 lookat = Vec3(0, 0, 0);
 
 // Program functionality variables
 // Shading related
@@ -441,11 +441,11 @@ void drawModel(bool ssao)
     glUniform1f(phongProgKShn, floorKShn);
     
     // Now draw the floor
-//    glBindBuffer(GL_ARRAY_BUFFER, floorBuf);
-//    glVertexAttribPointer(phongProgPosAttrib, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(0));
-//    glVertexAttribPointer(phongProgNormAttrib, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(3*sizeof(GLfloat)));
-//    
-//    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindBuffer(GL_ARRAY_BUFFER, floorBuf);
+    glVertexAttribPointer(phongProgPosAttrib, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(0));
+    glVertexAttribPointer(phongProgNormAttrib, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(3*sizeof(GLfloat)));
+    
+    glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
 void doSSAO()
@@ -528,11 +528,16 @@ void doBlur()
 
 
 void draw() {
-    glClearColor(0, 0, 0, 0);
+    static bool initized = false;
+    if (!initized) {
+        initized = true;
+        nav::render::ssao::initialize();
+    }
+    
+    glClearColor(1.0, 0, 0, 0);
     
     // If we're rendering with ambient occlusion
     if (ambientOcclusionState) {
-        // TODO: fill in yo
         drawModel(true);
         doSSAO();
         doBlur();
