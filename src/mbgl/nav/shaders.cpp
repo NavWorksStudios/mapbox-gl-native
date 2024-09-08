@@ -3,12 +3,17 @@
 #include <cstdio>
 #include <fstream>
 
+#include "mbgl/nav/nav.style.hpp"
+
 using std::ifstream;
 
 // These shader functions were written by Spencer Phippen in CS 5600.
 
 GLuint loadShader(GLenum shaderType, const char* filename)
 {
+  auto path = nav::path(filename);
+  filename = path.c_str();
+    
   // Open the file and read in the data
   int fileSize = 0;
 

@@ -32,7 +32,7 @@ orchestrator(!backend_.contextIsShared(), localFontFamily_),
 backend(backend_),
 observer(&nullObserver()),
 pixelRatio(pixelRatio_) {
-    nav::render::ssao::initialize();
+
 }
 
 Renderer::Impl::~Impl() {
@@ -110,6 +110,8 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
             parameters.staticData.depthRenderbuffer->getSize() != parameters.staticData.backendSize) {
             parameters.staticData.depthRenderbuffer =
                 parameters.context.createRenderbuffer<gfx::RenderbufferPixelType::Depth>(parameters.staticData.backendSize);
+            
+            nav::render::ssao::initialize();
         }
         parameters.staticData.depthRenderbuffer->setShouldClear(true);
 
@@ -198,8 +200,6 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
         parameters.context.visualizeDepthBuffer(parameters.depthRangeSize);
     }
 #endif
-    
-    nav::render::ssao::draw();
 
     // Ends the RenderPass
     parameters.renderPass.reset();
@@ -223,6 +223,8 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
         renderState = RenderState::Fully;
         observer->onDidFinishRenderingMap();
     }
+    
+    nav::render::ssao::draw();
 }
 
 void Renderer::Impl::reduceMemoryUse() {

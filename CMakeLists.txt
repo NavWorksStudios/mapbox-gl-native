@@ -331,8 +331,6 @@ set(all_files
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/vec3.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.render.ssao.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.render.ssao.cpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.shader.ssao.hpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.shader.ssao.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/shaders.h
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/shaders.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/texture.h
@@ -1074,6 +1072,11 @@ set_source_files_properties(
     PROPERTIES
     COMPILE_DEFINITIONS
     MBGL_VERSION_REV="${MBGL_VERSION_REV}"
+)
+
+set_property(
+    SOURCE ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.style.cpp
+    PROPERTY COMPILE_DEFINITIONS NAV_ASSETS_PATH=\"${PROJECT_SOURCE_DIR}/assets\"
 )
 
 target_include_directories(

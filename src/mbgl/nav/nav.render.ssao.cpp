@@ -59,8 +59,8 @@ GLint blurProgInvRes;
 
 void loadShaders() {
     // Phong shaders
-    phongProg = createProgram(loadShader(GL_VERTEX_SHADER, "/tmp/shaders/phong.vert"),
-                              loadShader(GL_FRAGMENT_SHADER, "/tmp/shaders/phong.frag"));
+    phongProg = createProgram(loadShader(GL_VERTEX_SHADER, "/shaders/phong.vert"),
+                              loadShader(GL_FRAGMENT_SHADER, "/shaders/phong.frag"));
     
     phongProgPosAttrib = glGetAttribLocation(phongProg, "positionIn");
     phongProgNormAttrib = glGetAttribLocation(phongProg, "normalIn");
@@ -78,8 +78,8 @@ void loadShaders() {
     phongProgDoSSAO = glGetUniformLocation(phongProg, "doSSAO");
     
     // Ambient occlusion shaders
-    aoProg = createProgram(loadShader(GL_VERTEX_SHADER, "/tmp/shaders/ssao.vert"),
-                           loadShader(GL_FRAGMENT_SHADER, "/tmp/shaders/ssao.frag"));
+    aoProg = createProgram(loadShader(GL_VERTEX_SHADER, "/shaders/ssao.vert"),
+                           loadShader(GL_FRAGMENT_SHADER, "/shaders/ssao.frag"));
     
     aoProgPosAttrib = glGetAttribLocation(aoProg, "positionIn");
     aoProgDepthTexture = glGetUniformLocation(aoProg, "depthTex");
@@ -92,8 +92,8 @@ void loadShaders() {
     aoProgRandomTexCoordScale = glGetUniformLocation(aoProg, "randomTexCoordScale");
     
     // Blur texture shaders
-    blurProg = createProgram(loadShader(GL_VERTEX_SHADER, "/tmp/shaders/blur.vert"),
-                             loadShader(GL_FRAGMENT_SHADER, "/tmp/shaders/blur.frag"));
+    blurProg = createProgram(loadShader(GL_VERTEX_SHADER, "/shaders/blur.vert"),
+                             loadShader(GL_FRAGMENT_SHADER, "/shaders/blur.frag"));
     
     blurProgPosAttrib = glGetAttribLocation(blurProg, "positionIn");
     blurProgAoTexture = glGetUniformLocation(blurProg, "aoTex");
@@ -172,7 +172,7 @@ void loadModel()
 {
     // ////////////hmm...>>>>>>>>>>>>
     int result;
-    p_ply plyModel = ply_open("resources/bun_zipper.ply", load_error_cb, 0, NULL);
+    p_ply plyModel = ply_open(nav::path("/resources/bun_zipper.ply").c_str(), load_error_cb, 0, NULL);
     if (!plyModel)
         return;
     

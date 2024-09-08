@@ -27,6 +27,15 @@ const std::string& accessToken() {
     return token;
 }
 
+const std::string& assetsPath() {
+    static const std::string path { NAV_ASSETS_PATH };
+    return path;
+}
+
+std::string path(const char* file) {
+    return assetsPath() + file;
+}
+
 namespace display {
 int width() {
     return 2048;

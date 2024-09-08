@@ -13,6 +13,8 @@
 namespace nav {
 
 const std::string& accessToken();
+const std::string& assetsPath();
+std::string path(const char* file);
 
 namespace display {
 int width();
