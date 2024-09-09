@@ -1,15 +1,15 @@
 //
-//  nav.render.ssao.cpp
+//  nav.ssao.cpp
 //
 //  Created by BernieZhao on 2024/9/6.
 //
 
-#include "mbgl/nav/nav.render.ssao.hpp"
+#include "mbgl/nav/ssao/v1/nav.ssao.hpp"
 
-#include "mbgl/nav/vec3.h"
-#include "mbgl/nav/mat4.h"
-#include "mbgl/nav/shaders.h"
-#include "mbgl/nav/rply.h"
+#include "mbgl/nav/ssao/v1/vec3.h"
+#include "mbgl/nav/ssao/v1/mat4.h"
+#include "mbgl/nav/ssao/v1/shaders.h"
+#include "mbgl/nav/ssao/v1/rply.h"
 
 #include "mbgl/nav/nav.style.hpp"
 
@@ -19,7 +19,6 @@
 
 
 namespace nav {
-namespace render {
 namespace ssao {
 
 
@@ -663,6 +662,5 @@ void draw() {
 }
 
 
-}
 }
 }

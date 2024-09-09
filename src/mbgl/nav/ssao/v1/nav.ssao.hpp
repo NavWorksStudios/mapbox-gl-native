@@ -1,5 +1,5 @@
 //
-//  nav.render.ssao.hpp
+//  nav.ssao.hpp
 //
 //  Created by BernieZhao on 2024/9/6.
 //
@@ -11,11 +11,9 @@
 #include "gl_headers.hpp"
 
 namespace nav {
-namespace render {
 namespace ssao {
 
 void draw();
 
-}
 }
 }

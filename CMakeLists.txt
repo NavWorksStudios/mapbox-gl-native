@@ -323,18 +323,23 @@ set(all_files
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.theme.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.stringid.hpp
 
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/rply.h
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/rply.c
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/mat4.h
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/mat4.cpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/vec3.h
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/vec3.cpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.render.ssao.hpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.render.ssao.cpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/shaders.h
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/shaders.cpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/texture.h
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/texture.c
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v1/rply.h
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v1/rply.c
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v1/mat4.h
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v1/mat4.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v1/vec3.h
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v1/vec3.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v1/nav.ssao.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v1/nav.ssao.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v1/shaders.h
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v1/shaders.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v1/texture.h
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v1/texture.c
+
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v2/nav.ssao.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v2/nav.ssao.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v2/nav.shader.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v2/nav.shader.cpp
 
     ${PROJECT_SOURCE_DIR}/src/mbgl/actor/mailbox.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/actor/scheduler.cpp
