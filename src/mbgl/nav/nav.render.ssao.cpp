@@ -260,8 +260,8 @@ void loadModel()
 
 
 // the camera info
-Vec3 eye = Vec3(0, 1.5f, 1.5f);
-Vec3 lookat = Vec3(1.5, 0.5, 0);
+Vec3 eye = Vec3(-1.5, 2.5, 3.);
+Vec3 lookat = Vec3(8., 0, 0);
 
 // Program functionality variables
 // Shading related
