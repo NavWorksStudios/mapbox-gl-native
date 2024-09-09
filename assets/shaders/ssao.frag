@@ -20,6 +20,7 @@ void main()
   // Construct a position for the rendered fragment
   float depth = texture2D(depthTex, texCoord).r;
   vec3 screenPosition = vec3(texCoord, depth);
+
   // Go from [0, 1] to [-1, 1]
   vec3 clipPosition = (2.0 * screenPosition) - vec3(1.0);
 
@@ -61,7 +62,7 @@ void main()
   occlusion /= 16.;
 
   // Subtract from 1 to give a direct scale factor for lighting
-  occlusion = 1.0 - occlusion;
+  occlusion = 1.2 - occlusion;
 
   gl_FragColor = vec4(occlusion, occlusion, occlusion, 1.0);
 }

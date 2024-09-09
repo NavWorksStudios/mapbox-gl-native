@@ -174,8 +174,6 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
             }
         }
     }
-    
-    nav::render::ssao::draw();
 
     // - DEBUG PASS --------------------------------------------------------------------------------
     // Renders debug overlays.
@@ -200,6 +198,8 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
         parameters.context.visualizeDepthBuffer(parameters.depthRangeSize);
     }
 #endif
+    
+    nav::render::ssao::draw();
 
     // Ends the RenderPass
     parameters.renderPass.reset();

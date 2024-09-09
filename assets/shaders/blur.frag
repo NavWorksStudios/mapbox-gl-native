@@ -8,8 +8,8 @@ void main()
 {
   float scaleFactor = 0.0;
 
-  for (int x = 0; x < 4; x++) {
-    for (int y = 0; y < 4; y++) {
+  for (int x = 0; x < 10; x++) {
+    for (int y = 0; y < 10; y++) {
       vec2 offset = invRes * vec2(x, y);
       vec2 realTexCoord = texCoord + offset;
       scaleFactor += texture2D(aoTex, realTexCoord).r;
@@ -17,7 +17,7 @@ void main()
   }
 
   // Average out the accumulated scaleFactor
-  scaleFactor /= 16.0;
+  scaleFactor /= 100.0;
 
   // Use the blurred occlusion value to scale the input color texture
   vec3 pixValue = scaleFactor * texture2D(colorTex, texCoord).rgb;

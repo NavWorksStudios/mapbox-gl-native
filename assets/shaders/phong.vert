@@ -5,14 +5,12 @@ uniform mat4 modelViewMat;
 uniform mat4 modelViewProjMat;
 uniform mat4 normalMat;
 
-varying vec3 normalV;
-varying vec3 positionV;
-varying vec3 normTest;
+varying vec3 normalView;
+varying vec3 positionView;
 
 void main()
 {
-  normTest = normalIn;
-  normalV = vec3(normalMat * vec4(normalIn, 0.0));
-  positionV = vec3(modelViewMat * vec4(positionIn, 1.0));
+  normalView = vec3(normalMat * vec4(normalIn, 0.0));
+  positionView = vec3(modelViewMat * vec4(positionIn, 1.0));
   gl_Position = modelViewProjMat * vec4(positionIn, 1.0);
 }

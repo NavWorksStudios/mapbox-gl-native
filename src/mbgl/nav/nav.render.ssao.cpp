@@ -14,8 +14,8 @@
 #include "mbgl/nav/nav.style.hpp"
 
 
-#define wWidth nav::display::width()
-#define wHeight nav::display::height()
+#define wWidth nav::display::width() * 2
+#define wHeight nav::display::height() * 2
 
 
 namespace nav {
@@ -30,14 +30,19 @@ GLint phongProgNormAttrib;
 GLint phongProgModelViewMat;
 GLint phongProgMvpMat;
 GLint phongProgNormalMat;
+
 GLint phongProgLAmb;
+GLint phongProgKAmb;
+
 GLint phongProgLPos;
+
 GLint phongProgLDif;
 GLint phongProgLSpc;
-GLint phongProgKAmb;
+
 GLint phongProgKDif;
 GLint phongProgKSpc;
 GLint phongProgKShn;
+
 GLint phongProgDoSSAO;
 
 GLuint aoProg;
@@ -67,14 +72,19 @@ void loadShaders() {
     phongProgModelViewMat = glGetUniformLocation(phongProg, "modelViewMat");
     phongProgMvpMat = glGetUniformLocation(phongProg, "modelViewProjMat");
     phongProgNormalMat = glGetUniformLocation(phongProg, "normalMat");
+    
     phongProgLAmb = glGetUniformLocation(phongProg, "lAmbient");
+    phongProgKAmb = glGetUniformLocation(phongProg, "kAmbient");
+    
     phongProgLPos = glGetUniformLocation(phongProg, "lPosition");
+    
     phongProgLDif = glGetUniformLocation(phongProg, "lDiffuse");
     phongProgLSpc = glGetUniformLocation(phongProg, "lSpecular");
-    phongProgKAmb = glGetUniformLocation(phongProg, "kAmbient");
+
     phongProgKDif = glGetUniformLocation(phongProg, "kDiffuse");
     phongProgKSpc = glGetUniformLocation(phongProg, "kSpecular");
     phongProgKShn = glGetUniformLocation(phongProg, "kShininess");
+    
     phongProgDoSSAO = glGetUniformLocation(phongProg, "doSSAO");
     
     // Ambient occlusion shaders
@@ -260,12 +270,12 @@ void loadModel()
 
 
 // the camera info
-Vec3 eye = Vec3(-1.5, 2.5, 3.);
-Vec3 lookat = Vec3(8., 0, 0);
+Vec3 eye = Vec3(0, 1.5, 1.5);
+Vec3 lookat = Vec3(0, 0, 0);
 
 // Program functionality variables
 // Shading related
-float depthDiscontinuityRadius = 0.01f;
+float depthDiscontinuityRadius = 10.f;
 
 // Framebuffers, textures to render to, renderbuffers, other textures
 GLuint framebuffer;
@@ -404,20 +414,26 @@ void drawModel(bool ssao)
         glUniformMatrix4fv(phongProgNormalMat, 1, GL_FALSE, reinterpret_cast<float*>(&ident));
 
         // 设置 Lighting uniforms
-        static GLfloat lAmb[3] = {1.0f, 1.0f, 1.0f};
+        static GLfloat lAmb[3] = {1.0f, 1.0f, 1.0f}; // 环境光颜色
+        static GLfloat kAmb[3] = {0.6f, 0.6f, 0.6f};
+        
         static GLfloat lPos[3] = {0.0f, 0.0f, 0.5f};
-        static GLfloat lDif[3] = {1.0f, 1.0f, 1.0f};
-        static GLfloat lSpc[3] = {0.3f, 0.3f, 0.3f};
-        static GLfloat kAmb[3] = {0.2f, 0.1f, 0.0f};
-        static GLfloat kDif[3] = {0.6f, 0.2f, 0.1f};
-        static GLfloat kSpc[3] = {0.0f, 0.0f, 0.0f};
-        static GLfloat kShn = 0.0f;
+        
+        static GLfloat lDif[3] = {1.0f, 1.0f, 1.0f}; // 漫反光颜色
+        static GLfloat kDif[3] = {0.3f, 0.3f, 0.3f};
+        
+        static GLfloat lSpc[3] = {1.0f, 1.0f, 1.0f}; // 镜面光颜色
+        static GLfloat kSpc[3] = {0.01f, 0.01f, 0.01f};
+        static GLfloat kShn = 0.4f;
         
         glUniform3fv(phongProgLAmb, 1, lAmb);
+        glUniform3fv(phongProgKAmb, 1, kAmb);
+        
         glUniform3fv(phongProgLPos, 1, lPos);
+        
         glUniform3fv(phongProgLDif, 1, lDif);
         glUniform3fv(phongProgLSpc, 1, lSpc);
-        glUniform3fv(phongProgKAmb, 1, kAmb);
+        
         glUniform3fv(phongProgKDif, 1, kDif);
         glUniform3fv(phongProgKSpc, 1, kSpc);
         glUniform1f(phongProgKShn, kShn);
