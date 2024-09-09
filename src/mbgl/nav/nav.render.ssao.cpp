@@ -377,6 +377,7 @@ void drawModel(bool ssao)
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
+    // set uniform
     {
         glUseProgram(phongProg);
         
@@ -390,9 +391,7 @@ void drawModel(bool ssao)
         glUniformMatrix4fv(phongProgModelViewMat, 1, GL_FALSE, reinterpret_cast<float*>(&view));
         glUniformMatrix4fv(phongProgMvpMat, 1, GL_FALSE, reinterpret_cast<float*>(&mvp));
         glUniformMatrix4fv(phongProgNormalMat, 1, GL_FALSE, reinterpret_cast<float*>(&ident));
-    }
-    
-    {
+
         // Lighting uniforms
         static GLfloat lAmb[3] = {1.0f, 1.0f, 1.0f};
         static GLfloat lPos[3] = {0.0f, 0.0f, 0.5f};
@@ -414,7 +413,7 @@ void drawModel(bool ssao)
         glUniform1f(phongProgDoSSAO, ssao ? 1.0f : 0.0f);
     }
     
-    // obj
+    // draw ply obj
     {
         // Set up vertex attributes
         glEnableVertexAttribArray(phongProgPosAttrib);
@@ -457,6 +456,7 @@ void doSSAO()
         -0.027741, -0.338065, 0.401220, 0.421871, -0.422317, 0.105886, -0.619888, -0.288012, 0.120912,
         -0.485098, 0.605901, 0.142069, -0.783585, 0.276209, 0.321887 };
 
+    // set uniform
     {
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
         glDrawBuffer(GL_COLOR_ATTACHMENT0);
@@ -476,9 +476,7 @@ void doSSAO()
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, randomTexture);
         glActiveTexture(GL_TEXTURE0);
-    }
-    
-    {
+
         static const double pi = acos(0.0) * 0.5;
         Mat4 projMat = Mat4::perspectiveMatrix(pi * 0.5, 1.333333f, 0.1f, 1000.0f);
         Mat4 invProjMat = Mat4::perspectiveInvMatrix(pi * 0.5, 1.3333333f, 0.1f, 1000.0f);
@@ -493,6 +491,7 @@ void doSSAO()
         glUniform1f(aoProgSampleRadius, depthDiscontinuityRadius);
     }
     
+    // draw ao
     {
         static const float verts[8] = { 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, -1.0f };
         
@@ -511,6 +510,7 @@ void doBlur()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
+    // set uniform
     {
         glUseProgram(blurProg);
         glActiveTexture(GL_TEXTURE0);
@@ -525,6 +525,7 @@ void doBlur()
         glUniform2f(blurProgInvRes, 1.0f / wWidth, 1.0f / wHeight);
     }
     
+    // draw blur
     {
         static const float verts[8] = { 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, -1.0f };
         
