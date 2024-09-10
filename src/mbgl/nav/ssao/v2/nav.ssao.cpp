@@ -20,8 +20,8 @@
 #include <iostream>
 
 
-#define SCR_WIDTH nav::display::width()
-#define SCR_HEIGHT nav::display::height()
+#define SCR_WIDTH nav::display::width() * 2
+#define SCR_HEIGHT nav::display::height() * 2
 
 
 namespace nav {
@@ -220,6 +220,10 @@ GLuint ssaoFBO, ssaoBlurFBO;
 GLuint ssaoColorBuffer, ssaoColorBufferBlur;
 
 void initializeResources() {
+    // Enable and configure textures on applicable texture units
+    glActiveTexture(GL_TEXTURE0);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    
     glGenFramebuffers(1, &gBuffer);
 
     // position color buffer
@@ -269,6 +273,24 @@ void initializeResources() {
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, SCR_WIDTH, SCR_HEIGHT, 0, GL_RED, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    
+    // Set up buffer for floor data, 12 pieses
+    const static GLfloat floorData[36] = {
+        -10.0f, -0.4f, -10.0f,
+        0.0f, 1.0f, 0.0f,
+        -10.0f, -0.4f, 10.0f,
+        0.0f, 1.0f, 0.0f,
+        10.0f, -0.4f, 10.0f,
+        0.0f, 1.0f, 0.0f,
+        10.0f, -0.4f, 10.0f,
+        0.0f, 1.0f, 0.0f,
+        10.0f, -0.4f, -10.0f,
+        0.0f, 1.0f, 0.0f,
+        -10.0f, -0.4f, -10.0f,
+        0.0f, 1.0f, 0.0f };
+    glGenBuffers(1, &floorBuf);
+    glBindBuffer(GL_ARRAY_BUFFER, floorBuf);
+    glBufferData(GL_ARRAY_BUFFER, 36 * sizeof(GLfloat), floorData, GL_STATIC_DRAW);
 }
 
 
@@ -339,89 +361,6 @@ GLint attribLocation(GLuint program, const GLchar *name) {
     return location;
 }
 
-
-// renderCube() renders a 1x1 3D cube in NDC.
-// -------------------------------------------------
-
-void renderCube(GLint program)
-{
-    static GLuint cubeVAO = 0;
-    static GLuint cubeVBO = 0;
-    
-    // initialize (if necessary)
-    if (cubeVAO == 0)
-    {
-        float vertices[] = {
-            // back face
-            -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
-             1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right
-             1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 0.0f, // bottom-right
-             1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right
-            -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
-            -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 1.0f, // top-left
-            // front face
-            -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f, // bottom-left
-             1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 0.0f, // bottom-right
-             1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f, // top-right
-             1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f, // top-right
-            -1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 1.0f, // top-left
-            -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f, // bottom-left
-            // left face
-            -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-right
-            -1.0f,  1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 1.0f, // top-left
-            -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
-            -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
-            -1.0f, -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 0.0f, // bottom-right
-            -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-right
-            // right face
-             1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-left
-             1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
-             1.0f,  1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 1.0f, // top-right
-             1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
-             1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-left
-             1.0f, -1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 0.0f, // bottom-left
-            // bottom face
-            -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
-             1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 1.0f, // top-left
-             1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, // bottom-left
-             1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, // bottom-left
-            -1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 0.0f, // bottom-right
-            -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
-            // top face
-            -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
-             1.0f,  1.0f , 1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, // bottom-right
-             1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 1.0f, // top-right
-             1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, // bottom-right
-            -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
-            -1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f  // bottom-left
-        };
-        glGenVertexArrays(1, &cubeVAO);
-        glGenBuffers(1, &cubeVBO);
-        
-        // fill buffer
-        glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-        
-        // link vertex attributes
-        glBindVertexArray(cubeVAO);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(attribLocation(program, "aPos"), 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-        
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(attribLocation(program, "aNormal"), 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-        
-        glEnableVertexAttribArray(2);
-        glVertexAttribPointer(attribLocation(program, "aTexCoords"), 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-        
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
-    }
-    // render Cube
-    glBindVertexArray(cubeVAO);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
-    glBindVertexArray(0);
-}
-
 // renderQuad() renders a 1x1 XY quad in NDC
 // -----------------------------------------
 
@@ -433,26 +372,29 @@ void renderQuad(GLint program)
     if (quadVAO == 0)
     {
         float quadVertices[] = {
-            // positions        // texture Coords
-            -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
-            -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-             1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
-             1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+            // positions            // texture Coords
+            -1.0f,  1.0f, 0.0f,     0.0f, 1.0f,
+            -1.0f, -1.0f, 0.0f,     0.0f, 0.0f,
+             1.0f,  1.0f, 0.0f,     1.0f, 1.0f,
+             1.0f, -1.0f, 0.0f,     1.0f, 0.0f,
         };
         
         // setup plane VAO
         glGenVertexArrays(1, &quadVAO);
         glGenBuffers(1, &quadVBO);
-        
         glBindVertexArray(quadVAO);
         glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
         
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(attribLocation(program, "aPos"), 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+        GLint location;
         
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(attribLocation(program, "aTexCoords"), 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+        location = attribLocation(program, "aPos");
+        glEnableVertexAttribArray(location);
+        glVertexAttribPointer(location, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+        
+        location = attribLocation(program, "aTexCoords");
+        glEnableVertexAttribArray(location);
+        glVertexAttribPointer(location, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     }
 
     glBindVertexArray(quadVAO);
@@ -484,7 +426,6 @@ void renderSceneToGBuffer() {
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
     }
     
-    
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     glUseProgram(shaderGeometryPass);
@@ -493,31 +434,46 @@ void renderSceneToGBuffer() {
     Mat4 ident = Mat4::identityMatrix();
     Mat4 view, viewNorm;
     Mat4::lookAtMatrix(eye, lookat, Vec3(0, 1, 0), view, viewNorm);
-    Mat4 projection = Mat4::perspectiveMatrix(pi * 0.5, 1.333333f, 0.1f, 1000.0f);
+    Mat4 proj = Mat4::perspectiveMatrix(pi * 0.5, 1.333333f, 0.1f, 1000.0f);
     
-    glUniformMatrix4fv(uniformLocation(shaderGeometryPass, "projection"), 1, GL_FALSE, reinterpret_cast<float*>(&projection));
-    glUniformMatrix4fv(uniformLocation(shaderGeometryPass, "view"), 1, GL_FALSE, reinterpret_cast<float*>(&view));
-    
-    { // room cube
-        Mat4 model = Mat4::identityMatrix();
-        model.translationMatrix(0.0, 7.0f, 0.0f);
-        model.scalingMatrix(7.5f, 7.5f, 7.5f);
+    Mat4 mvp = proj * view;
+    glUniformMatrix4fv(uniformLocation(shaderGeometryPass, "modelViewMat"), 1, GL_FALSE, reinterpret_cast<float*>(&view));
+    glUniformMatrix4fv(uniformLocation(shaderGeometryPass, "modelViewProjMat"), 1, GL_FALSE, reinterpret_cast<float*>(&mvp));
+    glUniformMatrix4fv(uniformLocation(shaderGeometryPass, "normalMat"), 1, GL_FALSE, reinterpret_cast<float*>(&ident));
+
+    // 绘制 floor
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, floorBuf);
         
-        glUniformMatrix4fv(uniformLocation(shaderGeometryPass, "model"), 1, GL_FALSE, reinterpret_cast<float*>(&model));
-        glUniform1i(uniformLocation(shaderGeometryPass, "invertedNormals"), 1); // invert normals as we're inside the cube
-        renderCube(shaderGeometryPass);
+        GLint location;
+        
+        location = attribLocation(shaderGeometryPass, "aPos");
+        glEnableVertexAttribArray(location);
+        glVertexAttribPointer(location, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(0));
+        
+        location = attribLocation(shaderGeometryPass, "aNormal");
+        glEnableVertexAttribArray(location);
+        glVertexAttribPointer(location, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(3*sizeof(GLfloat)));
+        
+        glDrawArrays(GL_TRIANGLES, 0, 6);
     }
     
-    { // backpack model on the floor
-        Mat4 model = Mat4::identityMatrix();
-        model.translationMatrix(0.0f, 0.5f, 0.0);
-        model.rotationAboutAxisMatrix(pi * -0.5, Vec3(1.0, 0.0, 0.0));
-        model.scalingMatrix(1.f, 1.f, 1.f);
+    // 绘制 ply obj
+    {
+        // Set up vertex attributes
+        glBindBuffer(GL_ARRAY_BUFFER, vertexDataBuf);
         
-        glUniformMatrix4fv(uniformLocation(shaderGeometryPass, "model"), 1, GL_FALSE, reinterpret_cast<float*>(&model));
-        glUniform1i(uniformLocation(shaderGeometryPass, "invertedNormals"), 0); // invert normals as we're inside the cube
+        GLint location;
         
-//        backpack.Draw(shaderGeometryPass);
+        location = attribLocation(shaderGeometryPass, "aPos");
+        glEnableVertexAttribArray(location);
+        glVertexAttribPointer(location, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(0));
+        
+        location = attribLocation(shaderGeometryPass, "aNormal");
+        glEnableVertexAttribArray(location);
+        glVertexAttribPointer(location, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(3*sizeof(GLfloat)));
+        
+        glDrawArrays(GL_TRIANGLES, 0, faceIndexCount);
     }
 
 }
@@ -537,8 +493,8 @@ void generateSSAOTexture() {
     
     // Send kernel + rotation
     for (unsigned int i = 0; i < 64; ++i) {
-        glUniform3fv(uniformLocation(shaderSSAO, ("samples[" + std::to_string(i) + "]").c_str()),
-                     1, reinterpret_cast<float*>(&(ssaoKernel[i])));
+        GLint location = uniformLocation(shaderSSAO, ("samples[" + std::to_string(i) + "]").c_str());
+        glUniform3fv(location, 1, reinterpret_cast<float*>(&(ssaoKernel[i])));
     }
     
     const static double pi = acos(0.0) * 2;
@@ -547,14 +503,15 @@ void generateSSAOTexture() {
     Mat4::lookAtMatrix(eye, lookat, Vec3(0, 1, 0), view, viewNorm);
     Mat4 projection = Mat4::perspectiveMatrix(pi * 0.5, 1.333333f, 0.1f, 1000.0f);
     
-    glUniformMatrix4fv(uniformLocation(shaderSSAO, "projection"),
-                       1, GL_FALSE, reinterpret_cast<float*>(&projection));
+    glUniformMatrix4fv(uniformLocation(shaderSSAO, "projection"), 1, GL_FALSE, reinterpret_cast<float*>(&projection));
     
     {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, gPosition);
+        
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, gNormal);
+        
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, noiseTexture);
     }
@@ -571,6 +528,8 @@ void blurSSAOTexture() {
         glDrawBuffer(GL_COLOR_ATTACHMENT0);
     }
     
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    
     glClear(GL_COLOR_BUFFER_BIT);
     
     glUseProgram(shaderSSAOBlur);
@@ -585,6 +544,7 @@ void blurSSAOTexture() {
 // -----------------------------------------------------------------------------------------------------
 void lightingPass() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     glUseProgram(shaderLightingPass);
@@ -611,10 +571,13 @@ void lightingPass() {
     {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, gPosition);
+        
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, gNormal);
+        
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, gAlbedo);
+        
         glActiveTexture(GL_TEXTURE3); // add extra SSAO texture to lighting pass
         glBindTexture(GL_TEXTURE_2D, ssaoColorBufferBlur);
     }
@@ -635,12 +598,17 @@ void draw() {
         loadModel();
     }
     
-    glClearColor(0, 0, 0, 0);
+    glClearColor(1, 1, 1, 1);
+    
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glFrontFace(GL_CCW);
+    glCullFace(GL_BACK);
     
     renderSceneToGBuffer();
     generateSSAOTexture();
     blurSSAOTexture();
-    lightingPass();
+//    lightingPass();
 }
 
 }

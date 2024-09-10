@@ -288,15 +288,8 @@ GLuint randomTexture;
 
 void initializeResources()
 {
-    glEnable(GL_DEPTH_TEST);
-    
-    glEnable(GL_CULL_FACE);
-    glFrontFace(GL_CCW);
-    glCullFace(GL_BACK);
-    
     // Enable and configure textures on applicable texture units
     glActiveTexture(GL_TEXTURE0);
-    
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     
     // Create our framebuffer
@@ -651,6 +644,10 @@ void draw() {
     }
     
     glClearColor(0, 0, 0, 0);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glFrontFace(GL_CCW);
+    glCullFace(GL_BACK);
     
     // If we're rendering with ambient occlusion
     if (1) {

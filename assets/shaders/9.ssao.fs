@@ -10,11 +10,11 @@ uniform vec3 samples[64];
 // parameters (you'd probably want to use them as uniforms to more easily tweak the effect)
 const int kernelSize = 64;
 const float kernelSizef = 64.;
-const float radius = 0.5;
+const float radius = 0.04;
 const float bias = 0.025;
 
 // tile noise texture over screen based on screen dimensions divided by noise size
-const vec2 noiseScale = vec2(800.0/4.0, 600.0/4.0); 
+const vec2 noiseScale = vec2(2048.0*2./4.0, 1080.0*2./4.0); 
 
 uniform mat4 projection;
 
@@ -22,12 +22,14 @@ void main()
 {
     // get input for SSAO algorithm
     vec3 fragPos = texture2D(gPosition, TexCoords).xyz;
-    vec3 normal = normalize(texture2D(gNormal, TexCoords).rgb);
+    vec3 normal = normalize(texture2D(gNormal, TexCoords).xyz);
     vec3 randomVec = normalize(texture2D(texNoise, TexCoords * noiseScale).xyz);
+
     // create TBN change-of-basis matrix: from tangent-space to view-space
     vec3 tangent = normalize(randomVec - normal * dot(randomVec, normal));
     vec3 bitangent = cross(normal, tangent);
     mat3 TBN = mat3(tangent, bitangent, normal);
+
     // iterate over the sample kernel and calculate occlusion factor
     float occlusion = 0.0;
     for(int i = 0; i < kernelSize; ++i)
