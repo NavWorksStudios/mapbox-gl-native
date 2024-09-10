@@ -12,8 +12,8 @@
 
 namespace nav {
 namespace ssao {
-
-void draw();
-
+namespace v1 {
+    void draw();
+}
 }
 }

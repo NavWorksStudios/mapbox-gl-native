@@ -11,14 +11,9 @@
 #include <gl_headers.hpp>
 
 namespace nav {
-
 namespace ssao {
-
-void createRenderbuffer();
-void prepareGBuffer();
-void prepareAOBuffer();
-void renderAO();
-
+namespace v2 {
+    void draw();
 }
-
+}
 }

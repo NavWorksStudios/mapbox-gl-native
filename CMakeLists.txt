@@ -337,10 +337,6 @@ set(all_files
 
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v2/nav.ssao.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v2/nav.ssao.cpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v2/shader.h
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v2/camera.h
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v2/model.h
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v2/mesh.h
 
     ${PROJECT_SOURCE_DIR}/src/mbgl/actor/mailbox.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/actor/scheduler.cpp

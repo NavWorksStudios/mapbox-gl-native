@@ -16,6 +16,7 @@
 #include <mbgl/util/logging.hpp>
 
 #include "mbgl/nav/ssao/v1/nav.ssao.hpp"
+#include "mbgl/nav/ssao/v2/nav.ssao.hpp"
 
 
 namespace mbgl {
@@ -199,7 +200,7 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
     }
 #endif
     
-    nav::ssao::draw();
+    nav::ssao::v1::draw();
 
     // Ends the RenderPass
     parameters.renderPass.reset();

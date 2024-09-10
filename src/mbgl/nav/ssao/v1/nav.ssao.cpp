@@ -638,6 +638,7 @@ void doBlur()
     }
 }
 
+namespace v1 {
 
 void draw() {
     static bool initized = false;
@@ -659,6 +660,8 @@ void draw() {
     } else {
         drawModel(false);
     }
+}
+
 }
 
 
