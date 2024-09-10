@@ -200,7 +200,7 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
     }
 #endif
     
-    nav::ssao::v1::draw();
+    nav::ssao::v2::draw();
 
     // Ends the RenderPass
     parameters.renderPass.reset();

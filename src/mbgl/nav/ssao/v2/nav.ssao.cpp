@@ -327,14 +327,23 @@ void genSampleKernelAndNoiseTexture() {
 
 
 
+GLint uniformLocation(GLuint program, const GLchar *name) {
+    GLint location = glGetUniformLocation(program, name);
+    assert(location >= 0);
+    return location;
+}
 
-
+GLint attribLocation(GLuint program, const GLchar *name) {
+    GLint location = glGetAttribLocation(program, name);
+    assert(location >= 0);
+    return location;
+}
 
 
 // renderCube() renders a 1x1 3D cube in NDC.
 // -------------------------------------------------
 
-void renderCube()
+void renderCube(GLint program)
 {
     static GLuint cubeVAO = 0;
     static GLuint cubeVBO = 0;
@@ -388,17 +397,22 @@ void renderCube()
         };
         glGenVertexArrays(1, &cubeVAO);
         glGenBuffers(1, &cubeVBO);
+        
         // fill buffer
         glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+        
         // link vertex attributes
         glBindVertexArray(cubeVAO);
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+        glVertexAttribPointer(attribLocation(program, "aPos"), 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+        
         glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+        glVertexAttribPointer(attribLocation(program, "aNormal"), 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+        
         glEnableVertexAttribArray(2);
-        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+        glVertexAttribPointer(attribLocation(program, "aTexCoords"), 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+        
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
     }
@@ -411,7 +425,7 @@ void renderCube()
 // renderQuad() renders a 1x1 XY quad in NDC
 // -----------------------------------------
 
-void renderQuad()
+void renderQuad(GLint program)
 {
     static GLuint quadVAO = 0;
     static GLuint quadVBO;
@@ -429,13 +443,16 @@ void renderQuad()
         // setup plane VAO
         glGenVertexArrays(1, &quadVAO);
         glGenBuffers(1, &quadVBO);
+        
         glBindVertexArray(quadVAO);
         glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+        
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+        glVertexAttribPointer(attribLocation(program, "aPos"), 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+        
         glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+        glVertexAttribPointer(attribLocation(program, "aTexCoords"), 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     }
 
     glBindVertexArray(quadVAO);
@@ -478,17 +495,17 @@ void renderSceneToGBuffer() {
     Mat4::lookAtMatrix(eye, lookat, Vec3(0, 1, 0), view, viewNorm);
     Mat4 projection = Mat4::perspectiveMatrix(pi * 0.5, 1.333333f, 0.1f, 1000.0f);
     
-    glUniformMatrix4fv(glGetUniformLocation(shaderGeometryPass, "projection"), 1, GL_FALSE, reinterpret_cast<float*>(&projection));
-    glUniformMatrix4fv(glGetUniformLocation(shaderGeometryPass, "view"), 1, GL_FALSE, reinterpret_cast<float*>(&view));
+    glUniformMatrix4fv(uniformLocation(shaderGeometryPass, "projection"), 1, GL_FALSE, reinterpret_cast<float*>(&projection));
+    glUniformMatrix4fv(uniformLocation(shaderGeometryPass, "view"), 1, GL_FALSE, reinterpret_cast<float*>(&view));
     
     { // room cube
         Mat4 model = Mat4::identityMatrix();
         model.translationMatrix(0.0, 7.0f, 0.0f);
         model.scalingMatrix(7.5f, 7.5f, 7.5f);
         
-        glUniformMatrix4fv(glGetUniformLocation(shaderGeometryPass, "model"), 1, GL_FALSE, reinterpret_cast<float*>(&model));
-        glUniform1i(glGetUniformLocation(shaderGeometryPass, "invertedNormals"), 1); // invert normals as we're inside the cube
-        renderCube();
+        glUniformMatrix4fv(uniformLocation(shaderGeometryPass, "model"), 1, GL_FALSE, reinterpret_cast<float*>(&model));
+        glUniform1i(uniformLocation(shaderGeometryPass, "invertedNormals"), 1); // invert normals as we're inside the cube
+        renderCube(shaderGeometryPass);
     }
     
     { // backpack model on the floor
@@ -497,8 +514,8 @@ void renderSceneToGBuffer() {
         model.rotationAboutAxisMatrix(pi * -0.5, Vec3(1.0, 0.0, 0.0));
         model.scalingMatrix(1.f, 1.f, 1.f);
         
-        glUniformMatrix4fv(glGetUniformLocation(shaderGeometryPass, "model"), 1, GL_FALSE, reinterpret_cast<float*>(&model));
-        glUniform1i(glGetUniformLocation(shaderGeometryPass, "invertedNormals"), 0); // invert normals as we're inside the cube
+        glUniformMatrix4fv(uniformLocation(shaderGeometryPass, "model"), 1, GL_FALSE, reinterpret_cast<float*>(&model));
+        glUniform1i(uniformLocation(shaderGeometryPass, "invertedNormals"), 0); // invert normals as we're inside the cube
         
 //        backpack.Draw(shaderGeometryPass);
     }
@@ -519,16 +536,19 @@ void generateSSAOTexture() {
     glUseProgram(shaderSSAO);
     
     // Send kernel + rotation
-    for (unsigned int i = 0; i < 64; ++i)
-        glUniform3fv(glGetUniformLocation(shaderSSAO, ("samples[" + std::to_string(i) + "]").c_str()), 1, reinterpret_cast<float*>(&(ssaoKernel[i])));
-
+    for (unsigned int i = 0; i < 64; ++i) {
+        glUniform3fv(uniformLocation(shaderSSAO, ("samples[" + std::to_string(i) + "]").c_str()),
+                     1, reinterpret_cast<float*>(&(ssaoKernel[i])));
+    }
     
     const static double pi = acos(0.0) * 2;
     Mat4 ident = Mat4::identityMatrix();
     Mat4 view, viewNorm;
     Mat4::lookAtMatrix(eye, lookat, Vec3(0, 1, 0), view, viewNorm);
     Mat4 projection = Mat4::perspectiveMatrix(pi * 0.5, 1.333333f, 0.1f, 1000.0f);
-    glUniformMatrix4fv(glGetUniformLocation(shaderSSAO, "projection"), 1, GL_FALSE, reinterpret_cast<float*>(&projection));
+    
+    glUniformMatrix4fv(uniformLocation(shaderSSAO, "projection"),
+                       1, GL_FALSE, reinterpret_cast<float*>(&projection));
     
     {
         glActiveTexture(GL_TEXTURE0);
@@ -539,7 +559,7 @@ void generateSSAOTexture() {
         glBindTexture(GL_TEXTURE_2D, noiseTexture);
     }
     
-    renderQuad();
+    renderQuad(shaderSSAO);
 }
 
 // 3. blur SSAO texture to remove noise
@@ -558,7 +578,7 @@ void blurSSAOTexture() {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, ssaoColorBuffer);
     
-    renderQuad();
+    renderQuad(shaderSSAOBlur);
 }
 
 // 4. lighting pass: traditional deferred Blinn-Phong lighting with added screen-space ambient occlusion
@@ -579,14 +599,14 @@ void lightingPass() {
     Mat4::lookAtMatrix(eye, lookat, Vec3(0, 1, 0), view, viewNorm);
     Vec3 lightPosView(view * lightPos);
     
-    glUniform3fv(glGetUniformLocation(shaderLightingPass, "light.Position"), 1, reinterpret_cast<float*>(&lightPosView));
-    glUniform3fv(glGetUniformLocation(shaderLightingPass, "light.Color"), 1, reinterpret_cast<float*>(&lightColor));
+    glUniform3fv(uniformLocation(shaderLightingPass, "light.Position"), 1, reinterpret_cast<float*>(&lightPosView));
+    glUniform3fv(uniformLocation(shaderLightingPass, "light.Color"), 1, reinterpret_cast<float*>(&lightColor));
     
     // Update attenuation parameters
     const float linear    = 0.09f;
     const float quadratic = 0.032f;
-    glUniform1f(glGetUniformLocation(shaderLightingPass, "light.Linear"), linear);
-    glUniform1f(glGetUniformLocation(shaderLightingPass, "light.Quadratic"), quadratic);
+    glUniform1f(uniformLocation(shaderLightingPass, "light.Linear"), linear);
+    glUniform1f(uniformLocation(shaderLightingPass, "light.Quadratic"), quadratic);
     
     {
         glActiveTexture(GL_TEXTURE0);
@@ -599,7 +619,7 @@ void lightingPass() {
         glBindTexture(GL_TEXTURE_2D, ssaoColorBufferBlur);
     }
     
-    renderQuad();
+    renderQuad(shaderLightingPass);
 }
 
 namespace v2 {
