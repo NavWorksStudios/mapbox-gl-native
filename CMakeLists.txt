@@ -10,7 +10,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL Android)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
 endif()
 
-
 #add_definitions(-__ANDROID__) 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER Core)
@@ -338,8 +337,10 @@ set(all_files
 
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v2/nav.ssao.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v2/nav.ssao.cpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v2/nav.shader.hpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v2/nav.shader.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v2/shader.h
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v2/camera.h
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v2/model.h
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v2/mesh.h
 
     ${PROJECT_SOURCE_DIR}/src/mbgl/actor/mailbox.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/actor/scheduler.cpp
