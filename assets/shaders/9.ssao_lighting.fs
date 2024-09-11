@@ -25,7 +25,6 @@ void main()
     
     // then calculate lighting as usual
     vec3 ambient = vec3(0.7 * Diffuse * AmbientOcclusion);
-
     vec3 viewDir  = normalize(-FragPos); // viewpos is (0.0.0)
 
     // diffuse
@@ -44,6 +43,6 @@ void main()
     diffuse *= attenuation;
     specular *= attenuation;
 
-    vec3 lighting = ambient + diffuse * .4 + specular * .2;
+    vec3 lighting = ambient + diffuse * 0.4 + specular * 0.1;
     gl_FragColor = vec4(lighting, 1.0);
 }
