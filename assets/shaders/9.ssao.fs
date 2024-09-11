@@ -11,7 +11,7 @@ uniform vec3 samples[64];
 const int kernelSize = 64;
 const float kernelSizef = 64.;
 const float radius = 0.04;
-const float bias = 0.025;
+const float bias = 0.04;
 
 // tile noise texture over screen based on screen dimensions divided by noise size
 const vec2 noiseScale = vec2(2048.0*2./4.0, 1080.0*2./4.0); 
@@ -54,5 +54,5 @@ void main()
 
     occlusion = 1.0 - (occlusion / kernelSizef);
     
-    gl_FragColor = vec4(occlusion);
+    gl_FragColor.r = occlusion;
 }

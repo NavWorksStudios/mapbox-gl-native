@@ -31,20 +31,14 @@ namespace ssao {
 // Shader programs and attrib/uniform locations
 
 GLuint shaderGeometryPass;
-GLint shaderLightingPass;
 GLuint shaderSSAO;
 GLint shaderSSAOBlur;
-
+GLint shaderLightingPass;
 
 void loadShaders() {
     shaderGeometryPass = 
     createProgram(loadShader(GL_VERTEX_SHADER, "/shaders/9.ssao_geometry.vs"),
                   loadShader(GL_FRAGMENT_SHADER, "/shaders/9.ssao_geometry.fs"));
-
-
-    shaderLightingPass = 
-    createProgram(loadShader(GL_VERTEX_SHADER, "/shaders/9.ssao.vs"),
-                  loadShader(GL_FRAGMENT_SHADER, "/shaders/9.ssao_lighting.fs"));
 
     
     shaderSSAO = 
@@ -55,6 +49,10 @@ void loadShaders() {
     shaderSSAOBlur = 
     createProgram(loadShader(GL_VERTEX_SHADER, "/shaders/9.ssao.vs"),
                   loadShader(GL_FRAGMENT_SHADER, "/shaders/9.ssao_blur.fs"));
+    
+    shaderLightingPass =
+    createProgram(loadShader(GL_VERTEX_SHADER, "/shaders/9.ssao.vs"),
+                  loadShader(GL_FRAGMENT_SHADER, "/shaders/9.ssao_lighting.fs"));
     
 }
 
@@ -217,7 +215,7 @@ GLuint gPosition, gNormal, gAlbedo;
 GLuint rboDepth;
 
 GLuint ssaoFBO, ssaoBlurFBO;
-GLuint ssaoColorBuffer, ssaoColorBufferBlur;
+GLuint ssaoBuffer, ssaoBlurBuffer;
 
 void initializeResources() {
     // Enable and configure textures on applicable texture units
@@ -261,15 +259,15 @@ void initializeResources() {
     glGenFramebuffers(1, &ssaoBlurFBO);
 
     // SSAO color buffer
-    glGenTextures(1, &ssaoColorBuffer);
-    glBindTexture(GL_TEXTURE_2D, ssaoColorBuffer);
+    glGenTextures(1, &ssaoBuffer);
+    glBindTexture(GL_TEXTURE_2D, ssaoBuffer);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, SCR_WIDTH, SCR_HEIGHT, 0, GL_RED, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
     // and blur stage
-    glGenTextures(1, &ssaoColorBufferBlur);
-    glBindTexture(GL_TEXTURE_2D, ssaoColorBufferBlur);
+    glGenTextures(1, &ssaoBlurBuffer);
+    glBindTexture(GL_TEXTURE_2D, ssaoBlurBuffer);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, SCR_WIDTH, SCR_HEIGHT, 0, GL_RED, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -403,7 +401,7 @@ void renderQuad(GLint program)
 }
 
 // the camera info
-Vec3 eye = Vec3(0, 1.5, 1.5);
+Vec3 eye = Vec3(-0.3, .8, .8);
 Vec3 lookat = Vec3(0, 0, 0);
 
 
@@ -414,15 +412,13 @@ void renderSceneToGBuffer() {
 
     {
         glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
-        
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gPosition, 0);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gNormal, 0);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gAlbedo, 0);
-        
         // tell OpenGL which color attachments we'll use (of this framebuffer) for rendering
         unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
         glDrawBuffers(3, attachments);
-        
+
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
     }
     
@@ -430,16 +426,18 @@ void renderSceneToGBuffer() {
     
     glUseProgram(shaderGeometryPass);
     
-    const static double pi = acos(0.0) * 2;
-    Mat4 ident = Mat4::identityMatrix();
-    Mat4 view, viewNorm;
-    Mat4::lookAtMatrix(eye, lookat, Vec3(0, 1, 0), view, viewNorm);
-    Mat4 proj = Mat4::perspectiveMatrix(pi * 0.5, 1.333333f, 0.1f, 1000.0f);
-    
-    Mat4 mvp = proj * view;
-    glUniformMatrix4fv(uniformLocation(shaderGeometryPass, "modelViewMat"), 1, GL_FALSE, reinterpret_cast<float*>(&view));
-    glUniformMatrix4fv(uniformLocation(shaderGeometryPass, "modelViewProjMat"), 1, GL_FALSE, reinterpret_cast<float*>(&mvp));
-    glUniformMatrix4fv(uniformLocation(shaderGeometryPass, "normalMat"), 1, GL_FALSE, reinterpret_cast<float*>(&ident));
+    {
+        const static double pi = acos(0.0) * 2;
+        Mat4 ident = Mat4::identityMatrix();
+        Mat4 view, viewNorm;
+        Mat4::lookAtMatrix(eye, lookat, Vec3(0, 1, 0), view, viewNorm);
+        Mat4 proj = Mat4::perspectiveMatrix(pi * 0.5, 1.333333f, 0.1f, 1000.0f);
+        
+        Mat4 mvp = proj * view;
+        glUniformMatrix4fv(uniformLocation(shaderGeometryPass, "modelViewMat"), 1, GL_FALSE, reinterpret_cast<float*>(&view));
+        glUniformMatrix4fv(uniformLocation(shaderGeometryPass, "modelViewProjMat"), 1, GL_FALSE, reinterpret_cast<float*>(&mvp));
+        glUniformMatrix4fv(uniformLocation(shaderGeometryPass, "normalMat"), 1, GL_FALSE, reinterpret_cast<float*>(&ident));
+    }
 
     // 绘制 floor
     {
@@ -483,7 +481,7 @@ void renderSceneToGBuffer() {
 void generateSSAOTexture() {
     {
         glBindFramebuffer(GL_FRAMEBUFFER, ssaoFBO);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoColorBuffer, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoBuffer, 0);
         glDrawBuffer(GL_COLOR_ATTACHMENT0);
     }
     
@@ -491,20 +489,24 @@ void generateSSAOTexture() {
     
     glUseProgram(shaderSSAO);
     
-    // Send kernel + rotation
-    for (unsigned int i = 0; i < 64; ++i) {
-        GLint location = uniformLocation(shaderSSAO, ("samples[" + std::to_string(i) + "]").c_str());
-        glUniform3fv(location, 1, reinterpret_cast<float*>(&(ssaoKernel[i])));
+    {
+        // Send kernel + rotation
+        for (unsigned int i = 0; i < 64; ++i) {
+            GLint location = uniformLocation(shaderSSAO, ("samples[" + std::to_string(i) + "]").c_str());
+            glUniform3fv(location, 1, reinterpret_cast<float*>(&(ssaoKernel[i])));
+        }
     }
     
-    const static double pi = acos(0.0) * 2;
-    Mat4 ident = Mat4::identityMatrix();
-    Mat4 view, viewNorm;
-    Mat4::lookAtMatrix(eye, lookat, Vec3(0, 1, 0), view, viewNorm);
-    Mat4 projection = Mat4::perspectiveMatrix(pi * 0.5, 1.333333f, 0.1f, 1000.0f);
-    
-    glUniformMatrix4fv(uniformLocation(shaderSSAO, "projection"), 1, GL_FALSE, reinterpret_cast<float*>(&projection));
-    
+    {
+        const static double pi = acos(0.0) * 2;
+        Mat4 ident = Mat4::identityMatrix();
+        Mat4 view, viewNorm;
+        Mat4::lookAtMatrix(eye, lookat, Vec3(0, 1, 0), view, viewNorm);
+        Mat4 projection = Mat4::perspectiveMatrix(pi * 0.5, 1.333333f, 0.1f, 1000.0f);
+        
+        glUniformMatrix4fv(uniformLocation(shaderSSAO, "projection"), 1, GL_FALSE, reinterpret_cast<float*>(&projection));
+    }
+
     {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, gPosition);
@@ -524,18 +526,16 @@ void generateSSAOTexture() {
 void blurSSAOTexture() {
     {
         glBindFramebuffer(GL_FRAMEBUFFER, ssaoBlurFBO);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoColorBufferBlur, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoBlurBuffer, 0);
         glDrawBuffer(GL_COLOR_ATTACHMENT0);
     }
-    
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    
+
     glClear(GL_COLOR_BUFFER_BIT);
     
     glUseProgram(shaderSSAOBlur);
     
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, ssaoColorBuffer);
+    glBindTexture(GL_TEXTURE_2D, ssaoBuffer);
     
     renderQuad(shaderSSAOBlur);
 }
@@ -579,7 +579,7 @@ void lightingPass() {
         glBindTexture(GL_TEXTURE_2D, gAlbedo);
         
         glActiveTexture(GL_TEXTURE3); // add extra SSAO texture to lighting pass
-        glBindTexture(GL_TEXTURE_2D, ssaoColorBufferBlur);
+        glBindTexture(GL_TEXTURE_2D, ssaoBlurBuffer);
     }
     
     renderQuad(shaderLightingPass);
@@ -608,7 +608,7 @@ void draw() {
     renderSceneToGBuffer();
     generateSSAOTexture();
     blurSSAOTexture();
-//    lightingPass();
+    lightingPass();
 }
 
 }
