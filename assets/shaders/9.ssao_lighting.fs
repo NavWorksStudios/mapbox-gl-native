@@ -4,12 +4,11 @@ varying vec2 TexCoords;
 uniform sampler2D gPosition;
 uniform sampler2D gNormal;
 uniform sampler2D gAlbedo;
-uniform sampler2D ssao;
+uniform sampler2D ssaoBlur;
 
 struct Light {
     vec3 Position;
     vec3 Color;
-    
     float Linear;
     float Quadratic;
 };
@@ -22,11 +21,10 @@ void main()
     vec3 FragPos = texture2D(gPosition, TexCoords).rgb;
     vec3 Normal = texture2D(gNormal, TexCoords).rgb;
     vec3 Diffuse = texture2D(gAlbedo, TexCoords).rgb;
-    float AmbientOcclusion = texture2D(ssao, TexCoords).r;
+    float AmbientOcclusion = texture2D(ssaoBlur, TexCoords).r;
     
     // then calculate lighting as usual
-    vec3 ambient = vec3(0.3 * Diffuse * AmbientOcclusion);
-    vec3 lighting  = ambient; 
+    vec3 ambient = vec3(0.7 * Diffuse * AmbientOcclusion);
 
     vec3 viewDir  = normalize(-FragPos); // viewpos is (0.0.0)
 
@@ -45,7 +43,7 @@ void main()
     
     diffuse *= attenuation;
     specular *= attenuation;
-    lighting += diffuse + specular;
 
+    vec3 lighting = ambient + diffuse * .4 + specular * .2;
     gl_FragColor = vec4(lighting, 1.0);
 }

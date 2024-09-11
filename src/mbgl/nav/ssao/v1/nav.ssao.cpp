@@ -269,7 +269,7 @@ void loadModel()
 
 
 // the camera info
-Vec3 eye = Vec3(-0.3, .8, .8);
+Vec3 eye = Vec3(0., 1.5, 1.5);
 Vec3 lookat = Vec3(0, 0, 0);
 
 // Program functionality variables

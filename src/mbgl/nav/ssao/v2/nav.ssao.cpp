@@ -401,7 +401,7 @@ void renderQuad(GLint program)
 }
 
 // the camera info
-Vec3 eye = Vec3(-0.3, .8, .8);
+Vec3 eye = Vec3(0., 1.5, 1.5);
 Vec3 lookat = Vec3(0, 0, 0);
 
 
@@ -415,11 +415,11 @@ void renderSceneToGBuffer() {
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gPosition, 0);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gNormal, 0);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gAlbedo, 0);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
+        
         // tell OpenGL which color attachments we'll use (of this framebuffer) for rendering
         unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
         glDrawBuffers(3, attachments);
-
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
     }
     
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -474,6 +474,7 @@ void renderSceneToGBuffer() {
         glDrawArrays(GL_TRIANGLES, 0, faceIndexCount);
     }
 
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 // 2. generate SSAO texture
@@ -519,6 +520,8 @@ void generateSSAOTexture() {
     }
     
     renderQuad(shaderSSAO);
+    
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 // 3. blur SSAO texture to remove noise
@@ -538,6 +541,8 @@ void blurSSAOTexture() {
     glBindTexture(GL_TEXTURE_2D, ssaoBuffer);
     
     renderQuad(shaderSSAOBlur);
+    
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 // 4. lighting pass: traditional deferred Blinn-Phong lighting with added screen-space ambient occlusion
@@ -551,7 +556,7 @@ void lightingPass() {
     
     // send light relevant uniforms
     Vec3 lightPos(2.0, 4.0, -2.0);
-    Vec3 lightColor(0.2, 0.2, 0.7);
+    Vec3 lightColor(1., 1., 1.);
     
     const static double pi = acos(0.0) * 2;
     Mat4 ident = Mat4::identityMatrix();
@@ -571,15 +576,20 @@ void lightingPass() {
     {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, gPosition);
+        glUniform1i(uniformLocation(shaderLightingPass, "gPosition"), 0);
         
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, gNormal);
+        glUniform1i(uniformLocation(shaderLightingPass, "gNormal"), 1);
         
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, gAlbedo);
+        glUniform1i(uniformLocation(shaderLightingPass, "gAlbedo"), 2);
         
         glActiveTexture(GL_TEXTURE3); // add extra SSAO texture to lighting pass
         glBindTexture(GL_TEXTURE_2D, ssaoBlurBuffer);
+        glUniform1i(uniformLocation(shaderLightingPass, "ssaoBlur"), 3);
+        
     }
     
     renderQuad(shaderLightingPass);
