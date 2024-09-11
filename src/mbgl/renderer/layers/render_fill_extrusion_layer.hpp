@@ -11,6 +11,9 @@ class RenderFillExtrusionLayer final : public RenderLayer {
 public:
     explicit RenderFillExtrusionLayer(Immutable<style::FillExtrusionLayer::Impl>);
     ~RenderFillExtrusionLayer() override;
+    
+public:
+    static void renderSSAO();
 
 private:
     void transition(const TransitionParameters&) override;

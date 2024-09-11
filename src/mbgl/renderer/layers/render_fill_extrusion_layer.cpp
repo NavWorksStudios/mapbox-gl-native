@@ -32,13 +32,22 @@ inline const FillExtrusionLayer::Impl& impl_cast(const Immutable<style::Layer::I
 
 } // namespace
 
+static RenderFillExtrusionLayer* renderFillExtrusionLayer;
+
 RenderFillExtrusionLayer::RenderFillExtrusionLayer(Immutable<style::FillExtrusionLayer::Impl> _impl)
     : RenderLayer(makeMutable<FillExtrusionLayerProperties>(std::move(_impl))),
       unevaluated(impl_cast(baseImpl).paint.untransitioned()) {
+    renderFillExtrusionLayer = this;
     bindToPalette(baseImpl->id, "fill-extrusion-color", unevaluated.get<FillExtrusionColor>().value);
 }
 
-RenderFillExtrusionLayer::~RenderFillExtrusionLayer() = default;
+RenderFillExtrusionLayer::~RenderFillExtrusionLayer() {
+    renderFillExtrusionLayer = nullptr;
+}
+
+void RenderFillExtrusionLayer::renderSSAO() {
+    // render extrusion with SSAO shader
+}
 
 void RenderFillExtrusionLayer::transition(const TransitionParameters& parameters) {
     unevaluated = impl_cast(baseImpl).paint.transitioned(parameters, std::move(unevaluated));

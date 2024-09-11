@@ -408,7 +408,7 @@ Vec3 lookat = Vec3(0, 0, 0);
 // 1. geometry pass: render scene's geometry/color data into gbuffer
 // -----------------------------------------------------------------
 
-void renderSceneToGBuffer() {
+void renderSceneToGBuffer(std::function<void()> renderScene) {
 
     {
         glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
@@ -425,6 +425,8 @@ void renderSceneToGBuffer() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     glUseProgram(shaderGeometryPass);
+    
+#if 0
     
     {
         const static double pi = acos(0.0) * 2;
@@ -473,6 +475,12 @@ void renderSceneToGBuffer() {
         
         glDrawArrays(GL_TRIANGLES, 0, faceIndexCount);
     }
+    
+#else
+    
+    renderScene();
+    
+#endif
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -597,7 +605,7 @@ void lightingPass() {
 
 namespace v2 {
 
-void draw() {
+void draw(std::function<void()> renderScene) {
     static bool initized = false;
     if (!initized) {
         initized = true;
@@ -615,7 +623,7 @@ void draw() {
     glFrontFace(GL_CCW);
     glCullFace(GL_BACK);
     
-    renderSceneToGBuffer();
+    renderSceneToGBuffer(renderScene);
     generateSSAOTexture();
     blurSSAOTexture();
     lightingPass();

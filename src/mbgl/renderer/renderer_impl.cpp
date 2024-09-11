@@ -18,6 +18,8 @@
 #include "mbgl/nav/ssao/v1/nav.ssao.hpp"
 #include "mbgl/nav/ssao/v2/nav.ssao.hpp"
 
+#include <mbgl/renderer/layers/render_fill_extrusion_layer.hpp>
+
 
 namespace mbgl {
 
@@ -189,6 +191,13 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
             renderItem.render(parameters);
         }
     }
+    
+    // - SSAO PASS --------------------------------------------------------------------------------
+    {
+        nav::ssao::v2::draw([] () {
+            RenderFillExtrusionLayer::renderSSAO();
+        });
+    }
 
 #if not defined(NDEBUG)
     if (parameters.debugOptions & MapDebugOptions::StencilClip) {
@@ -199,8 +208,6 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
         parameters.context.visualizeDepthBuffer(parameters.depthRangeSize);
     }
 #endif
-    
-    nav::ssao::v2::draw();
 
     // Ends the RenderPass
     parameters.renderPass.reset();
