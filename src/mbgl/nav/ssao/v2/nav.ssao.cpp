@@ -558,7 +558,7 @@ void blurSSAOTexture() {
 void lightingPass() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     glUseProgram(shaderLightingPass);
     
@@ -616,17 +616,16 @@ void draw(std::function<void()> renderScene) {
         loadModel();
     }
     
-    glClearColor(1, 1, 1, 1);
-    
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-    glFrontFace(GL_CCW);
-    glCullFace(GL_BACK);
+//    glClearColor(0, 0, 0, 0);
+//    glEnable(GL_DEPTH_TEST);
+//    glEnable(GL_CULL_FACE);
+//    glFrontFace(GL_CCW);
+//    glCullFace(GL_BACK);
     
     renderSceneToGBuffer(renderScene);
     generateSSAOTexture();
     blurSSAOTexture();
-    lightingPass();
+//    lightingPass();
 }
 
 }
