@@ -633,7 +633,7 @@ void doBlur()
 
 namespace v1 {
 
-void draw() {
+void draw(...) {
     static bool initized = false;
     if (!initized) {
         initized = true;

@@ -303,6 +303,7 @@ GLfloat lerp(GLfloat a, GLfloat b, GLfloat f) {
 
 void genSampleKernelAndNoiseTexture() {
 
+    // 生成一个沿法线方向的半球形采样核心，将在切线空间生成这个半球（法线都指向+z轴），以免为每个平面都单独生成一个沿各自法线方向的半球。
     // - generate sample kernel
     std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0); // generates random floats between 0.0 and 1.0
     std::default_random_engine generator;
@@ -322,6 +323,8 @@ void genSampleKernelAndNoiseTexture() {
         ssaoKernel.push_back(sample);
     }
 
+    // 随机核心旋转
+    // 将每个核心的随机旋转存储在纹理中。创建一个4*4阵列的随即旋转向量，绕着切线空间的法线：
     // - Noise texture
     for (GLuint i = 0; i < 16; i++) {
         //基于屏幕空间，z为0
