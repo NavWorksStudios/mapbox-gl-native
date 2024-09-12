@@ -8,8 +8,8 @@ void main()
     gl_FragData[0].xyz = FragPos;
 
     // also store the per-fragment normals into the gbuffer
-    gl_FragData[1].xyz = normalize(Normal);
+    gl_FragData[1].xyz = Normal;
 
     // and the diffuse per-fragment color
-    gl_FragData[2].rgb = vec3(0.95);
+    gl_FragData[2].rgb = vec3(.95);
 }

@@ -243,7 +243,7 @@ void initializeResources() {
     // color + specular color buffer
     glGenTextures(1, &gAlbedo);
     glBindTexture(GL_TEXTURE_2D, gAlbedo);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
@@ -329,6 +329,8 @@ void genSampleKernelAndNoiseTexture() {
             randomFloats(generator) * 2.0 - 1.0,
             randomFloats(generator) * 2.0 - 1.0,
             0.0f );
+        
+        noise.normalize();
 
         ssaoNoise.push_back(noise);
     }
@@ -426,7 +428,7 @@ void renderSceneToGBuffer(std::function<void()> renderScene) {
     
     glUseProgram(shaderGeometryPass);
     
-#if 0
+#if 1
     
     {
         const static double pi = acos(0.0) * 2;
@@ -519,12 +521,15 @@ void generateSSAOTexture() {
     {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, gPosition);
+        glUniform1i(uniformLocation(shaderSSAO, "gPosition"), 0);
         
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, gNormal);
+        glUniform1i(uniformLocation(shaderSSAO, "gNormal"), 1);
         
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, noiseTexture);
+        glUniform1i(uniformLocation(shaderSSAO, "texNoise"), 2);
     }
     
     renderQuad(shaderSSAO);
@@ -547,6 +552,7 @@ void blurSSAOTexture() {
     
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, ssaoBuffer);
+    glUniform1i(uniformLocation(shaderSSAOBlur, "ssao"), 0);
     
     renderQuad(shaderSSAOBlur);
     
@@ -563,15 +569,11 @@ void lightingPass() {
     glUseProgram(shaderLightingPass);
     
     // send light relevant uniforms
-    Vec3 lightPos(2.0, 4.0, -2.0);
+    Vec3 lightPos(0.0f, 0.0f, 0.5f);
     Vec3 lightColor(1., 1., 1.);
-    
-    const static double pi = acos(0.0) * 2;
-    Mat4 ident = Mat4::identityMatrix();
     Mat4 view, viewNorm;
     Mat4::lookAtMatrix(eye, lookat, Vec3(0, 1, 0), view, viewNorm);
     Vec3 lightPosView(view * lightPos);
-    
     glUniform3fv(uniformLocation(shaderLightingPass, "light.Position"), 1, reinterpret_cast<float*>(&lightPosView));
     glUniform3fv(uniformLocation(shaderLightingPass, "light.Color"), 1, reinterpret_cast<float*>(&lightColor));
     
@@ -616,16 +618,16 @@ void draw(std::function<void()> renderScene) {
         loadModel();
     }
     
-//    glClearColor(0, 0, 0, 0);
-//    glEnable(GL_DEPTH_TEST);
-//    glEnable(GL_CULL_FACE);
-//    glFrontFace(GL_CCW);
-//    glCullFace(GL_BACK);
+    glClearColor(0, 0, 0, 0);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glFrontFace(GL_CCW);
+    glCullFace(GL_BACK);
     
     renderSceneToGBuffer(renderScene);
     generateSSAOTexture();
     blurSSAOTexture();
-//    lightingPass();
+    lightingPass();
 }
 
 }

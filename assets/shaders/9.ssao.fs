@@ -9,9 +9,8 @@ uniform vec3 samples[64];
 
 // parameters (you'd probably want to use them as uniforms to more easily tweak the effect)
 const int kernelSize = 64;
-const float kernelSizef = 64.;
-const float radius = 0.05;
-const float bias = 0.05;
+const float radius = 0.1;
+const float bias = 0.1;
 
 // tile noise texture over screen based on screen dimensions divided by noise size
 const vec2 noiseScale = vec2(2048.0/4.0, 1080.0/4.0); 
@@ -22,8 +21,8 @@ void main()
 {
     // get input for SSAO algorithm
     vec3 fragPos = texture2D(gPosition, TexCoords).xyz;
-    vec3 normal = normalize(texture2D(gNormal, TexCoords).xyz);
-    vec3 randomVec = normalize(texture2D(texNoise, TexCoords * noiseScale).xyz);
+    vec3 normal = texture2D(gNormal, TexCoords).xyz;
+    vec3 randomVec = texture2D(texNoise, TexCoords * noiseScale).xyz;
 
     // create TBN change-of-basis matrix: from tangent-space to view-space
     vec3 tangent = normalize(randomVec - normal * dot(randomVec, normal));
@@ -52,7 +51,7 @@ void main()
         occlusion += (sampleDepth >= samplePos.z + bias ? 1.0 : 0.0) * rangeCheck;           
     }
 
-    occlusion = 1.0 - (occlusion / kernelSizef);
+    occlusion = 1.0 - occlusion / float(kernelSize);
     
     gl_FragColor.r = occlusion;
 }
