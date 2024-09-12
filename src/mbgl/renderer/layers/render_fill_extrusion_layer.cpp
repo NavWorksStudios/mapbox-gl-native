@@ -100,28 +100,26 @@ void RenderFillExtrusionLayer::renderSSAO_p(PaintParameters& parameters) {
         
         checkRenderability(parameters, programInstance.activeBindingCount(allAttributeBindings));
         
-        // draw reflection
-        if (nav::theme::enableBuildingReflection()) {
-            layoutUniformValues.template get<uniforms::is_reflection>() = true;
-            programInstance.draw(
-                parameters.context,
-                *parameters.renderPass,
-                gfx::Triangles(),
-                depthMode,
-                stencilMode,
-                colorMode,
-                gfx::CullFaceMode::backCCW(),
-                *tileBucket.reflectionIndexBuffer,
-                tileBucket.triangleSegments,
-                layoutUniformValues,
-                paintUniformValues,
-                allAttributeBindings,
-                textureBindings,
-                uniqueName);
-        }
+//        // draw reflection
+//        if (nav::theme::enableBuildingReflection()) {
+//            programInstance.draw(
+//                parameters.context,
+//                *parameters.renderPass,
+//                gfx::Triangles(),
+//                depthMode,
+//                stencilMode,
+//                colorMode,
+//                gfx::CullFaceMode::backCCW(),
+//                *tileBucket.reflectionIndexBuffer,
+//                tileBucket.triangleSegments,
+//                layoutUniformValues,
+//                paintUniformValues,
+//                allAttributeBindings,
+//                textureBindings,
+//                uniqueName);
+//        }
         
         // draw self
-        layoutUniformValues.template get<uniforms::is_reflection>() = false;
         programInstance.draw(
             parameters.context,
             *parameters.renderPass,
@@ -145,12 +143,8 @@ void RenderFillExtrusionLayer::renderSSAO_p(PaintParameters& parameters) {
         const auto drawTiles = [&](const gfx::StencilMode& stencilMode_, const gfx::ColorMode& colorMode_, const std::string& name) {
             auto layoutUniforms = FillExtrusionSSAOProgram::layoutUniformValues(
                 uniforms::matrix::Value(),
-                uniforms::matrix::Value(),
-                parameters.state,
-                evaluated.get<FillExtrusionOpacity>(),
-                parameters.evaluatedLight,
-                evaluated.get<FillExtrusionVerticalGradient>(),
-                uniforms::is_reflection::Value()
+                uniforms::model_matrix::Value(),
+                uniforms::normal_matrix::Value()
             );
             
             const std::string uniqueName = getID().get() + "/" + name;
@@ -176,6 +170,8 @@ void RenderFillExtrusionLayer::renderSSAO_p(PaintParameters& parameters) {
                                           parameters.state);
                 
                 layoutUniforms.template get<uniforms::model_matrix>() = tile.modelMatrix;
+                
+                layoutUniforms.template get<uniforms::normal_matrix>() = tile.normalMatrix;
                 
                 draw(parameters.programs.getFillExtrusionSSAOLayerPrograms().fillExtrusion,
                      evaluated,

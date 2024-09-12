@@ -35,17 +35,7 @@ using FillExtrusionSSAOLayoutAttributes = TypeList<
 using FillExtrusionSSAOUniforms = TypeList<
     uniforms::matrix,
     uniforms::model_matrix,
-    uniforms::opacity,
-    uniforms::camera_pos,
-    ssao_uniforms::lightcolor,
-    ssao_uniforms::lightpos,
-    ssao_uniforms::lightintensity,
-    ssao_uniforms::vertical_gradient,
-    uniforms::spotlight,
-    uniforms::render_time,
-    uniforms::clip_region,
-    uniforms::focus_region,
-    uniforms::is_reflection>;
+    uniforms::normal_matrix>;
 
 class FillExtrusionSSAOProgram : public Program<
     FillExtrusionSSAOProgram,
@@ -60,7 +50,7 @@ public:
 
     static LayoutVertex layoutVertex(Point<int16_t> p, 
                                      double nx, double ny, double nz, unsigned short t, int16_t edgeDistance) {
-        const auto factor = pow(2, 13);
+        const auto factor = pow(2, 13); // 8192
 
         return LayoutVertex {
             {{
@@ -79,9 +69,7 @@ public:
         };
     }
 
-    static LayoutUniformValues layoutUniformValues(
-        const mat4&, const mat4&, const TransformState&,
-        float opacity, const EvaluatedLight&, float verticalGradient, bool renderingReflection);
+    static LayoutUniformValues layoutUniformValues(const mat4&, const mat4&, const mat4&);
 };
 
 

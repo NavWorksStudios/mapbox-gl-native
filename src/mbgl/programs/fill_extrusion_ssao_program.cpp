@@ -39,22 +39,11 @@ float lightIntensity(const EvaluatedLight& light) {
 }
 
 FillExtrusionSSAOProgram::LayoutUniformValues FillExtrusionSSAOProgram::layoutUniformValues(
-    const mat4& matrix, const mat4& model_matrix, const TransformState& state,
-    float opacity, const EvaluatedLight& light, float verticalGradient, bool isReflection) {
+    const mat4& matrix, const mat4& model_matrix, const mat4& normal_matrix) {
     return {
         uniforms::matrix::Value( matrix ),
         uniforms::matrix::Value( model_matrix ),
-        uniforms::opacity::Value( opacity ),
-        uniforms::camera_pos::Value( state.getCameraWorldPosition() ),
-        ssao_uniforms::lightcolor::Value( ssao::lightColor(light) ),
-        ssao_uniforms::lightpos::Value( ssao::lightPosition(light, state) ),
-        ssao_uniforms::lightintensity::Value( ssao::lightIntensity(light) ),
-        ssao_uniforms::vertical_gradient::Value( verticalGradient ),
-        uniforms::spotlight::Value( nav::runtime::spotlight::value() ),
-        uniforms::render_time::Value( nav::runtime::rendertime::value() ),
-        uniforms::clip_region::Value( nav::display::clip_region() ),
-        uniforms::focus_region::Value( nav::display::focus_region() ),
-        uniforms::is_reflection::Value( isReflection ),
+        uniforms::matrix::Value( normal_matrix ),
     };
 }
 

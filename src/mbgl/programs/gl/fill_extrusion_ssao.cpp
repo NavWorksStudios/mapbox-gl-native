@@ -78,16 +78,72 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
         
     )"; }
     
-    static const char* navVertex(const char* ) {
-        switch (nav::theme::shaderIndex()) {
-            case 1:
-                return nav::programs::p1::FillExtrusionProgram::navVertex(nullptr);
-            case 2:
-                return nav::programs::p2::FillExtrusionProgram::navVertex(nullptr);
-            default:
-                return "";
+    static const char* navVertex(const char* ) { return R"(
+        
+        attribute highp vec2 a_pos;
+        attribute lowp vec4 a_normal_ed;
+        
+        varying vec3 vFragPos;
+        varying vec3 vNormal;
+        
+        uniform mat4 u_matrix;
+        uniform mat4 u_model_matrix;
+        uniform mat4 u_normalMatrix;
+        
+        #ifndef HAS_UNIFORM_u_base
+        uniform lowp float u_base_t;
+        attribute highp vec2 a_base;
+        #else
+        uniform highp float u_base;
+        #endif
+
+        #ifndef HAS_UNIFORM_u_height
+        uniform lowp float u_height_t;
+        attribute highp vec2 a_height;
+        #else
+        uniform highp float u_height;
+        #endif
+
+        #ifndef HAS_UNIFORM_u_color
+        uniform lowp float u_color_t;
+        attribute highp vec4 a_color;
+        #else
+        uniform highp vec4 u_color;
+        #endif
+
+        void main() {
+        #ifndef HAS_UNIFORM_u_base
+            highp float base=unpack_mix_vec2(a_base,u_base_t);
+        #else
+            highp float base=u_base;
+        #endif
+
+        #ifndef HAS_UNIFORM_u_height
+            highp float height=unpack_mix_vec2(a_height,u_height_t);
+        #else
+            highp float height=u_height;
+        #endif
+
+        #ifndef HAS_UNIFORM_u_color
+            highp vec4 color=unpack_mix_color(a_color,u_color_t);
+        #else
+            highp vec4 color=u_color;
+        #endif
+
+        // ----------------------------- vertex position -----------------------------
+            lowp vec3 aNormal = a_normal_ed.xyz;
+            // height
+            base = max(0.0, base);
+            height = max(base, height);
+            float lowp t = mod(aNormal.x, 2.0);
+            // position
+            float lowp z = t > 0. ? height : base;
+            vFragPos = vec3(u_model_matrix * vec4(a_pos, z, 1.0));
+            vNormal = normalize(vec3(u_normalMatrix * vec4(aNormal, 0.0)));
+            gl_Position = u_matrix * vec4(a_pos, z, 1.);
         }
-    }
+        
+    )"; }
     
     static const char* navFragment(const char* , size_t ) { return R"(
 
@@ -109,16 +165,23 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
         
     )"; }
     
-    static const char* navFragment(const char* ) {
-        switch (nav::theme::shaderIndex()) {
-            case 1:
-                return nav::programs::p1::FillExtrusionProgram::navFragment(nullptr);
-            case 2:
-                return nav::programs::p2::FillExtrusionProgram::navFragment(nullptr);
-            default:
-                return "";
+    static const char* navFragment(const char* ) { return R"(
+
+        varying vec3 vFragPos;
+        varying vec3 vNormal;
+
+        void main() {
+            // store the fragment position vector in the first gbuffer texture
+            gl_FragData[0].xyz = vFragPos;
+
+            // also store the per-fragment normals into the gbuffer
+            gl_FragData[1].xyz = vNormal;
+
+            // and the diffuse per-fragment color
+            gl_FragData[2].rgb = vec3(.95);
         }
-    }
+            
+    )"; }
     
 };
 
