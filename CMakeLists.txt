@@ -443,6 +443,8 @@ set(all_files
     ${PROJECT_SOURCE_DIR}/src/mbgl/programs/fill_extrusion_pattern_program.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/programs/fill_extrusion_program.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/programs/fill_extrusion_program.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/programs/fill_extrusion_ssao_program.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/programs/fill_extrusion_ssao_program.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/programs/fill_outline_pattern_program.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/programs/fill_outline_program.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/programs/fill_pattern_program.hpp
@@ -1019,6 +1021,7 @@ if(MBGL_WITH_OPENGL)
             ${PROJECT_SOURCE_DIR}/src/mbgl/programs/gl/debug.cpp
             ${PROJECT_SOURCE_DIR}/src/mbgl/programs/gl/fill.cpp
             ${PROJECT_SOURCE_DIR}/src/mbgl/programs/gl/fill_extrusion.cpp
+            ${PROJECT_SOURCE_DIR}/src/mbgl/programs/gl/fill_extrusion_ssao.cpp
             ${PROJECT_SOURCE_DIR}/src/mbgl/programs/gl/fill_extrusion_pattern.cpp
             ${PROJECT_SOURCE_DIR}/src/mbgl/programs/gl/fill_outline.cpp
             ${PROJECT_SOURCE_DIR}/src/mbgl/programs/gl/fill_outline_pattern.cpp

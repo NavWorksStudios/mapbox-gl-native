@@ -13,7 +13,7 @@ public:
     ~RenderFillExtrusionLayer() override;
     
 public:
-    static void renderSSAO();
+    static void renderSSAO(PaintParameters& parameters);
 
 private:
     void transition(const TransitionParameters&) override;
@@ -22,7 +22,7 @@ private:
     bool hasCrossfade() const override;
     bool is3D() const override;
     void render(PaintParameters&) override;
-
+    void renderSSAO_p(PaintParameters&);
     bool queryIntersectsFeature(const GeometryCoordinates&,
                                 const GeometryTileFeature&,
                                 float,
