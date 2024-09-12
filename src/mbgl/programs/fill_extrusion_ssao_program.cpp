@@ -13,6 +13,7 @@ using namespace style;
 
 static_assert(sizeof(FillExtrusionSSAOLayoutVertex) == 12, "expected FillExtrusionLayoutVertex size");
 
+namespace ssao {
 std::array<float, 3> lightColor(const EvaluatedLight& light) {
     const auto color = light.get<LightColor>();
     return {{ color.r, color.g, color.b }};
@@ -35,6 +36,7 @@ std::array<float, 3> lightPosition(const EvaluatedLight& light, const TransformS
 float lightIntensity(const EvaluatedLight& light) {
     return light.get<LightIntensity>();
 }
+}
 
 FillExtrusionSSAOProgram::LayoutUniformValues FillExtrusionSSAOProgram::layoutUniformValues(
     const mat4& matrix, const mat4& model_matrix, const TransformState& state,
@@ -44,9 +46,9 @@ FillExtrusionSSAOProgram::LayoutUniformValues FillExtrusionSSAOProgram::layoutUn
         uniforms::matrix::Value( model_matrix ),
         uniforms::opacity::Value( opacity ),
         uniforms::camera_pos::Value( state.getCameraWorldPosition() ),
-        ssao_uniforms::lightcolor::Value( lightColor(light) ),
-        ssao_uniforms::lightpos::Value( lightPosition(light, state) ),
-        ssao_uniforms::lightintensity::Value( lightIntensity(light) ),
+        ssao_uniforms::lightcolor::Value( ssao::lightColor(light) ),
+        ssao_uniforms::lightpos::Value( ssao::lightPosition(light, state) ),
+        ssao_uniforms::lightintensity::Value( ssao::lightIntensity(light) ),
         ssao_uniforms::vertical_gradient::Value( verticalGradient ),
         uniforms::spotlight::Value( nav::runtime::spotlight::value() ),
         uniforms::render_time::Value( nav::runtime::rendertime::value() ),

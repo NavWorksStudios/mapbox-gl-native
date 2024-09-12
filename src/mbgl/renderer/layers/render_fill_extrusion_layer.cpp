@@ -3,6 +3,7 @@
 #include <mbgl/gfx/render_pass.hpp>
 #include <mbgl/gfx/renderer_backend.hpp>
 #include <mbgl/programs/fill_extrusion_program.hpp>
+#include <mbgl/programs/fill_extrusion_ssao_program.hpp>
 #include <mbgl/programs/programs.hpp>
 #include <mbgl/renderer/buckets/fill_extrusion_bucket.hpp>
 #include <mbgl/renderer/image_manager.hpp>
@@ -142,7 +143,7 @@ void RenderFillExtrusionLayer::renderSSAO_p(PaintParameters& parameters) {
     if (unevaluated.get<FillExtrusionPattern>().isUndefined()) {
         // Draw solid color extrusions
         const auto drawTiles = [&](const gfx::StencilMode& stencilMode_, const gfx::ColorMode& colorMode_, const std::string& name) {
-            auto layoutUniforms = FillExtrusionProgram::layoutUniformValues(
+            auto layoutUniforms = FillExtrusionSSAOProgram::layoutUniformValues(
                 uniforms::matrix::Value(),
                 uniforms::matrix::Value(),
                 parameters.state,
@@ -176,7 +177,7 @@ void RenderFillExtrusionLayer::renderSSAO_p(PaintParameters& parameters) {
                 
                 layoutUniforms.template get<uniforms::model_matrix>() = tile.modelMatrix;
                 
-                draw(parameters.programs.getFillExtrusionLayerPrograms().fillExtrusion,
+                draw(parameters.programs.getFillExtrusionSSAOLayerPrograms().fillExtrusion,
                      evaluated,
                      crossfade,
                      stencilMode_,
@@ -185,7 +186,7 @@ void RenderFillExtrusionLayer::renderSSAO_p(PaintParameters& parameters) {
                      layoutUniforms,
                      {},
                      {},
-                     FillExtrusionProgram::TextureBindings{},
+                     FillExtrusionSSAOProgram::TextureBindings{},
                      uniqueName
                 );
             }
