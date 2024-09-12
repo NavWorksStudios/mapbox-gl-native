@@ -255,10 +255,9 @@ void initializeResources() {
 
     // also create framebuffer to hold SSAO processing stage
     // -----------------------------------------------------
-    glGenFramebuffers(1, &ssaoFBO);
-    glGenFramebuffers(1, &ssaoBlurFBO);
-
+    
     // SSAO color buffer
+    glGenFramebuffers(1, &ssaoFBO);
     glGenTextures(1, &ssaoBuffer);
     glBindTexture(GL_TEXTURE_2D, ssaoBuffer);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, SCR_WIDTH, SCR_HEIGHT, 0, GL_RED, GL_FLOAT, NULL);
@@ -266,6 +265,7 @@ void initializeResources() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
     // and blur stage
+    glGenFramebuffers(1, &ssaoBlurFBO);
     glGenTextures(1, &ssaoBlurBuffer);
     glBindTexture(GL_TEXTURE_2D, ssaoBlurBuffer);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, SCR_WIDTH, SCR_HEIGHT, 0, GL_RED, GL_FLOAT, NULL);
@@ -346,20 +346,21 @@ void genSampleKernelAndNoiseTexture() {
 
 
 
+typedef GLint(*GetLocation)(GLuint, const GLchar*);
 
+template <GetLocation f> struct Location {
+    Location(GLint program, const char* name) {
+        value = f(program, name);
+        assert(value >= 0);
+    }
+    
+    operator GLint () { return value; }
+    GLint value;
+};
 
+using UniformLocation = Location<glGetUniformLocation>;
+using AttribLocation = Location<glGetAttribLocation>;
 
-GLint uniformLocation(GLuint program, const GLchar *name) {
-    GLint location = glGetUniformLocation(program, name);
-    assert(location >= 0);
-    return location;
-}
-
-GLint attribLocation(GLuint program, const GLchar *name) {
-    GLint location = glGetAttribLocation(program, name);
-    assert(location >= 0);
-    return location;
-}
 
 // renderQuad() renders a 1x1 XY quad in NDC
 // -----------------------------------------
@@ -386,15 +387,14 @@ void renderQuad(GLint program)
         glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
         
-        GLint location;
+
+        static AttribLocation a0(program, "aPos");
+        glEnableVertexAttribArray(a0);
+        glVertexAttribPointer(a0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
         
-        location = attribLocation(program, "aPos");
-        glEnableVertexAttribArray(location);
-        glVertexAttribPointer(location, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-        
-        location = attribLocation(program, "aTexCoords");
-        glEnableVertexAttribArray(location);
-        glVertexAttribPointer(location, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+        static AttribLocation a1(program, "aTexCoords");
+        glEnableVertexAttribArray(a1);
+        glVertexAttribPointer(a1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     }
 
     glBindVertexArray(quadVAO);
@@ -438,25 +438,27 @@ void renderSceneToGBuffer(std::function<void()> renderScene) {
         Mat4 proj = Mat4::perspectiveMatrix(pi * 0.5, 1.333333f, 0.1f, 1000.0f);
         
         Mat4 mvp = proj * view;
-        glUniformMatrix4fv(uniformLocation(shaderGeometryPass, "modelViewMat"), 1, GL_FALSE, reinterpret_cast<float*>(&view));
-        glUniformMatrix4fv(uniformLocation(shaderGeometryPass, "modelViewProjMat"), 1, GL_FALSE, reinterpret_cast<float*>(&mvp));
-        glUniformMatrix4fv(uniformLocation(shaderGeometryPass, "normalMat"), 1, GL_FALSE, reinterpret_cast<float*>(&ident));
+        static UniformLocation u0(shaderGeometryPass, "modelViewMat");
+        glUniformMatrix4fv(u0, 1, GL_FALSE, reinterpret_cast<float*>(&view));
+        static UniformLocation u1(shaderGeometryPass, "modelViewProjMat");
+        glUniformMatrix4fv(u1, 1, GL_FALSE, reinterpret_cast<float*>(&mvp));
+        static UniformLocation u2(shaderGeometryPass, "normalMat");
+        glUniformMatrix4fv(u2, 1, GL_FALSE, reinterpret_cast<float*>(&ident));
     }
+    
+    static AttribLocation a0(shaderGeometryPass, "aPos");
+    static AttribLocation a1(shaderGeometryPass, "aNormal");
 
     // 绘制 floor
     {
         glBindBuffer(GL_ARRAY_BUFFER, floorBuf);
-        
-        GLint location;
-        
-        location = attribLocation(shaderGeometryPass, "aPos");
-        glEnableVertexAttribArray(location);
-        glVertexAttribPointer(location, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(0));
-        
-        location = attribLocation(shaderGeometryPass, "aNormal");
-        glEnableVertexAttribArray(location);
-        glVertexAttribPointer(location, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(3*sizeof(GLfloat)));
-        
+
+        glEnableVertexAttribArray(a0);
+        glVertexAttribPointer(a0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(0));
+
+        glEnableVertexAttribArray(a1);
+        glVertexAttribPointer(a1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(3*sizeof(GLfloat)));
+
         glDrawArrays(GL_TRIANGLES, 0, 6);
     }
     
@@ -465,15 +467,11 @@ void renderSceneToGBuffer(std::function<void()> renderScene) {
         // Set up vertex attributes
         glBindBuffer(GL_ARRAY_BUFFER, vertexDataBuf);
         
-        GLint location;
-        
-        location = attribLocation(shaderGeometryPass, "aPos");
-        glEnableVertexAttribArray(location);
-        glVertexAttribPointer(location, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(0));
-        
-        location = attribLocation(shaderGeometryPass, "aNormal");
-        glEnableVertexAttribArray(location);
-        glVertexAttribPointer(location, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(3*sizeof(GLfloat)));
+        glEnableVertexAttribArray(a0);
+        glVertexAttribPointer(a0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(0));
+
+        glEnableVertexAttribArray(a1);
+        glVertexAttribPointer(a1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(3*sizeof(GLfloat)));
         
         glDrawArrays(GL_TRIANGLES, 0, faceIndexCount);
     }
@@ -503,8 +501,8 @@ void generateSSAOTexture() {
     {
         // Send kernel + rotation
         for (unsigned int i = 0; i < 64; ++i) {
-            GLint location = uniformLocation(shaderSSAO, ("samples[" + std::to_string(i) + "]").c_str());
-            glUniform3fv(location, 1, reinterpret_cast<float*>(&(ssaoKernel[i])));
+            UniformLocation u0(shaderSSAO, ("samples[" + std::to_string(i) + "]").c_str());
+            glUniform3fv(u0, 1, reinterpret_cast<float*>(&(ssaoKernel[i])));
         }
     }
     
@@ -515,21 +513,25 @@ void generateSSAOTexture() {
         Mat4::lookAtMatrix(eye, lookat, Vec3(0, 1, 0), view, viewNorm);
         Mat4 projection = Mat4::perspectiveMatrix(pi * 0.5, 1.333333f, 0.1f, 1000.0f);
         
-        glUniformMatrix4fv(uniformLocation(shaderSSAO, "projection"), 1, GL_FALSE, reinterpret_cast<float*>(&projection));
+        static UniformLocation u0(shaderSSAO, "projection");
+        glUniformMatrix4fv(u0, 1, GL_FALSE, reinterpret_cast<float*>(&projection));
     }
 
     {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, gPosition);
-        glUniform1i(uniformLocation(shaderSSAO, "gPosition"), 0);
+        static UniformLocation u0(shaderSSAO, "gPosition");
+        glUniform1i(u0, 0);
         
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, gNormal);
-        glUniform1i(uniformLocation(shaderSSAO, "gNormal"), 1);
+        static UniformLocation u1(shaderSSAO, "gNormal");
+        glUniform1i(u1, 1);
         
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, noiseTexture);
-        glUniform1i(uniformLocation(shaderSSAO, "texNoise"), 2);
+        static UniformLocation u2(shaderSSAO, "texNoise");
+        glUniform1i(u2, 2);
     }
     
     renderQuad(shaderSSAO);
@@ -552,7 +554,8 @@ void blurSSAOTexture() {
     
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, ssaoBuffer);
-    glUniform1i(uniformLocation(shaderSSAOBlur, "ssao"), 0);
+    static UniformLocation u0(shaderSSAOBlur, "ssao");
+    glUniform1i(u0, 0);
     
     renderQuad(shaderSSAOBlur);
     
@@ -568,37 +571,47 @@ void lightingPass() {
     
     glUseProgram(shaderLightingPass);
     
-    // send light relevant uniforms
-    Vec3 lightPos(0.0f, 0.0f, 0.5f);
-    Vec3 lightColor(1., 1., 1.);
-    Mat4 view, viewNorm;
-    Mat4::lookAtMatrix(eye, lookat, Vec3(0, 1, 0), view, viewNorm);
-    Vec3 lightPosView(view * lightPos);
-    glUniform3fv(uniformLocation(shaderLightingPass, "light.Position"), 1, reinterpret_cast<float*>(&lightPosView));
-    glUniform3fv(uniformLocation(shaderLightingPass, "light.Color"), 1, reinterpret_cast<float*>(&lightColor));
-    
-    // Update attenuation parameters
-    const float linear    = 0.09f;
-    const float quadratic = 0.032f;
-    glUniform1f(uniformLocation(shaderLightingPass, "light.Linear"), linear);
-    glUniform1f(uniformLocation(shaderLightingPass, "light.Quadratic"), quadratic);
+    {
+        // send light relevant uniforms
+        Vec3 lightPos(0.0f, 0.0f, 0.5f);
+        Vec3 lightColor(1., 1., 1.);
+        Mat4 view, viewNorm;
+        Mat4::lookAtMatrix(eye, lookat, Vec3(0, 1, 0), view, viewNorm);
+        Vec3 lightPosView(view * lightPos);
+        static UniformLocation u0(shaderLightingPass, "light.Position");
+        glUniform3fv(u0, 1, reinterpret_cast<float*>(&lightPosView));
+        static UniformLocation u1(shaderLightingPass, "light.Color");
+        glUniform3fv(u1, 1, reinterpret_cast<float*>(&lightColor));
+        
+        // Update attenuation parameters
+        const float linear    = 0.09f;
+        const float quadratic = 0.032f;
+        static UniformLocation u2(shaderLightingPass, "light.Linear");
+        glUniform1f(u2, linear);
+        static UniformLocation u3(shaderLightingPass, "light.Quadratic");
+        glUniform1f(u3, quadratic);
+    }
     
     {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, gPosition);
-        glUniform1i(uniformLocation(shaderLightingPass, "gPosition"), 0);
+        static UniformLocation u0(shaderLightingPass, "gPosition");
+        glUniform1i(u0, 0);
         
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, gNormal);
-        glUniform1i(uniformLocation(shaderLightingPass, "gNormal"), 1);
+        static UniformLocation u1(shaderLightingPass, "gNormal");
+        glUniform1i(u1, 1);
         
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, gAlbedo);
-        glUniform1i(uniformLocation(shaderLightingPass, "gAlbedo"), 2);
+        static UniformLocation u2(shaderLightingPass, "gAlbedo");
+        glUniform1i(u2, 2);
         
         glActiveTexture(GL_TEXTURE3); // add extra SSAO texture to lighting pass
         glBindTexture(GL_TEXTURE_2D, ssaoBlurBuffer);
-        glUniform1i(uniformLocation(shaderLightingPass, "ssaoBlur"), 3);
+        static UniformLocation u3(shaderLightingPass, "ssaoBlur");
+        glUniform1i(u3, 3);
         
     }
     
