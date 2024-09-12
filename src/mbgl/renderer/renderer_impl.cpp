@@ -194,8 +194,8 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
     
     // - SSAO PASS --------------------------------------------------------------------------------
     {
-        nav::ssao::v2::draw([] () {
-            RenderFillExtrusionLayer::renderSSAO();
+        nav::ssao::v2::draw([&] () {
+            RenderFillExtrusionLayer::renderSSAO(parameters);
         });
     }
 
