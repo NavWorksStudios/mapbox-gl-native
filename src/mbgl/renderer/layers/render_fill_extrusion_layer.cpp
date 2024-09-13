@@ -119,7 +119,7 @@ void RenderFillExtrusionLayer::renderSSAO_p(PaintParameters& parameters) {
         auto layoutUniforms = FillExtrusionSSAOProgram::layoutUniformValues(
             uniforms::matrix::Value(),
             uniforms::mv_matrix::Value(),
-            uniforms::mv_normal_matrix::Value()
+            uniforms::normal_matrix::Value()
         );
         
         const std::string uniqueName = getID().get() + "/" + name;
@@ -143,11 +143,8 @@ void RenderFillExtrusionLayer::renderSSAO_p(PaintParameters& parameters) {
             const auto& anchor = evaluated.get<FillExtrusionTranslateAnchor>();
             const auto& state = parameters.state;
             layoutUniforms.template get<uniforms::matrix>() = tile.translatedClipMatrix(translate, anchor, state);
-            layoutUniforms.template get<uniforms::mv_matrix>() = tile.translateVtxMatrix(tile.modelViewMatrix, translate, anchor, state, false);
-            
-            mat4 ident;
-            matrix::identity(ident);
-            layoutUniforms.template get<uniforms::mv_normal_matrix>() = ident;
+            layoutUniforms.template get<uniforms::mv_matrix>() = tile.modelViewMatrix;
+            matrix::identity(layoutUniforms.template get<uniforms::normal_matrix>());
             
             draw(parameters.programs.getFillExtrusionSSAOLayerPrograms().fillExtrusion,
                  evaluated,

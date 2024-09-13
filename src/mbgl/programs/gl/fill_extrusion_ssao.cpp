@@ -88,7 +88,7 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
         
         uniform mat4 u_matrix;
         uniform mat4 u_mv_matrix;
-        uniform mat4 u_mv_normal_matrix;
+        uniform mat4 u_normal_matrix;
         
         #ifndef HAS_UNIFORM_u_base
         uniform lowp float u_base_t;
@@ -137,7 +137,7 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
             vec4 pos = vec4(a_pos, z, 1.0);
 
             vFragPos = vec3(u_mv_matrix * pos);
-            vNormal = normalize(vec3(u_mv_normal_matrix * a_normal_ed));
+            vNormal = normalize(vec3(u_normal_matrix * a_normal_ed));
             gl_Position = u_matrix * pos;
         }
         
@@ -170,10 +170,10 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
 
         void main() {
             // store the fragment position vector in the first gbuffer texture
-            gl_FragData[0].xyz = vFragPos;
+            gl_FragData[0].xyz = normalize(vFragPos);
 
             // also store the per-fragment normals into the gbuffer
-            gl_FragData[1].xyz = vNormal;
+            gl_FragData[1].xyz = normalize(vNormal);
 
             // and the diffuse per-fragment color
             gl_FragData[2].rgb = vec3(.95);

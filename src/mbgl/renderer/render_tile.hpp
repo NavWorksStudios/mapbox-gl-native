@@ -41,10 +41,6 @@ public:
     mat4 viewMatrix;
     mat4 modelViewMatrix;
     
-    mat4 modelNormalMatrix;
-    mat4 viewNormalMatrix;
-    mat4 modelViewNormalMatrix;
-    
     // mvp matrix
     mat4 matrix; // the standard tile matrix
     mat4 nearClippedMatrix; // has near plane moved further, to enhance depth buffer precision

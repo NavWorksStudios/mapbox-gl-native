@@ -43,7 +43,7 @@ FillExtrusionSSAOProgram::LayoutUniformValues FillExtrusionSSAOProgram::layoutUn
     return {
         uniforms::matrix::Value( matrix ),
         uniforms::mv_matrix::Value( model_view_matrix ),
-        uniforms::mv_normal_matrix::Value( normal_matrix ),
+        uniforms::normal_matrix::Value( normal_matrix ),
     };
 }
 

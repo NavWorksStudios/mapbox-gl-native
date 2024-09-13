@@ -123,16 +123,10 @@ void RenderTile::prepare(const SourcePrepareParameters& parameters) {
     transform.state.matrixFor(m, id);
     matrix::multiply(matrix, transform.projMatrix, m);
     matrix::multiply(nearClippedMatrix, transform.nearClippedProjMatrix, m);
-
-    // sbz
     
-    transform.state.modelMatrixFor(modelMatrix, id);
+    transform.state.matrixFor(modelMatrix, id);
     transform.state.viewMatrixFor(viewMatrix);
     matrix::multiply(modelViewMatrix, viewMatrix, modelMatrix);
-    
-    matrix::invert(modelNormalMatrix, modelMatrix);
-    matrix::invert(viewNormalMatrix, viewMatrix);
-    matrix::invert(modelViewNormalMatrix, modelViewMatrix);
 }
 
 void RenderTile::finishRender(PaintParameters& parameters) const {
