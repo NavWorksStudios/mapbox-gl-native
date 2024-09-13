@@ -87,8 +87,8 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
         varying vec3 vNormal;
         
         uniform mat4 u_matrix;
-        uniform mat4 u_model_matrix;
-        uniform mat4 u_normalMatrix;
+        uniform mat4 u_mv_matrix;
+        uniform mat4 u_mv_normal_matrix;
         
         #ifndef HAS_UNIFORM_u_base
         uniform lowp float u_base_t;
@@ -130,17 +130,15 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
             highp vec4 color=u_color;
         #endif
 
-        // ----------------------------- vertex position -----------------------------
-            lowp vec3 aNormal = a_normal_ed.xyz;
-            // height
             base = max(0.0, base);
             height = max(base, height);
-            float lowp t = mod(aNormal.x, 2.0);
-            // position
+            float lowp t = mod(a_normal_ed.x, 2.0);
             float lowp z = t > 0. ? height : base;
-            vFragPos = vec3(u_model_matrix * vec4(a_pos, z, 1.0));
-            vNormal = normalize(vec3(u_normalMatrix * vec4(aNormal, 0.0)));
-            gl_Position = u_matrix * vec4(a_pos, z, 1.);
+            vec4 pos = vec4(a_pos, z, 1.0);
+
+            vFragPos = vec3(u_mv_matrix * pos);
+            vNormal = normalize(vec3(u_mv_normal_matrix * a_normal_ed));
+            gl_Position = u_matrix * pos;
         }
         
     )"; }

@@ -34,8 +34,8 @@ using FillExtrusionSSAOLayoutAttributes = TypeList<
 
 using FillExtrusionSSAOUniforms = TypeList<
     uniforms::matrix,
-    uniforms::model_view_matrix,
-    uniforms::normal_matrix>;
+    uniforms::mv_matrix,
+    uniforms::mv_normal_matrix>;
 
 class FillExtrusionSSAOProgram : public Program<
     FillExtrusionSSAOProgram,

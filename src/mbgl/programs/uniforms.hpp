@@ -9,10 +9,10 @@ namespace uniforms {
 
 // Uniforms common to several shaders.
 
-MBGL_DEFINE_UNIFORM_MATRIX(double, 4, matrix);
-MBGL_DEFINE_UNIFORM_MATRIX(double, 4, model_matrix);
-MBGL_DEFINE_UNIFORM_MATRIX(double, 4, model_view_matrix);
-MBGL_DEFINE_UNIFORM_MATRIX(double, 4, normal_matrix);
+MBGL_DEFINE_UNIFORM_MATRIX(double, 4, matrix);              // mvp
+MBGL_DEFINE_UNIFORM_MATRIX(double, 4, m_matrix);            // m
+MBGL_DEFINE_UNIFORM_MATRIX(double, 4, mv_matrix);           // mv
+MBGL_DEFINE_UNIFORM_MATRIX(double, 4, mv_normal_matrix);    // mv
 MBGL_DEFINE_UNIFORM_VECTOR(float, 3, camera_pos);
 MBGL_DEFINE_UNIFORM_SCALAR(float, opacity);
 MBGL_DEFINE_UNIFORM_SCALAR(Color, color);

@@ -36,20 +36,25 @@ public:
     RenderTile& operator=(const RenderTile&) = delete;
 
     UnwrappedTileID id;
-    mat4 matrix;
+
     mat4 modelMatrix;
-    mat4 normalMatrix;
-    mat4 nearClippedMatrix;
+    mat4 viewMatrix;
+    mat4 modelViewMatrix;
+    
+    mat4 modelNormalMatrix;
+    mat4 viewNormalMatrix;
+    mat4 modelViewNormalMatrix;
+    
+    // mvp matrix
+    mat4 matrix; // the standard tile matrix
+    mat4 nearClippedMatrix; // has near plane moved further, to enhance depth buffer precision
+    
     // Contains the tile ID string for painting debug information.
     std::unique_ptr<DebugBucket> debugBucket;
 
-    mat4 translatedMatrix(const std::array<float, 2>& translation,
-                          style::TranslateAnchorType anchor,
-                          const TransformState&) const;
-
-    mat4 translatedClipMatrix(const std::array<float, 2>& translation,
-                              style::TranslateAnchorType anchor,
-                              const TransformState&) const;
+    using Translation = const std::array<float, 2>;
+    mat4 translatedMatrix(Translation& translation, style::TranslateAnchorType anchor, const TransformState&) const;
+    mat4 translatedClipMatrix(Translation& translation, style::TranslateAnchorType anchor, const TransformState&) const;
 
     const OverscaledTileID& getOverscaledTileID() const;
     bool holdForFade() const;

@@ -414,7 +414,7 @@ Vec3 lookat = Vec3(0, 0, 0);
 // -----------------------------------------------------------------
 
 void renderSceneToGBuffer(std::function<void()> renderScene) {
-
+    
     {
         glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gPosition, 0);
@@ -427,17 +427,19 @@ void renderSceneToGBuffer(std::function<void()> renderScene) {
         glDrawBuffers(3, attachments);
     }
     
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-    glUseProgram(shaderGeometryPass);
+#if 0
     
-#if 1
+    glUseProgram(shaderGeometryPass);
     
     {
         const static double pi = acos(0.0) * 2;
         Mat4 ident = Mat4::identityMatrix();
-        Mat4 view, viewNorm;
-        Mat4::lookAtMatrix(eye, lookat, Vec3(0, 1, 0), view, viewNorm);
+        Mat4 view, notused;
+        Mat4::lookAtMatrix(eye, lookat, Vec3(0, 1, 0), view, notused);
         Mat4 proj = Mat4::perspectiveMatrix(pi * 0.5, 1.333333f, 0.1f, 1000.0f);
         
         Mat4 mvp = proj * view;
@@ -451,17 +453,17 @@ void renderSceneToGBuffer(std::function<void()> renderScene) {
     
     static AttribLocation a0(shaderGeometryPass, "aPos");
     static AttribLocation a1(shaderGeometryPass, "aNormal");
-
+    
     // 绘制 floor
     {
         glBindBuffer(GL_ARRAY_BUFFER, floorBuf);
-
+        
         glEnableVertexAttribArray(a0);
         glVertexAttribPointer(a0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(0));
-
+        
         glEnableVertexAttribArray(a1);
         glVertexAttribPointer(a1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(3*sizeof(GLfloat)));
-
+        
         glDrawArrays(GL_TRIANGLES, 0, 6);
     }
     
@@ -472,7 +474,7 @@ void renderSceneToGBuffer(std::function<void()> renderScene) {
         
         glEnableVertexAttribArray(a0);
         glVertexAttribPointer(a0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(0));
-
+        
         glEnableVertexAttribArray(a1);
         glVertexAttribPointer(a1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(3*sizeof(GLfloat)));
         
@@ -562,15 +564,16 @@ void blurSSAOTexture() {
     
     renderQuad(shaderSSAOBlur);
     
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 // 4. lighting pass: traditional deferred Blinn-Phong lighting with added screen-space ambient occlusion
 // -----------------------------------------------------------------------------------------------------
 void lightingPass() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-//    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
+    glClear(GL_COLOR_BUFFER_BIT);
+    
+    glDisable(GL_DEPTH_TEST);
     
     glUseProgram(shaderLightingPass);
     
@@ -578,8 +581,8 @@ void lightingPass() {
         // send light relevant uniforms
         Vec3 lightPos(0.0f, 0.0f, 0.5f);
         Vec3 lightColor(1., 1., 1.);
-        Mat4 view, viewNorm;
-        Mat4::lookAtMatrix(eye, lookat, Vec3(0, 1, 0), view, viewNorm);
+        Mat4 view, notused;
+        Mat4::lookAtMatrix(eye, lookat, Vec3(0, 1, 0), view, notused);
         Vec3 lightPosView(view * lightPos);
         static UniformLocation u0(shaderLightingPass, "light.Position");
         glUniform3fv(u0, 1, reinterpret_cast<float*>(&lightPosView));
@@ -641,9 +644,9 @@ void draw(std::function<void()> renderScene) {
     glCullFace(GL_BACK);
     
     renderSceneToGBuffer(renderScene);
-    generateSSAOTexture();
-    blurSSAOTexture();
-    lightingPass();
+//    generateSSAOTexture();
+//    blurSSAOTexture();
+//    lightingPass();
 }
 
 }

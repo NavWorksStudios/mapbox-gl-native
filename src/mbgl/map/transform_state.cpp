@@ -97,7 +97,36 @@ void TransformState::modelMatrixFor(mat4& matrix, const UnwrappedTileID& tileID)
                       int64_t(tileID.canonical.x + tileID.wrap * static_cast<int64_t>(tileScale)) * s,
                       int64_t(tileID.canonical.y) * s,
                       0);
-    matrix::scale(matrix, matrix, s / util::EXTENT, s / util::EXTENT, s / util::EXTENT);
+    matrix::scale(matrix, matrix, s / util::EXTENT, s / util::EXTENT, 1);
+}
+
+void TransformState::viewMatrixFor(mat4& matrix) const {
+    if (size.isEmpty()) {
+        return;
+    }
+
+    const double cameraToCenterDistance = getCameraToCenterDistance();
+    const ScreenCoordinate offset = getCenterOffset();
+
+    // Find the Z distance from the viewport center point
+    // [width/2 + offset.x, height/2 + offset.y] to the top edge; to point
+    // [width/2 + offset.x, 0] in Z units.
+    // 1 Z unit is equivalent to 1 horizontal px at the center of the map
+    // (the distance between[width/2, height/2] and [width/2 + 1, height/2])
+    // See https://github.com/mapbox/mapbox-gl-native/pull/15195 for details.
+    // See TransformState::fov description: fov = 2 * arctan((height / 2) / (height * 1.5)).
+    const double tanFovAboveCenter = (size.height * 0.5 + offset.y) / (size.height * 1.5);
+    const double tanMultiple = tanFovAboveCenter * std::tan(getPitch());
+    assert(tanMultiple < 1);
+    // Calculate z distance of the farthest fragment that should be rendered.
+    const double furthestDistance = cameraToCenterDistance / (1 - tanMultiple);
+    // Add a bit extra to avoid precision problems when a fragment's distance is exactly `furthestDistance`
+    const double farZ = furthestDistance * 1.01;
+
+    // Make sure the camera state is up-to-date
+    updateCameraState();
+    
+    matrix = camera.getWorldToCamera(scale, viewportMode == ViewportMode::FlippedY);
 }
 
 void TransformState::getProjMatrix(mat4& projMatrix, uint16_t nearZ, bool aligned) const {

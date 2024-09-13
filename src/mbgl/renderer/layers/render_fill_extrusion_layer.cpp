@@ -53,13 +53,8 @@ void RenderFillExtrusionLayer::renderSSAO(PaintParameters& parameters) {
 }
 
 void RenderFillExtrusionLayer::renderSSAO_p(PaintParameters& parameters) {
-//    assert(renderTiles);
     if(!renderTiles)
         return;
-    
-    if (parameters.pass != RenderPass::Translucent) {
-        return;
-    }
 
     const auto& evaluated = static_cast<const FillExtrusionLayerProperties&>(*evaluatedProperties).evaluated;
     const auto& crossfade = static_cast<const FillExtrusionLayerProperties&>(*evaluatedProperties).crossfade;
@@ -100,25 +95,6 @@ void RenderFillExtrusionLayer::renderSSAO_p(PaintParameters& parameters) {
         
         checkRenderability(parameters, programInstance.activeBindingCount(allAttributeBindings));
         
-//        // draw reflection
-//        if (nav::theme::enableBuildingReflection()) {
-//            programInstance.draw(
-//                parameters.context,
-//                *parameters.renderPass,
-//                gfx::Triangles(),
-//                depthMode,
-//                stencilMode,
-//                colorMode,
-//                gfx::CullFaceMode::backCCW(),
-//                *tileBucket.reflectionIndexBuffer,
-//                tileBucket.triangleSegments,
-//                layoutUniformValues,
-//                paintUniformValues,
-//                allAttributeBindings,
-//                textureBindings,
-//                uniqueName);
-//        }
-        
         // draw self
         programInstance.draw(
             parameters.context,
@@ -138,130 +114,63 @@ void RenderFillExtrusionLayer::renderSSAO_p(PaintParameters& parameters) {
 
     };
 
-    if (unevaluated.get<FillExtrusionPattern>().isUndefined()) {
-        // Draw solid color extrusions
-        const auto drawTiles = [&](const gfx::StencilMode& stencilMode_, const gfx::ColorMode& colorMode_, const std::string& name) {
-            auto layoutUniforms = FillExtrusionSSAOProgram::layoutUniformValues(
-                uniforms::matrix::Value(),
-                uniforms::model_matrix::Value(),
-                uniforms::normal_matrix::Value()
-            );
-            
-            const std::string uniqueName = getID().get() + "/" + name;
-
-            size_t renderIndex = -1;
-            for (const RenderTile& tile : *renderTiles) {
-                renderIndex++;
-                
-                if (!tile.isRenderable(Tile::RenderMode::Detailed)) {
-                    continue;
-                }
-                
-                const LayerRenderData* renderData = getRenderDataForPass(renderIndex, parameters.pass);
-                if (!renderData) {
-                    continue;
-                }
-
-                auto& bucket = static_cast<FillExtrusionBucket&>(*renderData->bucket);
-                
-                layoutUniforms.template get<uniforms::matrix>() =
-                tile.translatedClipMatrix(evaluated.get<FillExtrusionTranslate>(),
-                                          evaluated.get<FillExtrusionTranslateAnchor>(),
-                                          parameters.state);
-                
-                layoutUniforms.template get<uniforms::model_matrix>() = tile.modelMatrix;
-                
-                layoutUniforms.template get<uniforms::normal_matrix>() = tile.normalMatrix;
-                
-                draw(parameters.programs.getFillExtrusionSSAOLayerPrograms().fillExtrusion,
-                     evaluated,
-                     crossfade,
-                     stencilMode_,
-                     colorMode_,
-                     bucket,
-                     layoutUniforms,
-                     {},
-                     {},
-                     FillExtrusionSSAOProgram::TextureBindings{},
-                     uniqueName
-                );
-            }
-        };
-
-        drawTiles(gfx::StencilMode::disabled(), parameters.colorModeForRenderPass(), "color");
+    // Draw solid color extrusions
+    const auto drawTiles = [&](const gfx::StencilMode& stencilMode_, const gfx::ColorMode& colorMode_, const std::string& name) {
+        auto layoutUniforms = FillExtrusionSSAOProgram::layoutUniformValues(
+            uniforms::matrix::Value(),
+            uniforms::mv_matrix::Value(),
+            uniforms::mv_normal_matrix::Value()
+        );
         
-        // #*# ssao模式只需要画一遍
-//        if (evaluated.get<FillExtrusionOpacity>() == 1) {
-//            // Draw opaque extrusions
-//            drawTiles(gfx::StencilMode::disabled(), parameters.colorModeForRenderPass(), "color");
-//        } else {
-//            // Draw transparent buildings in two passes so that only the closest surface is drawn.
-//            // First draw all the extrusions into only the depth buffer. No colors are drawn.
-//            drawTiles(gfx::StencilMode::disabled(), gfx::ColorMode::disabled(), "depth");
-//
-//            // Then draw all the extrusions a second time, only coloring fragments if they have the
-//            // same depth value as the closest fragment in the previous pass. Use the stencil buffer
-//            // to prevent the second draw in cases where we have coincident polygons.
-//            drawTiles(parameters.stencilModeFor3D(), parameters.colorModeForRenderPass(), "color");
-//        }
-    }
-    // ssao不需要处理贴图
-//    else {
-//        // Draw textured extrusions
-//        const auto& fillPatternValue =
-//            evaluated.get<FillExtrusionPattern>().constantOr(mbgl::Faded<expression::Image>{"", ""});
-//
-//        const auto drawTiles = [&](const gfx::StencilMode& stencilMode_, const gfx::ColorMode& colorMode_, const std::string& name) {
-//            size_t renderIndex = -1;
-//            for (const RenderTile& tile : *renderTiles) {
-//                renderIndex++;
-//
-//                if (!tile.isRenderable(Tile::RenderMode::Detailed)) {
-//                    continue;
-//                }
-//
-//                const LayerRenderData* renderData = getRenderDataForPass(renderIndex, parameters.pass);
-//                if (!renderData) {
-//                    continue;
-//                }
-//
-//                auto& bucket = static_cast<FillExtrusionBucket&>(*renderData->bucket);
-//                optional<ImagePosition> patternPosA = tile.getPattern(fillPatternValue.from.id());
-//                optional<ImagePosition> patternPosB = tile.getPattern(fillPatternValue.to.id());
-//
-//                auto&& layoutUniforms = FillExtrusionPatternProgram::layoutUniformValues(
-//                    tile.translatedClipMatrix(evaluated.get<FillExtrusionTranslate>(),
-//                                              evaluated.get<FillExtrusionTranslateAnchor>(),
-//                                              parameters.state),
-//                    tile.getIconAtlasTexture().size,
-//                    crossfade,
-//                    tile.id,
-//                    parameters.state,
-//                    evaluated.get<FillExtrusionOpacity>(),
-//                    -std::pow(2, tile.id.canonical.z) / util::tileSize / 8.0f,
-//                    parameters.pixelRatio,
-//                    parameters.evaluatedLight,
-//                    evaluated.get<FillExtrusionVerticalGradient>(),
-//                    false
-//                );
-//
-//                draw(parameters.programs.getFillExtrusionLayerPrograms().fillExtrusionPattern,
-//                     evaluated,
-//                     crossfade,
-//                     stencilMode_,
-//                     colorMode_,
-//                     bucket,
-//                     layoutUniforms,
-//                     patternPosA,
-//                     patternPosB,
-//                     FillExtrusionPatternProgram::TextureBindings{
-//                         textures::image::Value{ tile.getIconAtlasTexture().getResource(), gfx::TextureFilterType::Linear },
-//                     },
-//                     name
-//                );
-//            }
-//        };
-//
+        const std::string uniqueName = getID().get() + "/" + name;
+
+        size_t renderIndex = -1;
+        for (const RenderTile& tile : *renderTiles) {
+            renderIndex++;
+            
+            if (!tile.isRenderable(Tile::RenderMode::Detailed)) {
+                continue;
+            }
+            
+            const LayerRenderData* renderData = getRenderDataForPass(renderIndex, parameters.pass);
+            if (!renderData) {
+                continue;
+            }
+
+            auto& bucket = static_cast<FillExtrusionBucket&>(*renderData->bucket);
+            
+            const auto& translate = evaluated.get<FillExtrusionTranslate>();
+            const auto& anchor = evaluated.get<FillExtrusionTranslateAnchor>();
+            const auto& state = parameters.state;
+            layoutUniforms.template get<uniforms::matrix>() = tile.translatedClipMatrix(translate, anchor, state);
+            layoutUniforms.template get<uniforms::mv_matrix>() = tile.translateVtxMatrix(tile.modelViewMatrix, translate, anchor, state, false);
+            
+            mat4 ident;
+            matrix::identity(ident);
+            layoutUniforms.template get<uniforms::mv_normal_matrix>() = ident;
+            
+            draw(parameters.programs.getFillExtrusionSSAOLayerPrograms().fillExtrusion,
+                 evaluated,
+                 crossfade,
+                 stencilMode_,
+                 colorMode_,
+                 bucket,
+                 layoutUniforms,
+                 {},
+                 {},
+                 FillExtrusionSSAOProgram::TextureBindings{},
+                 uniqueName
+            );
+        }
+    };
+
+    drawTiles(gfx::StencilMode::disabled(), parameters.colorModeForRenderPass(), "color");
+    
+    // #*# ssao模式只需要画一遍
+//    if (evaluated.get<FillExtrusionOpacity>() == 1) {
+//        // Draw opaque extrusions
+//        drawTiles(gfx::StencilMode::disabled(), parameters.colorModeForRenderPass(), "color");
+//    } else {
 //        // Draw transparent buildings in two passes so that only the closest surface is drawn.
 //        // First draw all the extrusions into only the depth buffer. No colors are drawn.
 //        drawTiles(gfx::StencilMode::disabled(), gfx::ColorMode::disabled(), "depth");
@@ -417,12 +326,11 @@ void RenderFillExtrusionLayer::render(PaintParameters& parameters) {
 
                 auto& bucket = static_cast<FillExtrusionBucket&>(*renderData->bucket);
                 
-                layoutUniforms.template get<uniforms::matrix>() = 
-                tile.translatedClipMatrix(evaluated.get<FillExtrusionTranslate>(),
-                                          evaluated.get<FillExtrusionTranslateAnchor>(),
-                                          parameters.state);
-                
-                layoutUniforms.template get<uniforms::model_matrix>() = tile.modelMatrix;
+                const auto& translate = evaluated.get<FillExtrusionTranslate>();
+                const auto& anchor = evaluated.get<FillExtrusionTranslateAnchor>();
+                const auto& state = parameters.state;
+                layoutUniforms.template get<uniforms::matrix>() = tile.translatedClipMatrix(translate, anchor, state);
+                layoutUniforms.template get<uniforms::m_matrix>() = tile.translateVtxMatrix(tile.modelMatrix, translate, anchor, state, false);
                 
                 draw(parameters.programs.getFillExtrusionLayerPrograms().fillExtrusion,
                      evaluated,
@@ -474,11 +382,13 @@ void RenderFillExtrusionLayer::render(PaintParameters& parameters) {
                 auto& bucket = static_cast<FillExtrusionBucket&>(*renderData->bucket);
                 optional<ImagePosition> patternPosA = tile.getPattern(fillPatternValue.from.id());
                 optional<ImagePosition> patternPosB = tile.getPattern(fillPatternValue.to.id());
+                
+                const auto& translate = evaluated.get<FillExtrusionTranslate>();
+                const auto& anchor = evaluated.get<FillExtrusionTranslateAnchor>();
+                const auto& state = parameters.state;
 
                 auto&& layoutUniforms = FillExtrusionPatternProgram::layoutUniformValues(
-                    tile.translatedClipMatrix(evaluated.get<FillExtrusionTranslate>(),
-                                              evaluated.get<FillExtrusionTranslateAnchor>(),
-                                              parameters.state),
+                    tile.translatedClipMatrix(translate, anchor, state),
                     tile.getIconAtlasTexture().size,
                     crossfade,
                     tile.id,

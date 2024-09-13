@@ -73,5 +73,5 @@ void main()
 
     occlusion = 1.0 - occlusion / float(SAMPLE_SIZE);
     
-    gl_FragColor.r = pow(occlusion, QUADRATIC);
+    gl_FragColor = vec4(vec3(pow(occlusion, QUADRATIC)), 1.);
 }

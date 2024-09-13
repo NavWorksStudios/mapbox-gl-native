@@ -114,7 +114,8 @@ public:
 
     // Matrix
     void matrixFor(mat4&, const UnwrappedTileID&) const;
-    void modelMatrixFor(mat4&, const UnwrappedTileID&) const;
+    void modelMatrixFor(mat4& matrix, const UnwrappedTileID& tileID) const;
+    void viewMatrixFor(mat4& matrix) const;
     void getProjMatrix(mat4& matrix, uint16_t nearZ = 1, bool aligned = false) const;
 
     // Dimensions

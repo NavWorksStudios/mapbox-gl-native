@@ -49,15 +49,11 @@ mat4 RenderTile::translateVtxMatrix(const mat4& tileMatrix,
     return vtxMatrix;
 }
 
-mat4 RenderTile::translatedMatrix(const std::array<float, 2>& translation,
-                                  TranslateAnchorType anchor,
-                                  const TransformState& state) const {
+mat4 RenderTile::translatedMatrix(Translation& translation, TranslateAnchorType anchor, const TransformState& state) const {
     return translateVtxMatrix(matrix, translation, anchor, state, false);
 }
 
-mat4 RenderTile::translatedClipMatrix(const std::array<float, 2>& translation,
-                                      TranslateAnchorType anchor,
-                                      const TransformState& state) const {
+mat4 RenderTile::translatedClipMatrix(Translation& translation, TranslateAnchorType anchor, const TransformState& state) const {
     return translateVtxMatrix(nearClippedMatrix, translation, anchor, state, false);
 }
 
@@ -122,15 +118,21 @@ void RenderTile::prepare(const SourcePrepareParameters& parameters) {
     // matrix is the standard tile matrix;
     // nearClippedMatrix has near plane moved further, to enhance depth buffer precision
     const auto& transform = parameters.transform;
-    transform.state.matrixFor(matrix, id);
+    
+    mat4 m;
+    transform.state.matrixFor(m, id);
+    matrix::multiply(matrix, transform.projMatrix, m);
+    matrix::multiply(nearClippedMatrix, transform.nearClippedProjMatrix, m);
+
+    // sbz
+    
     transform.state.modelMatrixFor(modelMatrix, id);
+    transform.state.viewMatrixFor(viewMatrix);
+    matrix::multiply(modelViewMatrix, viewMatrix, modelMatrix);
     
-    matrix::invert(normalMatrix, matrix);
-    matrix::transpose(normalMatrix);
-    
-    transform.state.matrixFor(nearClippedMatrix, id);
-    matrix::multiply(matrix, transform.projMatrix, matrix);
-    matrix::multiply(nearClippedMatrix, transform.nearClippedProjMatrix, nearClippedMatrix);
+    matrix::invert(modelNormalMatrix, modelMatrix);
+    matrix::invert(viewNormalMatrix, viewMatrix);
+    matrix::invert(modelViewNormalMatrix, modelViewMatrix);
 }
 
 void RenderTile::finishRender(PaintParameters& parameters) const {
