@@ -10,7 +10,7 @@ uniform vec3 samples[64];
 // parameters (you'd probably want to use them as uniforms to more easily tweak the effect)
 const int SAMPLE_SIZE = 64;
 const float SAMPLE_RADIUS = 0.15; // 采样球半径
-const float MIN_Z_GAP = 0.02; // 比depth多bias才会被AO
+const float Z_MIN_DIFFERENCE = 0.05;
 const float QUADRATIC = 1.5;
 
 // tile noise texture over screen based on screen dimensions divided by noise size
@@ -48,7 +48,7 @@ void main()
         // ============ 采样点 深度纹理坐标 ==============
         
         // project sample position (to sample texture) (to get position on screen/texture)
-        // 将smple投影到屏幕空间，计算sample的纹理坐标。
+        // 投影smple到深度纹理坐标，获取在纹理的位置
         vec4 texCoors = projection * vec4(samplePos, 1.0); // from view to clip-space 使用projection将其转化到切割空间
         texCoors.xyz /= texCoors.w; // perspective divide
         texCoors.xyz = texCoors.xyz * 0.5 + 0.5; // transform to range 0.0 - 1.0
@@ -63,10 +63,10 @@ void main()
 
         // 用范围检查，来确保某一片段的深度值在采样半径内，这样才会对遮蔽因数做影响。
         // 添加bias可以帮助调整环境光遮蔽的效果，也可以解决痤疮问题。
-        if (z > kernelPos.z + MIN_Z_GAP) {
+        if (z - kernelPos.z > Z_MIN_DIFFERENCE) {
             // range check & accumulate
             // 将当前的采样深度值和存储的深度值进行比较，如果大一些的话，添加遮蔽因数的影响。
-            occlusion += smoothstep(0.0, 1.0, SAMPLE_RADIUS / (z - kernelPos.z));
+            occlusion += smoothstep(0.0, 1.0, SAMPLE_RADIUS / abs(z - kernelPos.z));
         }
 
     }
