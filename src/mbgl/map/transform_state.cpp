@@ -100,35 +100,6 @@ void TransformState::modelMatrixFor(mat4& matrix, const UnwrappedTileID& tileID)
     matrix::scale(matrix, matrix, s / util::EXTENT, s / util::EXTENT, 1);
 }
 
-void TransformState::viewMatrixFor(mat4& matrix) const {
-    if (size.isEmpty()) {
-        return;
-    }
-
-    const double cameraToCenterDistance = getCameraToCenterDistance();
-    const ScreenCoordinate offset = getCenterOffset();
-
-    // Find the Z distance from the viewport center point
-    // [width/2 + offset.x, height/2 + offset.y] to the top edge; to point
-    // [width/2 + offset.x, 0] in Z units.
-    // 1 Z unit is equivalent to 1 horizontal px at the center of the map
-    // (the distance between[width/2, height/2] and [width/2 + 1, height/2])
-    // See https://github.com/mapbox/mapbox-gl-native/pull/15195 for details.
-    // See TransformState::fov description: fov = 2 * arctan((height / 2) / (height * 1.5)).
-    const double tanFovAboveCenter = (size.height * 0.5 + offset.y) / (size.height * 1.5);
-    const double tanMultiple = tanFovAboveCenter * std::tan(getPitch());
-    assert(tanMultiple < 1);
-    // Calculate z distance of the farthest fragment that should be rendered.
-    const double furthestDistance = cameraToCenterDistance / (1 - tanMultiple);
-    // Add a bit extra to avoid precision problems when a fragment's distance is exactly `furthestDistance`
-    const double farZ = furthestDistance * 1.01;
-
-    // Make sure the camera state is up-to-date
-    updateCameraState();
-    
-    matrix = camera.getWorldToCamera(scale, viewportMode == ViewportMode::FlippedY);
-}
-
 void TransformState::getProjMatrix(mat4& projMatrix, uint16_t nearZ, bool aligned) const {
     if (size.isEmpty()) {
         return;
@@ -154,10 +125,10 @@ void TransformState::getProjMatrix(mat4& projMatrix, uint16_t nearZ, bool aligne
 
     // Make sure the camera state is up-to-date
     updateCameraState();
-
-    mat4 worldToCamera = camera.getWorldToCamera(scale, viewportMode == ViewportMode::FlippedY);
-    mat4 cameraToClip =
-        camera.getCameraToClipPerspective(getFieldOfView(), double(size.width) / size.height, nearZ, farZ);
+    
+    worldToCameraMatrix = camera.getWorldToCamera(scale, viewportMode == ViewportMode::FlippedY);
+    
+    cameraToClipMatrix = camera.getCameraToClipPerspective(getFieldOfView(), double(size.width) / size.height, nearZ, farZ);
 
     // Move the center of perspective to center of specified edgeInsets.
     // Values are in range [-1, 1] where the upper and lower range values
@@ -165,16 +136,16 @@ void TransformState::getProjMatrix(mat4& projMatrix, uint16_t nearZ, bool aligne
     // if using axonometric perspective (not in public API yet, Issue #11882).
     // TODO(astojilj): Issue #11882 should take edge insets into account, too.
     if (!axonometric) {
-        cameraToClip[8] = -offset.x * 2.0 / size.width;
-        cameraToClip[9] = offset.y * 2.0 / size.height;
+        cameraToClipMatrix[8] = -offset.x * 2.0 / size.width;
+        cameraToClipMatrix[9] = offset.y * 2.0 / size.height;
     }
-
+    
     // Apply north orientation angle
     if (getNorthOrientation() != NorthOrientation::Upwards) {
-        matrix::rotate_z(cameraToClip, cameraToClip, -getNorthOrientationAngle());
+        matrix::rotate_z(cameraToClipMatrix, cameraToClipMatrix, -getNorthOrientationAngle());
     }
 
-    matrix::multiply(projMatrix, cameraToClip, worldToCamera);
+    matrix::multiply(projMatrix, cameraToClipMatrix, worldToCameraMatrix);
 
     if (axonometric) {
         // mat[11] controls perspective

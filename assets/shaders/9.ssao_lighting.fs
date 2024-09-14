@@ -37,11 +37,14 @@ void main()
     vec3 specular = light.Color * spec;
 
     // attenuation
-    // float distance = length(light.Position - FragPos);
-    // float attenuation = 1.0 / (1.0 + light.Linear * distance + light.Quadratic * distance * distance);
-    // diffuse *= attenuation;
-    // specular *= attenuation;
+    float distance = length(light.Position - FragPos);
+    float attenuation = 1.0 / (1.0 + light.Linear * distance + light.Quadratic * distance * distance);
+    diffuse *= attenuation;
+    specular *= attenuation;
 
     vec3 lighting = ambient + diffuse * 0.4 + specular * 0.1;
     gl_FragColor = vec4(lighting, 1.0);
+
+
+    //gl_FragColor = texture2D(ssaoBlur, TexCoords);
 }

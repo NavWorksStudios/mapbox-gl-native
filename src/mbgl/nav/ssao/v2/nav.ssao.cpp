@@ -488,7 +488,6 @@ void renderSceneToGBuffer(std::function<void()> renderScene) {
     
 #endif
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 // 2. generate SSAO texture
@@ -499,7 +498,7 @@ void generateSSAOTexture(Mat4 projection) {
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoBuffer, 0);
         glDrawBuffer(GL_COLOR_ATTACHMENT0);
     }
-    
+
     glClear(GL_COLOR_BUFFER_BIT);
     
     glUseProgram(shaderSSAO);
@@ -642,11 +641,11 @@ void draw(std::function<void()> renderScene, Mat4 projection) {
     }
     
     glClearColor(0, 0, 0, 0);
-//    glEnable(GL_DEPTH_TEST);
-//    glEnable(GL_CULL_FACE);
-//    glFrontFace(GL_CCW);
-//    glCullFace(GL_BACK);
-    
+
+    glEnable(GL_DEPTH_TEST);
+    glDepthMask(GL_TRUE);
+    glDepthFunc(GL_LESS);
+
     renderSceneToGBuffer(renderScene);
     generateSSAOTexture(projection);
     blurSSAOTexture();

@@ -8,9 +8,9 @@ uniform sampler2D texNoise;
 uniform vec3 samples[64];
 
 // parameters (you'd probably want to use them as uniforms to more easily tweak the effect)
-const int SAMPLE_SIZE = 64;
-const float SAMPLE_RADIUS = 0.15; // 采样球半径
-const float Z_MIN_DIFFERENCE = 0.05;
+const int SAMPLE_SIZE = 16;
+const float SAMPLE_RADIUS = 0.05; // 采样球半径
+const float Z_MIN_DIFFERENCE = 0.02;
 const float QUADRATIC = 1.5;
 
 // tile noise texture over screen based on screen dimensions divided by noise size
@@ -48,7 +48,7 @@ void main()
         // ============ 采样点 深度纹理坐标 ==============
         
         // project sample position (to sample texture) (to get position on screen/texture)
-        // 投影smple到深度纹理坐标，获取在纹理的位置
+        // 投影smple点到深度纹理坐标，获取在纹理的位置
         vec4 texCoors = projection * vec4(samplePos, 1.0); // from view to clip-space 使用projection将其转化到切割空间
         texCoors.xyz /= texCoors.w; // perspective divide
         texCoors.xyz = texCoors.xyz * 0.5 + 0.5; // transform to range 0.0 - 1.0
@@ -72,6 +72,7 @@ void main()
     }
 
     occlusion = 1.0 - occlusion / float(SAMPLE_SIZE);
-    
-    gl_FragColor = vec4(vec3(pow(occlusion, QUADRATIC)), 1.);
+    occlusion = pow(occlusion, QUADRATIC);
+    gl_FragColor = vec4(vec3(occlusion), 1.);
+
 }

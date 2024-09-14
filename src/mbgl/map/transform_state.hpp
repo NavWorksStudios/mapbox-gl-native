@@ -115,8 +115,10 @@ public:
     // Matrix
     void matrixFor(mat4&, const UnwrappedTileID&) const;
     void modelMatrixFor(mat4& matrix, const UnwrappedTileID& tileID) const;
-    void viewMatrixFor(mat4& matrix) const;
     void getProjMatrix(mat4& matrix, uint16_t nearZ = 1, bool aligned = false) const;
+    
+    inline mat4& getWorldToCameraMatrix() const { return worldToCameraMatrix; }
+    inline mat4& getCameraToClipMatrix() const { return cameraToClipMatrix; }
 
     // Dimensions
     Size getSize() const;
@@ -298,6 +300,8 @@ private:
 
     mutable bool requestMatricesUpdate{true};
     mutable mat4 projectionMatrix;
+    mutable mat4 worldToCameraMatrix;
+    mutable mat4 cameraToClipMatrix;
     mutable mat4 invProjectionMatrix;
     mutable mat4 coordMatrix;
     mutable mat4 invertedMatrix;
