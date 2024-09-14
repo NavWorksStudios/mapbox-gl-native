@@ -170,13 +170,13 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
 
         void main() {
             // store the fragment position vector in the first gbuffer texture
-            gl_FragData[0].xyz = vFragPos / 25.;
+            gl_FragData[0] = vec4(vFragPos / 100., 1.);
 
             // also store the per-fragment normals into the gbuffer
-            gl_FragData[1].xyz = vNormal;
+            gl_FragData[1] = vec4(vNormal, 1.);
 
             // and the diffuse per-fragment color
-            gl_FragData[2].rgb = vec3(.95);
+            gl_FragData[2] = vec4(vec3(.95), 1.);
         }
             
     )"; }
