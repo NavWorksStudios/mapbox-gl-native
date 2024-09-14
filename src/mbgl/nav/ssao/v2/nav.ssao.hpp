@@ -10,11 +10,13 @@
 
 #include <functional>
 #include <gl_headers.hpp>
+#include "mbgl/nav/ssao/v1/mat4.h"
+
 
 namespace nav {
 namespace ssao {
 namespace v2 {
-    void draw(std::function<void()> renderScene);
+    void draw(std::function<void()> renderScene, Mat4 projection);
 }
 }
 }

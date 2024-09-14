@@ -13,7 +13,6 @@
 #include "mbgl/nav/ssao/v1/rply.h"
 
 #include "mbgl/nav/nav.style.hpp"
-#include "mbgl/util/mat3.hpp"
 
 #include <vector>
 #include <random>
@@ -410,6 +409,10 @@ Vec3 eye = Vec3(0., 1.5, 1.5);
 Vec3 lookat = Vec3(0, 0, 0);
 
 
+
+//#define RABBIT
+
+
 // 1. geometry pass: render scene's geometry/color data into gbuffer
 // -----------------------------------------------------------------
 
@@ -426,13 +429,11 @@ void renderSceneToGBuffer(std::function<void()> renderScene) {
         unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
         glDrawBuffers(3, attachments);
     }
-    
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-#if 0
-    
+#ifdef RABBIT
+
     glUseProgram(shaderGeometryPass);
     
     {
@@ -492,7 +493,7 @@ void renderSceneToGBuffer(std::function<void()> renderScene) {
 
 // 2. generate SSAO texture
 // ------------------------
-void generateSSAOTexture() {
+void generateSSAOTexture(Mat4 projection) {
     {
         glBindFramebuffer(GL_FRAMEBUFFER, ssaoFBO);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoBuffer, 0);
@@ -511,16 +512,19 @@ void generateSSAOTexture() {
         }
     }
     
+#ifdef RABBIT
     {
         const static double pi = acos(0.0) * 2;
-        Mat4 ident = Mat4::identityMatrix();
-        Mat4 view, viewNorm;
-        Mat4::lookAtMatrix(eye, lookat, Vec3(0, 1, 0), view, viewNorm);
         Mat4 projection = Mat4::perspectiveMatrix(pi * 0.5, 1.333333f, 0.1f, 1000.0f);
-        
         static UniformLocation u0(shaderSSAO, "projection");
         glUniformMatrix4fv(u0, 1, GL_FALSE, reinterpret_cast<float*>(&projection));
     }
+#else
+    {
+        static UniformLocation u0(shaderSSAO, "projection");
+        glUniformMatrix4fv(u0, 1, GL_FALSE, reinterpret_cast<float*>(&projection));
+    }
+#endif
 
     {
         glActiveTexture(GL_TEXTURE0);
@@ -626,7 +630,7 @@ void lightingPass() {
 
 namespace v2 {
 
-void draw(std::function<void()> renderScene) {
+void draw(std::function<void()> renderScene, Mat4 projection) {
     static bool initized = false;
     if (!initized) {
         initized = true;
@@ -638,15 +642,15 @@ void draw(std::function<void()> renderScene) {
     }
     
     glClearColor(0, 0, 0, 0);
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-    glFrontFace(GL_CCW);
-    glCullFace(GL_BACK);
+//    glEnable(GL_DEPTH_TEST);
+//    glEnable(GL_CULL_FACE);
+//    glFrontFace(GL_CCW);
+//    glCullFace(GL_BACK);
     
     renderSceneToGBuffer(renderScene);
-//    generateSSAOTexture();
-//    blurSSAOTexture();
-//    lightingPass();
+    generateSSAOTexture(projection);
+    blurSSAOTexture();
+    lightingPass();
 }
 
 }
