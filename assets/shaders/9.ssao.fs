@@ -8,10 +8,10 @@ uniform sampler2D texNoise;
 uniform vec3 samples[64];
 
 // parameters (you'd probably want to use them as uniforms to more easily tweak the effect)
-const int SAMPLE_SIZE = 16;
-const float SAMPLE_RADIUS = 0.05; // 采样球半径
-const float Z_MIN_DIFFERENCE = 0.02;
-const float QUADRATIC = 1.5;
+const int SAMPLE_SIZE = 8;
+const float SAMPLE_RADIUS = 0.2; // 采样球半径
+const float Z_MIN_DIFFERENCE = 0.2;
+const float QUADRATIC = 3.;
 
 // tile noise texture over screen based on screen dimensions divided by noise size
 // 设置随机纹理坐标的缩放noiseScale
@@ -23,8 +23,8 @@ void main()
 {
     // get input for SSAO algorithm
     vec3 kernelPos = texture2D(gPosition, TexCoords).xyz;
-    vec3 kernalNormal = texture2D(gNormal, TexCoords).xyz;
-    vec3 random = texture2D(texNoise, TexCoords * noiseScale).xyz;
+    vec3 kernalNormal = normalize(texture2D(gNormal, TexCoords).xyz);
+    vec3 random = normalize(texture2D(texNoise, TexCoords * noiseScale).xyz);
 
     // create TBN change-of-basis matrix: from tangent-space to view-space
     // 使用Gramm-Schmidt方法我们可以创建正交的TBN矩，同时使用random进行偏移。
@@ -42,8 +42,8 @@ void main()
         // ============ 采样点 视图空间坐标 ==============
 
         // get sample position
-        vec3 tangentPos = TBN * samples[i]; // from tangent to view-space 从切线空间转化到视图空间
-        vec3 samplePos = kernelPos + tangentPos * SAMPLE_RADIUS;
+        vec3 viewPos = TBN * samples[i]; // from tangent to view-space 从切线空间转化到视图空间
+        vec3 samplePos = kernelPos + viewPos * SAMPLE_RADIUS;
 
         // ============ 采样点 深度纹理坐标 ==============
         
@@ -72,7 +72,13 @@ void main()
     }
 
     occlusion = 1.0 - occlusion / float(SAMPLE_SIZE);
+
     occlusion = pow(occlusion, QUADRATIC);
+
+    gl_FragColor.r = occlusion;
+    
     gl_FragColor = vec4(vec3(occlusion), 1.);
+
+    //gl_FragColor = texture2D(gPosition, TexCoords);
 
 }

@@ -124,7 +124,7 @@ void RenderTile::prepare(const SourcePrepareParameters& parameters) {
     matrix::multiply(matrix, transform.projMatrix, m);
     matrix::multiply(nearClippedMatrix, transform.nearClippedProjMatrix, m);
     
-    transform.state.matrixFor(modelMatrix, id);
+    modelMatrix = m;
     viewMatrix = transform.state.getWorldToCameraMatrix();
     matrix::multiply(modelViewMatrix, viewMatrix, modelMatrix);
 }

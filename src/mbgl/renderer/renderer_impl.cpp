@@ -180,8 +180,6 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
     
     // - SSAO PASS --------------------------------------------------------------------------------
     {
-        parameters.pass = RenderPass::Translucent;
-        
         const auto& p = parameters.state.getCameraToClipMatrix();
 
         Mat4 pp = {

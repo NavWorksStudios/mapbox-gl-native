@@ -210,11 +210,16 @@ void loadModel()
 
 
 GLuint gBuffer;
-GLuint gPosition, gNormal, gAlbedo;
+GLuint gPosition;
+GLuint gNormal;
+GLuint gAlbedo;
 GLuint rboDepth;
 
-GLuint ssaoFBO, ssaoBlurFBO;
-GLuint ssaoBuffer, ssaoBlurBuffer;
+GLuint ssaoFBO;
+GLuint ssaoBuffer;
+
+GLuint ssaoBlurFBO;
+GLuint ssaoBlurBuffer;
 
 void initializeResources() {
     // Enable and configure textures on applicable texture units
@@ -344,6 +349,7 @@ void genSampleKernelAndNoiseTexture() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
 }
 
 
@@ -367,8 +373,7 @@ using AttribLocation = Location<glGetAttribLocation>;
 // renderQuad() renders a 1x1 XY quad in NDC
 // -----------------------------------------
 
-void renderQuad(GLint program)
-{
+void renderQuad(GLint program) {
     static GLuint quadVAO = 0;
     static GLuint quadVBO;
     
@@ -416,7 +421,7 @@ Vec3 lookat = Vec3(0, 0, 0);
 // 1. geometry pass: render scene's geometry/color data into gbuffer
 // -----------------------------------------------------------------
 
-void renderSceneToGBuffer(std::function<void()> renderScene) {
+void renderSceneToGBuffer(std::function<void()> renderCallback) {
     
     {
         glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
@@ -430,6 +435,8 @@ void renderSceneToGBuffer(std::function<void()> renderScene) {
         glDrawBuffers(3, attachments);
     }
 
+    glDisable(GL_BLEND);
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
 #ifdef RABBIT
@@ -439,17 +446,19 @@ void renderSceneToGBuffer(std::function<void()> renderScene) {
     {
         const static double pi = acos(0.0) * 2;
         Mat4 ident = Mat4::identityMatrix();
-        Mat4 view, notused;
-        Mat4::lookAtMatrix(eye, lookat, Vec3(0, 1, 0), view, notused);
-        Mat4 proj = Mat4::perspectiveMatrix(pi * 0.5, 1.333333f, 0.1f, 1000.0f);
         
-        Mat4 mvp = proj * view;
+        Mat4 mv, normal;
+        Mat4::lookAtMatrix(eye, lookat, Vec3(0, 1, 0), mv, normal);
+        
+        Mat4 p = Mat4::perspectiveMatrix(pi * 0.5, 1.333333f, 0.1f, 1000.0f);
+        Mat4 mvp = p * mv;
+        
         static UniformLocation u0(shaderGeometryPass, "modelViewMat");
-        glUniformMatrix4fv(u0, 1, GL_FALSE, reinterpret_cast<float*>(&view));
+        glUniformMatrix4fv(u0, 1, GL_FALSE, reinterpret_cast<float*>(&mv));
         static UniformLocation u1(shaderGeometryPass, "modelViewProjMat");
         glUniformMatrix4fv(u1, 1, GL_FALSE, reinterpret_cast<float*>(&mvp));
         static UniformLocation u2(shaderGeometryPass, "normalMat");
-        glUniformMatrix4fv(u2, 1, GL_FALSE, reinterpret_cast<float*>(&ident));
+        glUniformMatrix4fv(u2, 1, GL_FALSE, reinterpret_cast<float*>(&normal));
     }
     
     static AttribLocation a0(shaderGeometryPass, "aPos");
@@ -484,15 +493,15 @@ void renderSceneToGBuffer(std::function<void()> renderScene) {
     
 #else
     
-    renderScene();
+    renderCallback();
     
 #endif
-
 }
 
 // 2. generate SSAO texture
 // ------------------------
-void generateSSAOTexture(Mat4 projection) {
+void generateSSAOTexture(Mat4 projMatrix) {
+
     {
         glBindFramebuffer(GL_FRAMEBUFFER, ssaoFBO);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoBuffer, 0);
@@ -521,7 +530,7 @@ void generateSSAOTexture(Mat4 projection) {
 #else
     {
         static UniformLocation u0(shaderSSAO, "projection");
-        glUniformMatrix4fv(u0, 1, GL_FALSE, reinterpret_cast<float*>(&projection));
+        glUniformMatrix4fv(u0, 1, GL_FALSE, reinterpret_cast<float*>(&projMatrix));
     }
 #endif
 
@@ -543,13 +552,13 @@ void generateSSAOTexture(Mat4 projection) {
     }
     
     renderQuad(shaderSSAO);
-    
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 }
 
 // 3. blur SSAO texture to remove noise
 // ------------------------------------
 void blurSSAOTexture() {
+
     {
         glBindFramebuffer(GL_FRAMEBUFFER, ssaoBlurFBO);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoBlurBuffer, 0);
@@ -572,11 +581,13 @@ void blurSSAOTexture() {
 // 4. lighting pass: traditional deferred Blinn-Phong lighting with added screen-space ambient occlusion
 // -----------------------------------------------------------------------------------------------------
 void lightingPass() {
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     
     glClear(GL_COLOR_BUFFER_BIT);
     
-    glDisable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
     glUseProgram(shaderLightingPass);
     
@@ -621,15 +632,19 @@ void lightingPass() {
         glBindTexture(GL_TEXTURE_2D, ssaoBlurBuffer);
         static UniformLocation u3(shaderLightingPass, "ssaoBlur");
         glUniform1i(u3, 3);
-        
     }
     
     renderQuad(shaderLightingPass);
+    
+    glDisable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+
 }
 
 namespace v2 {
 
-void draw(std::function<void()> renderScene, Mat4 projection) {
+void draw(std::function<void()> renderCallback, Mat4 projMatrix) {
+    
     static bool initized = false;
     if (!initized) {
         initized = true;
@@ -639,17 +654,16 @@ void draw(std::function<void()> renderScene, Mat4 projection) {
         loadShaders();
         loadModel();
     }
-    
-    glClearColor(0, 0, 0, 0);
 
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
     glDepthFunc(GL_LESS);
 
-    renderSceneToGBuffer(renderScene);
-    generateSSAOTexture(projection);
+    renderSceneToGBuffer(renderCallback);
+    generateSSAOTexture(projMatrix);
     blurSSAOTexture();
     lightingPass();
+
 }
 
 }

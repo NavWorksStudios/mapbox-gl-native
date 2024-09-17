@@ -15,5 +15,10 @@ void main()
             result += texture2D(ssao, TexCoords + offset).r;
         }
     }
-    gl_FragColor = vec4(result / (4.0 * 4.0));
+
+    result /= (4.0 * 4.0);
+
+    gl_FragColor.r = result;
+
+    gl_FragColor = vec4(result);
 }  
