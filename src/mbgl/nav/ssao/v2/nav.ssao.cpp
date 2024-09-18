@@ -500,7 +500,7 @@ void renderSceneToGBuffer(std::function<void()> renderCallback) {
 
 // 2. generate SSAO texture
 // ------------------------
-void generateSSAOTexture(Mat4 projMatrix) {
+void generateSSAOTexture(float zoom, const Mat4& projMatrix) {
 
     {
         glBindFramebuffer(GL_FRAMEBUFFER, ssaoFBO);
@@ -530,7 +530,7 @@ void generateSSAOTexture(Mat4 projMatrix) {
 #else
     {
         static UniformLocation u0(shaderSSAO, "projection");
-        glUniformMatrix4fv(u0, 1, GL_FALSE, reinterpret_cast<float*>(&projMatrix));
+        glUniformMatrix4fv(u0, 1, GL_FALSE, reinterpret_cast<const float*>(&projMatrix));
     }
 #endif
 
@@ -549,6 +549,9 @@ void generateSSAOTexture(Mat4 projMatrix) {
         glBindTexture(GL_TEXTURE_2D, noiseTexture);
         static UniformLocation u2(shaderSSAO, "texNoise");
         glUniform1i(u2, 2);
+        
+        static UniformLocation u3(shaderSSAO, "u_zoom");
+        glUniform1f(u3, zoom);
     }
     
     renderQuad(shaderSSAO);
@@ -643,7 +646,15 @@ void lightingPass() {
 
 namespace v2 {
 
-void draw(std::function<void()> renderCallback, Mat4 projMatrix) {
+void draw(float zoom, mbgl::mat4 projMatrix, std::function<void()> renderCallback) {
+    
+    const auto& p = projMatrix;
+    Mat4 clipMatrix = {
+        float(p[0]), float(p[4]), float(p[8]), float(p[12]),
+        float(p[1]), float(p[5]), float(p[9]), float(p[13]),
+        float(p[2]), float(p[6]), float(p[10]), float(p[14]),
+        float(p[3]), float(p[7]), float(p[11]), float(p[15])
+    };
     
     static bool initized = false;
     if (!initized) {
@@ -660,7 +671,7 @@ void draw(std::function<void()> renderCallback, Mat4 projMatrix) {
     glDepthFunc(GL_LESS);
 
     renderSceneToGBuffer(renderCallback);
-    generateSSAOTexture(projMatrix);
+    generateSSAOTexture(zoom, clipMatrix);
     blurSSAOTexture();
     lightingPass();
 

@@ -180,17 +180,12 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
     
     // - SSAO PASS --------------------------------------------------------------------------------
     {
-        const auto& p = parameters.state.getCameraToClipMatrix();
-
-        Mat4 pp = {
-            float(p[0]), float(p[4]), float(p[8]), float(p[12]),
-            float(p[1]), float(p[5]), float(p[9]), float(p[13]),
-            float(p[2]), float(p[6]), float(p[10]), float(p[14]),
-            float(p[3]), float(p[7]), float(p[11]), float(p[15]) };
-
-        nav::ssao::v2::draw([&parameters] () {
+        nav::ssao::v2::draw(
+        parameters.state.getZoom(),
+        parameters.state.getCameraToClipMatrix(),
+        [&parameters] () {
             RenderFillExtrusionLayer::renderSSAO(parameters);
-        }, pp);
+        });
     }
 
     // - DEBUG PASS --------------------------------------------------------------------------------

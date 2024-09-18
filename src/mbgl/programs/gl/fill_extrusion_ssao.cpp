@@ -136,8 +136,8 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
             float lowp z = t > 0. ? height : base;
             vec4 pos = vec4(a_pos, z, 1.0);
 
-            vFragPos = vec3(u_mv_matrix * pos) / 100.;
-            vNormal = vec3(u_normal_matrix * vec4(-a_normal_ed.xy, a_normal_ed.zw));
+            vFragPos = vec3(u_mv_matrix * pos) / 128.;
+            vNormal = vec3(u_normal_matrix * vec4(-a_normal_ed.x, -a_normal_ed.y, a_normal_ed.z, a_normal_ed.w));
             gl_Position = u_matrix * pos;
         }
         

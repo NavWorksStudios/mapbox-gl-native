@@ -74,6 +74,8 @@ void TransformState::setProperties(const TransformStateProperties& properties) {
 
 #pragma mark - Matrix
 
+// model to world
+
 void TransformState::matrixFor(mat4& matrix, const UnwrappedTileID& tileID) const {
     const uint64_t tileScale = 1ull << tileID.canonical.z;
     const double world = Projection::worldSize(scale);
@@ -88,6 +90,8 @@ void TransformState::matrixFor(mat4& matrix, const UnwrappedTileID& tileID) cons
     const double ss = s / util::EXTENT;
     matrix::scale(matrix, matrix, ss, ss, 1);
 }
+
+// world to camera to clip
 
 void TransformState::getProjMatrix(mat4& projMatrix, uint16_t nearZ, bool aligned) const {
     if (size.isEmpty()) {
@@ -166,6 +170,65 @@ void TransformState::getProjMatrix(mat4& projMatrix, uint16_t nearZ, bool aligne
         const float dxa = -std::modf(dx, &devNull) + bearingCos * xShift + bearingSin * yShift;
         const float dya = -std::modf(dy, &devNull) + bearingCos * yShift + bearingSin * xShift;
         matrix::translate(projMatrix, projMatrix, dxa > 0.5 ? dxa - 1 : dxa, dya > 0.5 ? dya - 1 : dya, 0);
+    }
+    
+    updateWorldToCameraMatrix(nearZ, aligned);
+}
+
+void TransformState::updateWorldToCameraMatrix(uint16_t nearZ, bool aligned) const {
+    const double cameraToCenterDistance = getCameraToCenterDistance();
+    const ScreenCoordinate offset = getCenterOffset();
+
+    // Find the Z distance from the viewport center point
+    // [width/2 + offset.x, height/2 + offset.y] to the top edge; to point
+    // [width/2 + offset.x, 0] in Z units.
+    // 1 Z unit is equivalent to 1 horizontal px at the center of the map
+    // (the distance between[width/2, height/2] and [width/2 + 1, height/2])
+    // See https://github.com/mapbox/mapbox-gl-native/pull/15195 for details.
+    // See TransformState::fov description: fov = 2 * arctan((height / 2) / (height * 1.5)).
+    const double tanFovAboveCenter = (size.height * 0.5 + offset.y) / (size.height * 1.5);
+    const double tanMultiple = tanFovAboveCenter * std::tan(getPitch());
+    assert(tanMultiple < 1);
+    // Calculate z distance of the farthest fragment that should be rendered.
+    const double furthestDistance = cameraToCenterDistance / (1 - tanMultiple);
+    // Add a bit extra to avoid precision problems when a fragment's distance is exactly `furthestDistance`
+    const double farZ = furthestDistance * 1.01;
+
+    // Make sure the camera state is up-to-date
+    updateCameraState();
+    
+    worldToCameraMatrix = camera.getWorldToCamera(scale, viewportMode == ViewportMode::FlippedY);
+
+    if (axonometric) {
+        // mat[11] controls perspective
+        worldToCameraMatrix[11] = 0.0;
+
+        // mat[8], mat[9] control x-skew, y-skew
+        double pixelsPerMeter = 1.0 / Projection::getMetersPerPixelAtLatitude(getLatLng().latitude(), getZoom());
+        worldToCameraMatrix[8] = xSkew * pixelsPerMeter;
+        worldToCameraMatrix[9] = ySkew * pixelsPerMeter;
+    }
+
+    // Make a second projection matrix that is aligned to a pixel grid for rendering raster tiles.
+    // We're rounding the (floating point) x/y values to achieve to avoid rendering raster images to fractional
+    // coordinates. Additionally, we adjust by half a pixel in either direction in case that viewport dimension
+    // is an odd integer to preserve rendering to the pixel grid. We're rotating this shift based on the angle
+    // of the transformation so that 0°, 90°, 180°, and 270° rasters are crisp, and adjust the shift so that
+    // it is always <= 0.5 pixels.
+
+    if (aligned) {
+        const double worldSize = Projection::worldSize(scale);
+        const double dx = x - 0.5 * worldSize;
+        const double dy = y - 0.5 * worldSize;
+
+        const float xShift = float(size.width % 2) / 2;
+        const float yShift = float(size.height % 2) / 2;
+        const double bearingCos = std::cos(bearing);
+        const double bearingSin = std::sin(bearing);
+        double devNull;
+        const float dxa = -std::modf(dx, &devNull) + bearingCos * xShift + bearingSin * yShift;
+        const float dya = -std::modf(dy, &devNull) + bearingCos * yShift + bearingSin * xShift;
+        matrix::translate(worldToCameraMatrix, worldToCameraMatrix, dxa > 0.5 ? dxa - 1 : dxa, dya > 0.5 ? dya - 1 : dya, 0);
     }
 }
 

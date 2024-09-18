@@ -14,12 +14,12 @@
 
 #include <functional>
 #include <gl_headers.hpp>
-#include "mbgl/nav/ssao/v1/mat4.h"
+#include <mbgl/util/mat4.hpp>
 
 namespace nav {
 namespace ssao {
 namespace v2 {
-    void draw(std::function<void()> renderCallback, Mat4 projMatrix);
+    void draw(float zoom, mbgl::mat4 projMatrix, std::function<void()> renderCallback);
 }
 }
 }
