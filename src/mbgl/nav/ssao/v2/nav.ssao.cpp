@@ -264,7 +264,7 @@ void initializeResources() {
     glGenFramebuffers(1, &ssaoFBO);
     glGenTextures(1, &ssaoBuffer);
     glBindTexture(GL_TEXTURE_2D, ssaoBuffer);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, SCR_WIDTH, SCR_HEIGHT, 0, GL_RED, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
@@ -272,7 +272,7 @@ void initializeResources() {
     glGenFramebuffers(1, &ssaoBlurFBO);
     glGenTextures(1, &ssaoBlurBuffer);
     glBindTexture(GL_TEXTURE_2D, ssaoBlurBuffer);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, SCR_WIDTH, SCR_HEIGHT, 0, GL_RED, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     
@@ -515,7 +515,7 @@ void generateSSAOTexture(float zoom, const Mat4& projMatrix) {
     {
         // Send kernel + rotation
         for (unsigned int i = 0; i < 64; ++i) {
-            UniformLocation u0(shaderSSAO, ("samples[" + std::to_string(i) + "]").c_str());
+            UniformLocation u0(shaderSSAO, ("u_samples[" + std::to_string(i) + "]").c_str());
             glUniform3fv(u0, 1, reinterpret_cast<float*>(&(ssaoKernel[i])));
         }
     }
@@ -524,12 +524,12 @@ void generateSSAOTexture(float zoom, const Mat4& projMatrix) {
     {
         const static double pi = acos(0.0) * 2;
         Mat4 projection = Mat4::perspectiveMatrix(pi * 0.5, 1.333333f, 0.1f, 1000.0f);
-        static UniformLocation u0(shaderSSAO, "projection");
+        static UniformLocation u0(shaderSSAO, "u_projection");
         glUniformMatrix4fv(u0, 1, GL_FALSE, reinterpret_cast<float*>(&projection));
     }
 #else
     {
-        static UniformLocation u0(shaderSSAO, "projection");
+        static UniformLocation u0(shaderSSAO, "u_projection");
         glUniformMatrix4fv(u0, 1, GL_FALSE, reinterpret_cast<const float*>(&projMatrix));
     }
 #endif
@@ -537,17 +537,17 @@ void generateSSAOTexture(float zoom, const Mat4& projMatrix) {
     {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, gPosition);
-        static UniformLocation u0(shaderSSAO, "gPosition");
+        static UniformLocation u0(shaderSSAO, "u_position");
         glUniform1i(u0, 0);
         
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, gNormal);
-        static UniformLocation u1(shaderSSAO, "gNormal");
+        static UniformLocation u1(shaderSSAO, "u_normal");
         glUniform1i(u1, 1);
         
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, noiseTexture);
-        static UniformLocation u2(shaderSSAO, "texNoise");
+        static UniformLocation u2(shaderSSAO, "u_noise");
         glUniform1i(u2, 2);
         
         static UniformLocation u3(shaderSSAO, "u_zoom");
@@ -646,15 +646,13 @@ void lightingPass() {
 
 namespace v2 {
 
+auto convert = [] (mbgl::mat4 matrix) {
+    Mat4 m;
+    for (int i=0; i<16; i++) ((float*)&m)[i] = float(matrix[i]);
+    return m;
+};
+
 void draw(float zoom, mbgl::mat4 projMatrix, std::function<void()> renderCallback) {
-    
-    const auto& p = projMatrix;
-    Mat4 clipMatrix = {
-        float(p[0]), float(p[4]), float(p[8]), float(p[12]),
-        float(p[1]), float(p[5]), float(p[9]), float(p[13]),
-        float(p[2]), float(p[6]), float(p[10]), float(p[14]),
-        float(p[3]), float(p[7]), float(p[11]), float(p[15])
-    };
     
     static bool initized = false;
     if (!initized) {
@@ -671,7 +669,7 @@ void draw(float zoom, mbgl::mat4 projMatrix, std::function<void()> renderCallbac
     glDepthFunc(GL_LESS);
 
     renderSceneToGBuffer(renderCallback);
-    generateSSAOTexture(zoom, clipMatrix);
+    generateSSAOTexture(zoom, convert(projMatrix));
     blurSSAOTexture();
     lightingPass();
 

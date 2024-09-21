@@ -112,10 +112,8 @@ public:
 
     void setProperties(const TransformStateProperties& properties);
 
-    // Matrix
     void matrixFor(mat4&, const UnwrappedTileID&) const;
     void getProjMatrix(mat4& matrix, uint16_t nearZ = 1, bool aligned = false) const;
-    void updateWorldToCameraMatrix(uint16_t nearZ, bool aligned) const;
     
     inline mat4& getWorldToCameraMatrix() const { return worldToCameraMatrix; }
     inline mat4& getCameraToClipMatrix() const { return cameraToClipMatrix; }

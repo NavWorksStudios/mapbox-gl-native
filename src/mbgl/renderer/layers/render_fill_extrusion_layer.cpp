@@ -142,13 +142,20 @@ void RenderFillExtrusionLayer::renderSSAO_p(PaintParameters& parameters) {
             const auto& translate = evaluated.get<FillExtrusionTranslate>();
             const auto& anchor = evaluated.get<FillExtrusionTranslateAnchor>();
             const auto& state = parameters.state;
-            layoutUniforms.template get<uniforms::matrix>() = tile.translatedClipMatrix(translate, anchor, state);
+            
+            const auto matrix = tile.translatedClipMatrix(translate, anchor, state);
+            layoutUniforms.template get<uniforms::matrix>() = matrix;
+            
+//            mat4 mvp;
+//            matrix::multiply(m, parameters.state.getCameraToClipMatrix(), tile.modelViewMatrix);
+//            layoutUniforms.template get<uniforms::matrix>() = mvp;
+            
             
             layoutUniforms.template get<uniforms::mv_matrix>() = tile.modelViewMatrix;
             
-            auto& m = layoutUniforms.template get<uniforms::normal_matrix>();
-            matrix::invert(m, tile.modelViewMatrix);
-            matrix::transpose(m);
+            auto& normalMatrix = layoutUniforms.template get<uniforms::normal_matrix>();
+            matrix::invert(normalMatrix, tile.modelViewMatrix);
+            matrix::transpose(normalMatrix);
             
             draw(parameters.programs.getFillExtrusionSSAOLayerPrograms().fillExtrusion,
                  evaluated,

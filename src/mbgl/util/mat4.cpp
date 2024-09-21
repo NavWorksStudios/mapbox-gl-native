@@ -158,22 +158,11 @@ void ortho(mat4& out, double left, double right, double bottom, double top, doub
 void perspective(mat4& out, double fovy, double aspect, double near, double far) {
     double f = 1.0f / std::tan(fovy / 2.0f);
     double nf = 1.0f / (near - far);
-    out[0] = f / aspect;
-    out[1] = 0.0f;
-    out[2] = 0.0f;
-    out[3] = 0.0f;
-    out[4] = 0.0f;
-    out[5] = f;
-    out[6] = 0.0f;
-    out[7] = 0.0f;
-    out[8] = 0.0f;
-    out[9] = 0.0f;
-    out[10] = (far + near) * nf;
-    out[11] = -1.0f;
-    out[12] = 0.0f;
-    out[13] = 0.0f;
-    out[14] = (2.0f * far * near) * nf;
-    out[15] = 0.0f;
+    
+    out[0] = f / aspect;    out[1] = 0.0f;  out[2] = 0.0f;                      out[3] = 0.0f;
+    out[4] = 0.0f;          out[5] = f;     out[6] = 0.0f;                      out[7] = 0.0f;
+    out[8] = 0.0f;          out[9] = 0.0f;  out[10] = (far + near) * nf;        out[11] = -1.0f;
+    out[12] = 0.0f;         out[13] = 0.0f; out[14] = (2.0f * far * near) * nf; out[15] = 0.0f;
 }
 
 void copy(mat4& out, const mat4& a) {

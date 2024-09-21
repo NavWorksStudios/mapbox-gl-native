@@ -118,15 +118,13 @@ void RenderTile::prepare(const SourcePrepareParameters& parameters) {
     // matrix is the standard tile matrix;
     // nearClippedMatrix has near plane moved further, to enhance depth buffer precision
     const auto& transform = parameters.transform;
-    
-    mat4 m;
-    transform.state.matrixFor(m, id);
-    matrix::multiply(matrix, transform.projMatrix, m);
-    matrix::multiply(nearClippedMatrix, transform.nearClippedProjMatrix, m);
-    
-    modelMatrix = m;
+
+    transform.state.matrixFor(modelMatrix, id);
     viewMatrix = transform.state.getWorldToCameraMatrix();
     matrix::multiply(modelViewMatrix, viewMatrix, modelMatrix);
+    
+    matrix::multiply(matrix, transform.projMatrix, modelMatrix);
+    matrix::multiply(nearClippedMatrix, transform.nearClippedProjMatrix, modelMatrix);
 }
 
 void RenderTile::finishRender(PaintParameters& parameters) const {

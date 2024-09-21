@@ -100,15 +100,15 @@ void FillExtrusionBucket::addFeature(const GeometryTileFeature& feature,
             
             // 1. all of the wall surface within this ring
             for (std::size_t i = 0; i < nVertices; i++) {
-                // [roof vertex]
+                // [roof surface]
                 // pick this point as a [roof vertex] with the normal value (0,0,1)
                 const auto& p1 = ring[i];
                 vertices.emplace_back(FillExtrusionProgram::layoutVertex(p1, 0, 0, 1, 1, edgeDistance));
                 flatIndices.emplace_back(triangleIndex);
                 triangleIndex += 1;
                 
-                // [wall suface]
-                // pick this and the previous point together to make a [wall suface] with the normal value (perp.x, perp.y, 0)
+                // [side surface]
+                // pick this and the previous point together to make a [side surface] with the normal value (perp.x, perp.y, 0)
                 if (i != 0) {
                     const auto& p2 = ring[(i-1)];
                     const auto d1 = convertPoint<double>(p1);

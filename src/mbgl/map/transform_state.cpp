@@ -97,50 +97,73 @@ void TransformState::getProjMatrix(mat4& projMatrix, uint16_t nearZ, bool aligne
     if (size.isEmpty()) {
         return;
     }
-
-    const double cameraToCenterDistance = getCameraToCenterDistance();
-    const ScreenCoordinate offset = getCenterOffset();
-
-    // Find the Z distance from the viewport center point
-    // [width/2 + offset.x, height/2 + offset.y] to the top edge; to point
-    // [width/2 + offset.x, 0] in Z units.
-    // 1 Z unit is equivalent to 1 horizontal px at the center of the map
-    // (the distance between[width/2, height/2] and [width/2 + 1, height/2])
-    // See https://github.com/mapbox/mapbox-gl-native/pull/15195 for details.
-    // See TransformState::fov description: fov = 2 * arctan((height / 2) / (height * 1.5)).
-    const double tanFovAboveCenter = (size.height * 0.5 + offset.y) / (size.height * 1.5);
-    const double tanMultiple = tanFovAboveCenter * std::tan(getPitch());
-    assert(tanMultiple < 1);
-    // Calculate z distance of the farthest fragment that should be rendered.
-    const double furthestDistance = cameraToCenterDistance / (1 - tanMultiple);
-    // Add a bit extra to avoid precision problems when a fragment's distance is exactly `furthestDistance`
-    const double farZ = furthestDistance * 1.01;
-
+    
     // Make sure the camera state is up-to-date
     updateCameraState();
     
-    worldToCameraMatrix = camera.getWorldToCamera(scale, viewportMode == ViewportMode::FlippedY);
-    
-    cameraToClipMatrix = camera.getCameraToClipPerspective(getFieldOfView(), double(size.width) / size.height, nearZ, farZ);
-
-    // Move the center of perspective to center of specified edgeInsets.
-    // Values are in range [-1, 1] where the upper and lower range values
-    // position viewport center to the screen edges. This is overriden
-    // if using axonometric perspective (not in public API yet, Issue #11882).
-    // TODO(astojilj): Issue #11882 should take edge insets into account, too.
-    if (!axonometric) {
-        cameraToClipMatrix[8] = -offset.x * 2.0 / size.width;
-        cameraToClipMatrix[9] = offset.y * 2.0 / size.height;
+    // world to camera matrix
+    {
+        worldToCameraMatrix = camera.getWorldToCamera(scale, viewportMode == ViewportMode::FlippedY);
     }
     
-    // Apply north orientation angle
-    if (getNorthOrientation() != NorthOrientation::Upwards) {
-        matrix::rotate_z(cameraToClipMatrix, cameraToClipMatrix, -getNorthOrientationAngle());
+    // camera to clip Matrix
+    {
+        const ScreenCoordinate offset = getCenterOffset();
+        
+        auto getFarZ = [this, &offset] () {
+            const double cameraToCenterDistance = getCameraToCenterDistance();
+
+            // Find the Z distance from the viewport center point
+            // [width/2 + offset.x, height/2 + offset.y] to the top edge; to point
+            // [width/2 + offset.x, 0] in Z units.
+            // 1 Z unit is equivalent to 1 horizontal px at the center of the map
+            // (the distance between[width/2, height/2] and [width/2 + 1, height/2])
+            // See https://github.com/mapbox/mapbox-gl-native/pull/15195 for details.
+            // See TransformState::fov description: fov = 2 * arctan((height / 2) / (height * 1.5)).
+            
+            // 计算Z距离，从视口中心点 [宽度/2+偏移.x，高度/2+偏移.y] 到顶部边缘；to point [宽度/2+偏移.x，0]，以Z为单位。
+            // 1个Z单位相当于地图中心的1水平像素（[width/2，height/2]和[width/2+1，height/2]之间的距离）
+            // 请参阅 https://github.com/mapbox/mapbox-gl-native/pull/15195 了解详情。
+            // 请参见 TransformState::fov description: fov = 2 * arctan((height / 2) / (height * 1.5)).
+            const double tanFovAboveCenter = (size.height * 0.5 + offset.y) / (size.height * 1.5);
+            const double tanMultiple = tanFovAboveCenter * std::tan(getPitch());
+            assert(tanMultiple < 1);
+            
+            // Calculate z distance of the farthest fragment that should be rendered.
+            // 计算应渲染的最远片段的z距离。
+            const double furthestDistance = cameraToCenterDistance / (1 - tanMultiple);
+            
+            // Add a bit extra to avoid precision problems when a fragment's distance is exactly `furthestDistance`
+            // 当片段的距离恰好为 “furthestDistance” 时，添加一点额外的值以避免精度问题
+            const double farZ = furthestDistance * 1.01;
+            
+            return farZ;
+        };
+        
+        cameraToClipMatrix = camera.getCameraToClipPerspective(getFieldOfView(), double(size.width) / size.height, nearZ, getFarZ());
+        
+        // Move the center of perspective to center of specified edgeInsets.
+        // Values are in range [-1, 1] where the upper and lower range values
+        // position viewport center to the screen edges. This is overriden
+        // if using axonometric perspective (not in public API yet, Issue #11882).
+        // TODO(astojilj): Issue #11882 should take edge insets into account, too.
+        // 将透视中心移动到指定边Insets的中心。值在范围[-1，1]内，其中上限和下限值将视口中心定位到屏幕边缘。
+        // 这被夸大了如果使用轴测透视（尚未公开API，第11882期）。
+        // TODO（astojilj）：第11882期也应考虑边缘插图。
+        if (!axonometric) { // 轴测法的
+            cameraToClipMatrix[8] = -offset.x * 2.0 / size.width;
+            cameraToClipMatrix[9] = offset.y * 2.0 / size.height;
+        }
+        
+        // Apply north orientation angle  应用北向角度
+        if (getNorthOrientation() != NorthOrientation::Upwards) {
+            matrix::rotate_z(cameraToClipMatrix, cameraToClipMatrix, -getNorthOrientationAngle());
+        }
     }
 
     matrix::multiply(projMatrix, cameraToClipMatrix, worldToCameraMatrix);
 
-    if (axonometric) {
+    if (axonometric) { // 轴测法的
         // mat[11] controls perspective
         projMatrix[11] = 0.0;
 
@@ -156,7 +179,9 @@ void TransformState::getProjMatrix(mat4& projMatrix, uint16_t nearZ, bool aligne
     // is an odd integer to preserve rendering to the pixel grid. We're rotating this shift based on the angle
     // of the transformation so that 0°, 90°, 180°, and 270° rasters are crisp, and adjust the shift so that
     // it is always <= 0.5 pixels.
-
+    //制作第二个与像素网格对齐的投影矩阵，用于渲染光栅图块。
+    //我们正在对（浮点）x/y值进行四舍五入，以避免将光栅图像渲染为分数坐标。此外，如果视口尺寸是一个奇数，用于保持像素网格的渲染。
+    //我们根据角度旋转这个偏移调整转换，使0°、90°、180°和270°光栅清晰，并调整偏移，使它总是<=0.5像素。
     if (aligned) {
         const double worldSize = Projection::worldSize(scale);
         const double dx = x - 0.5 * worldSize;
@@ -172,64 +197,10 @@ void TransformState::getProjMatrix(mat4& projMatrix, uint16_t nearZ, bool aligne
         matrix::translate(projMatrix, projMatrix, dxa > 0.5 ? dxa - 1 : dxa, dya > 0.5 ? dya - 1 : dya, 0);
     }
     
-    updateWorldToCameraMatrix(nearZ, aligned);
-}
-
-void TransformState::updateWorldToCameraMatrix(uint16_t nearZ, bool aligned) const {
-    const double cameraToCenterDistance = getCameraToCenterDistance();
-    const ScreenCoordinate offset = getCenterOffset();
-
-    // Find the Z distance from the viewport center point
-    // [width/2 + offset.x, height/2 + offset.y] to the top edge; to point
-    // [width/2 + offset.x, 0] in Z units.
-    // 1 Z unit is equivalent to 1 horizontal px at the center of the map
-    // (the distance between[width/2, height/2] and [width/2 + 1, height/2])
-    // See https://github.com/mapbox/mapbox-gl-native/pull/15195 for details.
-    // See TransformState::fov description: fov = 2 * arctan((height / 2) / (height * 1.5)).
-    const double tanFovAboveCenter = (size.height * 0.5 + offset.y) / (size.height * 1.5);
-    const double tanMultiple = tanFovAboveCenter * std::tan(getPitch());
-    assert(tanMultiple < 1);
-    // Calculate z distance of the farthest fragment that should be rendered.
-    const double furthestDistance = cameraToCenterDistance / (1 - tanMultiple);
-    // Add a bit extra to avoid precision problems when a fragment's distance is exactly `furthestDistance`
-    const double farZ = furthestDistance * 1.01;
-
-    // Make sure the camera state is up-to-date
-    updateCameraState();
+    mat4 inv;
+    matrix::invert(inv, worldToCameraMatrix);
+    matrix::multiply(cameraToClipMatrix, projMatrix, inv);
     
-    worldToCameraMatrix = camera.getWorldToCamera(scale, viewportMode == ViewportMode::FlippedY);
-
-    if (axonometric) {
-        // mat[11] controls perspective
-        worldToCameraMatrix[11] = 0.0;
-
-        // mat[8], mat[9] control x-skew, y-skew
-        double pixelsPerMeter = 1.0 / Projection::getMetersPerPixelAtLatitude(getLatLng().latitude(), getZoom());
-        worldToCameraMatrix[8] = xSkew * pixelsPerMeter;
-        worldToCameraMatrix[9] = ySkew * pixelsPerMeter;
-    }
-
-    // Make a second projection matrix that is aligned to a pixel grid for rendering raster tiles.
-    // We're rounding the (floating point) x/y values to achieve to avoid rendering raster images to fractional
-    // coordinates. Additionally, we adjust by half a pixel in either direction in case that viewport dimension
-    // is an odd integer to preserve rendering to the pixel grid. We're rotating this shift based on the angle
-    // of the transformation so that 0°, 90°, 180°, and 270° rasters are crisp, and adjust the shift so that
-    // it is always <= 0.5 pixels.
-
-    if (aligned) {
-        const double worldSize = Projection::worldSize(scale);
-        const double dx = x - 0.5 * worldSize;
-        const double dy = y - 0.5 * worldSize;
-
-        const float xShift = float(size.width % 2) / 2;
-        const float yShift = float(size.height % 2) / 2;
-        const double bearingCos = std::cos(bearing);
-        const double bearingSin = std::sin(bearing);
-        double devNull;
-        const float dxa = -std::modf(dx, &devNull) + bearingCos * xShift + bearingSin * yShift;
-        const float dya = -std::modf(dy, &devNull) + bearingCos * yShift + bearingSin * xShift;
-        matrix::translate(worldToCameraMatrix, worldToCameraMatrix, dxa > 0.5 ? dxa - 1 : dxa, dya > 0.5 ? dya - 1 : dya, 0);
-    }
 }
 
 void TransformState::updateCameraState() const {
