@@ -7,10 +7,10 @@
 uniform sampler2D ssao;
 
 const vec2 parameters = vec2(1, 0);
+const vec2 texSize  = vec2(2048., 1080.) * 2.;
 
 
 void main() {
-  vec2 texSize  = vec2(2048., 1080.) * 2.;
   vec2 texCoord = gl_FragCoord.xy / texSize;
 
   int size = int(parameters.x);
@@ -18,6 +18,7 @@ void main() {
     gl_FragColor = texture2D(ssao, texCoord);
     return;
   }
+
   if (size > MAX_SIZE) { size = MAX_SIZE; }
   int kernelSize = int(pow(float(size) * 2. + 1., 2.));
 
@@ -40,7 +41,7 @@ void main() {
 
   for (i = -size; i <= size; ++i) {
     for (j = -size; j <= size; ++j) {
-      colors[count] = texture2D(ssao, texCoord + vec2(i,j) / texSize);
+      colors[count].rgb = vec3(texture2D(ssao, texCoord + vec2(i,j) / texSize).r);
       count += 1;
     }
   }
@@ -67,11 +68,11 @@ void main() {
     }
   }
 
-  gl_FragColor = colors[0];
+  gl_FragColor.r = colors[0].r;
 
   for (i = 0; i < kernelSize; ++i) {
     if (binIndexes[i] == binIndex) {
-      gl_FragColor = vec4(colors[i].r);
+      gl_FragColor.r = colors[i].r;
       break;
     }
   }

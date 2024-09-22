@@ -48,6 +48,8 @@ void loadShaders() {
     shaderSSAOBlur = 
     createProgram(loadShader(GL_VERTEX_SHADER, "/shaders/9.ssao.vs"),
                   loadShader(GL_FRAGMENT_SHADER, "/shaders/9.ssao_blur.fs"));
+//                  loadShader(GL_FRAGMENT_SHADER, "/shaders/9.median_filter.fs"));
+//                  loadShader(GL_FRAGMENT_SHADER, "/shaders/9.kuwahara_filter.fs"));
     
     shaderLightingPass =
     createProgram(loadShader(GL_VERTEX_SHADER, "/shaders/9.ssao.vs"),
@@ -264,7 +266,7 @@ void initializeResources() {
     glGenFramebuffers(1, &ssaoFBO);
     glGenTextures(1, &ssaoBuffer);
     glBindTexture(GL_TEXTURE_2D, ssaoBuffer);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, SCR_WIDTH, SCR_HEIGHT, 0, GL_RED, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
@@ -272,7 +274,7 @@ void initializeResources() {
     glGenFramebuffers(1, &ssaoBlurFBO);
     glGenTextures(1, &ssaoBlurBuffer);
     glBindTexture(GL_TEXTURE_2D, ssaoBlurBuffer);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, SCR_WIDTH, SCR_HEIGHT, 0, GL_RED, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     
@@ -296,8 +298,10 @@ void initializeResources() {
 }
 
 
-
-std::vector<Vec3> ssaoKernel;
+enum { SAMPLE_SIZE = 16 };
+std::vector<Vec3> ssaoSample;
+std::vector<float> ssaoSampleWeight;
+float ssaoSampleWeightTotal;
 std::vector<Vec3> ssaoNoise;
 GLuint noiseTexture = 0;
 
@@ -306,12 +310,14 @@ GLfloat lerp(GLfloat a, GLfloat b, GLfloat f) {
 }
 
 void genSampleKernelAndNoiseTexture() {
+    
+    ssaoSampleWeightTotal = 0;
 
     // 生成一个沿法线方向的半球形采样核心，将在切线空间生成这个半球（法线都指向+z轴），以免为每个平面都单独生成一个沿各自法线方向的半球。
     // - generate sample kernel
     std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0); // generates random floats between 0.0 and 1.0
     std::default_random_engine generator;
-    for (unsigned int i = 0; i < 64; ++i)
+    for (unsigned int i = 0; i < SAMPLE_SIZE; ++i)
     {
         Vec3 sample(
             randomFloats(generator) * 2.0 - 1.0, // x, -1.0到1.0
@@ -320,11 +326,17 @@ void genSampleKernelAndNoiseTexture() {
         
         sample.normalize();
         sample.scale(randomFloats(generator));
-        float scale = float(i) / 64.0f;
+        float scale = float(i) / SAMPLE_SIZE;
+        
         // scale samples s.t. they're more aligned to center of kernel
         scale = lerp(0.1f, 1.0f, scale * scale);
         sample.scale(scale);
-        ssaoKernel.push_back(sample);
+
+        ssaoSample.push_back(sample);
+        
+        float w = 1.;//pow(1. / sample.norm(), 1.);
+        ssaoSampleWeight.push_back(w);
+        ssaoSampleWeightTotal += w;
     }
 
     // 随机核心旋转
@@ -338,7 +350,6 @@ void genSampleKernelAndNoiseTexture() {
             0.0f );
         
         noise.normalize();
-
         ssaoNoise.push_back(noise);
     }
 
@@ -393,7 +404,6 @@ void renderQuad(GLint program) {
         glBindVertexArray(quadVAO);
         glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-        
 
         static AttribLocation a0(program, "aPos");
         glEnableVertexAttribArray(a0);
@@ -514,10 +524,16 @@ void generateSSAOTexture(float zoom, const Mat4& projMatrix) {
     
     {
         // Send kernel + rotation
-        for (unsigned int i = 0; i < 64; ++i) {
+        for (unsigned int i = 0; i < SAMPLE_SIZE; ++i) {
             UniformLocation u0(shaderSSAO, ("u_samples[" + std::to_string(i) + "]").c_str());
-            glUniform3fv(u0, 1, reinterpret_cast<float*>(&(ssaoKernel[i])));
+            glUniform3fv(u0, 1, reinterpret_cast<float*>(&(ssaoSample[i])));
+            
+            UniformLocation u1(shaderSSAO, ("u_samples_weight[" + std::to_string(i) + "]").c_str());
+            glUniform1fv(u1, 1, reinterpret_cast<float*>(&(ssaoSampleWeight[i])));
         }
+        
+        UniformLocation u2(shaderSSAO, "u_samples_weight_total");
+        glUniform1f(u2, ssaoSampleWeightTotal);
     }
     
 #ifdef RABBIT

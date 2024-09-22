@@ -24,12 +24,12 @@ void main()
     float AmbientOcclusion = texture2D(ssaoBlur, TexCoords).r;
     
     // then calculate lighting as usual
-    vec3 ambient = vec3(Diffuse * AmbientOcclusion);
+    vec3 ambient = vec3(0.6 * Diffuse * AmbientOcclusion);
     vec3 viewDir  = normalize(-FragPos); // viewpos is (0.0.0)
 
     // diffuse
     vec3 lightDir = normalize(light.Position - FragPos);
-    vec3 diffuse = dot(Normal, lightDir) * Diffuse * light.Color;
+    vec3 diffuse = max(dot(Normal, lightDir), 0.0) * Diffuse * light.Color;
 
     // specular
     vec3 halfwayDir = normalize(lightDir + viewDir);  
@@ -42,7 +42,7 @@ void main()
     diffuse *= attenuation;
     specular *= attenuation;
 
-    vec3 lighting = ambient * 0.8 + diffuse * 0.8 + specular * 0.8;
+    vec3 lighting = ambient + diffuse + specular;
     gl_FragColor = vec4(lighting, 1.0);
 
 

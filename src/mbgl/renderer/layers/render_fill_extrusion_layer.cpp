@@ -145,12 +145,7 @@ void RenderFillExtrusionLayer::renderSSAO_p(PaintParameters& parameters) {
             
             const auto matrix = tile.translatedClipMatrix(translate, anchor, state);
             layoutUniforms.template get<uniforms::matrix>() = matrix;
-            
-//            mat4 mvp;
-//            matrix::multiply(m, parameters.state.getCameraToClipMatrix(), tile.modelViewMatrix);
-//            layoutUniforms.template get<uniforms::matrix>() = mvp;
-            
-            
+
             layoutUniforms.template get<uniforms::mv_matrix>() = tile.modelViewMatrix;
             
             auto& normalMatrix = layoutUniforms.template get<uniforms::normal_matrix>();
@@ -173,21 +168,7 @@ void RenderFillExtrusionLayer::renderSSAO_p(PaintParameters& parameters) {
     };
 
     drawTiles(gfx::StencilMode::disabled(), parameters.colorModeForRenderPass(), "color");
-    
-    // #*# ssao模式只需要画一遍
-//    if (evaluated.get<FillExtrusionOpacity>() == 1) {
-//        // Draw opaque extrusions
-//        drawTiles(gfx::StencilMode::disabled(), parameters.colorModeForRenderPass(), "color");
-//    } else {
-//        // Draw transparent buildings in two passes so that only the closest surface is drawn.
-//        // First draw all the extrusions into only the depth buffer. No colors are drawn.
-//        drawTiles(gfx::StencilMode::disabled(), gfx::ColorMode::disabled(), "depth");
-//
-//        // Then draw all the extrusions a second time, only coloring fragments if they have the
-//        // same depth value as the closest fragment in the previous pass. Use the stencil buffer
-//        // to prevent the second draw in cases where we have coincident polygons.
-//        drawTiles(parameters.stencilModeFor3D(), parameters.colorModeForRenderPass(), "color");
-//    }
+
 }
 
 void RenderFillExtrusionLayer::transition(const TransitionParameters& parameters) {

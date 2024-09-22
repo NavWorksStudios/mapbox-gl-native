@@ -8,24 +8,26 @@ uniform mat4 u_projection;
 
 uniform float u_zoom;
 
-uniform vec3 u_samples[64];
-
 // parameters (you'd probably want to use them as uniforms to more easily tweak the effect)
-const int SAMPLE_SIZE = 8;
+#define SAMPLE_SIZE 16
 
-const float QUADRATIC = 1.5;
+uniform vec3 u_samples[SAMPLE_SIZE];
+uniform float u_samples_weight[SAMPLE_SIZE];
+uniform float u_samples_weight_total;
 
-const float CONTRAST = 1.5;
+const float QUADRATIC = 1.;
+
+const float CONTRAST = 1.;
 
 // tile noise texture over screen based on screen dimensions divided by noise size
 // 设置随机纹理坐标的缩放noiseScale
-const vec2 noiseScale = vec2(2048.0/4.0, 1080.0/4.0); 
+const vec2 noiseScale = vec2(2048., 1080.) * 2. / 4.0; 
 
 void main()
 {
     float scale = pow(2., u_zoom - 18.);
-    float SAMPLE_RADIUS = 1. * scale; // 采样球半径
-    float Z_MIN_DIFFERENCE = 0.01 * scale;
+    vec2 SAMPLE_RADIUS = vec2(.5, 2.) * scale; // 采样球半径
+    vec2 Z_MIN_DIFFERENCE = vec2(0.01, 0.2) * scale;
 
 
     // get input for SSAO algorithm
@@ -44,13 +46,13 @@ void main()
     // 遍历每个核心采样，将采样从切线空间转化到视图空间，接着进行深度对比
     float occlusion = 0.0;
 
-    for(int i = 0; i < SAMPLE_SIZE; i++)
+    for(int i = 0; i < SAMPLE_SIZE/2; i += 1)
     {
         // ============ 采样点 视图空间坐标 ==============
 
         // get sample position
         vec3 samplePos = TBN * u_samples[i]; // from tangent to view-space 从切线空间转化到视图空间
-        samplePos = kernelPos + samplePos * SAMPLE_RADIUS;
+        samplePos = kernelPos + samplePos * SAMPLE_RADIUS[0];
 
         // ============ 采样点 深度纹理坐标 ==============
         
@@ -70,24 +72,56 @@ void main()
 
         // 用范围检查，来确保某一片段的深度值在采样半径内，这样才会对遮蔽因数做影响。
         // 添加bias可以帮助调整环境光遮蔽的效果，也可以解决痤疮问题。
-        if (samplePos.z + Z_MIN_DIFFERENCE <= z) {
+        if (samplePos.z + Z_MIN_DIFFERENCE[0] <= z) {
             // range check & accumulate
             // 将当前的采样深度值和存储的深度值进行比较，如果大一些的话，添加遮蔽因数的影响。
-            occlusion += smoothstep(0.0, 1.0, SAMPLE_RADIUS / abs(kernelPos.z - z));
+            occlusion += smoothstep(0.0, 1.0, SAMPLE_RADIUS[0] / abs(kernelPos.z - z)) * u_samples_weight[i];
         }
 
     }
 
-    occlusion /= float(SAMPLE_SIZE);
+    for(int i = SAMPLE_SIZE/2; i < SAMPLE_SIZE; i += 1)
+    {
+        // ============ 采样点 视图空间坐标 ==============
+
+        // get sample position
+        vec3 samplePos = TBN * u_samples[i]; // from tangent to view-space 从切线空间转化到视图空间
+        samplePos = kernelPos + samplePos * SAMPLE_RADIUS[1];
+
+        // ============ 采样点 深度纹理坐标 ==============
+        
+        // project sample position (to sample texture) (to get position on screen/texture)
+        // 投影smple点到深度纹理坐标，获取在纹理的位置
+        vec4 depth_uv = u_projection * vec4(samplePos, 1.0); // from view to clip-space 使用projection将其转化到裁剪空间
+        depth_uv.xyz /= depth_uv.w; // perspective divide
+        depth_uv.xyz = depth_uv.xyz * 0.5 + 0.5; // transform to range 0.0 - 1.0
+        
+        // ============ 采样点 z ==============
+
+        // get sample depth
+        // 使用纹理坐标来采样G缓冲中的位置的z值来作为采样的深度
+        float z = texture2D(u_position, depth_uv.xy).z; // get depth value of kernel sample
+
+        // ============ 比较 采样核心z 和 该采样点z ==============
+
+        // 用范围检查，来确保某一片段的深度值在采样半径内，这样才会对遮蔽因数做影响。
+        // 添加bias可以帮助调整环境光遮蔽的效果，也可以解决痤疮问题。
+        if (samplePos.z + Z_MIN_DIFFERENCE[1] <= z) {
+            // range check & accumulate
+            // 将当前的采样深度值和存储的深度值进行比较，如果大一些的话，添加遮蔽因数的影响。
+            occlusion += smoothstep(0.0, 1.0, SAMPLE_RADIUS[1] / abs(kernelPos.z - z)) * u_samples_weight[i];
+        }
+
+    }
 
     occlusion = pow(occlusion, QUADRATIC);
 
-    occlusion = 1.0 - occlusion;
+    occlusion /= u_samples_weight_total;
 
     occlusion  = CONTRAST * (occlusion - 0.5) + 0.5;
 
-    // gl_FragColor.r = occlusion;
+    gl_FragColor.r = 1.0 - occlusion;
     
-    gl_FragColor = vec4(occlusion, occlusion, occlusion, 1.);
+    // gl_FragColor = vec4(occlusion, occlusion, occlusion, 1.);
 
 }
