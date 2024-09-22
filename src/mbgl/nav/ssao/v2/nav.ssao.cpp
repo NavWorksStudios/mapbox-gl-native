@@ -298,10 +298,8 @@ void initializeResources() {
 }
 
 
-enum { SAMPLE_SIZE = 16 };
+enum { SAMPLE_SIZE = 8 };
 std::vector<Vec3> ssaoSample;
-std::vector<float> ssaoSampleWeight;
-float ssaoSampleWeightTotal;
 std::vector<Vec3> ssaoNoise;
 GLuint noiseTexture = 0;
 
@@ -311,8 +309,6 @@ GLfloat lerp(GLfloat a, GLfloat b, GLfloat f) {
 
 void genSampleKernelAndNoiseTexture() {
     
-    ssaoSampleWeightTotal = 0;
-
     // 生成一个沿法线方向的半球形采样核心，将在切线空间生成这个半球（法线都指向+z轴），以免为每个平面都单独生成一个沿各自法线方向的半球。
     // - generate sample kernel
     std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0); // generates random floats between 0.0 and 1.0
@@ -333,10 +329,6 @@ void genSampleKernelAndNoiseTexture() {
         sample.scale(scale);
 
         ssaoSample.push_back(sample);
-        
-        float w = 1.;//pow(1. / sample.norm(), 1.);
-        ssaoSampleWeight.push_back(w);
-        ssaoSampleWeightTotal += w;
     }
 
     // 随机核心旋转
@@ -527,13 +519,7 @@ void generateSSAOTexture(float zoom, const Mat4& projMatrix) {
         for (unsigned int i = 0; i < SAMPLE_SIZE; ++i) {
             UniformLocation u0(shaderSSAO, ("u_samples[" + std::to_string(i) + "]").c_str());
             glUniform3fv(u0, 1, reinterpret_cast<float*>(&(ssaoSample[i])));
-            
-            UniformLocation u1(shaderSSAO, ("u_samples_weight[" + std::to_string(i) + "]").c_str());
-            glUniform1fv(u1, 1, reinterpret_cast<float*>(&(ssaoSampleWeight[i])));
         }
-        
-        UniformLocation u2(shaderSSAO, "u_samples_weight_total");
-        glUniform1f(u2, ssaoSampleWeightTotal);
     }
     
 #ifdef RABBIT
