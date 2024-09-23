@@ -41,6 +41,9 @@ namespace display {
 int _width = 2048;
 int _height = 1080;
 
+int _br_width = _width;
+int _br_height = _height;
+
 namespace logic {
 
 int width() {
@@ -50,6 +53,22 @@ int width() {
 int height() {
     return _height;
 };
+
+void setBRWidth(int br_width) {
+    _br_width = br_width;
+}
+
+void setBRHeight(int br_height) {
+    _br_height = br_height;
+}
+
+int getBRWidth() {
+    return _br_width;
+}
+
+int getBRHeight() {
+    return _br_height;
+}
 
 }
 

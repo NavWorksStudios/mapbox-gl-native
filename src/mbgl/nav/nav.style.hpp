@@ -21,6 +21,12 @@ namespace display {
 namespace logic {
 int width();
 int height();
+
+void setBRWidth(int);
+void setBRHeight(int);
+
+int getBRWidth();
+int getBRHeight();
 }
 
 namespace pixels {
