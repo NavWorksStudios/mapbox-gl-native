@@ -13,7 +13,7 @@ uniform float u_zoom;
 
 uniform vec3 u_samples[SAMPLE_SIZE];
 
-const float QUADRATIC = 1.5;
+const float QUADRATIC = 1.;
 // const float CONTRAST = 1.;
 
 // tile noise texture over screen based on screen dimensions divided by noise size
@@ -30,7 +30,7 @@ void main()
     // radius
     float scale = pow(2., u_zoom - 18.);
     float SAMPLE_RADIUS = 0.3 * scale; // 采样球半径
-    float Z_MIN_DIFFERENCE = 0.01 * scale;
+    float Z_MIN_DIFFERENCE = 0.1 * scale;
 
     // create TBN change-of-basis matrix: from tangent-space to view-space
     // 使用Gramm-Schmidt方法我们可以创建正交的TBN矩，同时使用random进行偏移。
@@ -77,18 +77,18 @@ void main()
             occlusion += smoothstep(0.0, 1.0, SAMPLE_RADIUS / abs(kernelPos.z - z));
         }
 
-        SAMPLE_RADIUS *= 1.5;
+        SAMPLE_RADIUS *= 1.4;
 
     }
+
+    // occlusion = pow(occlusion, QUADRATIC);
+
+    occlusion /= float(SAMPLE_SIZE);
 
     const float START_FADE_DIS  = 25.;
     const float FADE_TRIP_DIS = 15.;
     float alpha = 1. + clamp(0., 1., (-kernelPos.z - START_FADE_DIS) / FADE_TRIP_DIS);
-    occlusion *= alpha * .8;
-
-    occlusion /= float(SAMPLE_SIZE);
-
-    occlusion = pow(occlusion, QUADRATIC);
+    occlusion *= alpha * .5;
 
     // occlusion  = CONTRAST * (occlusion - 0.5) + 0.5;
 
