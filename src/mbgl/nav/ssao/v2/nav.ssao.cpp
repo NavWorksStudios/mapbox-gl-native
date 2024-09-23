@@ -495,6 +495,11 @@ void renderSceneToGBuffer(std::function<void()> renderCallback) {
     
 #else
     
+    // 绘制地面
+    
+    
+    // 绘制
+    
     renderCallback();
     
 #endif
@@ -666,6 +671,7 @@ void draw(float zoom, mbgl::mat4 projMatrix, std::function<void()> renderCallbac
         loadModel();
     }
 
+    glClearColor(0, 0, 0, 0);
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
     glDepthFunc(GL_LESS);

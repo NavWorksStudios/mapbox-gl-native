@@ -23,11 +23,11 @@ const vec2 noiseScale = vec2(2048., 1080.) * 2. / 4.0;
 
 void main()
 {
-    float scale = pow(2., u_zoom - 18.);
+    float zoom_scale = pow(2., u_zoom - 18.);
     float contrast = 0.5 + min((18. - u_zoom) / 2., 1.) * .5;
 
-    float SAMPLE_RADIUS = .3 * scale; // 采样球半径
-    float Z_MIN_DIFFERENCE = 0.01 * scale;
+    float SAMPLE_RADIUS = 0.3 * zoom_scale; // 采样球半径
+    float Z_MIN_DIFFERENCE = 0.1 * zoom_scale;
 
 
     // get input for SSAO algorithm
@@ -81,7 +81,6 @@ void main()
         }
 
         SAMPLE_RADIUS *= 1.4;
-        Z_MIN_DIFFERENCE *= 1.4;
 
     }
 
