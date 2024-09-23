@@ -19,6 +19,8 @@
 #include <mbgl/util/math.hpp>
 
 #include "mbgl/nav/nav.theme.hpp"
+#include "mbgl/nav/ssao/v1/nav.ssao.hpp"
+#include "mbgl/nav/ssao/v2/nav.ssao.hpp"
 
 namespace mbgl {
 
@@ -166,9 +168,48 @@ void RenderFillExtrusionLayer::renderSSAO_p(PaintParameters& parameters) {
             );
         }
     };
+    
+    const auto drawTileFloors = [&]() {
+        auto layoutUniforms = FillExtrusionSSAOProgram::layoutUniformValues(
+            uniforms::matrix::Value(),
+            uniforms::mv_matrix::Value(),
+            uniforms::normal_matrix::Value()
+        );
+        size_t renderIndex = -1;
+        for (const RenderTile& tile : *renderTiles) {
+            renderIndex++;
+            
+            if (!tile.isRenderable(Tile::RenderMode::Detailed)) {
+                continue;
+            }
+            
+            const auto& translate = evaluated.get<FillExtrusionTranslate>();
+            const auto& anchor = evaluated.get<FillExtrusionTranslateAnchor>();
+            const auto& state = parameters.state;
+            
+            const auto matrix = tile.translatedClipMatrix(translate, anchor, state);
+            layoutUniforms.template get<uniforms::matrix>() = matrix;
 
+            layoutUniforms.template get<uniforms::mv_matrix>() = tile.modelViewMatrix;
+            
+            auto& normalMatrix = layoutUniforms.template get<uniforms::normal_matrix>();
+            matrix::invert(normalMatrix, tile.modelViewMatrix);
+            matrix::transpose(normalMatrix);
+            
+            // draw tile floors with ssao logic code
+            renderSSAO_tileFloor(matrix, tile.modelViewMatrix, normalMatrix);
+        }
+    };
+
+    drawTileFloors();
+    
     drawTiles(gfx::StencilMode::disabled(), parameters.colorModeForRenderPass(), "color");
+}
 
+void RenderFillExtrusionLayer::renderSSAO_tileFloor(const mat4& model_mvp,
+                                                    const mat4& model_mv,
+                                                    const mat4& normal_mv) {
+    nav::ssao::v2::renderTileFloor(model_mvp, model_mv, normal_mv);
 }
 
 void RenderFillExtrusionLayer::transition(const TransitionParameters& parameters) {
