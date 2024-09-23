@@ -590,58 +590,22 @@ void blurSSAOTexture() {
 
 // 4. lighting pass: traditional deferred Blinn-Phong lighting with added screen-space ambient occlusion
 // -----------------------------------------------------------------------------------------------------
-void lightingPass() {
+void renderToScreen() {
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    
-    glClear(GL_COLOR_BUFFER_BIT);
+
+//    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
     
     glUseProgram(shaderLightingPass);
     
     {
-        // send light relevant uniforms
-        Vec3 lightPos(0.0f, 0.0f, 0.5f);
-        Vec3 lightColor(1., 1., 1.);
-        Mat4 view, notused;
-        Mat4::lookAtMatrix(eye, lookat, Vec3(0, 1, 0), view, notused);
-        Vec3 lightPosView(view * lightPos);
-        static UniformLocation u0(shaderLightingPass, "light.Position");
-        glUniform3fv(u0, 1, reinterpret_cast<float*>(&lightPosView));
-        static UniformLocation u1(shaderLightingPass, "light.Color");
-        glUniform3fv(u1, 1, reinterpret_cast<float*>(&lightColor));
-        
-        // Update attenuation parameters
-        const float linear    = 0.09f;
-        const float quadratic = 0.032f;
-        static UniformLocation u2(shaderLightingPass, "light.Linear");
-        glUniform1f(u2, linear);
-        static UniformLocation u3(shaderLightingPass, "light.Quadratic");
-        glUniform1f(u3, quadratic);
-    }
-    
-    {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, gPosition);
-        static UniformLocation u0(shaderLightingPass, "gPosition");
-        glUniform1i(u0, 0);
-        
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, gNormal);
-        static UniformLocation u1(shaderLightingPass, "gNormal");
-        glUniform1i(u1, 1);
-        
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, gAlbedo);
-        static UniformLocation u2(shaderLightingPass, "gAlbedo");
-        glUniform1i(u2, 2);
-        
-        glActiveTexture(GL_TEXTURE3); // add extra SSAO texture to lighting pass
+        glActiveTexture(GL_TEXTURE0); // add extra SSAO texture to lighting pass
         glBindTexture(GL_TEXTURE_2D, ssaoBlurBuffer);
-        static UniformLocation u3(shaderLightingPass, "ssaoBlur");
-        glUniform1i(u3, 3);
+        static UniformLocation u0(shaderLightingPass, "ssaoBlur");
+        glUniform1i(u0, 0);
     }
     
     renderQuad(shaderLightingPass);
@@ -686,7 +650,8 @@ void draw(float zoom, mbgl::mat4 projMatrix, std::function<void()> renderCallbac
         loadModel();
     }
 
-    glClearColor(0, 0, 0, 0);
+//    glClearColor(0, 0, 0, 0);
+    
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
     glDepthFunc(GL_LESS);
@@ -694,7 +659,7 @@ void draw(float zoom, mbgl::mat4 projMatrix, std::function<void()> renderCallbac
     renderSceneToGBuffer(renderCallback);
     generateSSAOTexture(zoom, convert(projMatrix));
     blurSSAOTexture();
-    lightingPass();
+    renderToScreen();
 
 }
 
