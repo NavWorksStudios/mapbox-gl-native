@@ -13,8 +13,7 @@ uniform float u_zoom;
 
 uniform vec3 u_samples[SAMPLE_SIZE];
 
-const float QUADRATIC = 1.;
-
+const float QUADRATIC = 1.5;
 // const float CONTRAST = 1.;
 
 // tile noise texture over screen based on screen dimensions divided by noise size
@@ -23,17 +22,15 @@ const vec2 noiseScale = vec2(2048., 1080.) * 2. / 4.0;
 
 void main()
 {
-    float zoom_scale = pow(2., u_zoom - 18.);
-    float contrast = 0.5 + min((18. - u_zoom) / 2., 1.) * .5;
-
-    float SAMPLE_RADIUS = 0.3 * zoom_scale; // 采样球半径
-    float Z_MIN_DIFFERENCE = 0.1 * zoom_scale;
-
-
     // get input for SSAO algorithm
     vec3 kernelPos = texture2D(u_position, TexCoords).xyz;
     vec3 kernelNormal = normalize(texture2D(u_normal, TexCoords).xyz);
     vec3 random = normalize(texture2D(u_noise, TexCoords * noiseScale).xyz);
+
+    // radius
+    float scale = pow(2., u_zoom - 18.);
+    float SAMPLE_RADIUS = 0.3 * scale; // 采样球半径
+    float Z_MIN_DIFFERENCE = 0.01 * scale;
 
     // create TBN change-of-basis matrix: from tangent-space to view-space
     // 使用Gramm-Schmidt方法我们可以创建正交的TBN矩，同时使用random进行偏移。
@@ -80,15 +77,20 @@ void main()
             occlusion += smoothstep(0.0, 1.0, SAMPLE_RADIUS / abs(kernelPos.z - z));
         }
 
-        SAMPLE_RADIUS *= 1.4;
+        SAMPLE_RADIUS *= 1.5;
 
     }
 
-    occlusion = pow(occlusion, QUADRATIC);
+    const float START_FADE_DIS  = 25.;
+    const float FADE_TRIP_DIS = 15.;
+    float alpha = 1. + clamp(0., 1., (-kernelPos.z - START_FADE_DIS) / FADE_TRIP_DIS);
+    occlusion *= alpha * .8;
 
     occlusion /= float(SAMPLE_SIZE);
 
-    occlusion  = contrast * (occlusion - 0.5) + 0.5;
+    occlusion = pow(occlusion, QUADRATIC);
+
+    // occlusion  = CONTRAST * (occlusion - 0.5) + 0.5;
 
     gl_FragColor.r = 1.0 - occlusion;
     

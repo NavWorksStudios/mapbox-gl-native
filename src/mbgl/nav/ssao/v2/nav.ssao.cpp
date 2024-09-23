@@ -655,7 +655,22 @@ namespace v2 {
 
 auto convert = [] (mbgl::mat4 matrix) {
     Mat4 m;
-    for (int i=0; i<16; i++) ((float*)&m)[i] = float(matrix[i]);
+    ((float*)&m)[0] = float(matrix[0]);
+    ((float*)&m)[1] = float(matrix[1]);
+    ((float*)&m)[2] = float(matrix[2]);
+    ((float*)&m)[3] = float(matrix[3]);
+    ((float*)&m)[4] = float(matrix[4]);
+    ((float*)&m)[5] = float(matrix[5]);
+    ((float*)&m)[6] = float(matrix[6]);
+    ((float*)&m)[7] = float(matrix[7]);
+    ((float*)&m)[8] = float(matrix[8]);
+    ((float*)&m)[9] = float(matrix[9]);
+    ((float*)&m)[10] = float(matrix[10]);
+    ((float*)&m)[11] = float(matrix[11]);
+    ((float*)&m)[12] = float(matrix[12]);
+    ((float*)&m)[13] = float(matrix[13]);
+    ((float*)&m)[14] = float(matrix[14]);
+    ((float*)&m)[15] = float(matrix[15]);
     return m;
 };
 
