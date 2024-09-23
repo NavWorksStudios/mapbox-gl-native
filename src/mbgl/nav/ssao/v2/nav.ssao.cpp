@@ -27,12 +27,20 @@ namespace nav {
 namespace ssao {
 
 
+auto convert = [] (mbgl::mat4 matrix) {
+    Mat4 m;
+    for (int i=0; i<16; i++) ((float*)&m)[i] = float(matrix[i]);
+    return m;
+};
+
+
 // Shader programs and attrib/uniform locations
 
 GLuint shaderGeometryPass;
 GLuint shaderSSAO;
 GLint shaderSSAOBlur;
 GLint shaderLightingPass;
+GLint floorPass;
 
 void loadShaders() {
     shaderGeometryPass = 
@@ -55,6 +63,11 @@ void loadShaders() {
     createProgram(loadShader(GL_VERTEX_SHADER, "/shaders/9.ssao.vs"),
                   loadShader(GL_FRAGMENT_SHADER, "/shaders/9.ssao_lighting.fs"));
     
+    // #*# 加载floor shader
+    floorPass =
+    createProgram(loadShader(GL_VERTEX_SHADER, "/shaders/9.ssao_floor.vs"),
+                  loadShader(GL_FRAGMENT_SHADER, "/shaders/9.ssao_floor.fs"));
+    
 }
 
 // Contain data for the model
@@ -64,6 +77,7 @@ std::vector<GLfloat> allModelData;
 
 GLuint vertexDataBuf;
 GLuint floorBuf;
+GLuint tileFloorBuf;
 
 GLsizei faceIndexCount;
 
@@ -208,8 +222,6 @@ void loadModel()
     faceIndices.clear();
     allModelData.clear();
 }
-
-
 
 GLuint gBuffer;
 GLuint gPosition;
@@ -437,6 +449,8 @@ void renderSceneToGBuffer(std::function<void()> renderCallback) {
         glDrawBuffers(3, attachments);
     }
 
+//    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    
     glDisable(GL_BLEND);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -494,11 +508,6 @@ void renderSceneToGBuffer(std::function<void()> renderCallback) {
     }
     
 #else
-    
-    // 绘制地面
-    
-    
-    // 绘制
     
     renderCallback();
     
@@ -617,26 +626,55 @@ void renderToScreen() {
 
 namespace v2 {
 
-auto convert = [] (mbgl::mat4 matrix) {
-    Mat4 m;
-    ((float*)&m)[0] = float(matrix[0]);
-    ((float*)&m)[1] = float(matrix[1]);
-    ((float*)&m)[2] = float(matrix[2]);
-    ((float*)&m)[3] = float(matrix[3]);
-    ((float*)&m)[4] = float(matrix[4]);
-    ((float*)&m)[5] = float(matrix[5]);
-    ((float*)&m)[6] = float(matrix[6]);
-    ((float*)&m)[7] = float(matrix[7]);
-    ((float*)&m)[8] = float(matrix[8]);
-    ((float*)&m)[9] = float(matrix[9]);
-    ((float*)&m)[10] = float(matrix[10]);
-    ((float*)&m)[11] = float(matrix[11]);
-    ((float*)&m)[12] = float(matrix[12]);
-    ((float*)&m)[13] = float(matrix[13]);
-    ((float*)&m)[14] = float(matrix[14]);
-    ((float*)&m)[15] = float(matrix[15]);
-    return m;
-};
+void renderTileFloor(const mbgl::mat4& m_mvp, const mbgl::mat4& m_mv, const mbgl::mat4& n_mv) {
+    
+    glUseProgram(floorPass);
+    
+    // convert 3*matrix mbgl::mat4 to Mat4
+    Mat4 model_mvp = convert(m_mvp);
+    Mat4 model_mv = convert(m_mv);
+    Mat4 normal_mv = convert(n_mv);
+    
+    // floor uniforms
+    static UniformLocation u0(floorPass, "u_matrix");
+    static UniformLocation u1(floorPass, "u_mv_matrix");
+    static UniformLocation u2(floorPass, "u_normal_matrix");
+    
+    glUniformMatrix4fv(u0, 1, GL_FALSE, reinterpret_cast<float*>(&model_mvp));
+    glUniformMatrix4fv(u1, 1, GL_FALSE, reinterpret_cast<float*>(&model_mv));
+    glUniformMatrix4fv(u2, 1, GL_FALSE, reinterpret_cast<float*>(&normal_mv));
+    
+    // floor attributes
+    static AttribLocation a0(floorPass, "a_pos");
+    static AttribLocation a1(floorPass, "a_normal_ed");
+    
+    // Set up buffer for floor data, 6 triangles
+    const static GLfloat tileFloorData[36] = {
+        0.0f, 8192.0f,
+        0.0f, 0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f,
+        0.0f, 0.0f, 1.0f, 0.0f,
+        8192.0f, 8192.0f,
+        0.0f, 0.0f, 1.0f, 0.0f,
+
+        8192.0f, 8192.0f,
+        0.0f, 0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f,
+        0.0f, 0.0f, 1.0f, 0.0f,
+        8192.0f, 0.0f,
+        0.0f, 0.0f, 1.0f, 0.0f };
+    
+    glGenBuffers(1, &tileFloorBuf);
+    glBindBuffer(GL_ARRAY_BUFFER, tileFloorBuf);
+    glBufferData(GL_ARRAY_BUFFER, 36 * sizeof(GLfloat), tileFloorData, GL_STATIC_DRAW);
+    
+    glEnableVertexAttribArray(a0);
+    glVertexAttribPointer(a0, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(0));
+    glEnableVertexAttribArray(a1);
+    glVertexAttribPointer(a1, 4, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(2*sizeof(GLfloat)));
+    
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+}
 
 void draw(float zoom, mbgl::mat4 projMatrix, std::function<void()> renderCallback) {
     

@@ -19,6 +19,7 @@
 namespace nav {
 namespace ssao {
 namespace v2 {
+    void renderTileFloor(const mbgl::mat4&, const mbgl::mat4&, const mbgl::mat4&);
     void draw(float zoom, mbgl::mat4 projMatrix, std::function<void()> renderCallback);
 }
 }
