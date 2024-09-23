@@ -108,8 +108,12 @@ size_t tileIDsIdentical(const RenderTiles& renderTiles) {
 } // namespace
 
 void PaintParameters::renderTileClippingMasks(const RenderTiles& renderTiles) {
+    assert(renderTiles);
+    
     const size_t hash = tileIDsIdentical(renderTiles);
-    if (!renderTiles || renderTiles->empty() || tileClippingMaskHash == hash) {
+
+    if (tileClippingMaskHash == hash &&
+        tileClippingMaskIDs.size() == renderTiles->size()) {
         // The current stencil mask is for this source already; no need to draw another one.
         return;
     }
