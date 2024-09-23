@@ -19,8 +19,8 @@
 #include <iostream>
 
 
-#define SCR_WIDTH nav::display::width() * 2
-#define SCR_HEIGHT nav::display::height() * 2
+#define SCR_WIDTH nav::display::pixels::width()
+#define SCR_HEIGHT nav::display::pixels::height()
 
 
 namespace nav {

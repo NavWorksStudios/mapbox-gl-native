@@ -14,8 +14,8 @@
 #include "mbgl/nav/nav.style.hpp"
 
 
-#define wWidth nav::display::width() * 2
-#define wHeight nav::display::height() * 2
+#define wWidth nav::display::pixels::width()
+#define wHeight nav::display::pixels::height()
 
 
 namespace nav {

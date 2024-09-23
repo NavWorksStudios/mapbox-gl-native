@@ -195,8 +195,11 @@ GLFWView::GLFWView(bool fullscreen_, bool benchmark_, const mbgl::ResourceOption
 
         renderBackend = GLFWBackend::Create(window, benchmark);
 
-        if (renderBackend)
+        if (renderBackend) {
             pixelRatio = static_cast<float>(renderBackend->getSize().width) / width;
+            nav::display::pixels::setRatio(pixelRatio);
+        }
+            
     }
 
     glfwMakeContextCurrent(nullptr);
@@ -1246,7 +1249,7 @@ void GLFWView::run() {
         }
     };
 
-    frameTick.start(mbgl::Duration::zero(), mbgl::Milliseconds(1000 / 6), callback);
+    frameTick.start(mbgl::Duration::zero(), mbgl::Milliseconds(1000 / 60), callback);
 
 #if defined(__APPLE__)
     while (window && !glfwWindowShouldClose(window)) {

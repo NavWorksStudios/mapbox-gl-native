@@ -17,8 +17,18 @@ const std::string& assetsPath();
 std::string path(const char* file);
 
 namespace display {
+
+namespace logic {
 int width();
 int height();
+}
+
+namespace pixels {
+void setRatio(float ratio);
+int width();
+int height();
+}
+
 void update(float zoom);
 float clip_region();
 float focus_region();

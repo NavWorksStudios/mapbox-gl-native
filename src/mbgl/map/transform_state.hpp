@@ -283,7 +283,7 @@ private:
     // arbitrary choice. This is the fov equivalent to that value calculated with:
     // `fov = 2 * arctan((height / 2) / (height * 1.5))`
 //    double fov = 0.6435011087932844;
-    double fov = 2.0 * atan((nav::display::height() / 2) / (nav::display::height() * 1.5));
+    double fov = 2.0 * atan((nav::display::logic::height() / 2) / (nav::display::logic::height() * 1.5));
     double pitch = 0.0;
     double xSkew = 0.0;
     double ySkew = 1.0;

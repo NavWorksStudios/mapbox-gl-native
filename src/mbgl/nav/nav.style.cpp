@@ -37,18 +37,46 @@ std::string path(const char* file) {
 }
 
 namespace display {
+
+int _width = 2048;
+int _height = 1080;
+
+namespace logic {
+
 int width() {
-    return 2048;
+    return _width;
 }
 
 int height() {
-    return 1080;
+    return _height;
 };
+
+}
+
+namespace pixels {
+
+float _ratio = 1.;
+
+void setRatio(float ratio) {
+    _ratio = ratio;
+}
+
+int width() {
+    return _width * _ratio;
+}
+
+int height() {
+    return _height * _ratio;
+}
+
+}
+
+
 
 float clipping = 0.;
 
 void update(float zoom) {
-    static float region = height() * atan(70/M_PI) * .3;
+    static float region = logic::height() * atan(70 / M_PI) * .3;
     clipping = region * pow(2., zoom);
 }
 
@@ -57,7 +85,7 @@ float clip_region() {
 }
 
 float focus_region() {
-    static float region = (pow(width(), 2) + pow(height(),2));
+    static float region = pow(logic::width(), 2) + pow(logic::height(), 2);
     return region;
 }
 }
