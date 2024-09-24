@@ -1,36 +1,34 @@
 
 varying vec2 TexCoords;
 
+uniform mat4 u_projection;
+uniform vec2 u_text_size;
+uniform float u_zoom_scale;
+
 uniform sampler2D u_position;
 uniform sampler2D u_normal;
 uniform sampler2D u_noise;
-uniform mat4 u_projection;
-
-uniform float u_zoom;
 
 // parameters (you'd probably want to use them as uniforms to more easily tweak the effect)
 #define SAMPLE_SIZE 8
-
 uniform vec3 u_samples[SAMPLE_SIZE];
 
-const float QUADRATIC = 1.;
+// const float QUADRATIC = 1.;
 // const float CONTRAST = 1.;
-
-// tile noise texture over screen based on screen dimensions divided by noise size
-// 设置随机纹理坐标的缩放noiseScale
-const vec2 noiseScale = vec2(2048., 1080.) * 2. / 4.0; 
 
 void main()
 {
     // get input for SSAO algorithm
     vec3 kernelPos = texture2D(u_position, TexCoords).xyz;
     vec3 kernelNormal = normalize(texture2D(u_normal, TexCoords).xyz);
-    vec3 random = normalize(texture2D(u_noise, TexCoords * noiseScale).xyz);
+
+    // tile noise texture over screen based on screen dimensions divided by noise size
+    vec3 random = normalize(texture2D(u_noise, TexCoords * u_text_size / 4.0).xyz);
 
     // radius
-    float scale = pow(2., u_zoom - 18.);
-    float SAMPLE_RADIUS = 0.3 * scale; // 采样球半径
-    float Z_MIN_DIFFERENCE = 0.1 * scale;
+    float scale = u_zoom_scale;// * (100. / kernelPos.z);
+    float SAMPLE_RADIUS = 0.4 * scale; // 采样球半径
+    float Z_MIN_DIFFERENCE = 0.02 * scale;
 
     // create TBN change-of-basis matrix: from tangent-space to view-space
     // 使用Gramm-Schmidt方法我们可以创建正交的TBN矩，同时使用random进行偏移。
@@ -85,10 +83,10 @@ void main()
 
     occlusion /= float(SAMPLE_SIZE);
 
-    const float START_FADE_DIS  = 25.;
-    const float FADE_TRIP_DIS = 15.;
-    float alpha = 1. + clamp(0., 1., (-kernelPos.z - START_FADE_DIS) / FADE_TRIP_DIS);
-    occlusion *= alpha * .5;
+    // const vec2 FADE_OUT  = vec2(15., 25.);
+    // float fadeout = clamp(0., 1., (-kernelPos.z - FADE_OUT[0]) / FADE_OUT[1]);
+    // float alpha = .5 + .5 * fadeout;
+    // occlusion *= alpha;
 
     // occlusion  = CONTRAST * (occlusion - 0.5) + 0.5;
 

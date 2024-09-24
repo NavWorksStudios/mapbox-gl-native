@@ -4,9 +4,8 @@
 
 varying vec2 TexCoords;
 
-uniform sampler2D ssao;
-
-const vec2 texelSize = 1.0 / vec2(2048., 1080.) / 2.;
+uniform sampler2D u_ssao;
+uniform vec2 u_text_size;
 
 void main() 
 {
@@ -16,8 +15,8 @@ void main()
     {
         for (int y = -2; y < 2; ++y) 
         {
-            vec2 offset = vec2(float(x), float(y)) * texelSize;
-            result += texture2D(ssao, TexCoords + offset).r;
+            vec2 offset = vec2(float(x), float(y)) / u_text_size;
+            result += texture2D(u_ssao, TexCoords + offset).r;
         }
     }
 

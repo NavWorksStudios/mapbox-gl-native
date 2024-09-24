@@ -192,14 +192,13 @@ GLFWView::GLFWView(bool fullscreen_, bool benchmark_, const mbgl::ResourceOption
         glfwSetWindowFocusCallback(window, onWindowFocus);
 
         glfwGetWindowSize(window, &width, &height);
+        nav::display::setLogic(width, height);
 
         renderBackend = GLFWBackend::Create(window, benchmark);
 
         if (renderBackend) {
             pixelRatio = static_cast<float>(renderBackend->getSize().width) / width;
-            nav::display::pixels::setRatio(pixelRatio);
-            nav::display::logic::setBRWidth(renderBackend->getSize().width);
-            nav::display::logic::setBRHeight(renderBackend->getSize().height);
+            nav::display::setPixelRatio(pixelRatio);
         }
             
     }

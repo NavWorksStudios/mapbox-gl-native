@@ -41,8 +41,16 @@ namespace display {
 int _width = 2048;
 int _height = 1080;
 
-int _br_width = _width;
-int _br_height = _height;
+void setLogic(int width, int height) {
+    _width = width;
+    _height = height;
+}
+
+float _ratio = 1.;
+
+void setPixelRatio(float ratio) {
+    _ratio = ratio;
+}
 
 namespace logic {
 
@@ -54,31 +62,9 @@ int height() {
     return _height;
 };
 
-void setBRWidth(int br_width) {
-    _br_width = br_width;
-}
-
-void setBRHeight(int br_height) {
-    _br_height = br_height;
-}
-
-int getBRWidth() {
-    return _br_width;
-}
-
-int getBRHeight() {
-    return _br_height;
-}
-
 }
 
 namespace pixels {
-
-float _ratio = 1.;
-
-void setRatio(float ratio) {
-    _ratio = ratio;
-}
 
 int width() {
     return _width * _ratio;
@@ -89,7 +75,6 @@ int height() {
 }
 
 }
-
 
 
 float clipping = 0.;
