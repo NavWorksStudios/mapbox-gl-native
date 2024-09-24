@@ -38,7 +38,7 @@ std::string path(const char* file) {
 
 namespace display {
 
-int _width = 2048;
+int _width = 1920;
 int _height = 1080;
 
 void setLogic(int width, int height) {
@@ -76,7 +76,6 @@ int height() {
 
 }
 
-
 float clipping = 0.;
 
 void update(float zoom) {
@@ -92,6 +91,7 @@ float focus_region() {
     static float region = pow(logic::width(), 2) + pow(logic::height(), 2);
     return region;
 }
+
 }
 
 namespace style {
