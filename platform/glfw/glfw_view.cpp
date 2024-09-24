@@ -1061,6 +1061,7 @@ void GLFWView::onWindowResize(GLFWwindow *window, int width, int height) {
     view->width = width;
     view->height = height;
     view->map->setSize({ static_cast<uint32_t>(view->width), static_cast<uint32_t>(view->height) });
+    nav::display::setLogic(width, height);
 }
 
 void GLFWView::onFramebufferResize(GLFWwindow *window, int width, int height) {
