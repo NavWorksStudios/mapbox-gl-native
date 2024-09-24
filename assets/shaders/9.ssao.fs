@@ -2,7 +2,7 @@
 varying vec2 TexCoords;
 
 uniform mat4 u_projection;
-uniform vec2 u_text_size;
+uniform vec2 u_text_scale;
 uniform float u_zoom_scale;
 
 uniform sampler2D u_position;
@@ -23,10 +23,8 @@ void main()
 
     // get input for SSAO algorithm
     vec3 kernelPos = texture2D(u_position, TexCoords).xyz;
-    vec3 kernelNormal = normalize(texture2D(u_normal, TexCoords).xyz);
-
-    // tile noise texture over screen based on screen dimensions divided by noise size
-    vec3 random = normalize(texture2D(u_noise, TexCoords * u_text_size).xyz);
+    vec3 kernelNormal = texture2D(u_normal, TexCoords).xyz;
+    vec3 random = texture2D(u_noise, TexCoords * u_text_scale).xyz;
 
     // create TBN change-of-basis matrix: from tangent-space to view-space
     // 使用Gramm-Schmidt方法我们可以创建正交的TBN矩，同时使用random进行偏移。
@@ -38,8 +36,6 @@ void main()
     // iterate over the sample kernel and calculate occlusion factor
     // 遍历每个核心采样，将采样从切线空间转化到视图空间，接着进行深度对比
     float occlusion = 0.0;
-
-    float weight = 0.0;
 
     for(int i=0; i<SAMPLE_SIZE; i++)
     {
@@ -59,10 +55,11 @@ void main()
 
         // 用范围检查，来确保某一片段的深度值在采样半径内，这样才会对遮蔽因数做影响。
         // 添加bias可以帮助调整环境光遮蔽的效果，也可以解决痤疮问题。
-        if (samplePos.z + Z_BIAS <= z) {
+        float dz = z - samplePos.z;
+        if (dz > Z_BIAS) {
             // range check & accumulate
             // 将当前的采样深度值和存储的深度值进行比较，如果大一些的话，添加遮蔽因数的影响。
-            occlusion += smoothstep(0.0, 1.0, SAMPLE_RADIUS / abs(kernelPos.z - z));
+            occlusion += smoothstep(0.0, 1.0, SAMPLE_RADIUS / dz);
         }
 
         SAMPLE_RADIUS *= 1.3;

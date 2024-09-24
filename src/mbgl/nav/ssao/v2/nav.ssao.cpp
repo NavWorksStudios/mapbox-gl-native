@@ -330,8 +330,6 @@ void renderSceneToGBuffer(std::function<void()> renderCallback) {
 // ------------------------
 void generateSSAOTexture(float w, float h, float zoom, const Mat4& projMatrix) {
     fbo::ssao::bind();
-    
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     glClear(GL_COLOR_BUFFER_BIT);
     
@@ -350,7 +348,7 @@ void generateSSAOTexture(float w, float h, float zoom, const Mat4& projMatrix) {
         static UniformLocation u0(program, "u_projection");
         glUniformMatrix4fv(u0, 1, GL_FALSE, reinterpret_cast<const float*>(&projMatrix));
         
-        static UniformLocation u1(program, "u_text_size");
+        static UniformLocation u1(program, "u_text_scale");
         glUniform2f(u1, w / sample::noise::SIZE, h / sample::noise::SIZE);
         
         static UniformLocation u2(program, "u_zoom_scale");
@@ -382,6 +380,8 @@ void generateSSAOTexture(float w, float h, float zoom, const Mat4& projMatrix) {
 // ------------------------------------
 void blurSSAOTexture(int w, int h) {
     fbo::blur::bind();
+    
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     
     glClear(GL_COLOR_BUFFER_BIT);
     
@@ -520,7 +520,7 @@ void draw(float zoom, mbgl::mat4 projMatrix, std::function<void()> renderCallbac
 
     renderSceneToGBuffer(renderCallback);
     generateSSAOTexture(w, h, zoom, convertMatrix(projMatrix));
-//    blurSSAOTexture(w, h);
+    blurSSAOTexture(w, h);
 //    renderToScreen();
 
 }
