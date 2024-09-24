@@ -39,6 +39,10 @@ GLuint loadShader(GLenum shaderType, const char* filename)
     // Add a null terminator, as read does not do that
     shaderSource[fileSize] = '\0';
     
+    return compileShader(shaderType, shaderSource, filename);
+}
+
+GLuint compileShader(GLenum shaderType, const char* shaderSource, const char* filename) {
     // Set up and compile the shader
     GLuint shader = glCreateShader(shaderType);
     glShaderSource(shader, 1, const_cast<const GLchar **>(&shaderSource), NULL);

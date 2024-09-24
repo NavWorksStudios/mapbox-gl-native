@@ -9,26 +9,24 @@ uniform sampler2D u_position;
 uniform sampler2D u_normal;
 uniform sampler2D u_noise;
 
-// parameters (you'd probably want to use them as uniforms to more easily tweak the effect)
-#define SAMPLE_SIZE 20
+#define SAMPLE_SIZE 32
 uniform vec3 u_samples[SAMPLE_SIZE];
 
 const float QUADRATIC = 1.2;
-const float CONTRAST = 1.2;
+const float CONTRAST = 1.8;
 
 void main()
 {
+    // radius
+    float SAMPLE_RADIUS = 0.05 * u_zoom_scale; // 采样球半径
+    float Z_BIAS = 0.01 * u_zoom_scale;
+
     // get input for SSAO algorithm
     vec3 kernelPos = texture2D(u_position, TexCoords).xyz;
     vec3 kernelNormal = normalize(texture2D(u_normal, TexCoords).xyz);
 
     // tile noise texture over screen based on screen dimensions divided by noise size
-    vec3 random = normalize(texture2D(u_noise, TexCoords * u_text_size / 4.0).xyz);
-
-    // radius
-    float scale = u_zoom_scale;// * (100. / kernelPos.z);
-    float SAMPLE_RADIUS = 0.3 * scale; // 采样球半径
-    float Z_MIN_DIFFERENCE = 0.01 * scale;
+    vec3 random = normalize(texture2D(u_noise, TexCoords * u_text_size).xyz);
 
     // create TBN change-of-basis matrix: from tangent-space to view-space
     // 使用Gramm-Schmidt方法我们可以创建正交的TBN矩，同时使用random进行偏移。
@@ -61,29 +59,26 @@ void main()
 
         // 用范围检查，来确保某一片段的深度值在采样半径内，这样才会对遮蔽因数做影响。
         // 添加bias可以帮助调整环境光遮蔽的效果，也可以解决痤疮问题。
-        if (samplePos.z + Z_MIN_DIFFERENCE <= z) {
+        if (samplePos.z + Z_BIAS <= z) {
             // range check & accumulate
             // 将当前的采样深度值和存储的深度值进行比较，如果大一些的话，添加遮蔽因数的影响。
             occlusion += smoothstep(0.0, 1.0, SAMPLE_RADIUS / abs(kernelPos.z - z));
         }
 
-        SAMPLE_RADIUS *= 1.2;
-        Z_MIN_DIFFERENCE *= 1.2;
+        SAMPLE_RADIUS *= 1.3;
+        Z_BIAS *= 1.2;
     }
 
-    // occlusion = pow(occlusion, QUADRATIC);
+    occlusion = pow(occlusion, QUADRATIC);
 
     occlusion /= float(SAMPLE_SIZE);
 
-    // const vec2 FADE_OUT  = vec2(15., 25.);
-    // float fadeout = clamp(0., 1., (-kernelPos.z - FADE_OUT[0]) / FADE_OUT[1]);
-    // float alpha = .5 * fadeout;
-    // occlusion *= alpha;
+    occlusion = CONTRAST * (occlusion - 0.5) + 0.5;
 
-    // occlusion = CONTRAST * (occlusion - 0.5) + 0.5;
+    occlusion = 1.0 - occlusion;
 
-    gl_FragColor.r = 1.0 - occlusion;
+    gl_FragColor.r = occlusion;
     
-    // gl_FragColor = vec4(occlusion, occlusion, occlusion, 1.);
+    gl_FragColor = vec4(occlusion * .65, occlusion * .85, occlusion * 1.5, 1.);
 
 }

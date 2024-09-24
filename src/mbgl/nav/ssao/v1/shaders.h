@@ -5,6 +5,8 @@
 
 GLuint loadShader(GLenum shaderType, const char* filename);
 
+GLuint compileShader(GLenum shaderType, const char* shaderSource, const char* filename="");
+
 GLuint createProgram(GLuint vertexShader, GLuint fragShader);
 
 #endif // SP_SHADERS_H_

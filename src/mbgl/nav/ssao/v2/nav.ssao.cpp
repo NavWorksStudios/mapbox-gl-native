@@ -5,6 +5,7 @@
 //
 
 #include "mbgl/nav/ssao/v2/nav.ssao.hpp"
+#include <mbgl/programs/fill_extrusion_ssao_program.hpp>
 
 #include <random>
 
@@ -32,7 +33,7 @@ std::default_random_engine generator;
 
 namespace kernel {
 
-enum { SIZE = 20, };
+enum { SIZE = 32, };
 Vec3 data[SIZE];
 
 GLfloat lerp(GLfloat a, GLfloat b, GLfloat f) {
@@ -61,14 +62,14 @@ void generate() {
 
 namespace noise {
 
-enum { SIZE = 16, };
-Vec3 data[SIZE];
+enum { SIZE = 4, };
+Vec3 data[SIZE * SIZE];
 GLuint texture = 0;
 
 // 随机核心旋转 - Noise texture
 // 将每个核心的随机旋转存储在纹理中。创建一个4*4阵列的随即旋转向量，绕着切线空间的法线：
 void generate() {
-    for (int i=0; i<SIZE; i++) {
+    for (int i=0; i<SIZE*SIZE; i++) {
         Vec3 noise(randomFloats(generator) * 2.0 - 1.0,
                    randomFloats(generator) * 2.0 - 1.0,
                    0.0f); //基于屏幕空间，z为0
@@ -79,7 +80,7 @@ void generate() {
 
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, 4, 4, 0, GL_RGB, GL_FLOAT, &data[0]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, SIZE, SIZE, 0, GL_RGB, GL_FLOAT, &data[0]);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -227,9 +228,10 @@ GLint renderNDCPass;
 
 void load() {
     // #*# 加载floor shader
+
     floorPass =
-    createProgram(loadShader(GL_VERTEX_SHADER, "/shaders/9.ssao_floor.vs"),
-                  loadShader(GL_FRAGMENT_SHADER, "/shaders/9.ssao_floor.fs"));
+    createProgram(compileShader(GL_VERTEX_SHADER, mbgl::vertexShader()),
+                  compileShader(GL_FRAGMENT_SHADER, mbgl::fragmentShader()));
     
     geometryPass =
     createProgram(loadShader(GL_VERTEX_SHADER, "/shaders/9.ssao_geometry.vs"),
@@ -328,6 +330,8 @@ void renderSceneToGBuffer(std::function<void()> renderCallback) {
 // ------------------------
 void generateSSAOTexture(float w, float h, float zoom, const Mat4& projMatrix) {
     fbo::ssao::bind();
+    
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     glClear(GL_COLOR_BUFFER_BIT);
     
@@ -347,7 +351,7 @@ void generateSSAOTexture(float w, float h, float zoom, const Mat4& projMatrix) {
         glUniformMatrix4fv(u0, 1, GL_FALSE, reinterpret_cast<const float*>(&projMatrix));
         
         static UniformLocation u1(program, "u_text_size");
-        glUniform2f(u1, w, h);
+        glUniform2f(u1, w / sample::noise::SIZE, h / sample::noise::SIZE);
         
         static UniformLocation u2(program, "u_zoom_scale");
         glUniform1f(u2, pow(2., zoom - 18.));
@@ -378,7 +382,7 @@ void generateSSAOTexture(float w, float h, float zoom, const Mat4& projMatrix) {
 // ------------------------------------
 void blurSSAOTexture(int w, int h) {
     fbo::blur::bind();
-
+    
     glClear(GL_COLOR_BUFFER_BIT);
     
     const GLint program = shader::blurPass;
@@ -464,24 +468,24 @@ void init() {
 }
 
 
-void renderTileFloor(const mbgl::mat4& m_mvp, const mbgl::mat4& m_mv, const mbgl::mat4& n_mv) {
+void renderTileFloor(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::mat4& normal) {
     const GLint program = shader::floorPass;
     glUseProgram(program);
     
     // convert 3*matrix mbgl::mat4 to Mat4
-    Mat4 model_mvp = convertMatrix(m_mvp);
-    Mat4 model_mv = convertMatrix(m_mv);
-    Mat4 normal_mv = convertMatrix(n_mv);
+    Mat4 MVP = convertMatrix(mvp);
+    Mat4 MV = convertMatrix(mv);
+    Mat4 NORMAL = convertMatrix(normal);
     
     // floor uniforms
     static UniformLocation u0(program, "u_matrix");
-    glUniformMatrix4fv(u0, 1, GL_FALSE, reinterpret_cast<float*>(&model_mvp));
+    glUniformMatrix4fv(u0, 1, GL_FALSE, reinterpret_cast<float*>(&MVP));
     
     static UniformLocation u1(program, "u_mv_matrix");
-    glUniformMatrix4fv(u1, 1, GL_FALSE, reinterpret_cast<float*>(&model_mv));
+    glUniformMatrix4fv(u1, 1, GL_FALSE, reinterpret_cast<float*>(&MV));
     
     static UniformLocation u2(program, "u_normal_matrix");
-    glUniformMatrix4fv(u2, 1, GL_FALSE, reinterpret_cast<float*>(&normal_mv));
+    glUniformMatrix4fv(u2, 1, GL_FALSE, reinterpret_cast<float*>(&NORMAL));
     
     // floor attributes
     glBindBuffer(GL_ARRAY_BUFFER, floor::tileFloorBuf);
@@ -516,8 +520,8 @@ void draw(float zoom, mbgl::mat4 projMatrix, std::function<void()> renderCallbac
 
     renderSceneToGBuffer(renderCallback);
     generateSSAOTexture(w, h, zoom, convertMatrix(projMatrix));
-    blurSSAOTexture(w, h);
-    renderToScreen();
+//    blurSSAOTexture(w, h);
+//    renderToScreen();
 
 }
 
