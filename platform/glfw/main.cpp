@@ -26,6 +26,10 @@
 
 #include <GLFW/glfw3.h>
 
+#include "mbgl/nav/nav.address.hpp"
+
+
+
 std::shared_ptr<GLFWView> view;
 std::shared_ptr<mbgl::Map> map;
 std::shared_ptr<GLFWRendererFrontend> rendererFrontend;
@@ -218,20 +222,8 @@ void init(bool headless) {
     });
     
 
-    mbgl::CameraOptions cameraOptions;
-    
-//    cameraOptions.center = mbgl::LatLng { 22.294522, 114.157209 };
-//    cameraOptions.zoom = 15.722247;
-//    cameraOptions.pitch = 71.050945;
-//    cameraOptions.bearing = 147.869345;
-    
-    cameraOptions.center = mbgl::LatLng { 31.235974, 121.476697 };
-    cameraOptions.zoom = 16.257626;
-    cameraOptions.pitch = 69.576946;
-    cameraOptions.bearing = 78.500186;
-    
     mbgl::AnimationOptions animationOptions(mbgl::Seconds(10));
-    map->flyTo(cameraOptions, animationOptions);
+    map->flyTo(nav::place::start(), animationOptions);
 
 }
 
@@ -290,7 +282,19 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
-    
+
+
+
+
+
+
+
+
+
+
+
+
+
 // API exported
 
 //extern "C" {

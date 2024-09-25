@@ -21,15 +21,14 @@ namespace display {
 namespace logic {
 int width();
 int height();
+void set(int width, int height);
 }
 
 namespace pixels {
 int width();
 int height();
+void setRatio(float ratio);
 }
-
-void setLogic(int width, int height);
-void setPixelRatio(float ratio);
 
 void update(float zoom);
 float clip_region();
