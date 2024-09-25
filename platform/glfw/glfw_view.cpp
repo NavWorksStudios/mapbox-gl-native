@@ -367,7 +367,7 @@ void GLFWView::onKey(int key, int action, int mods) {
             addLineAnnotations({40.712245, -74.014147});
             break;
         case GLFW_KEY_A: {
-            mbgl::AnimationOptions animationOptions(mbgl::Seconds(10));
+            mbgl::AnimationOptions animationOptions(mbgl::Seconds(4));
             map->flyTo(nav::place::current(), animationOptions);
             nav::place::next();
         } break;
