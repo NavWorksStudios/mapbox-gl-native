@@ -35,7 +35,7 @@ inline const FillExtrusionLayer::Impl& impl_cast(const Immutable<style::Layer::I
 
 } // namespace
 
-static RenderFillExtrusionLayer* renderFillExtrusionLayer;
+static RenderFillExtrusionLayer* renderFillExtrusionLayer = nullptr;
 
 RenderFillExtrusionLayer::RenderFillExtrusionLayer(Immutable<style::FillExtrusionLayer::Impl> _impl)
     : RenderLayer(makeMutable<FillExtrusionLayerProperties>(std::move(_impl))),
@@ -51,10 +51,10 @@ RenderFillExtrusionLayer::~RenderFillExtrusionLayer() {
 void RenderFillExtrusionLayer::renderSSAO(PaintParameters& parameters) {
     // render extrusion with SSAO shader
     if(renderFillExtrusionLayer)
-        renderFillExtrusionLayer->renderSSAO_p(parameters);
+        renderFillExtrusionLayer->doRenderSSAO(parameters);
 }
 
-void RenderFillExtrusionLayer::renderSSAO_p(PaintParameters& parameters) {
+void RenderFillExtrusionLayer::doRenderSSAO(PaintParameters& parameters) {
     if(!renderTiles)
         return;
 
