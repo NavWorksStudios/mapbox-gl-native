@@ -11,9 +11,8 @@
 namespace nav {
 
 namespace place {
-    const mbgl::CameraOptions& start();
     const mbgl::CameraOptions& current();
-    void next();
+    const mbgl::CameraOptions& next();
 };
 
 }

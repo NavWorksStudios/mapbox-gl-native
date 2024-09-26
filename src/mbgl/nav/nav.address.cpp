@@ -39,16 +39,13 @@ const std::vector<mbgl::CameraOptions> places = {
 
 };
 
-const mbgl::CameraOptions& start() {
+const mbgl::CameraOptions& current() {
     return places[0];
 }
 
-const mbgl::CameraOptions& current() {
-    return places[index];
-}
-
-void next() {
+const mbgl::CameraOptions& next() {
     index = (index + 1) % places.size();
+    return places[index];
 }
 
 }

@@ -223,7 +223,7 @@ void init(bool headless) {
     
 
     mbgl::AnimationOptions animationOptions(mbgl::Seconds(4));
-    map->flyTo(nav::place::start(), animationOptions);
+    map->flyTo(nav::place::current(), animationOptions);
 
 }
 

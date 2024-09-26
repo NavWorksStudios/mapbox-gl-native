@@ -368,8 +368,7 @@ void GLFWView::onKey(int key, int action, int mods) {
             break;
         case GLFW_KEY_A: {
             mbgl::AnimationOptions animationOptions(mbgl::Seconds(4));
-            map->flyTo(nav::place::current(), animationOptions);
-            nav::place::next();
+            map->flyTo(nav::place::next(), animationOptions);
         } break;
         case GLFW_KEY_R: {
             nav::runtime::setViewMode(nav::runtime::ViewMode::Spotlight);
@@ -1034,6 +1033,9 @@ void GLFWView::onWindowResize(GLFWwindow *window, int width, int height) {
     view->height = height;
     view->map->setSize({ static_cast<uint32_t>(view->width), static_cast<uint32_t>(view->height) });
     nav::display::logic::set(width, height);
+    
+    view->pixelRatio = static_cast<float>(view->renderBackend->getSize().width) / view->width;
+    nav::display::pixels::setRatio(view->pixelRatio);
 }
 
 void GLFWView::onFramebufferResize(GLFWwindow *window, int width, int height) {
@@ -1041,7 +1043,8 @@ void GLFWView::onFramebufferResize(GLFWwindow *window, int width, int height) {
     
     if (view->renderBackend) {
         view->renderBackend->setSize({ static_cast<uint32_t>(width), static_cast<uint32_t>(height) });
-        view->pixelRatio = static_cast<float>(view->renderBackend->getSize().width) / width;
+        
+        view->pixelRatio = static_cast<float>(view->renderBackend->getSize().width) / view->width;
         nav::display::pixels::setRatio(view->pixelRatio);
     }
 
@@ -1226,7 +1229,7 @@ void GLFWView::run() {
         }
     };
 
-    frameTick.start(mbgl::Duration::zero(), mbgl::Milliseconds(1000 / 60), callback);
+    frameTick.start(mbgl::Duration::zero(), mbgl::Milliseconds(1000 / 30), callback);
 
 #if defined(__APPLE__)
     while (window && !glfwWindowShouldClose(window)) {
