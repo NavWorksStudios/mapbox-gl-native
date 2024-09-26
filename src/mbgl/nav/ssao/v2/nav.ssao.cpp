@@ -60,6 +60,21 @@ void generate() {
 
 }
 
+//namespace scale {
+//
+//enum { SIZE = kernel::SIZE };
+//Vec3 data[SIZE];
+//
+//void generate() {
+//    for (int i=0; i<SIZE; ++i) {
+//        float radius = pow(pow(1.3, SIZE), 1 / (i+1));
+//        float bias = pow(pow(1.2, SIZE), 1 / (i+1));
+//        data[i] = Vec3(radius, bias, 0);
+//    }
+//}
+//
+//}
+
 namespace noise {
 
 enum { SIZE = 4, };
@@ -91,6 +106,7 @@ void generate() {
 
 void generate() {
     kernel::generate();
+//    scale::generate();
     noise::generate();
 }
 
@@ -331,6 +347,8 @@ void renderSceneToGBuffer(std::function<void()> renderCallback) {
 void generateSSAOTexture(float w, float h, float zoom, const Mat4& projMatrix) {
     fbo::ssao::bind();
 
+//    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    
     glClear(GL_COLOR_BUFFER_BIT);
     
     const GLint program = shader::aoPass;
@@ -340,7 +358,10 @@ void generateSSAOTexture(float w, float h, float zoom, const Mat4& projMatrix) {
         // Send kernel + rotation
         for (unsigned int i = 0; i < sample::kernel::SIZE; ++i) {
             UniformLocation u0(program, ("u_samples[" + std::to_string(i) + "]").c_str());
-            glUniform3fv(u0, 1, reinterpret_cast<float*>(sample::kernel::data));
+            glUniform3fv(u0, 1, reinterpret_cast<float*>(&(sample::kernel::data[i])));
+            
+//            UniformLocation u1(program, ("u_sample_scales[" + std::to_string(i) + "]").c_str());
+//            glUniform2fv(u1, 1, reinterpret_cast<float*>(&(sample::scale::data[i])));
         }
     }
 
