@@ -12,29 +12,31 @@ uniform sampler2D u_noise;
 #define SAMPLE_SIZE 32
 uniform vec3 u_samples[SAMPLE_SIZE];
 
-const float QUADRATIC = 1.1;
-const float CONTRAST = 1.3;
+const float QUADRATIC = 1.5;
+const float CONTRAST = 1.2;
 
 void main()
 {
     vec3 kernelPos = texture2D(u_position, TexCoords).xyz;
 
+    // z动态采样数量 - z_scale
     const float NEAR_Z = 0.;
-    const float FAR_Z = -500.;
-    float z_scale = min((FAR_Z - kernelPos.z) / (FAR_Z - NEAR_Z), 1.);
+    const float FAR_Z = -250.;
+    float z_scale = (FAR_Z - kernelPos.z) / (FAR_Z - NEAR_Z);
 
-    // loop count
+    // z动态采样数量 - sample count
     float sample_count_countinous = float(SAMPLE_SIZE) * z_scale;
     int sample_count = int(ceil(sample_count_countinous));
-    if (sample_count < 1) {
+    if (sample_count < 4 || sample_count > SAMPLE_SIZE) {
         gl_FragColor.r = 1.;
         return;
     }
 
-    // Sample hemisphere 采样半球
+    // z动态采样数量 - radius & bias
     float scale = u_zoom_scale * z_scale;
-    float SAMPLE_RADIUS = 0.08 * scale;
-    float Z_BIAS = 0.06 * scale;
+    float SAMPLE_RADIUS = 0.3 * scale;
+    float bias_factor = max(z_scale - .3, 0.); // 远处bias变小，防止远处波纹
+    float Z_BIAS = (0.3 - 0.2 * bias_factor) * scale;
 
     // get input for SSAO algorithm
     vec3 kernelNormal = texture2D(u_normal, TexCoords).xyz;
@@ -72,13 +74,15 @@ void main()
         // 添加bias可以帮助调整环境光遮蔽的效果，也可以解决痤疮问题。
         float dz = z - samplePos.z;
         if (dz > Z_BIAS) {
-            float compensation = min(1., sample_count_countinous - float(i));
-            occlusion += smoothstep(0.0, 1.0, SAMPLE_RADIUS / dz) * compensation;
+            // z动态采样数量 - 避免近处采样数阶跃，保持连续，防止近处波纹
+            float z_compensation = min(1., sample_count_countinous - float(i));
+
+            occlusion += smoothstep(0.0, 1.0, SAMPLE_RADIUS / dz) * z_compensation;
         }
 
         // dynamic sample radius
         SAMPLE_RADIUS *= 1.3;
-        Z_BIAS *= 1.2;
+        Z_BIAS *= 1.3;
     }
 
     occlusion = pow(occlusion, QUADRATIC);
