@@ -19,24 +19,32 @@ void main()
 {
     vec3 kernelPos = texture2D(u_position, TexCoords).xyz;
 
-    // z动态采样数量 - z_scale
-    const float NEAR_Z = 0.;
-    const float FAR_Z = -250.;
-    float z_scale = (FAR_Z - kernelPos.z) / (FAR_Z - NEAR_Z);
 
-    // z动态采样数量 - sample count
+
+    // 动态采样数 - 降低画面采样数，近多远少
+    // 计算z_scale
+    const float NEAR_Z = 0.;
+    const float FAR_Z = -200.;
+    float z_scale = (FAR_Z - kernelPos.z) / (FAR_Z - NEAR_Z);
+    // 计算sample count
     float sample_count_countinous = float(SAMPLE_SIZE) * z_scale;
     int sample_count = int(ceil(sample_count_countinous));
-    if (sample_count < 4 || sample_count > SAMPLE_SIZE) {
+    if (sample_count < 1 || sample_count > SAMPLE_SIZE) {
         gl_FragColor.r = 1.;
         return;
     }
 
-    // z动态采样数量 - radius & bias
+
+
+    // 动态半径偏差 - 有效降低波纹，提高画面对比度
+    // 近处半径大，远处半径小
     float scale = u_zoom_scale * z_scale;
-    float SAMPLE_RADIUS = 0.3 * scale;
-    float bias_factor = max(z_scale - .3, 0.); // 远处bias变小，防止远处波纹
-    float Z_BIAS = (0.3 - 0.2 * bias_factor) * scale;
+    float SAMPLE_RADIUS = 0.2 * scale;
+    float Z_BIAS = 0.2 * scale;
+    // 近处差距大，更强对比度；远处差距归零，避免波纹
+    float SAMPLE_RADIUS_PROGRESS = 1.3;
+    float Z_BIAS_PROGRESS = 1.3 - 0.3 * max(z_scale - .2, 0.);
+
 
     // get input for SSAO algorithm
     vec3 kernelNormal = texture2D(u_normal, TexCoords).xyz;
@@ -74,15 +82,15 @@ void main()
         // 添加bias可以帮助调整环境光遮蔽的效果，也可以解决痤疮问题。
         float dz = z - samplePos.z;
         if (dz > Z_BIAS) {
-            // z动态采样数量 - 避免近处采样数阶跃，保持连续，防止近处波纹
+            // 动态采样数 - 规避近处采样数阶跃，以保持采样数连续，防止波纹
             float z_compensation = min(1., sample_count_countinous - float(i));
 
             occlusion += smoothstep(0.0, 1.0, SAMPLE_RADIUS / dz) * z_compensation;
         }
 
         // dynamic sample radius
-        SAMPLE_RADIUS *= 1.3;
-        Z_BIAS *= 1.3;
+        SAMPLE_RADIUS *= SAMPLE_RADIUS_PROGRESS;
+        Z_BIAS *= Z_BIAS_PROGRESS;
     }
 
     occlusion = pow(occlusion, QUADRATIC);
