@@ -12,17 +12,31 @@ uniform sampler2D u_noise;
 #define SAMPLE_SIZE 32
 uniform vec3 u_samples[SAMPLE_SIZE];
 
-const float QUADRATIC = 1.2;
-const float CONTRAST = 1.8;
+const float QUADRATIC = 1.1;
+const float CONTRAST = 1.3;
 
 void main()
 {
-    // radius
-    float SAMPLE_RADIUS = 0.05 * u_zoom_scale; // 采样球半径
-    float Z_BIAS = 0.01 * u_zoom_scale;
+    vec3 kernelPos = texture2D(u_position, TexCoords).xyz;
+
+    const float NEAR_Z = 0.;
+    const float FAR_Z = -500.;
+    float z_scale = min((FAR_Z - kernelPos.z) / (FAR_Z - NEAR_Z), 1.);
+
+    // loop count
+    float sample_count_countinous = float(SAMPLE_SIZE) * z_scale;
+    int sample_count = int(ceil(sample_count_countinous));
+    if (sample_count < 1) {
+        gl_FragColor.r = 1.;
+        return;
+    }
+
+    // Sample hemisphere 采样半球
+    float scale = u_zoom_scale * z_scale;
+    float SAMPLE_RADIUS = 0.08 * scale;
+    float Z_BIAS = 0.06 * scale;
 
     // get input for SSAO algorithm
-    vec3 kernelPos = texture2D(u_position, TexCoords).xyz;
     vec3 kernelNormal = texture2D(u_normal, TexCoords).xyz;
     vec3 random = texture2D(u_noise, TexCoords * u_text_scale).xyz;
 
@@ -37,45 +51,48 @@ void main()
     // 遍历每个核心采样，将采样从切线空间转化到视图空间，接着进行深度对比
     float occlusion = 0.0;
 
-    for(int i=0; i<SAMPLE_SIZE; i++)
+    for(int i=0; i<sample_count; i++)
     {
         // get sample position
         vec3 samplePos = TBN * u_samples[i]; // from tangent to view-space 从切线空间转化到视图空间
         samplePos = kernelPos + samplePos * SAMPLE_RADIUS;
-        
+
         // project sample position (to sample texture) (to get position on screen/texture)
         // 投影smple点到深度纹理坐标，获取在纹理的位置
         vec4 depth_uv = u_projection * vec4(samplePos, 1.0); // from view to clip-space 使用projection将其转化到裁剪空间
         depth_uv.xy /= depth_uv.w; // perspective divide
         depth_uv.xy = depth_uv.xy * 0.5 + 0.5; // transform to range 0.0 - 1.0
         
-        // get sample depth
-        // 使用纹理坐标来采样G缓冲中的位置的z值来作为采样的深度
+        // get sample depth 使用纹理坐标来采样G缓冲中的位置的z值来作为采样的深度
         float z = texture2D(u_position, depth_uv.xy).z; // get depth value of kernel sample
 
+        // range check & accumulate
+        // 将当前的采样深度值和存储的深度值进行比较，如果大一些的话，添加遮蔽因数的影响。
         // 用范围检查，来确保某一片段的深度值在采样半径内，这样才会对遮蔽因数做影响。
         // 添加bias可以帮助调整环境光遮蔽的效果，也可以解决痤疮问题。
         float dz = z - samplePos.z;
         if (dz > Z_BIAS) {
-            // range check & accumulate
-            // 将当前的采样深度值和存储的深度值进行比较，如果大一些的话，添加遮蔽因数的影响。
-            occlusion += smoothstep(0.0, 1.0, SAMPLE_RADIUS / dz);
+            float compensation = min(1., sample_count_countinous - float(i));
+            occlusion += smoothstep(0.0, 1.0, SAMPLE_RADIUS / dz) * compensation;
         }
 
+        // dynamic sample radius
         SAMPLE_RADIUS *= 1.3;
         Z_BIAS *= 1.2;
     }
 
     occlusion = pow(occlusion, QUADRATIC);
 
-    occlusion /= float(SAMPLE_SIZE);
+    occlusion /= float(sample_count);
 
     occlusion = CONTRAST * (occlusion - 0.5) + 0.5;
 
-    occlusion = 1.0 - occlusion;
+    float result = 1.0 - occlusion;
 
-    gl_FragColor.r = occlusion;
+    gl_FragColor.r = result;
     
-    gl_FragColor = vec4(occlusion * .65, occlusion * .85, occlusion * 1.5, 1.);
+    // gl_FragColor = vec4(result * .65, result * .85, result * 1.5, 1.);
+
+    // gl_FragColor = vec4( vec3(result), 1.);
 
 }

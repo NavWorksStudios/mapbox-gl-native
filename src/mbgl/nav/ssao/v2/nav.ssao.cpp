@@ -17,10 +17,6 @@
 #include "mbgl/nav/nav.palette.hpp"
 
 
-#define SCR_WIDTH nav::display::pixels::width()
-#define SCR_HEIGHT nav::display::pixels::height()
-
-
 namespace nav {
 namespace ssao {
 
@@ -120,7 +116,7 @@ GLuint genTexture(GLint internalformat, GLsizei width, GLsizei height, GLint bor
     GLuint texture;
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     
@@ -136,29 +132,29 @@ GLuint normal = 0;
 GLuint albedo = 0;
 GLuint rboDepth = 0;
 
-void generate(int w, int h) {
+void generate(int width, int height) {
     if (!fbo) glGenFramebuffers(1, &fbo);
 
     // position color buffer
     glDeleteTextures(1, &position);
-    position = genTexture(GL_RGBA16F, w, h, 0, GL_RGBA, GL_FLOAT, [] () {
+    position = genTexture(GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, [] () {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     });
 
     // normal color buffer
     glDeleteTextures(1, &normal);
-    normal = genTexture(GL_RGBA16F, w, h, 0, GL_RGBA, GL_FLOAT);
+    normal = genTexture(GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT);
 
     // color + specular color buffer
     glDeleteTextures(1, &albedo);
-    albedo = genTexture(GL_RGBA16F, w, h, 0, GL_RGBA, GL_FLOAT);
+    albedo = genTexture(GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT);
 
     // create and attach depth buffer (renderbuffer)
     glDeleteRenderbuffers(1, &rboDepth);
     glGenRenderbuffers(1, &rboDepth);
     glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, w, h);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
 }
 
 void bind() {
@@ -180,11 +176,11 @@ namespace ssao {
 GLuint fbo = 0;
 GLuint buffer = 0;
 
-void generate(int w, int h) {
+void generate(int width, int height) {
     if (!fbo) glGenFramebuffers(1, &fbo);
     
     glDeleteTextures(1, &buffer);
-    buffer = genTexture(GL_RED, w, h, 0, GL_RED, GL_FLOAT);
+    buffer = genTexture(GL_RED, width, height, 0, GL_RED, GL_FLOAT);
 }
 
 void bind() {
@@ -199,11 +195,11 @@ namespace blur {
 GLuint fbo = 0;
 GLuint buffer = 0;
 
-void generate(int w, int h) {
+void generate(int width, int height) {
     if (!fbo) glGenFramebuffers(1, &fbo);
     
     glDeleteTextures(1, &buffer);
-    buffer = genTexture(GL_RED, w, h, 0, GL_RED, GL_FLOAT);
+    buffer = genTexture(GL_RED, width, height, 0, GL_RED, GL_FLOAT);
 }
 
 void bind() {
@@ -237,7 +233,6 @@ void generate(int width, int height) {
 namespace shader {
 
 GLint floorPass;
-GLuint geometryPass;
 GLuint aoPass;
 GLint blurPass;
 GLint renderNDCPass;
@@ -249,15 +244,9 @@ void load() {
     createProgram(compileShader(GL_VERTEX_SHADER, mbgl::vertexShader()),
                   compileShader(GL_FRAGMENT_SHADER, mbgl::fragmentShader()));
     
-    geometryPass =
-    createProgram(loadShader(GL_VERTEX_SHADER, "/shaders/9.ssao_geometry.vs"),
-                  loadShader(GL_FRAGMENT_SHADER, "/shaders/9.ssao_geometry.fs"));
-
-    
     aoPass =
     createProgram(loadShader(GL_VERTEX_SHADER, "/shaders/9.ssao.vs"),
                   loadShader(GL_FRAGMENT_SHADER, "/shaders/9.ssao.fs"));
-
     
     blurPass =
     createProgram(loadShader(GL_VERTEX_SHADER, "/shaders/9.ssao.vs"),
@@ -344,7 +333,7 @@ void renderSceneToGBuffer(std::function<void()> renderCallback) {
 
 // 2. generate SSAO texture
 // ------------------------
-void generateSSAOTexture(float w, float h, float zoom, const Mat4& projMatrix) {
+void generateSSAOTexture(float width, float height, float zoom, const Mat4& projMatrix) {
     fbo::ssao::bind();
 
 //    glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -370,7 +359,7 @@ void generateSSAOTexture(float w, float h, float zoom, const Mat4& projMatrix) {
         glUniformMatrix4fv(u0, 1, GL_FALSE, reinterpret_cast<const float*>(&projMatrix));
         
         static UniformLocation u1(program, "u_text_scale");
-        glUniform2f(u1, w / sample::noise::SIZE, h / sample::noise::SIZE);
+        glUniform2f(u1, width / sample::noise::SIZE, height / sample::noise::SIZE);
         
         static UniformLocation u2(program, "u_zoom_scale");
         glUniform1f(u2, pow(2., zoom - 18.));
@@ -399,7 +388,7 @@ void generateSSAOTexture(float w, float h, float zoom, const Mat4& projMatrix) {
 
 // 3. blur SSAO texture to remove noise
 // ------------------------------------
-void blurSSAOTexture(int w, int h) {
+void blurSSAOTexture(int width, int height) {
     fbo::blur::bind();
     
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -415,7 +404,7 @@ void blurSSAOTexture(int w, int h) {
     glUniform1i(u0, 0);
     
     static UniformLocation u1(program, "u_text_size");
-    glUniform2f(u1, w, h);
+    glUniform2f(u1, width, height);
     
     renderQuad(program);
     
@@ -530,18 +519,18 @@ void draw(float zoom, mbgl::mat4 projMatrix, std::function<void()> renderCallbac
         shader::load();
         floor::init();
     });
-    
-    const int w = nav::display::pixels::width();
-    const int h = nav::display::pixels::height();
-    fbo::generate(w, h);
+
+    const int width = nav::display::pixels::width();
+    const int height = nav::display::pixels::height();
+    fbo::generate(width, height);
     
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
     glDepthFunc(GL_LESS);
 
     renderSceneToGBuffer(renderCallback);
-    generateSSAOTexture(w, h, zoom, convertMatrix(projMatrix));
-    blurSSAOTexture(w, h);
+    generateSSAOTexture(width, height, zoom, convertMatrix(projMatrix));
+    blurSSAOTexture(width, height);
 //    renderToScreen();
 
 }

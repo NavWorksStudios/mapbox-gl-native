@@ -24,7 +24,11 @@ void main()
 
     gl_FragColor.r = result;
 
-    gl_FragColor = vec4(result * .65, result * .85, result * 1.5, 1.);
+    // gl_FragColor = vec4(result * 1.5, result * .9, result * 1.2, 1.); // 粉色
+
+    gl_FragColor = vec4(result * .65, result * .85, result * 1.5, 1.); // 蓝色
+
+    // gl_FragColor = vec4( vec3(result), 1.);
 }  
 
 #else
