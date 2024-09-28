@@ -28,6 +28,7 @@ namespace shadow {
 namespace sample {
 
 // Framebuffers, textures to render to, renderbuffers, other textures
+GLuint modelbuffer;
 GLuint modelDepthTexture;
 GLuint shadowbuffer;
 GLuint shadowDepthTexture;
@@ -38,6 +39,9 @@ void initializeResources()
     // Enable and configure textures on applicable texture units
     glActiveTexture(GL_TEXTURE0);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    
+    // Create our framebuffer
+    glGenFramebuffers(1, &modelbuffer);
     
     // Setup a texture to render depth to
     glDeleteTextures(1, &modelDepthTexture);
@@ -302,6 +306,7 @@ Vec3 light_eye = Vec3(-0.75, 1.0, 0.75);
 
 void drawModel(bool shadow)
 {
+//    glBindFramebuffer(GL_FRAMEBUFFER, modelbuffer); // 往 framebuffer 上画
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, modelDepthTexture, 0);
     GLenum bufs[1] = { GL_COLOR_ATTACHMENT0 };

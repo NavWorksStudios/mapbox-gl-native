@@ -38,21 +38,10 @@ std::string path(const char* file) {
 
 namespace display {
 
+namespace logic {
+
 int _width = 1920;
 int _height = 1080;
-
-void setLogic(int width, int height) {
-    _width = width;
-    _height = height;
-}
-
-float _ratio = 1.;
-
-void setPixelRatio(float ratio) {
-    _ratio = ratio;
-}
-
-namespace logic {
 
 int width() {
     return _width;
@@ -62,16 +51,27 @@ int height() {
     return _height;
 };
 
+void set(int width, int height) {
+    _width = width;
+    _height = height;
+}
+
 }
 
 namespace pixels {
 
+float _ratio = 1.;
+
 int width() {
-    return _width * _ratio;
+    return logic::_width * _ratio;
 }
 
 int height() {
-    return _height * _ratio;
+    return logic::_height * _ratio;
+}
+
+void setRatio(float ratio) {
+    _ratio = ratio;
 }
 
 }

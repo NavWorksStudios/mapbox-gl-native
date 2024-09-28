@@ -37,7 +37,7 @@ void* ThreadLocalBase::get() {
 void ThreadLocalBase::set(void* ptr) {
     if (pthread_setspecific(reinterpret_cast<pthread_key_t&>(storage), ptr) != 0) {
         Log::Error(Event::General, "Failed to set thread-specific storage");
-//        abort();
+        abort();
     }
 }
 

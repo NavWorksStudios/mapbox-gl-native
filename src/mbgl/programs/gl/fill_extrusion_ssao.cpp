@@ -57,8 +57,8 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
         attribute highp vec2 a_pos;
         attribute lowp vec4 a_normal_ed;
         
-        varying vec3 vFragPos;
-        varying vec3 vNormal;
+        varying vec3 v_fragPos;
+        varying vec3 v_normal;
         
         uniform mat4 u_matrix;
         uniform mat4 u_mv_matrix;
@@ -80,8 +80,8 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
             float lowp z = t > 0. ? height : base;
             vec4 pos = vec4(a_pos, z, 1.0);
 
-            vFragPos = vec3(u_mv_matrix * pos) / 32.;
-            vNormal = vec3(u_normal_matrix * vec4(-a_normal_ed.x, -a_normal_ed.y, a_normal_ed.z, a_normal_ed.w));
+            v_fragPos = vec3(u_mv_matrix * pos) / 32.;
+            v_normal = vec3(u_normal_matrix * vec4(-a_normal_ed.x, -a_normal_ed.y, a_normal_ed.z, a_normal_ed.w));
             gl_Position = u_matrix * pos;
         }
         
@@ -109,31 +109,29 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
     
     static const char* navFragment(const char* ) { return R"(
 
-        varying vec3 vFragPos;
-        varying vec3 vNormal;
+        varying vec3 v_fragPos;
+        varying vec3 v_normal;
 
-        const float NEAR = 0.1; // 投影矩阵的近平面
-        const float FAR = 50.0; // 投影矩阵的远平面
-
-        float LinearizeDepth(float depth)
-        {
-            float z = depth * 2.0 - 1.0; // 回到NDC
-            return (2.0 * NEAR * FAR) / (FAR + NEAR - z * (FAR - NEAR));
-        }
+//        const float NEAR = 0.1; // 投影矩阵的近平面
+//        const float FAR = 50.0; // 投影矩阵的远平面
+//
+//        float LinearizeDepth(float depth)
+//        {
+//            float z = depth * 2.0 - 1.0; // 回到NDC
+//            return (2.0 * NEAR * FAR) / (FAR + NEAR - z * (FAR - NEAR));
+//        }
 
         void main()
         {
             // store the fragment position vector in the first gbuffer texture
-            gl_FragData[0].xyz = vFragPos;
-            gl_FragData[0].a = LinearizeDepth(gl_FragCoord.z);
+            gl_FragData[0].xyz = v_fragPos;
+//            gl_FragData[0].a = LinearizeDepth(gl_FragCoord.z);
 
             // also store the per-fragment normals into the gbuffer
-            gl_FragData[1].xyz = normalize(vNormal);
-            gl_FragData[1].a = 1.0;
+            gl_FragData[1].xyz = normalize(v_normal);
 
             // and the diffuse per-fragment color
-            gl_FragData[2].rgb = vec3(.95);
-            gl_FragData[2].a = 1.0;
+            gl_FragData[2].rgb = vec3(0.95);
         }
             
     )"; }
@@ -155,6 +153,36 @@ Backend::Create<gfx::Backend::Type::OpenGL>(const ProgramParameters& programPara
 }
 
 } // namespace gfx
+
+
+const char* vertexShader() { return R"(
+
+attribute vec2 a_pos;
+attribute vec4 a_normal_ed;
+
+varying vec3 v_fragPos;
+varying vec3 v_normal;
+
+uniform mat4 u_matrix;
+uniform mat4 u_mv_matrix;
+uniform mat4 u_normal_matrix;
+
+void main()
+{
+    vec4 pos = vec4(a_pos, 0., 1.);
+
+    v_fragPos = vec3(u_mv_matrix * pos) / 32.;
+    v_normal = vec3(u_normal_matrix * vec4(-a_normal_ed.x, -a_normal_ed.y, a_normal_ed.z, a_normal_ed.w));
+    gl_Position = u_matrix * pos;
+}
+
+)"; }
+
+const char* fragmentShader() {
+    return programs::gl::ShaderSource<FillExtrusionSSAOProgram>::navFragment(0);
+}
+
+
 } // namespace mbgl
 
 // clang-format on

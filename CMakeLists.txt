@@ -320,6 +320,8 @@ set(all_files
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.palette.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.theme.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.theme.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.address.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.address.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.stringid.hpp
 
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v1/rply.h

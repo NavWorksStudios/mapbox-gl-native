@@ -50,6 +50,7 @@
 
 #include "mbgl/nav/nav.style.hpp"
 #include "mbgl/nav/nav.log.hpp"
+#include "mbgl/nav/nav.address.hpp"
 
 #include <mbgl/route/route_line_layer_manager.hpp>
 
@@ -192,13 +193,13 @@ GLFWView::GLFWView(bool fullscreen_, bool benchmark_, const mbgl::ResourceOption
         glfwSetWindowFocusCallback(window, onWindowFocus);
 
         glfwGetWindowSize(window, &width, &height);
-        nav::display::setLogic(width, height);
+        nav::display::logic::set(width, height);
 
         renderBackend = GLFWBackend::Create(window, benchmark);
 
         if (renderBackend) {
             pixelRatio = static_cast<float>(renderBackend->getSize().width) / width;
-            nav::display::setPixelRatio(pixelRatio);
+            nav::display::pixels::setRatio(pixelRatio);
         }
             
     }
@@ -366,38 +367,8 @@ void GLFWView::onKey(int key, int action, int mods) {
             addLineAnnotations({40.712245, -74.014147});
             break;
         case GLFW_KEY_A: {
-            static const std::vector<std::tuple<mbgl::LatLng,float,float,float>> places = {
-//                { mbgl::LatLng { 22.294522, 114.157209 }, 15.722247, 71.050945, 147.869345 },
-                { mbgl::LatLng { 39.903563, 116.391363 }, 17.141364, 70.103668, -33.081634 },
-                { mbgl::LatLng { 31.242662, 121.495084 }, 15.445918, 71.050945, -179.947701 },
-                { mbgl::LatLng { 25.034055, 121.564515 }, 16.077729, 70.723858, 143.526270 },
-                { mbgl::LatLng { 3.157823, 101.711731 }, 16.335255, 57.806744, -38.003147 },
-                { mbgl::LatLng { 25.191752, 55.274737 }, 15.491167, 71.050945, -33.053848 },
-                { mbgl::LatLng { 25.129851, 55.132237 }, 15.150993, 67.077923, 177.527160 },
-                { mbgl::LatLng { 55.751815, 37.621716 }, 17.575426, 70.000000, -157.404684 },
-                { mbgl::LatLng { 50.087501, 14.421360 }, 16.215369, 70, 103.655584 },
-                { mbgl::LatLng { 41.889696, 12.491829 }, 17.483347, 67.692608, 50.031478 },
-                { mbgl::LatLng { 48.859491, 2.293157 }, 16.341660, 71.050945, 117.451230 },
-                { mbgl::LatLng { 51.500735, -0.124490 }, 17.808440, 71.050945, -141.514926 },
-                { mbgl::LatLng { 40.708050, -74.010099 }, 15.317721, 71.050945, 34.123000 },
-                { mbgl::LatLng { 35.884921, 138.527952 }, 7.137733, 0, 0 },
-                { mbgl::LatLng { 31.217935, 120.949375 }, 9.145968, 0, 0 },
-                { mbgl::LatLng { 22.670898, 115.953376 }, 5.778833, 0, 0 },
-                { mbgl::LatLng { 51.501716, -0.080117 }, 10.320973, 0, 0 },
-                { mbgl::LatLng { 40.709430, -74.027215 }, 11.335746, 0, 0 },
-            };
-
-            static size_t nextPlace = 0;
-            mbgl::CameraOptions cameraOptions;
-            const auto& place = places[nextPlace++];
-            cameraOptions.center = std::get<0>(place);
-            cameraOptions.zoom = std::get<1>(place);
-            cameraOptions.pitch = std::get<2>(place);
-            cameraOptions.bearing = std::get<3>(place);
-
-            mbgl::AnimationOptions animationOptions(mbgl::Seconds(10));
-            map->flyTo(cameraOptions, animationOptions);
-            nextPlace = nextPlace % places.size();
+            mbgl::AnimationOptions animationOptions(mbgl::Seconds(4));
+            map->flyTo(nav::place::next(), animationOptions);
         } break;
         case GLFW_KEY_R: {
             nav::runtime::setViewMode(nav::runtime::ViewMode::Spotlight);
@@ -1061,14 +1032,21 @@ void GLFWView::onWindowResize(GLFWwindow *window, int width, int height) {
     view->width = width;
     view->height = height;
     view->map->setSize({ static_cast<uint32_t>(view->width), static_cast<uint32_t>(view->height) });
-    nav::display::setLogic(width, height);
+    nav::display::logic::set(width, height);
+    
+    view->pixelRatio = static_cast<float>(view->renderBackend->getSize().width) / view->width;
+    nav::display::pixels::setRatio(view->pixelRatio);
 }
 
 void GLFWView::onFramebufferResize(GLFWwindow *window, int width, int height) {
     auto *view = reinterpret_cast<GLFWView *>(glfwGetWindowUserPointer(window));
     
-    if (view->renderBackend)
-    view->renderBackend->setSize({ static_cast<uint32_t>(width), static_cast<uint32_t>(height) });
+    if (view->renderBackend) {
+        view->renderBackend->setSize({ static_cast<uint32_t>(width), static_cast<uint32_t>(height) });
+        
+        view->pixelRatio = static_cast<float>(view->renderBackend->getSize().width) / view->width;
+        nav::display::pixels::setRatio(view->pixelRatio);
+    }
 
     // This is only triggered when the framebuffer is resized, but not the window. It can
     // happen when you move the window between screens with a different pixel ratio.
