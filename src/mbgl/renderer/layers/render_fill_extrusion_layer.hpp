@@ -14,7 +14,8 @@ public:
     
 public:
     static void renderSSAO(PaintParameters& parameters);
-
+    static void renderShadow(PaintParameters& parameters);
+    
 private:
     void transition(const TransitionParameters&) override;
     void evaluate(const PropertyEvaluationParameters&) override;
