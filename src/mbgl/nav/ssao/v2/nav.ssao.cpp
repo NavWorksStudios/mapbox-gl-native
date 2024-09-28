@@ -97,7 +97,7 @@ void generate() {
 namespace fbo {
 
 GLuint genTexture(GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type,
-                  std::function<void()> additional = [] () {}) {
+                  std::function<void()> configTexture=nullptr) {
     GLuint texture;
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
@@ -105,7 +105,7 @@ GLuint genTexture(GLint internalformat, GLsizei width, GLsizei height, GLint bor
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     
-    additional();
+    if (configTexture) configTexture();
 
     return texture;
 }
