@@ -56,21 +56,6 @@ void generate() {
 
 }
 
-//namespace scale {
-//
-//enum { SIZE = kernel::SIZE };
-//Vec3 data[SIZE];
-//
-//void generate() {
-//    for (int i=0; i<SIZE; ++i) {
-//        float radius = pow(pow(1.3, SIZE), 1 / (i+1));
-//        float bias = pow(pow(1.2, SIZE), 1 / (i+1));
-//        data[i] = Vec3(radius, bias, 0);
-//    }
-//}
-//
-//}
-
 namespace noise {
 
 enum { SIZE = 4, };
@@ -321,22 +306,28 @@ void renderQuad(GLint program) {
 // 1. geometry pass: render scene's geometry/color data into gbuffer
 // -----------------------------------------------------------------
 
-void renderSceneToGBuffer(std::function<void()> renderCallback) {
-    fbo::gbuffer::bind();
+void renderSceneToGBuffer(std::function<void()> renderCallback,
+                          std::function<void()> bindScreenFbo=nullptr) {
+    
+    if (bindScreenFbo) bindScreenFbo();
+    else fbo::gbuffer::bind();
     
     glDisable(GL_BLEND);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     renderCallback();
+    
 }
 
 // 2. generate SSAO texture
 // ------------------------
-void generateSSAOTexture(float width, float height, float zoom, const Mat4& projMatrix) {
-    fbo::ssao::bind();
-
-//    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+void generateSSAOTexture(float width, float height, float zoom,
+                         const Mat4& projMatrix,
+                         std::function<void()> bindScreenFbo=nullptr) {
+    
+    if (bindScreenFbo) bindScreenFbo();
+    else fbo::ssao::bind();
     
     glClear(GL_COLOR_BUFFER_BIT);
     
@@ -348,9 +339,6 @@ void generateSSAOTexture(float width, float height, float zoom, const Mat4& proj
         for (unsigned int i = 0; i < sample::kernel::SIZE; ++i) {
             UniformLocation u0(program, ("u_samples[" + std::to_string(i) + "]").c_str());
             glUniform3fv(u0, 1, reinterpret_cast<float*>(&(sample::kernel::data[i])));
-            
-//            UniformLocation u1(program, ("u_sample_scales[" + std::to_string(i) + "]").c_str());
-//            glUniform2fv(u1, 1, reinterpret_cast<float*>(&(sample::scale::data[i])));
         }
     }
 
@@ -388,11 +376,12 @@ void generateSSAOTexture(float width, float height, float zoom, const Mat4& proj
 
 // 3. blur SSAO texture to remove noise
 // ------------------------------------
-void blurSSAOTexture(int width, int height) {
-    fbo::blur::bind();
+void blurSSAOTexture(int width, int height,
+                     std::function<void()> bindScreenFbo=nullptr) {
     
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    
+    if (bindScreenFbo) bindScreenFbo();
+    else fbo::blur::bind();
+
     glClear(GL_COLOR_BUFFER_BIT);
     
     const GLint program = shader::blurPass;
@@ -412,9 +401,9 @@ void blurSSAOTexture(int width, int height) {
 
 // 4. lighting pass: traditional deferred Blinn-Phong lighting with added screen-space ambient occlusion
 // -----------------------------------------------------------------------------------------------------
-void renderToScreen() {
+void renderToScreen(std::function<void()> bindScreenFbo) {
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    bindScreenFbo();
     
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -520,18 +509,29 @@ void draw(float zoom, mbgl::mat4 projMatrix, std::function<void()> renderCallbac
         floor::init();
     });
 
-    const int width = nav::display::pixels::width();
-    const int height = nav::display::pixels::height();
+    const float BUFFER_SCALE = .7;
+    const int width = nav::display::pixels::width() * BUFFER_SCALE;
+    const int height = nav::display::pixels::height() * BUFFER_SCALE;
     fbo::generate(width, height);
     
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT, viewport);
+    auto bindScreenFbo = [viewport] () {
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+    };
+    
+    glViewport(0, 0, width, height);
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
     glDepthFunc(GL_LESS);
 
     renderSceneToGBuffer(renderCallback);
     generateSSAOTexture(width, height, zoom, convertMatrix(projMatrix));
-    blurSSAOTexture(width, height);
-//    renderToScreen();
+    blurSSAOTexture(width, height, bindScreenFbo);
+//    renderToScreen(bindScreenFbo);
+    
+    
 
 }
 

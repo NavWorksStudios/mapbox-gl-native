@@ -82,7 +82,6 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
 
             v_fragPos = vec3(u_mv_matrix * pos) / 32.;
             v_normal = vec3(u_normal_matrix * vec4(-a_normal_ed.x, -a_normal_ed.y, a_normal_ed.z, a_normal_ed.w));
-    
             gl_Position = u_matrix * pos;
         }
         
@@ -174,7 +173,6 @@ void main()
 
     v_fragPos = vec3(u_mv_matrix * pos) / 32.;
     v_normal = vec3(u_normal_matrix * vec4(-a_normal_ed.x, -a_normal_ed.y, a_normal_ed.z, a_normal_ed.w));
-
     gl_Position = u_matrix * pos;
 }
 
