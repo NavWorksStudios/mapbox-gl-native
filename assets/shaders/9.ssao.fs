@@ -15,6 +15,9 @@ uniform vec3 u_samples[SAMPLE_SIZE];
 const float QUADRATIC = 1.5;
 const float CONTRAST = 1.2;
 
+const float BUFFER_SCALE = .7;
+
+
 void main()
 {
     vec3 kernelPos = texture2D(u_position, TexCoords).xyz;
@@ -39,8 +42,10 @@ void main()
     // 动态半径偏差 - 有效降低波纹，提高画面对比度
     // 近处半径大，远处半径小
     float scale = u_zoom_scale * z_scale;
-    float SAMPLE_RADIUS = 0.2 * scale;
-    float Z_BIAS = 0.2 * scale;
+    float SAMPLE_RADIUS = 0.3 * BUFFER_SCALE * scale;
+    float Z_BIAS = 0.3 * BUFFER_SCALE * scale;
+
+
     // 近处差距大，更强对比度；远处差距归零，避免波纹
     float SAMPLE_RADIUS_PROGRESS = 1.3;
     float Z_BIAS_PROGRESS = 1.3 - 0.3 * max(z_scale - .2, 0.);
