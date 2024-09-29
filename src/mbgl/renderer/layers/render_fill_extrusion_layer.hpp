@@ -14,6 +14,8 @@ public:
     
 public:
     static void renderSSAO(PaintParameters& parameters);
+    static void renderShadow(PaintParameters& parameters);
+
 private:
     void doRenderSSAO(PaintParameters&);
 
