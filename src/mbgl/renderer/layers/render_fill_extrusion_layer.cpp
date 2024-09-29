@@ -207,7 +207,7 @@ void RenderFillExtrusionLayer::doRenderSSAO(PaintParameters& parameters) {
     const auto drawTileShadows = [&](const gfx::StencilMode& stencilMode_, const gfx::ColorMode& colorMode_, const std::string& name) {
         auto layoutUniforms = FillExtrusionSSAOProgram::layoutUniformValues(
             uniforms::matrix::Value(),
-            uniforms::mv_matrix::Value(),
+            uniforms::model_view_matrix::Value(),
             uniforms::normal_matrix::Value()
         );
         
@@ -235,7 +235,7 @@ void RenderFillExtrusionLayer::doRenderSSAO(PaintParameters& parameters) {
             // #*# 使用相机矩阵进行渲染
             const auto matrix = tile.translatedClipMatrix(translate, anchor, state);
             layoutUniforms.template get<uniforms::matrix>() = matrix;
-            layoutUniforms.template get<uniforms::mv_matrix>() = tile.modelViewMatrix;
+            layoutUniforms.template get<uniforms::model_view_matrix>() = tile.modelViewMatrix;
             auto& normalMatrix = layoutUniforms.template get<uniforms::normal_matrix>();
             matrix::invert(normalMatrix, tile.modelViewMatrix);
             matrix::transpose(normalMatrix);
@@ -298,7 +298,7 @@ void RenderFillExtrusionLayer::doRenderSSAO(PaintParameters& parameters) {
             matrix::multiply(u_mvp, u_mv, u_p);
 
             layoutUniforms.template get<uniforms::matrix>() = u_mvp;
-            layoutUniforms.template get<uniforms::mv_matrix>() = u_mv;
+            layoutUniforms.template get<uniforms::model_view_matrix>() = u_mv;
             layoutUniforms.template get<uniforms::normal_matrix>() = u_mv_normal;
 #endif
             
