@@ -61,7 +61,7 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
         varying vec3 v_normal;
         
         uniform mat4 u_matrix;
-        uniform mat4 u_mv_matrix;
+        uniform mat4 u_model_view_matrix;
         uniform mat4 u_normal_matrix;
         
         uniform lowp float u_base_t;
@@ -80,7 +80,7 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
             float lowp z = t > 0. ? height : base;
             vec4 pos = vec4(a_pos, z, 1.0);
 
-            v_fragPos = vec3(u_mv_matrix * pos) / 32.;
+            v_fragPos = vec3(u_model_view_matrix * pos) / 32.;
             v_normal = vec3(u_normal_matrix * vec4(-a_normal_ed.x, -a_normal_ed.y, a_normal_ed.z, a_normal_ed.w));
             gl_Position = u_matrix * pos;
         }
@@ -164,14 +164,14 @@ varying vec3 v_fragPos;
 varying vec3 v_normal;
 
 uniform mat4 u_matrix;
-uniform mat4 u_mv_matrix;
+uniform mat4 u_model_view_matrix;
 uniform mat4 u_normal_matrix;
 
 void main()
 {
     vec4 pos = vec4(a_pos, 0., 1.);
 
-    v_fragPos = vec3(u_mv_matrix * pos) / 32.;
+    v_fragPos = vec3(u_model_view_matrix * pos) / 32.;
     v_normal = vec3(u_normal_matrix * vec4(-a_normal_ed.x, -a_normal_ed.y, a_normal_ed.z, a_normal_ed.w));
     gl_Position = u_matrix * pos;
 }

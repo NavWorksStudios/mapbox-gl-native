@@ -24,7 +24,6 @@ private:
     bool hasCrossfade() const override;
     bool is3D() const override;
     void render(PaintParameters&) override;
-    void renderSSAO_tileFloor(const mat4&, const mat4&, const mat4&);
     bool queryIntersectsFeature(const GeometryCoordinates&,
                                 const GeometryTileFeature&,
                                 float,

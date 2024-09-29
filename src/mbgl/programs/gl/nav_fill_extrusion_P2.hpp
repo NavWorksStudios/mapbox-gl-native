@@ -82,40 +82,30 @@ struct FillExtrusionProgram {
             vec4 modelpos = vec4(a_pos, z, 1.);
             gl_Position = u_matrix * modelpos;
     
-            // view clipping
+            // distance clipping
             lowp float distance = pow(gl_Position.x, 2.) + pow(gl_Position.z, 2.);
-//            if (distance > u_clip_region) {
-//                gl_Position.x = gl_Position.y = gl_Position.z = -1.e100;
-//                return;
-//            }
+            if (distance > u_clip_region) {
+                gl_Position.x = gl_Position.y = gl_Position.z = -1.e100;
+                return;
+            }
     
             // Ambient Lighting
-            const float ambient = .3;
+            const float ambient = .4;
     
             // Diffuse Lighting
             lowp vec3 norm = normalize(normal);
             lowp vec3 lightDir = normalize(u_lightpos);
-            lowp float diffuse = (dot(norm, lightDir) * .5 + .5) * .3;
+            lowp float diffuse = dot(norm, lightDir) * .4;
     
             // Specular Lighting
+            const lowp float indensity = 1.; // 强度
+            const lowp float shininess = .8; // 反射率
             lowp vec3 world_pos = (u_model_matrix * modelpos).xyz;
-            const lowp float indensity = .4; // 强度
-            const lowp float shininess = .4; // 反射率
             lowp vec3 viewDir = normalize(u_camera_pos - world_pos);
             lowp vec3 reflectDir = reflect(-lightDir, norm); // reflect (genType I, genType N),返回反射向量
             lowp float specular = indensity * pow(dot(viewDir, reflectDir), shininess); // power(max(0,dot(N,H)),shininess)
     
-            v_color = color * vec4(u_lightcolor * (ambient + diffuse + specular), 1.) * u_opacity * 0.95;
-    
-            // ----------------------------- building detail -----------------------------
-            // |-----| 1.0
-            // |     |
-            // |     |
-            // |_____| 0.0
-            //
-//            lowp float tall = abs(height - base);
-//            if (a_normal_ed.z == 0.) v_height = t > 0. ? (tall / 5.) : 0.;
-//            else v_height = 100.;
+            v_color = color * vec4(u_lightcolor * (ambient + diffuse), 1.) * u_opacity;
         }
         
     )"; }

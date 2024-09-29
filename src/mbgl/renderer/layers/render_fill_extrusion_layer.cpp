@@ -120,7 +120,7 @@ void RenderFillExtrusionLayer::doRenderSSAO(PaintParameters& parameters) {
     const auto drawTiles = [&](const gfx::StencilMode& stencilMode_, const gfx::ColorMode& colorMode_, const std::string& name) {
         auto layoutUniforms = FillExtrusionSSAOProgram::layoutUniformValues(
             uniforms::matrix::Value(),
-            uniforms::mv_matrix::Value(),
+            uniforms::model_view_matrix::Value(),
             uniforms::normal_matrix::Value()
         );
         
@@ -148,7 +148,7 @@ void RenderFillExtrusionLayer::doRenderSSAO(PaintParameters& parameters) {
             const auto matrix = tile.translatedClipMatrix(translate, anchor, state);
             layoutUniforms.template get<uniforms::matrix>() = matrix;
 
-            layoutUniforms.template get<uniforms::mv_matrix>() = tile.modelViewMatrix;
+            layoutUniforms.template get<uniforms::model_view_matrix>() = tile.modelViewMatrix;
             
             auto& normalMatrix = layoutUniforms.template get<uniforms::normal_matrix>();
             matrix::invert(normalMatrix, tile.modelViewMatrix);
@@ -172,7 +172,7 @@ void RenderFillExtrusionLayer::doRenderSSAO(PaintParameters& parameters) {
     const auto drawTileFloors = [&]() {
         auto layoutUniforms = FillExtrusionSSAOProgram::layoutUniformValues(
             uniforms::matrix::Value(),
-            uniforms::mv_matrix::Value(),
+            uniforms::model_view_matrix::Value(),
             uniforms::normal_matrix::Value()
         );
         size_t renderIndex = -1;
@@ -190,26 +190,20 @@ void RenderFillExtrusionLayer::doRenderSSAO(PaintParameters& parameters) {
             const auto matrix = tile.translatedClipMatrix(translate, anchor, state);
             layoutUniforms.template get<uniforms::matrix>() = matrix;
 
-            layoutUniforms.template get<uniforms::mv_matrix>() = tile.modelViewMatrix;
+            layoutUniforms.template get<uniforms::model_view_matrix>() = tile.modelViewMatrix;
             
             auto& normalMatrix = layoutUniforms.template get<uniforms::normal_matrix>();
             matrix::invert(normalMatrix, tile.modelViewMatrix);
             matrix::transpose(normalMatrix);
             
             // draw tile floors with ssao logic code
-            renderSSAO_tileFloor(matrix, tile.modelViewMatrix, normalMatrix);
+            nav::ssao::v2::renderTileFloor(matrix, tile.modelViewMatrix, normalMatrix);
         }
     };
 
     drawTileFloors();
     
     drawTiles(gfx::StencilMode::disabled(), parameters.colorModeForRenderPass(), "color");
-}
-
-void RenderFillExtrusionLayer::renderSSAO_tileFloor(const mat4& model_mvp,
-                                                    const mat4& model_mv,
-                                                    const mat4& normal_mv) {
-    nav::ssao::v2::renderTileFloor(model_mvp, model_mv, normal_mv);
 }
 
 void RenderFillExtrusionLayer::transition(const TransitionParameters& parameters) {
@@ -331,7 +325,7 @@ void RenderFillExtrusionLayer::render(PaintParameters& parameters) {
         const auto drawTiles = [&](const gfx::StencilMode& stencilMode_, const gfx::ColorMode& colorMode_, const std::string& name) {
             auto layoutUniforms = FillExtrusionProgram::layoutUniformValues(
                 uniforms::matrix::Value(),
-                uniforms::matrix::Value(),
+                uniforms::model_matrix::Value(),
                 parameters.state,
                 evaluated.get<FillExtrusionOpacity>(),
                 parameters.evaluatedLight,
@@ -360,7 +354,7 @@ void RenderFillExtrusionLayer::render(PaintParameters& parameters) {
                 const auto& anchor = evaluated.get<FillExtrusionTranslateAnchor>();
                 const auto& state = parameters.state;
                 layoutUniforms.template get<uniforms::matrix>() = tile.translatedClipMatrix(translate, anchor, state);
-                layoutUniforms.template get<uniforms::m_matrix>() = tile.translateVtxMatrix(tile.modelMatrix, translate, anchor, state, false);
+                layoutUniforms.template get<uniforms::model_matrix>() = tile.modelMatrix;
                 
                 draw(parameters.programs.getFillExtrusionLayerPrograms().fillExtrusion,
                      evaluated,

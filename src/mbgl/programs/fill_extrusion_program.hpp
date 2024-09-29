@@ -34,7 +34,7 @@ using FillExtrusionLayoutAttributes = TypeList<
 
 using FillExtrusionUniforms = TypeList<
     uniforms::matrix,
-    uniforms::m_matrix,
+    uniforms::model_matrix,
     uniforms::opacity,
     uniforms::camera_pos,
     uniforms::lightcolor,

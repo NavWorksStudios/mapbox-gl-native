@@ -1,5 +1,4 @@
 
-
 #if 1
 
 varying vec2 TexCoords;
@@ -22,9 +21,10 @@ void main()
 
     result /= (4.0 * 4.0);
 
-    gl_FragColor.r = result;
+    // gl_FragColor.r = result;
+    gl_FragColor = vec4(vec3(.4), max(1. - result, 0.));
 
-    gl_FragColor = vec4(result * .8, result * .8, result * .8, 1.); // 白色
+    // gl_FragColor = vec4(result * .8, result * .8, result * .8, 1.); // 白色
     // gl_FragColor = vec4(result * 1.5, result * .9, result * 1.2, 1.); // 粉色
     // gl_FragColor = vec4(result * .65, result * .85, result * 1.5, 1.); // 蓝色
     // gl_FragColor = vec4(result * 1.5, result * .85, result * .65, 1.); // 黄色
@@ -33,7 +33,10 @@ void main()
     // gl_FragColor = vec4( vec3(result), 1.);
 }  
 
-#else
+#endif
+
+
+#if 0
 
 uniform sampler2D ssao;
 varying vec2 TexCoords;

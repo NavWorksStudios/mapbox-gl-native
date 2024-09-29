@@ -29,7 +29,7 @@ struct Config {
 };
 
 const Config COLORFUL = {
-    "流光",
+    "Crystal 水晶",
     "https://studio.mapbox.com/styles/navworks/clxx105i700yr01po4zbn2jc1/edit/#20.32/39.8591796/116.3684606/8/70",
     "mapbox://styles/navworks/clxx105i700yr01po4zbn2jc1",
     true,
@@ -75,26 +75,26 @@ const Config COLORFUL = {
     1,
 };
 
-const Config GOLDEN_BLACK = {
-    "星汉",
-    "https://studio.mapbox.com/styles/navworks/clzdv9emu00f301r27uym15w9/edit/#14.4/22.2936/114.15234/0/1",
-    "mapbox://styles/navworks/clzdv9emu00f301r27uym15w9",
-    false,
-    false,
-    [] (const std::string& uri, Hsla color) -> std::tuple<Hsla,bool> {
-        if (uri.find("building-extrusion") != std::string::npos) {
-        }
-        
-        return std::make_tuple(color, false);
-    },
-    [] (const nav::stringid&) {
-        return false;
-    },
-    2,
-};
+//const Config GOLDEN_BLACK = {
+//    "星汉",
+//    "https://studio.mapbox.com/styles/navworks/clzdv9emu00f301r27uym15w9/edit/#14.4/22.2936/114.15234/0/1",
+//    "mapbox://styles/navworks/clzdv9emu00f301r27uym15w9",
+//    false,
+//    false,
+//    [] (const std::string& uri, Hsla color) -> std::tuple<Hsla,bool> {
+//        if (uri.find("building-extrusion") != std: :string::npos) {
+//        }
+//        
+//        return std::make_tuple(color, false);
+//    },
+//    [] (const nav::stringid&) {
+//        return false;
+//    },
+//    2,
+//};
 
-const Config MANHATTAN = {
-    "曼哈顿",
+const Config PLAIN_MODEL = {
+    "白模",
     "https://studio.mapbox.com/styles/navworks/clzqn4giv00a801pi06quhgz7/edit/#7.03/31.635/120.897",
     "mapbox://styles/navworks/clzqn4giv00a801pi06quhgz7",
     false,
@@ -131,7 +131,7 @@ const Config ROUTE_TEST = {
 
 //const Config& THEME = COLORFUL;
 //const Config& THEME = GOLDEN_BLACK;
-const Config& THEME = MANHATTAN;
+const Config& THEME = PLAIN_MODEL;
 //const Config& THEME = ROUTE_TEST;
 
 const std::string& style() {

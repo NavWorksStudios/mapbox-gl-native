@@ -236,12 +236,6 @@ void load() {
     blurPass =
     createProgram(loadShader(GL_VERTEX_SHADER, "/shaders/9.ssao.vs"),
                   loadShader(GL_FRAGMENT_SHADER, "/shaders/9.ssao_blur.fs"));
-//                  loadShader(GL_FRAGMENT_SHADER, "/shaders/9.median_filter.fs"));
-//                  loadShader(GL_FRAGMENT_SHADER, "/shaders/9.kuwahara_filter.fs"));
-    
-    renderNDCPass =
-    createProgram(loadShader(GL_VERTEX_SHADER, "/shaders/9.ssao.vs"),
-                  loadShader(GL_FRAGMENT_SHADER, "/shaders/9.ssao_lighting.fs"));
 }
 
 }
@@ -313,9 +307,8 @@ void renderSceneToGBuffer(std::function<void()> renderCallback,
     else fbo::gbuffer::bind();
     
     glDisable(GL_BLEND);
-
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    
+
     renderCallback();
     
 }
@@ -328,7 +321,7 @@ void generateSSAOTexture(float width, float height, float zoom,
     
     if (bindScreenFbo) bindScreenFbo();
     else fbo::ssao::bind();
-    
+
     glClear(GL_COLOR_BUFFER_BIT);
     
     const GLint program = shader::aoPass;
@@ -374,16 +367,20 @@ void generateSSAOTexture(float width, float height, float zoom,
 
 }
 
-// 3. blur SSAO texture to remove noise
+// 3. blur SSAO texture to screen
 // ------------------------------------
 void blurSSAOTexture(int width, int height,
                      std::function<void()> bindScreenFbo=nullptr) {
     
     if (bindScreenFbo) bindScreenFbo();
-    else fbo::blur::bind();
-
-    glClear(GL_COLOR_BUFFER_BIT);
+    else {
+        fbo::blur::bind();
+        glClear(GL_COLOR_BUFFER_BIT);
+    }
     
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+
     const GLint program = shader::blurPass;
     glUseProgram(program);
     
@@ -397,36 +394,9 @@ void blurSSAOTexture(int width, int height,
     
     renderQuad(program);
     
-}
-
-// 4. lighting pass: traditional deferred Blinn-Phong lighting with added screen-space ambient occlusion
-// -----------------------------------------------------------------------------------------------------
-void renderToScreen(std::function<void()> bindScreenFbo) {
-
-    bindScreenFbo();
-    
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-    
-    const GLint program = shader::renderNDCPass;
-    glUseProgram(program);
-    
-    {
-        glActiveTexture(GL_TEXTURE0); // add extra SSAO texture to lighting pass
-        glBindTexture(GL_TEXTURE_2D, fbo::blur::buffer);
-        static UniformLocation u0(program, "u_ssaoBlur");
-        glUniform1i(u0, 0);
-        
-//        const auto& color = nav::palette::getColorBase();
-//        static UniformLocation u1(program, "u_color");
-//        glUniform3f(u1, color.r, color.g, color.b);
-    }
-    
-    renderQuad(program);
-    
     glDisable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-
+    
 }
 
 namespace v2 {
@@ -480,7 +450,7 @@ void renderTileFloor(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::ma
     static UniformLocation u0(program, "u_matrix");
     glUniformMatrix4fv(u0, 1, GL_FALSE, reinterpret_cast<float*>(&MVP));
     
-    static UniformLocation u1(program, "u_mv_matrix");
+    static UniformLocation u1(program, "u_model_view_matrix");
     glUniformMatrix4fv(u1, 1, GL_FALSE, reinterpret_cast<float*>(&MV));
     
     static UniformLocation u2(program, "u_normal_matrix");
@@ -516,7 +486,7 @@ void draw(float zoom, mbgl::mat4 projMatrix, std::function<void()> renderCallbac
     
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT, viewport);
-    auto bindScreenFbo = [viewport] () {
+    auto drawToScreen = [viewport] () {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
     };
@@ -528,10 +498,7 @@ void draw(float zoom, mbgl::mat4 projMatrix, std::function<void()> renderCallbac
 
     renderSceneToGBuffer(renderCallback);
     generateSSAOTexture(width, height, zoom, convertMatrix(projMatrix));
-    blurSSAOTexture(width, height, bindScreenFbo);
-//    renderToScreen(bindScreenFbo);
-    
-    
+    blurSSAOTexture(width, height, drawToScreen);
 
 }
 

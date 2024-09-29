@@ -41,7 +41,7 @@ FillExtrusionProgram::LayoutUniformValues FillExtrusionProgram::layoutUniformVal
     float opacity, const EvaluatedLight& light, float verticalGradient, bool isReflection) {
     return {
         uniforms::matrix::Value( matrix ),
-        uniforms::matrix::Value( model_matrix ),
+        uniforms::model_matrix::Value( model_matrix ),
         uniforms::opacity::Value( opacity ),
         uniforms::camera_pos::Value( state.getCameraWorldPosition() ),
         uniforms::lightcolor::Value( lightColor(light) ),
