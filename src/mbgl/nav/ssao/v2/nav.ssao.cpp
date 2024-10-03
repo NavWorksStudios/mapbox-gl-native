@@ -29,7 +29,7 @@ std::default_random_engine generator;
 
 namespace kernel {
 
-enum { SIZE = 32, };
+enum { SIZE = 12, };
 Vec3 data[SIZE];
 
 GLfloat lerp(GLfloat a, GLfloat b, GLfloat f) {
@@ -479,14 +479,14 @@ void draw(float zoom, mbgl::mat4 projMatrix, std::function<void()> renderCallbac
         floor::init();
     });
 
-    const float BUFFER_SCALE = .7;
+    const float BUFFER_SCALE = .8;
     const int width = nav::display::pixels::width() * BUFFER_SCALE;
     const int height = nav::display::pixels::height() * BUFFER_SCALE;
     fbo::generate(width, height);
     
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT, viewport);
-    auto drawToScreen = [viewport] () {
+    auto bindScreenFbo = [viewport] () {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
     };
@@ -498,8 +498,9 @@ void draw(float zoom, mbgl::mat4 projMatrix, std::function<void()> renderCallbac
 
     renderSceneToGBuffer(renderCallback);
     generateSSAOTexture(width, height, zoom, convertMatrix(projMatrix));
-    blurSSAOTexture(width, height, drawToScreen);
+    blurSSAOTexture(width, height, bindScreenFbo);
 
+    bindScreenFbo();
 }
 
 }

@@ -9,23 +9,33 @@ uniform sampler2D u_position;
 uniform sampler2D u_normal;
 uniform sampler2D u_noise;
 
-#define SAMPLE_SIZE 32
+#define SAMPLE_SIZE 12
 uniform vec3 u_samples[SAMPLE_SIZE];
 
-const float QUADRATIC = 1.5;
-const float CONTRAST = 1.2;
+// const float QUADRATIC = 1.;
+// const float CONTRAST = 1.5;
 
 
 void main()
 {
+    // get input for SSAO algorithm
     vec3 kernelPos = texture2D(u_position, TexCoords).xyz;
+    vec3 kernelNormal = texture2D(u_normal, TexCoords).xyz;
+    vec3 random = texture2D(u_noise, TexCoords * u_text_scale).xyz;
+
+#if 1
+    // 动态采样数 - 降低画面采样数，近多远少
+    // 计算z_scale
+    const float NEAR_Z = 0.;
+    const float FAR_Z = -200.;
+    float z_scale = (FAR_Z - kernelPos.z) / (FAR_Z - NEAR_Z);
+    int sample_count = int(max(float(SAMPLE_SIZE) * z_scale, 4.));
+#else
+    int sample_count = SAMPLE_SIZE;
+#endif
 
     float SAMPLE_RADIUS = 0.2 * u_zoom_scale;
     float Z_BIAS = 0.2 * u_zoom_scale;
-
-    // get input for SSAO algorithm
-    vec3 kernelNormal = texture2D(u_normal, TexCoords).xyz;
-    vec3 random = texture2D(u_noise, TexCoords * u_text_scale).xyz;
 
     // create TBN change-of-basis matrix: from tangent-space to view-space
     // 使用Gramm-Schmidt方法我们可以创建正交的TBN矩，同时使用random进行偏移。
@@ -38,7 +48,7 @@ void main()
     // 遍历每个核心采样，将采样从切线空间转化到视图空间，接着进行深度对比
     float occlusion = 0.0;
 
-    for(int i=0; i<SAMPLE_SIZE; i++)
+    for(int i=0; i<sample_count; i++)
     {
         // get sample position
         vec3 samplePos = TBN * u_samples[i]; // from tangent to view-space 从切线空间转化到视图空间
@@ -59,21 +69,21 @@ void main()
         // 添加bias可以帮助调整环境光遮蔽的效果，也可以解决痤疮问题。
         float dz = z - samplePos.z;
         if (dz > Z_BIAS) {
-            occlusion += smoothstep(0.0, 1.0, SAMPLE_RADIUS / dz);
+            occlusion += SAMPLE_RADIUS / dz;
         }
 
         // dynamic sample radius
-        SAMPLE_RADIUS *= 1.2;
-        Z_BIAS *= 1.2;
+        SAMPLE_RADIUS *= 1.4;
+        Z_BIAS *= 1.4;
     }
 
-    occlusion = pow(occlusion, QUADRATIC);
+    // occlusion = pow(occlusion, QUADRATIC);
 
-    occlusion /= float(SAMPLE_SIZE);
+    occlusion /= float(sample_count);
 
-    occlusion = CONTRAST * (occlusion - 0.5) + 0.5;
+    // occlusion = CONTRAST * (occlusion - 0.5) + 0.5;
 
-    float result = 1.0 - occlusion;
+    float result = 1.0 - occlusion * 2.;
 
     gl_FragColor.r = result;
     

@@ -317,9 +317,9 @@ void RenderFillExtrusionLayer::doRenderSSAO(PaintParameters& parameters) {
         }
     };
 
-//    drawTileFloors();
-//
-//    drawTiles(gfx::StencilMode::disabled(), parameters.colorModeForRenderPass(), "color");
+    drawTileFloors();
+
+    drawTiles(gfx::StencilMode::disabled(), parameters.colorModeForRenderPass(), "color");
     
     // 绘制阴影画布前需要先设置相应gl环境
 //    nav::ssao::v2::enableShadowEnv();
