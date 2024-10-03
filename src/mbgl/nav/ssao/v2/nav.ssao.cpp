@@ -5,7 +5,6 @@
 //
 
 #include "mbgl/nav/ssao/v2/nav.ssao.hpp"
-#include <mbgl/programs/fill_extrusion_ssao_program.hpp>
 
 #include <random>
 
@@ -15,6 +14,9 @@
 
 #include "mbgl/nav/nav.style.hpp"
 #include "mbgl/nav/nav.palette.hpp"
+
+#include <mbgl/programs/fill_extrusion_ssao_program.hpp>
+#include <mbgl/programs/gl/nav_ssao.hpp>
 
 
 namespace nav {
@@ -29,7 +31,7 @@ std::default_random_engine generator;
 
 namespace kernel {
 
-enum { SIZE = 32, };
+enum { SIZE = 12, };
 Vec3 data[SIZE];
 
 GLfloat lerp(GLfloat a, GLfloat b, GLfloat f) {
@@ -230,12 +232,12 @@ void load() {
                   compileShader(GL_FRAGMENT_SHADER, mbgl::fragmentShader()));
     
     aoPass =
-    createProgram(loadShader(GL_VERTEX_SHADER, "/shaders/9.ssao.vs"),
-                  loadShader(GL_FRAGMENT_SHADER, "/shaders/9.ssao.fs"));
+    createProgram(compileShader(GL_VERTEX_SHADER, nav::programs::ssao::vertexShader()),
+                  compileShader(GL_FRAGMENT_SHADER, nav::programs::ssao::genSSAOFragmentShader()));
     
     blurPass =
-    createProgram(loadShader(GL_VERTEX_SHADER, "/shaders/9.ssao.vs"),
-                  loadShader(GL_FRAGMENT_SHADER, "/shaders/9.ssao_blur.fs"));
+    createProgram(compileShader(GL_VERTEX_SHADER, nav::programs::ssao::vertexShader()),
+                  compileShader(GL_FRAGMENT_SHADER, nav::programs::ssao::blurFragmentShader()));
 }
 
 }
@@ -479,14 +481,14 @@ void draw(float zoom, mbgl::mat4 projMatrix, std::function<void()> renderCallbac
         floor::init();
     });
 
-    const float BUFFER_SCALE = .7;
+    const float BUFFER_SCALE = .8;
     const int width = nav::display::pixels::width() * BUFFER_SCALE;
     const int height = nav::display::pixels::height() * BUFFER_SCALE;
     fbo::generate(width, height);
     
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT, viewport);
-    auto drawToScreen = [viewport] () {
+    auto bindScreenFbo = [viewport] () {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
     };
@@ -498,8 +500,9 @@ void draw(float zoom, mbgl::mat4 projMatrix, std::function<void()> renderCallbac
 
     renderSceneToGBuffer(renderCallback);
     generateSSAOTexture(width, height, zoom, convertMatrix(projMatrix));
-    blurSSAOTexture(width, height, drawToScreen);
+    blurSSAOTexture(width, height, bindScreenFbo);
 
+    bindScreenFbo();
 }
 
 }

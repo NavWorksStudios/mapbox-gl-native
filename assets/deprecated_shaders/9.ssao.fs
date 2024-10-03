@@ -9,51 +9,33 @@ uniform sampler2D u_position;
 uniform sampler2D u_normal;
 uniform sampler2D u_noise;
 
-#define SAMPLE_SIZE 32
+#define SAMPLE_SIZE 12
 uniform vec3 u_samples[SAMPLE_SIZE];
 
-const float QUADRATIC = 1.5;
-const float CONTRAST = 1.2;
-
-const float BUFFER_SCALE = .7;
+// const float QUADRATIC = 1.;
+// const float CONTRAST = 1.5;
 
 
 void main()
 {
+    // get input for SSAO algorithm
     vec3 kernelPos = texture2D(u_position, TexCoords).xyz;
+    vec3 kernelNormal = texture2D(u_normal, TexCoords).xyz;
+    vec3 random = texture2D(u_noise, TexCoords * u_text_scale).xyz;
 
-
-
+#if 1
     // 动态采样数 - 降低画面采样数，近多远少
     // 计算z_scale
     const float NEAR_Z = 0.;
     const float FAR_Z = -200.;
     float z_scale = (FAR_Z - kernelPos.z) / (FAR_Z - NEAR_Z);
-    // 计算sample count
-    float sample_count_countinous = float(SAMPLE_SIZE) * z_scale;
-    int sample_count = int(ceil(sample_count_countinous));
-    if (sample_count < 1 || sample_count > SAMPLE_SIZE) {
-        gl_FragColor.r = 1.;
-        return;
-    }
+    int sample_count = int(max(float(SAMPLE_SIZE) * z_scale, 4.));
+#else
+    int sample_count = SAMPLE_SIZE;
+#endif
 
-
-
-    // 动态半径偏差 - 有效降低波纹，提高画面对比度
-    // 近处半径大，远处半径小
-    float scale = u_zoom_scale * z_scale;
-    float SAMPLE_RADIUS = 0.3 * BUFFER_SCALE * scale;
-    float Z_BIAS = 0.3 * BUFFER_SCALE * scale;
-
-
-    // 近处差距大，更强对比度；远处差距归零，避免波纹
-    float SAMPLE_RADIUS_PROGRESS = 1.3;
-    float Z_BIAS_PROGRESS = 1.3 - 0.3 * max(z_scale - .2, 0.);
-
-
-    // get input for SSAO algorithm
-    vec3 kernelNormal = texture2D(u_normal, TexCoords).xyz;
-    vec3 random = texture2D(u_noise, TexCoords * u_text_scale).xyz;
+    float SAMPLE_RADIUS = 0.2 * u_zoom_scale;
+    float Z_BIAS = 0.2 * u_zoom_scale;
 
     // create TBN change-of-basis matrix: from tangent-space to view-space
     // 使用Gramm-Schmidt方法我们可以创建正交的TBN矩，同时使用random进行偏移。
@@ -87,24 +69,21 @@ void main()
         // 添加bias可以帮助调整环境光遮蔽的效果，也可以解决痤疮问题。
         float dz = z - samplePos.z;
         if (dz > Z_BIAS) {
-            // 动态采样数 - 规避近处采样数阶跃，以保持采样数连续，防止波纹
-            float z_compensation = min(1., sample_count_countinous - float(i));
-
-            occlusion += smoothstep(0.0, 1.0, SAMPLE_RADIUS / dz) * z_compensation;
+            occlusion += SAMPLE_RADIUS / dz;
         }
 
         // dynamic sample radius
-        SAMPLE_RADIUS *= SAMPLE_RADIUS_PROGRESS;
-        Z_BIAS *= Z_BIAS_PROGRESS;
+        SAMPLE_RADIUS *= 1.4;
+        Z_BIAS *= 1.4;
     }
 
-    occlusion = pow(occlusion, QUADRATIC);
+    // occlusion = pow(occlusion, QUADRATIC);
 
     occlusion /= float(sample_count);
 
-    occlusion = CONTRAST * (occlusion - 0.5) + 0.5;
+    // occlusion = CONTRAST * (occlusion - 0.5) + 0.5;
 
-    float result = 1.0 - occlusion;
+    float result = 1.0 - occlusion * 2.;
 
     gl_FragColor.r = result;
     

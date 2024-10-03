@@ -15,7 +15,6 @@
 #include <mbgl/util/string.hpp>
 #include <mbgl/util/logging.hpp>
 
-#include "mbgl/nav/ssao/v1/nav.ssao.hpp"
 #include "mbgl/nav/ssao/v2/nav.ssao.hpp"
 #include "mbgl/nav/shadow/nav.shadow.hpp"
 
@@ -190,11 +189,11 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
     }
     
     // - Shadow PASS --------------------------------------------------------------------------------
-    {
-        nav::shadow::sample::draw([&parameters] () {
-            // RenderFillExtrusionLayer::renderShadow(parameters);
-        });
-    }
+//    {
+//        nav::shadow::sample::draw([&parameters] () {
+//            // RenderFillExtrusionLayer::renderShadow(parameters);
+//        });
+//    }
 
     // - DEBUG PASS --------------------------------------------------------------------------------
     // Renders debug overlays.

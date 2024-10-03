@@ -90,22 +90,22 @@ struct FillExtrusionProgram {
             }
     
             // Ambient Lighting
-            const float ambient = .4;
+            const float ambient = .7;
     
             // Diffuse Lighting
             lowp vec3 norm = normalize(normal);
             lowp vec3 lightDir = normalize(u_lightpos);
-            lowp float diffuse = dot(norm, lightDir) * .4;
+            lowp float diffuse = dot(norm, lightDir) * .5;
     
             // Specular Lighting
-            const lowp float indensity = 1.; // 强度
-            const lowp float shininess = .8; // 反射率
+            const lowp float indensity = .8; // 强度
+            const lowp float shininess = 2.; // 反射率
             lowp vec3 world_pos = (u_model_matrix * modelpos).xyz;
             lowp vec3 viewDir = normalize(u_camera_pos - world_pos);
             lowp vec3 reflectDir = reflect(-lightDir, norm); // reflect (genType I, genType N),返回反射向量
             lowp float specular = indensity * pow(dot(viewDir, reflectDir), shininess); // power(max(0,dot(N,H)),shininess)
     
-            v_color = color * vec4(u_lightcolor * (ambient + diffuse), 1.) * u_opacity;
+            v_color = color * vec4(u_lightcolor * (ambient + diffuse + specular), 1.) * u_opacity;
         }
         
     )"; }
