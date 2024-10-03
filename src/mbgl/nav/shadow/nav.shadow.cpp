@@ -30,7 +30,7 @@ namespace sample {
 // Framebuffers, textures to render to, renderbuffers, other textures
 GLuint modelbuffer;
 GLuint modelDepthTexture;
-GLuint shadowbuffer;
+GLuint shadowDepthFBO;
 GLuint shadowDepthTexture;
 GLuint floorBuf;
 
@@ -52,30 +52,34 @@ void initializeResources()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     
     // Create our framebuffer
-    glGenFramebuffers(1, &shadowbuffer);
+    glGenFramebuffers(1, &shadowDepthFBO);
     
     // Setup a texture to render depth to
-    glDeleteTextures(1, &shadowDepthTexture);
     glGenTextures(1, &shadowDepthTexture);
     glBindTexture(GL_TEXTURE_2D, shadowDepthTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SCR_WIDTH, SCR_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     
+    float pF/*planeFactor*/ = 1.0;
     // Set up buffer for floor data, 12 pieses
     const static GLfloat floorData[36] = {
-        -1.0f, -0.4f, -1.0f,
+        -1.0f * pF, -0.4f, -1.0f * pF,
         0.0f, 1.0f, 0.0f,
-        -1.0f, -0.4f, 1.0f,
+        -1.0f * pF, -0.4f, 1.0f * pF,
         0.0f, 1.0f, 0.0f,
-        1.0f, -0.4f, 1.0f,
+        1.0f * pF, -0.4f, 1.0f * pF,
         0.0f, 1.0f, 0.0f,
-        1.0f, -0.4f, 1.0f,
+        
+        1.0f * pF, -0.4f, 1.0f * pF,
         0.0f, 1.0f, 0.0f,
-        1.0f, -0.4f, -1.0f,
+        1.0f * pF, -0.4f, -1.0f * pF,
         0.0f, 1.0f, 0.0f,
-        -1.0f, -0.4f, -1.0f,
+        -1.0f * pF, -0.4f, -1.0f * pF,
         0.0f, 1.0f, 0.0f };
+    
     glGenBuffers(1, &floorBuf);
     glBindBuffer(GL_ARRAY_BUFFER, floorBuf);
     glBufferData(GL_ARRAY_BUFFER, 36 * sizeof(GLfloat), floorData, GL_STATIC_DRAW);
@@ -263,6 +267,24 @@ GLint shadowProgKDif;
 GLint shadowProgKSpc;
 GLint shadowProgKShn;
 
+GLint shadowPass;
+
+
+typedef GLint(*GetLocation)(GLuint, const GLchar*);
+
+template <GetLocation f> struct Location {
+    Location(GLint program, const char* name) {
+        value = f(program, name);
+        assert(value >= 0);
+    }
+    
+    operator GLint () { return value; }
+    GLint value;
+};
+
+using UniformLocation = Location<glGetUniformLocation>;
+using AttribLocation = Location<glGetAttribLocation>;
+
 void loadShaders() {
     
     // shadow shaders
@@ -293,25 +315,123 @@ void loadShaders() {
     shadowProgPosAttrib = glGetAttribLocation(shadowProg, "positionIn");
     shadowProgNormAttrib = glGetAttribLocation(shadowProg, "normalIn");
 
-    shadowProgModelViewMat = glGetUniformLocation(modelProg, "modelViewMat");
+    shadowProgModelViewMat = glGetUniformLocation(shadowProg, "modelViewMat");
     shadowProgMvpMat = glGetUniformLocation(shadowProg, "modelViewProjMat");
-    shadowProgNormalMat = glGetUniformLocation(modelProg, "normalMat");
+    shadowProgNormalMat = glGetUniformLocation(shadowProg, "normalMat");
+    
+    shadowPass =
+    createProgram(loadShader(GL_VERTEX_SHADER, "/shaders/shadow.quad.vs"),
+                  loadShader(GL_FRAGMENT_SHADER, "/shaders/shadow.quad.fs"));
     
 }
 
 // the camera info
 Vec3 eye = Vec3(0.5, 1.5, 0.5);
 Vec3 lookat = Vec3(0, 0, 0);
-Vec3 light_eye = Vec3(-0.75, 1.0, 0.75);
+Vec3 light_eye = Vec3(0.75, 1.25, 0.75);
+
+auto convertMatrix = [] (mbgl::mat4 matrix) {
+    Mat4 m;
+    for (int i=0; i<16; i++) ((float*)&m)[i] = float(matrix[i]);
+    return m;
+};
+
+// renderQuad() renders a 1x1 XY quad in NDC
+// -----------------------------------------
+void renderQuad()
+{
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    
+    glUseProgram(shadowPass);
+    
+    static GLuint quadVAO = 0;
+    static GLuint quadVBO;
+    
+    if (quadVAO == 0)
+    {
+        float quadVertices[] = {
+            // positions            // texture Coords
+            -1.0f,  1.0f, 0.0f,     0.0f, 1.0f,
+            -1.0f, -1.0f, 0.0f,     0.0f, 0.0f,
+             1.0f,  1.0f, 0.0f,     1.0f, 1.0f,
+             1.0f, -1.0f, 0.0f,     1.0f, 0.0f,
+        };
+        
+        // setup plane VAO
+        glGenVertexArrays(1, &quadVAO);
+        glGenBuffers(1, &quadVBO);
+        glBindVertexArray(quadVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+
+        static AttribLocation a0(shadowPass, "aPos");
+        glEnableVertexAttribArray(a0);
+        glVertexAttribPointer(a0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+        
+        static AttribLocation a1(shadowPass, "aTexCoords");
+        glEnableVertexAttribArray(a1);
+        glVertexAttribPointer(a1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    }
+    
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, shadowDepthTexture);
+    static UniformLocation u0(shadowPass, "depthMap");
+    glUniform1i(u0, 0);
+    
+    glBindVertexArray(quadVAO);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindVertexArray(0);
+}
 
 void drawModel(bool shadow)
 {
+    if (shadow) {
+        // bind buffer
+        glBindFramebuffer(GL_FRAMEBUFFER, shadowDepthFBO);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowDepthTexture, 0);
+        glDrawBuffer(GL_NONE);
+        glReadBuffer(GL_NONE);
+        glClear(GL_DEPTH_BUFFER_BIT);
+        
+        glUseProgram(shadowProg);
+        // set lighting uniform
+        const static double pi = acos(0.0) * 2;
+        Mat4 ident = Mat4::identityMatrix();
+        Mat4 view, viewNorm;
+        Mat4::lookAtMatrix(light_eye, lookat, Vec3(0, 1, 0), view, viewNorm);
+        Mat4 proj = Mat4::perspectiveMatrix(pi * 0.5, 1.333333f, 1.0f, 75.0f);
+        Mat4 mvp = proj * view;
+//        GLfloat near_plane = 1.0f, far_plane = 7.5f;
+//        mbgl::mat4 lP_m;
+//        mbgl::matrix::ortho(lP_m, -10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+//        Mat4 mvp = convertMatrix(lP_m) * view;
+        
+        glUniformMatrix4fv(shadowProgMvpMat, 1, GL_FALSE, reinterpret_cast<float*>(&mvp));
+        
+        // 使用lighting matrix 绘制 ply obj depth
+        glEnableVertexAttribArray(shadowProgPosAttrib);
+        glBindBuffer(GL_ARRAY_BUFFER, vertexDataBuf);
+        glVertexAttribPointer(shadowProgPosAttrib, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(0));
+        glDrawArrays(GL_TRIANGLES, 0, faceIndexCount);
+        // 使用lighting matrix 绘制 floor depth
+        glBindBuffer(GL_ARRAY_BUFFER, floorBuf);
+        glVertexAttribPointer(shadowProgPosAttrib, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(0));
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+    }
+    
+#if 1
+    
+    renderQuad();
+
+#endif
+    
+#if 0
 //    glBindFramebuffer(GL_FRAMEBUFFER, modelbuffer); // 往 framebuffer 上画
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, modelDepthTexture, 0);
     GLenum bufs[1] = { GL_COLOR_ATTACHMENT0 };
     glDrawBuffers(1, bufs);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_DEPTH_BUFFER_BIT);
     glUseProgram(modelProg);
 
     // set uniform
@@ -385,44 +505,7 @@ void drawModel(bool shadow)
         // 使用顶点数组数据进行绘制。GL_TRIANGLES表示使用三角形的方式进行绘制。0是起始顶点的索引。6表示要绘制的顶点数量。这意味着将绘制两个三角形，因为每个三角形需要三个顶点。
         glDrawArrays(GL_TRIANGLES, 0, 6);
     }
-    
-    if (shadow) {
-        // bind buffer
-//        glBindFramebuffer(GL_FRAMEBUFFER, shadowbuffer); // 往 framebuffer 上画
-        glBindFramebuffer(GL_FRAMEBUFFER, 0); // 往 framebuffer 上画
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, shadowDepthTexture, 0);
-        GLenum bufs[1] = { GL_COLOR_ATTACHMENT0 };
-        glDrawBuffers(1, bufs);
-        glUseProgram(shadowProg);
-        
-        // set lighting uniform
-        const static double pi = acos(0.0) * 2;
-        Mat4 ident = Mat4::identityMatrix();
-        Mat4 view, viewNorm;
-        Mat4::lookAtMatrix(light_eye, lookat, Vec3(0, 1, 0), view, viewNorm);
-        Mat4 proj = Mat4::perspectiveMatrix(pi * 0.5, 1.333333f, 0.1f, 1000.0f);
-        
-        Mat4 mvp = proj * view;
-        glUniformMatrix4fv(shadowProgModelViewMat, 1, GL_FALSE, reinterpret_cast<float*>(&view));
-        glUniformMatrix4fv(shadowProgMvpMat, 1, GL_FALSE, reinterpret_cast<float*>(&mvp));
-        glUniformMatrix4fv(shadowProgNormalMat, 1, GL_FALSE, reinterpret_cast<float*>(&ident));
-        
-        // 使用lighting matrix 绘制 ply obj shadow
-        glEnableVertexAttribArray(shadowProgPosAttrib);
-        glEnableVertexAttribArray(shadowProgNormAttrib);
-        
-        glBindBuffer(GL_ARRAY_BUFFER, vertexDataBuf);
-        glVertexAttribPointer(shadowProgPosAttrib, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(0));
-        glVertexAttribPointer(shadowProgNormAttrib, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(3*sizeof(GLfloat)));
-        
-        glDrawArrays(GL_TRIANGLES, 0, faceIndexCount);
-        
-        // 使用lighting matrix 绘制 floor
-        glBindBuffer(GL_ARRAY_BUFFER, floorBuf);
-        glVertexAttribPointer(modelProgPosAttrib, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(0));
-        glVertexAttribPointer(modelProgNormAttrib, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(3*sizeof(GLfloat)));
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-    }
+#endif
     
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -440,6 +523,9 @@ void draw(std::function<void()> renderCallback) {
     glEnable(GL_CULL_FACE);
     glFrontFace(GL_CCW);
     glCullFace(GL_BACK);
+    
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     // If we're rendering with ambient occlusion
     drawModel(true);
