@@ -5,7 +5,6 @@
 //
 
 #include "mbgl/nav/ssao/v2/nav.ssao.hpp"
-#include <mbgl/programs/fill_extrusion_ssao_program.hpp>
 
 #include <random>
 
@@ -15,6 +14,9 @@
 
 #include "mbgl/nav/nav.style.hpp"
 #include "mbgl/nav/nav.palette.hpp"
+
+#include <mbgl/programs/fill_extrusion_ssao_program.hpp>
+#include <mbgl/programs/gl/nav_ssao.hpp>
 
 
 namespace nav {
@@ -230,12 +232,12 @@ void load() {
                   compileShader(GL_FRAGMENT_SHADER, mbgl::fragmentShader()));
     
     aoPass =
-    createProgram(loadShader(GL_VERTEX_SHADER, "/shaders/9.ssao.vs"),
-                  loadShader(GL_FRAGMENT_SHADER, "/shaders/9.ssao.fs"));
+    createProgram(compileShader(GL_VERTEX_SHADER, nav::programs::ssao::vertexShader()),
+                  compileShader(GL_FRAGMENT_SHADER, nav::programs::ssao::genSSAOFragmentShader()));
     
     blurPass =
-    createProgram(loadShader(GL_VERTEX_SHADER, "/shaders/9.ssao.vs"),
-                  loadShader(GL_FRAGMENT_SHADER, "/shaders/9.ssao_blur.fs"));
+    createProgram(compileShader(GL_VERTEX_SHADER, nav::programs::ssao::vertexShader()),
+                  compileShader(GL_FRAGMENT_SHADER, nav::programs::ssao::blurFragmentShader()));
 }
 
 }
