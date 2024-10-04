@@ -63,6 +63,12 @@ void initializeResources()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     
+    glBindFramebuffer(GL_FRAMEBUFFER, shadowDepthFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowDepthTexture, 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    
     float pF/*planeFactor*/ = 1.0;
     // Set up buffer for floor data, 12 pieses
     const static GLfloat floorData[36] = {
@@ -288,8 +294,8 @@ using AttribLocation = Location<glGetAttribLocation>;
 void loadShaders() {
     
     // shadow shaders
-    modelProg = createProgram(loadShader(GL_VERTEX_SHADER, "/shaders/modelProg.vert"),
-                              loadShader(GL_FRAGMENT_SHADER, "/shaders/modelProg.frag"));
+    modelProg = createProgram(loadShader(GL_VERTEX_SHADER, "/deprecated_shaders/modelProg.vert"),
+                              loadShader(GL_FRAGMENT_SHADER, "/deprecated_shaders/modelProg.frag"));
     
     // uniform & attribute 待定
     modelProgPosAttrib = glGetAttribLocation(modelProg, "positionIn");
@@ -309,8 +315,8 @@ void loadShaders() {
     modelProgKSpc = glGetUniformLocation(modelProg, "kSpecular");
     modelProgKShn = glGetUniformLocation(modelProg, "kShininess");
     
-    shadowProg = createProgram(loadShader(GL_VERTEX_SHADER, "/shaders/shadowProg.vert"),
-                              loadShader(GL_FRAGMENT_SHADER, "/shaders/shadowProg.frag"));
+    shadowProg = createProgram(loadShader(GL_VERTEX_SHADER, "/deprecated_shaders/shadowProg.vert"),
+                              loadShader(GL_FRAGMENT_SHADER, "/deprecated_shaders/shadowProg.frag"));
 
     shadowProgPosAttrib = glGetAttribLocation(shadowProg, "positionIn");
     shadowProgNormAttrib = glGetAttribLocation(shadowProg, "normalIn");
@@ -320,8 +326,8 @@ void loadShaders() {
     shadowProgNormalMat = glGetUniformLocation(shadowProg, "normalMat");
     
     shadowPass =
-    createProgram(loadShader(GL_VERTEX_SHADER, "/shaders/shadow.quad.vs"),
-                  loadShader(GL_FRAGMENT_SHADER, "/shaders/shadow.quad.fs"));
+    createProgram(loadShader(GL_VERTEX_SHADER, "/deprecated_shaders/shadow.quad.vs"),
+                  loadShader(GL_FRAGMENT_SHADER, "/deprecated_shaders/shadow.quad.fs"));
     
 }
 
@@ -388,9 +394,6 @@ void drawModel(bool shadow)
     if (shadow) {
         // bind buffer
         glBindFramebuffer(GL_FRAMEBUFFER, shadowDepthFBO);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowDepthTexture, 0);
-        glDrawBuffer(GL_NONE);
-        glReadBuffer(GL_NONE);
         glClear(GL_DEPTH_BUFFER_BIT);
         
         glUseProgram(shadowProg);
