@@ -143,6 +143,11 @@ public:
     * Returns the identity matrix.
     */
   static Mat4 identityMatrix();
+    
+  static bool invert(Mat4& out, const Mat4& a);
+   
+  static void transpose(Mat4& out);
+    
 };
 
 #endif

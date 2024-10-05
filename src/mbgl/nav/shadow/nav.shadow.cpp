@@ -273,7 +273,9 @@ GLint shadowProgKDif;
 GLint shadowProgKSpc;
 GLint shadowProgKShn;
 
-GLint shadowPass;
+GLint shadowDebugDepth;
+
+GLint shadowProgMapping;
 
 
 typedef GLint(*GetLocation)(GLuint, const GLchar*);
@@ -294,27 +296,14 @@ using AttribLocation = Location<glGetAttribLocation>;
 void loadShaders() {
     
     // shadow shaders
-    modelProg = createProgram(loadShader(GL_VERTEX_SHADER, "/deprecated_shaders/modelProg.vert"),
-                              loadShader(GL_FRAGMENT_SHADER, "/deprecated_shaders/modelProg.frag"));
+//    modelProg = createProgram(loadShader(GL_VERTEX_SHADER, "/deprecated_shaders/modelProg.vert"),
+//                              loadShader(GL_FRAGMENT_SHADER, "/deprecated_shaders/modelProg.frag"));
     
-    // uniform & attribute 待定
-    modelProgPosAttrib = glGetAttribLocation(modelProg, "positionIn");
-    modelProgNormAttrib = glGetAttribLocation(modelProg, "normalIn");
-
-    modelProgModelViewMat = glGetUniformLocation(modelProg, "modelViewMat");
-    modelProgMvpMat = glGetUniformLocation(modelProg, "modelViewProjMat");
-    modelProgNormalMat = glGetUniformLocation(modelProg, "normalMat");
-
-    modelProgLAmb = glGetUniformLocation(modelProg, "lAmbient");
-    modelProgLPos = glGetUniformLocation(modelProg, "lPosition");
-    modelProgLDif = glGetUniformLocation(modelProg, "lDiffuse");
-    modelProgLSpc = glGetUniformLocation(modelProg, "lSpecular");
-
-    modelProgKAmb = glGetUniformLocation(modelProg, "kAmbient");
-    modelProgKDif = glGetUniformLocation(modelProg, "kDiffuse");
-    modelProgKSpc = glGetUniformLocation(modelProg, "kSpecular");
-    modelProgKShn = glGetUniformLocation(modelProg, "kShininess");
+    // modelProg attribute
+//    modelProgPosAttrib = glGetAttribLocation(modelProg, "aPos");
+//    modelProgNormAttrib = glGetAttribLocation(modelProg, "aNormal");
     
+    // shadowProg & attribute & uniform
     shadowProg = createProgram(loadShader(GL_VERTEX_SHADER, "/deprecated_shaders/shadowProg.vert"),
                               loadShader(GL_FRAGMENT_SHADER, "/deprecated_shaders/shadowProg.frag"));
 
@@ -325,16 +314,25 @@ void loadShaders() {
     shadowProgMvpMat = glGetUniformLocation(shadowProg, "modelViewProjMat");
     shadowProgNormalMat = glGetUniformLocation(shadowProg, "normalMat");
     
-    shadowPass =
+    // shadowDebugDepth & attribute
+    shadowDebugDepth =
     createProgram(loadShader(GL_VERTEX_SHADER, "/deprecated_shaders/shadow.quad.vs"),
                   loadShader(GL_FRAGMENT_SHADER, "/deprecated_shaders/shadow.quad.fs"));
+    
+    // shadowProgMapping & attribute
+    shadowProgMapping =
+    createProgram(loadShader(GL_VERTEX_SHADER, "/deprecated_shaders/shadow.mapping.vs"),
+                  loadShader(GL_FRAGMENT_SHADER, "/deprecated_shaders/shadow.mapping.fs"));
+    
+    modelProgPosAttrib = glGetAttribLocation(shadowProgMapping, "aPos");
+    modelProgNormAttrib = glGetAttribLocation(shadowProgMapping, "aNormal");
     
 }
 
 // the camera info
 Vec3 eye = Vec3(0.5, 1.5, 0.5);
 Vec3 lookat = Vec3(0, 0, 0);
-Vec3 light_eye = Vec3(0.75, 1.25, 0.75);
+Vec3 light_eye = Vec3(0.75, 2.5, 0.75);
 
 auto convertMatrix = [] (mbgl::mat4 matrix) {
     Mat4 m;
@@ -348,7 +346,7 @@ void renderQuad()
 {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     
-    glUseProgram(shadowPass);
+    glUseProgram(shadowDebugDepth);
     
     static GLuint quadVAO = 0;
     static GLuint quadVBO;
@@ -370,18 +368,18 @@ void renderQuad()
         glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
 
-        static AttribLocation a0(shadowPass, "aPos");
+        static AttribLocation a0(shadowDebugDepth, "aPos");
         glEnableVertexAttribArray(a0);
         glVertexAttribPointer(a0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
         
-        static AttribLocation a1(shadowPass, "aTexCoords");
+        static AttribLocation a1(shadowDebugDepth, "aTexCoords");
         glEnableVertexAttribArray(a1);
         glVertexAttribPointer(a1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     }
     
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, shadowDepthTexture);
-    static UniformLocation u0(shadowPass, "depthMap");
+    static UniformLocation u0(shadowDebugDepth, "depthMap");
     glUniform1i(u0, 0);
     
     glBindVertexArray(quadVAO);
@@ -389,54 +387,45 @@ void renderQuad()
     glBindVertexArray(0);
 }
 
-void drawModel(bool shadow)
-{
-    if (shadow) {
-        // bind buffer
-        glBindFramebuffer(GL_FRAMEBUFFER, shadowDepthFBO);
-        glClear(GL_DEPTH_BUFFER_BIT);
-        
-        glUseProgram(shadowProg);
-        // set lighting uniform
-        const static double pi = acos(0.0) * 2;
-        Mat4 ident = Mat4::identityMatrix();
-        Mat4 view, viewNorm;
-        Mat4::lookAtMatrix(light_eye, lookat, Vec3(0, 1, 0), view, viewNorm);
-        Mat4 proj = Mat4::perspectiveMatrix(pi * 0.5, 1.333333f, 1.0f, 75.0f);
-        Mat4 mvp = proj * view;
-//        GLfloat near_plane = 1.0f, far_plane = 7.5f;
-//        mbgl::mat4 lP_m;
-//        mbgl::matrix::ortho(lP_m, -10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-//        Mat4 mvp = convertMatrix(lP_m) * view;
-        
-        glUniformMatrix4fv(shadowProgMvpMat, 1, GL_FALSE, reinterpret_cast<float*>(&mvp));
-        
-        // 使用lighting matrix 绘制 ply obj depth
-        glEnableVertexAttribArray(shadowProgPosAttrib);
-        glBindBuffer(GL_ARRAY_BUFFER, vertexDataBuf);
-        glVertexAttribPointer(shadowProgPosAttrib, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(0));
-        glDrawArrays(GL_TRIANGLES, 0, faceIndexCount);
-        // 使用lighting matrix 绘制 floor depth
-        glBindBuffer(GL_ARRAY_BUFFER, floorBuf);
-        glVertexAttribPointer(shadowProgPosAttrib, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(0));
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-    }
-    
-#if 1
-    
-    renderQuad();
-
-#endif
-    
-#if 0
-//    glBindFramebuffer(GL_FRAMEBUFFER, modelbuffer); // 往 framebuffer 上画
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, modelDepthTexture, 0);
-    GLenum bufs[1] = { GL_COLOR_ATTACHMENT0 };
-    glDrawBuffers(1, bufs);
+void renderDepthBuf() {
+    // bind buffer
+    glBindFramebuffer(GL_FRAMEBUFFER, shadowDepthFBO);
     glClear(GL_DEPTH_BUFFER_BIT);
-    glUseProgram(modelProg);
+    
+    glUseProgram(shadowProg);
+    // set lighting uniform
+    const static double pi = acos(0.0) * 2;
+    Mat4 ident = Mat4::identityMatrix();
+    Mat4 view, viewNorm;
+    Mat4::lookAtMatrix(light_eye, lookat, Vec3(0, 1, 0), view, viewNorm);
+    Mat4 proj = Mat4::perspectiveMatrix(pi * 0.5, 1.333333f, 1.0f, 75.0f);
+    Mat4 mvp = proj * view;
+    
+//    GLfloat near_plane = 1.0f, far_plane = 7.5f;
+//    mbgl::mat4 lP_m;
+//    mbgl::matrix::ortho(lP_m, -10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+//    Mat4 mvp = convertMatrix(lP_m) * view;
+    
+    glUniformMatrix4fv(shadowProgMvpMat, 1, GL_FALSE, reinterpret_cast<float*>(&mvp));
+    
+    // 使用lighting matrix 绘制 ply obj depth
+    glEnableVertexAttribArray(shadowProgPosAttrib);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexDataBuf);
+    glVertexAttribPointer(shadowProgPosAttrib, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(0));
+    glDrawArrays(GL_TRIANGLES, 0, faceIndexCount);
+    // 使用lighting matrix 绘制 floor depth
+    glBindBuffer(GL_ARRAY_BUFFER, floorBuf);
+    glVertexAttribPointer(shadowProgPosAttrib, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(0));
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+}
 
+void renderModelWithShadow() {
+    
+    // render scene as normal using the generated depth/shadow map
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glUseProgram(shadowProgMapping);
+    
     // set uniform
     {
         // 设置mat
@@ -445,31 +434,35 @@ void drawModel(bool shadow)
         Mat4 view, viewNorm;
         Mat4::lookAtMatrix(eye, lookat, Vec3(0, 1, 0), view, viewNorm);
         Mat4 proj = Mat4::perspectiveMatrix(pi * 0.5, 1.333333f, 0.1f, 1000.0f);
-
         Mat4 mvp = proj * view;
-        glUniformMatrix4fv(modelProgModelViewMat, 1, GL_FALSE, reinterpret_cast<float*>(&view));
-        glUniformMatrix4fv(modelProgMvpMat, 1, GL_FALSE, reinterpret_cast<float*>(&mvp));
-        glUniformMatrix4fv(modelProgNormalMat, 1, GL_FALSE, reinterpret_cast<float*>(&ident));
-
-        // 设置 Lighting uniforms
-        static GLfloat lPos[3] = {0.5f, 1.5f, 0.5f};
-
-        static GLfloat lAmb[3] = {1.0f, 1.0f, 1.0f}; // 环境光颜色
-        static GLfloat kAmb[3] = {0.9f, 0.9f, 0.9f};
-        static GLfloat lDif[3] = {1.0f, 1.0f, 1.0f}; // 漫反光颜色
-        static GLfloat kDif[3] = {0.4f, 0.4f, 0.4f};
-        static GLfloat lSpc[3] = {1.0f, 1.0f, 1.0f}; // 镜面光颜色
-        static GLfloat kSpc[3] = {0.01f, 0.01f, 0.01f};
-        static GLfloat kShn = 2.0f;
-
-        glUniform3fv(modelProgKAmb, 1, lAmb);
-        glUniform3fv(modelProgKAmb, 1, kAmb);
-        glUniform3fv(modelProgLPos, 1, lPos);
-        glUniform3fv(modelProgLDif, 1, lDif);
-        glUniform3fv(modelProgLSpc, 1, lSpc);
-        glUniform3fv(modelProgKDif, 1, kDif);
-        glUniform3fv(modelProgKSpc, 1, kSpc);
-        glUniform1f(modelProgKShn, kShn);
+        
+        Mat4 l_view, l_viewNorm;
+        Mat4::lookAtMatrix(light_eye, lookat, Vec3(0, 1, 0), l_view, l_viewNorm);
+        Mat4 l_proj = Mat4::perspectiveMatrix(pi * 0.5, 1.333333f, 0.1f, 1000.0f);
+        Mat4 l_mvp = l_proj * l_view;
+        
+        static UniformLocation u0(shadowProgMapping, "projection");
+        glUniformMatrix4fv(u0, 1, GL_FALSE, reinterpret_cast<float*>(&proj));
+        
+        static UniformLocation u1(shadowProgMapping, "view");
+        glUniformMatrix4fv(u1, 1, GL_FALSE, reinterpret_cast<float*>(&view));
+        
+        static UniformLocation u2(shadowProgMapping, "model");
+        glUniformMatrix4fv(u2, 1, GL_FALSE, reinterpret_cast<float*>(&ident));
+        
+        static UniformLocation u3(shadowProgMapping, "lightSpaceMatrix");
+        glUniformMatrix4fv(u3, 1, GL_FALSE, reinterpret_cast<float*>(&l_mvp));
+        
+        static UniformLocation u4(shadowProgMapping, "lightPos");
+        glUniformMatrix3fv(u4, 1, GL_FALSE, reinterpret_cast<float*>(&light_eye));
+        
+        static UniformLocation u5(shadowProgMapping, "viewPos");
+        glUniformMatrix3fv(u5, 1, GL_FALSE, reinterpret_cast<float*>(&eye));
+        
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, shadowDepthTexture);
+        static UniformLocation u6(shadowProgMapping, "shadowMap");
+        glUniform1i(u6, 0);
     }
 
     // 绘制 ply obj
@@ -487,16 +480,6 @@ void drawModel(bool shadow)
 
     // 绘制 floor
     {
-        static GLfloat floorKAmb[3] = {1.0f, 1.0f, 1.0f};
-        static GLfloat floorKDif[3] = {1.0f, 1.0f, 1.0f};
-        static GLfloat floorKSpc[3] = {1.0f, 1.0f, 1.0f};
-        static GLfloat floorKShn = 2.0f;
-
-        glUniform3fv(modelProgKAmb, 1, floorKAmb);
-        glUniform3fv(modelProgKDif, 1, floorKDif);
-        glUniform3fv(modelProgKSpc, 1, floorKSpc);
-        glUniform1f(modelProgKShn, floorKShn);
-
         // 绑定一个顶点缓冲对象（VBO）。floorBuf是特定的缓冲区对象标识符。这使得后续的操作都针对这个特定的缓冲区进行。
         glBindBuffer(GL_ARRAY_BUFFER, floorBuf);
         // 定义顶点属性指针。phongProgPosAttrib是顶点位置属性的索引。3表示该顶点属性有三个分量，可能对应三维空间中的坐标（x、y、z）。
@@ -508,6 +491,22 @@ void drawModel(bool shadow)
         // 使用顶点数组数据进行绘制。GL_TRIANGLES表示使用三角形的方式进行绘制。0是起始顶点的索引。6表示要绘制的顶点数量。这意味着将绘制两个三角形，因为每个三角形需要三个顶点。
         glDrawArrays(GL_TRIANGLES, 0, 6);
     }
+}
+
+void drawModel(bool shadow)
+{
+#if 1 // render Depth value to Depth map
+    renderDepthBuf();
+#endif
+    
+#if 0
+    // render Depth map to quad for visual debugging
+    renderQuad();
+#endif
+    
+#if 1
+    // render Models With Shadow Depth info
+    renderModelWithShadow();
 #endif
     
     glBindFramebuffer(GL_FRAMEBUFFER, 0);

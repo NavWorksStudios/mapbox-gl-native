@@ -189,11 +189,11 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
     }
     
     // - Shadow PASS --------------------------------------------------------------------------------
-//    {
-//        nav::shadow::sample::draw([&parameters] () {
-//            // RenderFillExtrusionLayer::renderShadow(parameters);
-//        });
-//    }
+    {
+        nav::shadow::sample::draw([&parameters] () {
+            // RenderFillExtrusionLayer::renderShadow(parameters);
+        });
+    }
 
     // - DEBUG PASS --------------------------------------------------------------------------------
     // Renders debug overlays.

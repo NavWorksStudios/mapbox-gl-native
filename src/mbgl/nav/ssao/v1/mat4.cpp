@@ -235,3 +235,89 @@ Mat4 Mat4::identityMatrix()
               0.0f, 0.0f, 1.0f, 0.0f,
               0.0f, 0.0f, 0.0f, 1.0f);
 }
+
+bool Mat4::invert(Mat4& out, const Mat4& a) {
+    double a00 = a.m11;
+    double a01 = a.m12;
+    double a02 = a.m13;
+    double a03 = a.m14;
+    double a10 = a.m21;
+    double a11 = a.m22;
+    double a12 = a.m23;
+    double a13 = a.m24;
+    double a20 = a.m31;
+    double a21 = a.m32;
+    double a22 = a.m33;
+    double a23 = a.m34;
+    double a30 = a.m41;
+    double a31 = a.m42;
+    double a32 = a.m43;
+    double a33 = a.m44;
+    double b00 = a00 * a11 - a01 * a10;
+    double b01 = a00 * a12 - a02 * a10;
+    double b02 = a00 * a13 - a03 * a10;
+    double b03 = a01 * a12 - a02 * a11;
+    double b04 = a01 * a13 - a03 * a11;
+    double b05 = a02 * a13 - a03 * a12;
+    double b06 = a20 * a31 - a21 * a30;
+    double b07 = a20 * a32 - a22 * a30;
+    double b08 = a20 * a33 - a23 * a30;
+    double b09 = a21 * a32 - a22 * a31;
+    double b10 = a21 * a33 - a23 * a31;
+    double b11 = a22 * a33 - a23 * a32;
+    double // Calculate the determinant
+        det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
+
+    if (!det) {
+        return true;
+    }
+    det = 1.0 / det;
+
+    out.m11 = (a11 * b11 - a12 * b10 + a13 * b09) * det;
+    out.m12 = (a02 * b10 - a01 * b11 - a03 * b09) * det;
+    out.m13 = (a31 * b05 - a32 * b04 + a33 * b03) * det;
+    out.m14 = (a22 * b04 - a21 * b05 - a23 * b03) * det;
+    out.m21 = (a12 * b08 - a10 * b11 - a13 * b07) * det;
+    out.m22 = (a00 * b11 - a02 * b08 + a03 * b07) * det;
+    out.m23 = (a32 * b02 - a30 * b05 - a33 * b01) * det;
+    out.m24 = (a20 * b05 - a22 * b02 + a23 * b01) * det;
+    out.m31 = (a10 * b10 - a11 * b08 + a13 * b06) * det;
+    out.m32 = (a01 * b08 - a00 * b10 - a03 * b06) * det;
+    out.m33 = (a30 * b04 - a31 * b02 + a33 * b00) * det;
+    out.m34 = (a21 * b02 - a20 * b04 - a23 * b00) * det;
+    out.m41 = (a11 * b07 - a10 * b09 - a12 * b06) * det;
+    out.m42 = (a00 * b09 - a01 * b07 + a02 * b06) * det;
+    out.m43 = (a31 * b01 - a30 * b03 - a32 * b00) * det;
+    out.m44 = (a20 * b03 - a21 * b01 + a22 * b00) * det;
+
+    return false;
+}
+
+void Mat4::transpose(Mat4& out) {
+    double v;
+
+    v = out.m12;
+    out.m12 = out.m21;
+    out.m21 = v;
+    
+    v = out.m13;
+    out.m13 = out.m31;
+    out.m31 = v;
+    
+    v = out.m14;
+    out.m14 = out.m41;
+    out.m41 = v;
+
+    v = out.m23;
+    out.m23 = out.m32;
+    out.m32 = v;
+    
+    v = out.m24;
+    out.m24 = out.m42;
+    out.m42 = v;
+
+    v = out.m34;
+    out.m34 = out.m43;
+    out.m43 = v;
+}
+
