@@ -31,7 +31,7 @@ std::default_random_engine generator;
 
 namespace kernel {
 
-enum { SIZE = 12, };
+enum { SIZE = 32, };
 Vec3 data[SIZE];
 
 GLfloat lerp(GLfloat a, GLfloat b, GLfloat f) {
@@ -98,17 +98,15 @@ void generate() {
 
 namespace fbo {
 
-GLuint genTexture(GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type,
-                  std::function<void()> configTexture=nullptr) {
+GLuint genTexture(GLint internalformat, GLsizei width, GLsizei height, GLenum format, GLenum type) {
     GLuint texture;
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, internalformat, width, height, 0, format, type, NULL);
+    
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     
-    if (configTexture) configTexture();
-
     return texture;
 }
 
@@ -116,7 +114,7 @@ namespace gbuffer {
 GLuint fbo = 0;
 GLuint position = 0;
 GLuint normal = 0;
-GLuint albedo = 0;
+//GLuint albedo = 0;
 GLuint rboDepth = 0;
 
 void generate(int width, int height) {
@@ -124,18 +122,17 @@ void generate(int width, int height) {
 
     // position color buffer
     glDeleteTextures(1, &position);
-    position = genTexture(GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, [] () {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    });
+    position = genTexture(GL_RGB16F, width, height, GL_RGB, GL_FLOAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     // normal color buffer
     glDeleteTextures(1, &normal);
-    normal = genTexture(GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT);
+    normal = genTexture(GL_RGB16F, width, height, GL_RGB, GL_FLOAT);
 
     // color + specular color buffer
-    glDeleteTextures(1, &albedo);
-    albedo = genTexture(GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT);
+//    glDeleteTextures(1, &albedo);
+//    albedo = genTexture(GL_RGB16F, width, height, GL_RGB, GL_FLOAT);
 
     // create and attach depth buffer (renderbuffer)
     glDeleteRenderbuffers(1, &rboDepth);
@@ -146,14 +143,14 @@ void generate(int width, int height) {
 
 void bind() {
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, position, 0);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normal, 0);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, albedo, 0);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
+//    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, albedo, 0);
+    GLenum attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+    glDrawBuffers(2, attachments);
     
-    // tell OpenGL which color attachments we'll use (of this framebuffer) for rendering
-    unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-    glDrawBuffers(3, attachments);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
 }
 
 }
@@ -167,7 +164,9 @@ void generate(int width, int height) {
     if (!fbo) glGenFramebuffers(1, &fbo);
     
     glDeleteTextures(1, &buffer);
-    buffer = genTexture(GL_RED, width, height, 0, GL_RED, GL_FLOAT);
+    buffer = genTexture(GL_RED, width, height, GL_RED, GL_FLOAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
 
 void bind() {
@@ -186,7 +185,7 @@ void generate(int width, int height) {
     if (!fbo) glGenFramebuffers(1, &fbo);
     
     glDeleteTextures(1, &buffer);
-    buffer = genTexture(GL_RED, width, height, 0, GL_RED, GL_FLOAT);
+    buffer = genTexture(GL_RED, width, height, GL_RED, GL_FLOAT);
 }
 
 void bind() {
@@ -391,7 +390,7 @@ void blurSSAOTexture(int width, int height,
     static UniformLocation u0(program, "u_ssao");
     glUniform1i(u0, 0);
     
-    static UniformLocation u1(program, "u_text_size");
+    static UniformLocation u1(program, "u_texsize");
     glUniform2f(u1, width, height);
     
     renderQuad(program);
@@ -481,7 +480,7 @@ void draw(float zoom, mbgl::mat4 projMatrix, std::function<void()> renderCallbac
         floor::init();
     });
 
-    const float BUFFER_SCALE = .8;
+    const float BUFFER_SCALE = .7;
     const int width = nav::display::pixels::width() * BUFFER_SCALE;
     const int height = nav::display::pixels::height() * BUFFER_SCALE;
     fbo::generate(width, height);
