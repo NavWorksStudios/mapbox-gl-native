@@ -30,7 +30,7 @@ void main()
     // vec3 color = texture2D(diffuseTexture, vTexCoords).rgb;
     vec3 color = vec3(0.75);
     vec3 normal = normalize(vNormal);
-    vec3 lightColor = vec3(0.3);
+    vec3 lightColor = vec3(0.75);
     // ambient
     vec3 ambient = 0.3 * lightColor;
     // diffuse

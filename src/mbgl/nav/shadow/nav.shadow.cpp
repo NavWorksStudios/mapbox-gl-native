@@ -397,6 +397,7 @@ void renderDepthBuf() {
     // set lighting uniform
     const static double pi = acos(0.0) * 2;
     Mat4 ident = Mat4::identityMatrix();
+    Mat4 model = Mat4(1.0);
     Mat4 view, viewNorm;
     Mat4::lookAtMatrix(light_eye, lookat, Vec3(0, 1, 0), view, viewNorm);
     Mat4 proj = Mat4::perspectiveMatrix(pi * 0.5, 1.333333f, 1.0f, 7.5f);
@@ -433,9 +434,10 @@ void renderModelWithShadow() {
         // 设置mat
         const static double pi = acos(0.0) * 2;
         Mat4 ident = Mat4::identityMatrix();
+        Mat4 model = Mat4(1.0);
         Mat4 view, viewNorm;
         Mat4::lookAtMatrix(eye, lookat, Vec3(0, 1, 0), view, viewNorm);
-        Mat4 proj = Mat4::perspectiveMatrix(pi * 0.5, 1.333333f, 0.1f, 1000.0f);
+        Mat4 proj = Mat4::perspectiveMatrix(pi * 0.5, 1.333333f, 1.0f, 7.5f);
         Mat4 mvp = proj * view;
         
         static UniformLocation u0(shadowProgMapping, "projection");
