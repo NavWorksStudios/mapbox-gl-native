@@ -383,7 +383,7 @@ void blurSSAOTexture(int width, int height,
     }
     
     glEnable(GL_BLEND);
-    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     const GLint program = shader::blurPass;
     glUseProgram(program);
@@ -400,7 +400,7 @@ void blurSSAOTexture(int width, int height,
     
     glDisable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-    
+
 }
 
 namespace v2 {

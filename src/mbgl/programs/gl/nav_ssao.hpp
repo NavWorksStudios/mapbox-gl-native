@@ -35,12 +35,12 @@ uniform float u_z_bias[SAMPLE_SIZE];
 uniform vec3 u_samples[SAMPLE_SIZE];
 
 
-//const float QUADRATIC = 1.3;
-//const float CONTRAST = 1.3;
+const float QUADRATIC = 1.3;
+const float CONTRAST = 1.3;
 
 const float NEAR_Z = 0.;
-const float FAR_Z = -250.;
-const float HIDE_Z = -200.;
+const float FAR_Z = -300.;
+const float HIDE_Z = -250.;
 
 void main() {
     vec3 kernelPos = texture2D(u_position, TexCoords).xyz;
@@ -87,16 +87,13 @@ void main() {
         }
     }
 
-//    occlusion = pow(occlusion, QUADRATIC);
+    occlusion = pow(occlusion, QUADRATIC);
+    occlusion = occlusion / float(dynamic_sample_count) * 2.;
+    occlusion = CONTRAST * (occlusion - 0.5) + 0.5;
 
-    occlusion /= float(dynamic_sample_count);
+    gl_FragColor.r = occlusion;
 
-//    occlusion = CONTRAST * (occlusion - 0.5) + 0.5;
-
-    float result = 1.0 - occlusion * 4.;
-
-    gl_FragColor.r = result;
-    
+//    float result = 1.0 - occlusion;
 //    gl_FragColor = vec4(result * .65, result * .85, result * 1.5, 1.);
 
 }
@@ -153,22 +150,19 @@ uniform sampler2D u_ssao;
 uniform vec2 u_texsize;
 
 float kawaseBlurSample(vec2 uv) {
-    float color = texture2D(u_ssao, uv).r;
-    
-    return color;
+    vec2 offset = vec2(1.1, 1.1) / u_texsize;
 
-    vec2 offset = vec2(.5, .5) / u_texsize;
+    float color = texture2D(u_ssao, uv).r;
     color += texture2D(u_ssao, uv + vec2(+offset.x, +offset.y)).r;
     color += texture2D(u_ssao, uv + vec2(-offset.x, +offset.y)).r;
     color += texture2D(u_ssao, uv + vec2(-offset.x, -offset.y)).r;
     color += texture2D(u_ssao, uv + vec2(+offset.x, -offset.y)).r;
-
     return color * .2;
 }
 
 void main() {
     float result = kawaseBlurSample(TexCoords);
-    gl_FragColor = vec4(.25, .2, .065, max(1. - result, 0.));
+    gl_FragColor = vec4(.0, .0, .0, result);
 }
 
 )"; }
