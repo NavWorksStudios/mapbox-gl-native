@@ -431,6 +431,7 @@ void renderModelWithShadow() {
         // 设置mat
         const static double pi = acos(0.0) * 2;
         Mat4 ident = Mat4::identityMatrix();
+//        Mat4 ident = Mat4(1.0);
         Mat4 view, viewNorm;
         Mat4::lookAtMatrix(eye, lookat, Vec3(0, 1, 0), view, viewNorm);
         Mat4 proj = Mat4::perspectiveMatrix(pi * 0.5, 1.333333f, 0.1f, 1000.0f);
@@ -453,11 +454,17 @@ void renderModelWithShadow() {
         static UniformLocation u3(shadowProgMapping, "lightSpaceMatrix");
         glUniformMatrix4fv(u3, 1, GL_FALSE, reinterpret_cast<float*>(&l_mvp));
         
-        static UniformLocation u4(shadowProgMapping, "lightPos");
-        glUniformMatrix3fv(u4, 1, GL_FALSE, reinterpret_cast<float*>(&light_eye));
+//        static UniformLocation u4(shadowProgMapping, "lightPos");
+//        glUniform3fv(u4, 1, reinterpret_cast<float*>(&light_eye));
+//        static UniformLocation u5(shadowProgMapping, "viewPos");
+//        glUniform3fv(u5, 1, reinterpret_cast<float*>(&eye));
         
+        static GLfloat light_eye_t[3] = {0.75, 0.75, 2.5};
+        static GLfloat eye_t[3] = {0.5, 0.5, 1.5};
+        static UniformLocation u4(shadowProgMapping, "lightPos");
+        glUniform3fv(u4, 1, light_eye_t);
         static UniformLocation u5(shadowProgMapping, "viewPos");
-        glUniformMatrix3fv(u5, 1, GL_FALSE, reinterpret_cast<float*>(&eye));
+        glUniform3fv(u5, 1, eye_t);
         
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, shadowDepthTexture);

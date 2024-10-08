@@ -47,8 +47,9 @@ void main()
     vec3 specular = spec * lightColor;    
     // calculate shadow
     float shadow = ShadowCalculation(vFragPosLightSpace);
-    // shadow = 0.0;                      
-    vec3 lighting = (ambient + (1.0 - 0.1*shadow) * (diffuse + specular)) * color;    
+    shadow = 0.0;                      
+    vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color;    
+    // lighting = (1.0 - 0.1*shadow) * color;
     
     gl_FragColor = vec4(lighting, 1.0);
 }
