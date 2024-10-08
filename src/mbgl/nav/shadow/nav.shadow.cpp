@@ -63,10 +63,6 @@ void initializeResources()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     
-    glBindFramebuffer(GL_FRAMEBUFFER, shadowDepthFBO);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowDepthTexture, 0);
-    glDrawBuffer(GL_NONE);
-    glReadBuffer(GL_NONE);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     
     float pF/*planeFactor*/ = 1.0;
@@ -332,7 +328,7 @@ void loadShaders() {
 // the camera info
 Vec3 eye = Vec3(0.25, 1.5, 0.25);
 Vec3 lookat = Vec3(0, 0, 0);
-Vec3 light_eye = Vec3(0.75, 2.5, 0.75);
+Vec3 light_eye = Vec3(-0.75, 2.5, 0.75);
 
 auto convertMatrix = [] (mbgl::mat4 matrix) {
     Mat4 m;
@@ -391,6 +387,10 @@ Mat4 l_mvp;
 void renderDepthBuf() {
     // bind buffer
     glBindFramebuffer(GL_FRAMEBUFFER, shadowDepthFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowDepthTexture, 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    
     glClear(GL_DEPTH_BUFFER_BIT);
     
     glUseProgram(shadowProg);
@@ -457,19 +457,16 @@ void renderModelWithShadow() {
         static UniformLocation u5(shadowProgMapping, "viewPos");
         glUniform3fv(u5, 1, reinterpret_cast<float*>(&eye));
         
-//        static GLfloat light_eye_t[3] = {0.75, 0.75, 2.5};
-//        static GLfloat eye_t[3] = {0.5, 0.5, 1.5};
-//        static GLfloat light_eye_t[3] = {0.75, 2.5, 0.75};
-//        static GLfloat eye_t[3] = {-0.25, 1.5, 0.25};
-//        static UniformLocation u4(shadowProgMapping, "lightPos");
-//        glUniform3fv(u4, 1, light_eye_t);
-//        static UniformLocation u5(shadowProgMapping, "viewPos");
-//        glUniform3fv(u5, 1, eye_t);
+//        static GLfloat textureSizeD[2] = {(float)SCR_WIDTH, (float)SCR_HEIGHT};
+//        static UniformLocation u6(shadowProgMapping, "textureSizeD");
+//        glUniform2fv(u6, 1, reinterpret_cast<float*>(&textureSizeD));
         
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, shadowDepthTexture);
-        static UniformLocation u6(shadowProgMapping, "shadowMap");
-        glUniform1i(u6, 0);
+        static UniformLocation u7(shadowProgMapping, "shadowMap");
+        glUniform1i(u7, 0);
+        
+
     }
 
     // 绘制 ply obj
@@ -529,9 +526,8 @@ void draw(std::function<void()> renderCallback) {
     
     glClearColor(0, 0, 0, 0);
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-    glFrontFace(GL_CCW);
-    glCullFace(GL_BACK);
+    glDepthMask(GL_TRUE);
+    glDepthFunc(GL_LESS);
     
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
