@@ -30,7 +30,7 @@ void main()
     // vec3 color = texture2D(diffuseTexture, vTexCoords).rgb;
     vec3 color = vec3(0.75);
     vec3 normal = normalize(vNormal);
-    vec3 lightColor = vec3(0.8);
+    vec3 lightColor = vec3(0.3);
     // ambient
     vec3 ambient = 0.3 * lightColor;
     // diffuse
@@ -47,9 +47,9 @@ void main()
     vec3 specular = spec * lightColor;    
     // calculate shadow
     float shadow = ShadowCalculation(vFragPosLightSpace);
-    shadow = 0.0;                      
-    vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color;    
-    // lighting = (1.0 - 0.1*shadow) * color;
+    // shadow = 0.0;                      
+    // vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color;  
+    vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color;  
     
     gl_FragColor = vec4(lighting, 1.0);
 }
