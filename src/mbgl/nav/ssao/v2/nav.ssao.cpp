@@ -329,10 +329,20 @@ void generateSSAOTexture(float width, float height, float zoom,
     glUseProgram(program);
     
     {
-        // Send kernel + rotation
         for (unsigned int i = 0; i < sample::kernel::SIZE; ++i) {
-            UniformLocation u0(program, ("u_samples[" + std::to_string(i) + "]").c_str());
-            glUniform3fv(u0, 1, reinterpret_cast<float*>(&(sample::kernel::data[i])));
+            const float zoom_scale = pow(2., zoom - 18.);
+            const float scalar = 0.2 * pow(1.2, i) * zoom_scale;
+            
+            UniformLocation u0(program, ("u_sample_radius[" + std::to_string(i) + "]").c_str());
+            glUniform1fv(u0, 1, &scalar);
+
+            UniformLocation u1(program, ("u_z_bias[" + std::to_string(i) + "]").c_str());
+            glUniform1fv(u1, 1, &scalar);
+        
+            // Send kernel + rotation
+            Vec3 v = sample::kernel::data[i].scale(scalar);
+            UniformLocation u2(program, ("u_samples[" + std::to_string(i) + "]").c_str());
+            glUniform3fv(u2, 1, &v.x);
         }
     }
 
@@ -342,9 +352,6 @@ void generateSSAOTexture(float width, float height, float zoom,
         
         static UniformLocation u1(program, "u_text_scale");
         glUniform2f(u1, width / sample::noise::SIZE, height / sample::noise::SIZE);
-        
-        static UniformLocation u2(program, "u_zoom_scale");
-        glUniform1f(u2, pow(2., zoom - 18.));
     }
 
     {
