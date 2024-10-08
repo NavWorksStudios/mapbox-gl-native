@@ -30,31 +30,32 @@ uniform sampler2D u_position;
 uniform sampler2D u_normal;
 uniform sampler2D u_noise;
 
-#define SAMPLE_SIZE 12
+#define SAMPLE_SIZE 32
 uniform vec3 u_samples[SAMPLE_SIZE];
 
-// const float QUADRATIC = 1.;
-// const float CONTRAST = 1.5;
+//const float QUADRATIC = 1.;
+//const float CONTRAST = 1.5;
 
 
-void main()
-{
-    // get input for SSAO algorithm
+void main() {
     vec3 kernelPos = texture2D(u_position, TexCoords).xyz;
+
+    // 动态采样数 - 近密远疏，可以大幅降低开销
+    const float NEAR_Z = 0.;
+    const float FAR_Z = -250.;
+    if (kernelPos.z < -200.) {
+        gl_FragColor.r = 1.;
+        return;
+    }
+
+    float z_scale = min(1., (FAR_Z - kernelPos.z) / (FAR_Z - NEAR_Z));
+    int sample_count = int(float(SAMPLE_SIZE) * z_scale);
+
+    // get input for SSAO algorithm
     vec3 kernelNormal = texture2D(u_normal, TexCoords).xyz;
     vec3 random = texture2D(u_noise, TexCoords * u_text_scale).xyz;
 
-#if 1
-    // 动态采样数 - 降低画面采样数，近多远少
-    // 计算z_scale
-    const float NEAR_Z = 0.;
-    const float FAR_Z = -200.;
-    float z_scale = (FAR_Z - kernelPos.z) / (FAR_Z - NEAR_Z);
-    int sample_count = int(max(float(SAMPLE_SIZE) * z_scale, 4.));
-#else
-    int sample_count = SAMPLE_SIZE;
-#endif
-
+    // 采样球zoom相关半径
     float SAMPLE_RADIUS = 0.2 * u_zoom_scale;
     float Z_BIAS = 0.2 * u_zoom_scale;
 
@@ -69,8 +70,7 @@ void main()
     // 遍历每个核心采样，将采样从切线空间转化到视图空间，接着进行深度对比
     float occlusion = 0.0;
 
-    for(int i=0; i<sample_count; i++)
-    {
+    for(int i=0; i<sample_count; i++) {
         // get sample position
         vec3 samplePos = TBN * u_samples[i]; // from tangent to view-space 从切线空间转化到视图空间
         samplePos = kernelPos + samplePos * SAMPLE_RADIUS;
@@ -94,17 +94,17 @@ void main()
         }
 
         // dynamic sample radius
-        SAMPLE_RADIUS *= 1.4;
-        Z_BIAS *= 1.4;
+        SAMPLE_RADIUS *= 1.2;
+        Z_BIAS *= 1.2;
     }
 
-    // occlusion = pow(occlusion, QUADRATIC);
+//    occlusion = pow(occlusion, QUADRATIC);
 
     occlusion /= float(sample_count);
 
-    // occlusion = CONTRAST * (occlusion - 0.5) + 0.5;
+//    occlusion = CONTRAST * (occlusion - 0.5) + 0.5;
 
-    float result = 1.0 - occlusion * 2.;
+    float result = 1.0 - occlusion * 3.;
 
     gl_FragColor.r = result;
     
@@ -116,14 +116,16 @@ void main()
 
 )"; }
 
-static const char* blurFragmentShader() { return R"(
 
-#if 1
+
+#if 0
+
+static const char* blurFragmentShader() { return R"(
 
 varying vec2 TexCoords;
 
 uniform sampler2D u_ssao;
-uniform vec2 u_text_size;
+uniform vec2 u_texsize;
 
 void main() 
 {
@@ -133,7 +135,7 @@ void main()
     {
         for (int y = -2; y < 2; ++y) 
         {
-            vec2 offset = vec2(float(x), float(y)) / u_text_size;
+            vec2 offset = vec2(float(x), float(y)) / u_texsize;
             result += texture2D(u_ssao, TexCoords + offset).r;
         }
     }
@@ -150,47 +152,43 @@ void main()
 
 
     
-}  
-
-#endif
-
-
-#if 0
-
-uniform sampler2D ssao;
-varying vec2 TexCoords;
-
-const vec2 texelSize = 1.0 / vec2(2048., 1080.) / 2.;
-
-#define SEG 2
-
-void main()
-{
-    float color = 0.0;
-    float total = 0.0;
-
-    for(int i = -SEG; i <= SEG; ++i)
-    {
-        for(int j = -SEG; j <= SEG; ++j)
-        {
-            float w = (1.1 - sqrt(float(i*i + j*j)) / 8.0);
-            w *= w;
-
-            vec2 offset = vec2(float(i), float(j)) * texelSize;
-            color += texture2D(ssao, TexCoords + offset).r * w;
-
-            total += w;
-        }
-    }
-
-    color /= total;
-
-    gl_FragColor.r = color;
 }
 
-#endif
+)"; }
+
+#else
+
+static const char* blurFragmentShader() { return R"(
+
+varying vec2 TexCoords;
+
+uniform sampler2D u_ssao;
+uniform vec2 u_texsize;
+
+float kawaseBlurSample(vec2 uv) {
+    float color = texture2D(u_ssao, uv).r;
+    
+    return color;
+
+    vec2 offset = vec2(.5, .5) / u_texsize;
+    color += texture2D(u_ssao, uv + vec2(+offset.x, +offset.y)).r;
+    color += texture2D(u_ssao, uv + vec2(-offset.x, +offset.y)).r;
+    color += texture2D(u_ssao, uv + vec2(-offset.x, -offset.y)).r;
+    color += texture2D(u_ssao, uv + vec2(+offset.x, -offset.y)).r;
+
+    return color * .2;
+}
+
+void main() {
+    float result = kawaseBlurSample(TexCoords);
+    gl_FragColor = vec4(.25, .2, .065, max(1. - result, 0.));
+}
 
 )"; }
+
+#endif
+
+
 
 } // namespace ssao
 } // namespace programs
