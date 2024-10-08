@@ -203,10 +203,6 @@ void generate(int width, int height) {
         w = width;
         h = height;
         
-        // Enable and configure textures on applicable texture units
-        glActiveTexture(GL_TEXTURE0);
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-        
         gbuffer::generate(w, h);
         ssao::generate(w, h);
         blur::generate(w, h);

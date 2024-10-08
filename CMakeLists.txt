@@ -336,10 +336,14 @@ set(all_files
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v1/shaders.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v1/texture.h
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v1/texture.c
+
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v2/nav.ssao.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v2/nav.ssao.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/shadow/nav.shadow.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/shadow/nav.shadow.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/programs/gl/nav_ssao.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/programs/gl/nav_fill_extrusion_P2.hpp
+
 
     ${PROJECT_SOURCE_DIR}/src/mbgl/actor/mailbox.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/actor/scheduler.cpp
