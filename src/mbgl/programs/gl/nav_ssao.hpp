@@ -92,10 +92,12 @@ void main() {
     occlusion = occlusion / float(dynamic_sample_count);
 //    occlusion = CONTRAST * (occlusion - 0.5) + 0.5;
 
+#if 1
     gl_FragColor.r = occlusion;
-
-//    float result = 1.0 - occlusion;
-//    gl_FragColor = vec4(result * .65, result * .85, result * 1.5, 1.);
+#else
+    float result = 1.0 - occlusion;
+    gl_FragColor = vec4(result * .65, result * .85, result * 1.5, 1.);
+#endif
 
 }
 
