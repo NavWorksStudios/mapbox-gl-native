@@ -88,7 +88,7 @@ void main() {
     lowp float distance = pow(gl_Position.x, 2.) + pow(gl_Position.z, 2.);
     if (u_is_reflection) distance *= 5.;
     if (distance > u_clip_region) {
-        gl_Position.x = gl_Position.y = gl_Position.z = -1.e100;
+        gl_Position.w = -1.e100;
         return;
     }
 

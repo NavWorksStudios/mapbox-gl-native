@@ -79,17 +79,24 @@ struct FillExtrusionProgram {
             // position
             float lowp z = t > 0. ? height : base;
             vec4 pos = vec4(a_pos, z, 1.);
-    
             gl_Position = u_matrix * pos;
     
+            // clipping
+            lowp float distance = pow(gl_Position.x, 2.) + pow(gl_Position.z, 2.);
+            if (distance > u_clip_region) {
+                gl_Position.w = -1.e100;
+                return;
+            }
+    
             // Ambient Lighting
-            const float ambient = .7;
+            const float ambient = .8;
     
             // Diffuse Lighting
             lowp vec3 norm = normalize(normal);
             lowp vec3 lightDir = normalize(u_lightpos);
-            lowp float diffuse = max(dot(norm, lightDir), 0.) * .5;
-    
+            lowp float diffuse = dot(norm, lightDir) * .4;
+
+            color = vec4(.892, .919, .988, 1.);
             v_color = color * vec4(u_lightcolor * (ambient + diffuse), 1.);
             v_world_pos = (u_model_matrix * pos).xyz;
             v_reflectDir = reflect(-lightDir, norm); // reflect (genType I, genType N),返回反射向量

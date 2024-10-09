@@ -29,24 +29,24 @@ uniform sampler2D u_position;
 uniform sampler2D u_normal;
 uniform sampler2D u_noise;
 
-#define SAMPLE_SIZE 32
+#define SAMPLE_SIZE 16
 uniform float u_sample_radius[SAMPLE_SIZE];
 uniform float u_z_bias[SAMPLE_SIZE];
 uniform vec3 u_samples[SAMPLE_SIZE];
 uniform float u_sample_factor;
 
 
-const float QUADRATIC = 1.2;
-//const float CONTRAST = 1.2;
+const float QUADRATIC = 1.5;
+//const float CONTRAST = 1.5;
 
 const float NEAR_Z = 0.;
-const float FAR_Z = -300.;
-const float HIDE_Z = -250.;
+const float FAR_Z = -250.;
+const float HIDE_Z = -200.;
 
 void main() {
     vec3 kernelPos = texture2D(u_position, TexCoords).xyz;
     if (kernelPos.z < HIDE_Z) {
-        gl_FragColor.r = 1.;
+        gl_FragColor.r = .0;
         return;
     }
 
@@ -88,8 +88,8 @@ void main() {
         }
     }
 
-    occlusion = pow(occlusion, QUADRATIC);
-    occlusion = occlusion / float(dynamic_sample_count) * 2.;
+    occlusion = pow(occlusion * 1.5, QUADRATIC);
+    occlusion = occlusion / float(dynamic_sample_count);
 //    occlusion = CONTRAST * (occlusion - 0.5) + 0.5;
 
     gl_FragColor.r = occlusion;
