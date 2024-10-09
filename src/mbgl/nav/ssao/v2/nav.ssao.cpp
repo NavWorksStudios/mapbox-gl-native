@@ -325,6 +325,7 @@ void generateSSAOTexture(float width, float height, float zoom,
     glUseProgram(program);
     
     {
+        // zoom (15, 20)
         for (unsigned int i = 0; i < sample::kernel::SIZE; ++i) {
             const float zoom_scale = pow(2., zoom - 18.);
             const float scalar = 0.2 * pow(1.2, i) * zoom_scale;

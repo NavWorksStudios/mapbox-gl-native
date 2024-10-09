@@ -13,8 +13,6 @@ struct FillExtrusionProgram {
         uniform lowp vec3 u_camera_pos;
         uniform lowp vec3 u_lightcolor;
         uniform lowp vec3 u_lightpos;
-        uniform lowp float u_lightintensity;
-        uniform lowp float u_vertical_gradient;
     
         uniform lowp float u_opacity;
         uniform lowp float u_spotlight;
@@ -25,7 +23,8 @@ struct FillExtrusionProgram {
         attribute lowp vec4 a_normal_ed;
     
         varying lowp vec4 v_color;
-        varying lowp float v_height;
+        varying lowp vec3 v_world_pos;
+        varying lowp vec3 v_reflectDir;
                 
         #ifndef HAS_UNIFORM_u_base
         uniform lowp float u_base_t;
@@ -79,60 +78,45 @@ struct FillExtrusionProgram {
     
             // position
             float lowp z = t > 0. ? height : base;
-            vec4 modelpos = vec4(a_pos, z, 1.);
-            gl_Position = u_matrix * modelpos;
+            vec4 pos = vec4(a_pos, z, 1.);
     
-            // distance clipping
-            lowp float distance = pow(gl_Position.x, 2.) + pow(gl_Position.z, 2.);
-            if (distance > u_clip_region) {
-                gl_Position.x = gl_Position.y = gl_Position.z = -1.e100;
-                return;
-            }
+            gl_Position = u_matrix * pos;
     
             // Ambient Lighting
-            const float ambient = .6;
+            const float ambient = .7;
     
             // Diffuse Lighting
             lowp vec3 norm = normalize(normal);
             lowp vec3 lightDir = normalize(u_lightpos);
-            lowp float diffuse = dot(norm, lightDir) * .6;
+            lowp float diffuse = max(dot(norm, lightDir), 0.) * .5;
     
-            // Specular Lighting
-            const lowp float indensity = 1.; // 强度
-            const lowp float shininess = 3.; // 反射率
-            lowp vec3 world_pos = (u_model_matrix * modelpos).xyz;
-            lowp vec3 viewDir = normalize(u_camera_pos - world_pos);
-            lowp vec3 reflectDir = reflect(-lightDir, norm); // reflect (genType I, genType N),返回反射向量
-            lowp float specular = indensity * pow(dot(viewDir, reflectDir), shininess); // power(max(0,dot(N,H)),shininess)
-    
-            v_color = color * vec4(u_lightcolor * (ambient + diffuse) + vec3(1., .5, .8) * specular, 1.) * u_opacity * .95;
+            v_color = color * vec4(u_lightcolor * (ambient + diffuse), 1.);
+            v_world_pos = (u_model_matrix * pos).xyz;
+            v_reflectDir = reflect(-lightDir, norm); // reflect (genType I, genType N),返回反射向量
         }
         
     )"; }
     
     static const char* navFragment(const char* ) { return R"(
-    
-        uniform lowp float u_focus_region;
-        uniform lowp float u_spotlight;
+
+        uniform lowp vec3 u_camera_pos;
+        uniform lowp vec3 u_lightcolor;
+        uniform lowp float u_opacity;
     
         varying lowp vec4 v_color;
-        varying lowp float v_height;
+        varying lowp vec3 v_world_pos;
+        varying lowp vec3 v_reflectDir;
     
         void main() {
-//            if (v_color.a > 0.) {
-//                // 如果开聚光灯，屏幕中心透明
-//                lowp float radial_alpha = 1.;
-//                if (u_spotlight > 0.) {
-//                    lowp float distance=pow(v_pos.x,2.)+pow(v_pos.z,2.);
-//                    radial_alpha=clamp(distance/u_focus_region+.1,1.-u_spotlight,1.);
-//                }
-//
-//                gl_FragColor = v_color * radial_alpha;
-//            }
+//            // Specular Lighting
+//            const lowp float indensity = 1.; // 强度
+//            const lowp float shininess = 3.; // 反射率
+//            lowp vec3 viewDir = normalize(u_camera_pos - v_world_pos);
+//            lowp float specular = indensity * pow(dot(viewDir, v_reflectDir), shininess); // power(max(0,dot(N,H)),shininess)
+//    
+//            gl_FragColor = (v_color + vec4(vec3(1.,.0,.0) * specular, 1.)) * u_opacity * .95;
     
-            gl_FragColor = v_color;
-//            if (v_height < 1.) gl_FragColor.rgb *= pow(v_height, .2);
-    
+        gl_FragColor = v_color * u_opacity * .95;
     
         #ifdef OVERDRAW_INSPECTOR
             gl_FragColor=vec4(1.0);
