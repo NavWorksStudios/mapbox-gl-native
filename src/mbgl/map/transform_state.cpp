@@ -225,13 +225,16 @@ void TransformState::updateCameraState() const {
     const vec3 orbitPosition = {{-forward[0] * cameraToCenterDistance,
                                  -forward[1] * cameraToCenterDistance,
                                  -forward[2] * cameraToCenterDistance}};
-    _cameraPosition = {{dx + orbitPosition[0], dy + orbitPosition[1], orbitPosition[2]}};
 
-    _cameraPosition[0] /= worldSize;
-    _cameraPosition[1] /= worldSize;
-    _cameraPosition[2] /= worldSize;
+    vec3 cameraPosition = {{dx + orbitPosition[0], dy + orbitPosition[1], orbitPosition[2]}};
+    _cameraPosition = cameraPosition;
 
-    camera.setPosition(_cameraPosition);
+    cameraPosition[0] /= worldSize;
+    cameraPosition[1] /= worldSize;
+    cameraPosition[2] /= worldSize;
+
+    camera.setPosition(cameraPosition);
+
 }
 
 void TransformState::updateStateFromCamera() {
