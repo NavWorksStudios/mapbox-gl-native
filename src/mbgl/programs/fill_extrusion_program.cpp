@@ -43,7 +43,7 @@ FillExtrusionProgram::LayoutUniformValues FillExtrusionProgram::layoutUniformVal
         uniforms::matrix::Value( matrix ),
         uniforms::model_matrix::Value( model_matrix ),
         uniforms::opacity::Value( opacity ),
-        uniforms::camera_pos::Value( state.getCameraWorldPosition() ),
+        uniforms::camera_pos::Value( state.getCameraPosition() ),
         uniforms::lightcolor::Value( lightColor(light) ),
         uniforms::lightpos::Value( lightPosition(light, state) ),
         uniforms::lightintensity::Value( lightIntensity(light) ),

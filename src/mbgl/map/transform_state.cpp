@@ -219,19 +219,19 @@ void TransformState::updateCameraState() const {
     const double dy = 0.5 * worldSize - y;
 
     // Set camera orientation and move it to a proper distance from the map
-    _cameraQuaternion = camera.setOrientation(getPitch(), getBearing());
+    camera.setOrientation(getPitch(), getBearing());
 
     const vec3 forward = camera.forward();
     const vec3 orbitPosition = {{-forward[0] * cameraToCenterDistance,
                                  -forward[1] * cameraToCenterDistance,
                                  -forward[2] * cameraToCenterDistance}};
-    _cameraWorldPosition = _cameraPosition = {{dx + orbitPosition[0], dy + orbitPosition[1], orbitPosition[2]}};
+    _cameraPosition = {{dx + orbitPosition[0], dy + orbitPosition[1], orbitPosition[2]}};
 
-    _cameraWorldPosition[0] /= worldSize;
-    _cameraWorldPosition[1] /= worldSize;
-    _cameraWorldPosition[2] /= worldSize;
+    _cameraPosition[0] /= worldSize;
+    _cameraPosition[1] /= worldSize;
+    _cameraPosition[2] /= worldSize;
 
-    camera.setPosition(_cameraWorldPosition);
+    camera.setPosition(_cameraPosition);
 }
 
 void TransformState::updateStateFromCamera() {
