@@ -27,6 +27,7 @@ uniform vec2 u_text_scale;
 
 uniform sampler2D u_position;
 uniform sampler2D u_normal;
+uniform sampler2D u_albedo;
 uniform sampler2D u_noise;
 
 #define SAMPLE_SIZE 16
@@ -45,7 +46,8 @@ const float HIDE_Z = -200.;
 
 void main() {
     vec3 kernelPos = texture2D(u_position, TexCoords).xyz;
-    if (kernelPos.z < HIDE_Z) {
+    vec3 albedo = texture2D(u_albedo, TexCoords).xyz;
+    if (kernelPos.z < HIDE_Z || albedo.r <= 0.) {
         gl_FragColor.r = .0;
         return;
     }

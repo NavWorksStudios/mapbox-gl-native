@@ -114,7 +114,7 @@ namespace gbuffer {
 GLuint fbo = 0;
 GLuint position = 0;
 GLuint normal = 0;
-//GLuint albedo = 0;
+GLuint albedo = 0;
 GLuint rboDepth = 0;
 
 void generate(int width, int height) {
@@ -131,8 +131,8 @@ void generate(int width, int height) {
     normal = genTexture(GL_RGB16F, width, height, GL_RGB, GL_FLOAT);
 
     // color + specular color buffer
-//    glDeleteTextures(1, &albedo);
-//    albedo = genTexture(GL_RGB16F, width, height, GL_RGB, GL_FLOAT);
+    glDeleteTextures(1, &albedo);
+    albedo = genTexture(GL_RGB16F, width, height, GL_RGB, GL_FLOAT);
 
     // create and attach depth buffer (renderbuffer)
     glDeleteRenderbuffers(1, &rboDepth);
@@ -146,9 +146,9 @@ void bind() {
 
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, position, 0);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normal, 0);
-//    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, albedo, 0);
-    GLenum attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
-    glDrawBuffers(2, attachments);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, albedo, 0);
+    GLenum attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+    glDrawBuffers(3, attachments);
     
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
 }
@@ -304,9 +304,15 @@ void renderSceneToGBuffer(std::function<void()> renderCallback,
     else fbo::gbuffer::bind();
     
     glDisable(GL_BLEND);
+    
+    GLfloat color[4];
+    glGetFloatv(GL_COLOR_CLEAR_VALUE, color);
+    
+    glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     renderCallback();
+    
+    glClearColor(color[0], color[1], color[2], color[3]);
     
 }
 
@@ -329,7 +335,7 @@ void generateSSAOTexture(float width, float height, float zoom,
             const float z = zoom - 15.; // zoom (15, 20)
             const float z_scale = pow(2., z);
             const float z_factor = fmin(fmax(z / 5., 0.), 1.);
-            const float scalar = 0.03 * z_scale * pow(1.25 - z_factor * 0.2, i);
+            const float scalar = 0.03 * z_scale * pow(1.35 - z_factor * 0.3, i);
             
             UniformLocation u0(program, ("u_sample_radius[" + std::to_string(i) + "]").c_str());
             glUniform1fv(u0, 1, &scalar);
@@ -364,9 +370,14 @@ void generateSSAOTexture(float width, float height, float zoom,
         glUniform1i(u1, 1);
         
         glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, sample::noise::texture);
-        static UniformLocation u2(program, "u_noise");
+        glBindTexture(GL_TEXTURE_2D, fbo::gbuffer::albedo);
+        static UniformLocation u2(program, "u_albedo");
         glUniform1i(u2, 2);
+        
+        glActiveTexture(GL_TEXTURE3);
+        glBindTexture(GL_TEXTURE_2D, sample::noise::texture);
+        static UniformLocation u3(program, "u_noise");
+        glUniform1i(u3, 3);
     }
     
     renderQuad(program);
