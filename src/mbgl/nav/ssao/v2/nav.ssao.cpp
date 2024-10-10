@@ -325,10 +325,11 @@ void generateSSAOTexture(float width, float height, float zoom,
     glUseProgram(program);
     
     {
-        // zoom (15, 20)
         for (unsigned int i = 0; i < sample::kernel::SIZE; ++i) {
-            const float zoom_scale = pow(2., zoom - 15.);
-            const float scalar = 0.04 * pow(1.2, i) * zoom_scale;
+            zoom -= 15.; // zoom (15, 20)
+            const float zoom_scale = pow(2., zoom);
+            const float zoom_factor = fmin(fmax(zoom / 5., 0.), 1.);
+            const float scalar = 0.03 * pow(1.25 - zoom_factor * 0.2, i) * zoom_scale;
             
             UniformLocation u0(program, ("u_sample_radius[" + std::to_string(i) + "]").c_str());
             glUniform1fv(u0, 1, &scalar);
