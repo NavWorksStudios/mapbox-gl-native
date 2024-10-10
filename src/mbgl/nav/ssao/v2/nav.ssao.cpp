@@ -297,7 +297,7 @@ void renderQuad(GLint program) {
 // 1. geometry pass: render scene's geometry/color data into gbuffer
 // -----------------------------------------------------------------
 
-void renderSceneToGBuffer(std::function<void()> renderCallback,
+void renderGBuffer(std::function<void()> renderCallback,
                           std::function<void()> bindScreenFbo=nullptr) {
     
     if (bindScreenFbo) bindScreenFbo();
@@ -318,7 +318,7 @@ void renderSceneToGBuffer(std::function<void()> renderCallback,
 
 // 2. generate SSAO texture
 // ------------------------
-void generateSSAOTexture(float width, float height, float zoom,
+void generateShadowAndAOTexture(float width, float height, float zoom,
                          const Mat4& projMatrix,
                          std::function<void()> bindScreenFbo=nullptr) {
     
@@ -378,6 +378,11 @@ void generateSSAOTexture(float width, float height, float zoom,
         glBindTexture(GL_TEXTURE_2D, sample::noise::texture);
         static UniformLocation u3(program, "u_noise");
         glUniform1i(u3, 3);
+        
+//        glActiveTexture(GL_TEXTURE4);
+//        glBindTexture(GL_TEXTURE_2D, nav::shadow::texture());
+//        static UniformLocation u4(program, "u_shadow");
+//        glUniform1i(u4, 4);
     }
     
     renderQuad(program);
@@ -386,7 +391,7 @@ void generateSSAOTexture(float width, float height, float zoom,
 
 // 3. blur SSAO texture to screen
 // ------------------------------------
-void blurSSAOTexture(int width, int height,
+void blurTextureToScreen(int width, int height,
                      std::function<void()> bindScreenFbo=nullptr) {
     
     if (bindScreenFbo) bindScreenFbo();
@@ -495,11 +500,6 @@ void draw(float zoom, mbgl::mat4 projMatrix, std::function<void()> renderCallbac
         shader::load();
         floor::init();
     });
-
-    const float BUFFER_SCALE = .7;
-    const int width = nav::display::pixels::width() * BUFFER_SCALE;
-    const int height = nav::display::pixels::height() * BUFFER_SCALE;
-    fbo::generate(width, height);
     
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT, viewport);
@@ -508,15 +508,24 @@ void draw(float zoom, mbgl::mat4 projMatrix, std::function<void()> renderCallbac
         glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
     };
     
-    glViewport(0, 0, width, height);
-    glEnable(GL_DEPTH_TEST);
-    glDepthMask(GL_TRUE);
-    glDepthFunc(GL_LESS);
 
-    renderSceneToGBuffer(renderCallback);
-    generateSSAOTexture(width, height, zoom, convertMatrix(projMatrix));
-    blurSSAOTexture(width, height, bindScreenFbo);
+    {
+        const float BUFFER_SCALE = .7;
+        const int width = nav::display::pixels::width() * BUFFER_SCALE;
+        const int height = nav::display::pixels::height() * BUFFER_SCALE;
+        fbo::generate(width, height);
+        
+        glViewport(0, 0, width, height);
+        glEnable(GL_DEPTH_TEST);
+        glDepthMask(GL_TRUE);
+        glDepthFunc(GL_LESS);
 
+        renderGBuffer(renderCallback);
+        generateShadowAndAOTexture(width, height, zoom, convertMatrix(projMatrix));
+        blurTextureToScreen(width, height, bindScreenFbo);
+    }
+    
+    
     bindScreenFbo();
 }
 

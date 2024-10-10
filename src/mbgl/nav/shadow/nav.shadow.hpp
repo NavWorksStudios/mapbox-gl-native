@@ -20,14 +20,8 @@ namespace nav {
 
 namespace shadow {
 
-namespace sample {
-
-//    void draw(float zoom, mbgl::mat4 projMatrix, std::function<void()> renderCallback);
     void draw(std::function<void()> renderCallback);
-
 //    void enableShadowEnv();
-
-}   // sample
 
 }   // shadow
 

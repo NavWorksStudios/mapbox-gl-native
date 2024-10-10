@@ -25,7 +25,6 @@ namespace nav {
 
 namespace shadow {
 
-namespace sample {
 
 // Framebuffers, textures to render to, renderbuffers, other textures
 GLuint modelbuffer;
@@ -524,7 +523,6 @@ void draw(std::function<void()> renderCallback) {
         loadModel();
     });
     
-    glClearColor(0, 0, 0, 0);
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
     glDepthFunc(GL_LESS);
@@ -536,7 +534,6 @@ void draw(std::function<void()> renderCallback) {
     drawModel(true);
 }
 
-}   // end sample
 
 }   // end shadow
 

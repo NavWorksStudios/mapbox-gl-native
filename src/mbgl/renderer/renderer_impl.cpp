@@ -178,20 +178,17 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
         }
     }
     
-    // - SSAO PASS --------------------------------------------------------------------------------
+    // - Shadow SSAO PASS --------------------------------------------------------------------------------
     {
+        nav::shadow::draw([&parameters] () {
+            // RenderFillExtrusionLayer::renderShadow(parameters);
+        });
+
         nav::ssao::v2::draw(
         parameters.state.getZoom(),
         parameters.state.getCameraToClipMatrix(),
         [&parameters] () {
             RenderFillExtrusionLayer::renderSSAO(parameters);
-        });
-    }
-    
-    // - Shadow PASS --------------------------------------------------------------------------------
-    {
-        nav::shadow::sample::draw([&parameters] () {
-            // RenderFillExtrusionLayer::renderShadow(parameters);
         });
     }
 
