@@ -15,8 +15,7 @@
 #include <mbgl/util/string.hpp>
 #include <mbgl/util/logging.hpp>
 
-#include "mbgl/nav/ssao/v2/nav.ssao.hpp"
-#include "mbgl/nav/shadow/nav.shadow.hpp"
+#include "mbgl/nav/nav.render.hpp"
 
 #include <mbgl/renderer/layers/render_fill_extrusion_layer.hpp>
 
@@ -178,13 +177,9 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
         }
     }
     
-    // - Shadow SSAO PASS --------------------------------------------------------------------------------
+    // - NAV DEFERRED RENDERING PASS --------------------------------------------------------------------------------
     {
-        nav::shadow::enableShadowDepthBuffer([&parameters] () {
-            RenderFillExtrusionLayer::renderShadowDepth(parameters);
-        });
-        
-        nav::ssao::v2::draw(
+        nav::render::deferred(
         parameters.state.getZoom(),
         parameters.state.getCameraToClipMatrix(),
         [&parameters] () {

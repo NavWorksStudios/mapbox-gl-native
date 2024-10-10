@@ -4,7 +4,7 @@
 //  Created by BernieZhao on 2024/9/1.
 //
 
-#include "mbgl/nav/ssao/v2/nav.ssao.hpp"
+#include "mbgl/nav/shadow/nav.shadow.hpp"
 
 #include <random>
 
@@ -633,6 +633,12 @@ GLuint getShadowDepthFBO() {
 GLuint getShadowDepthTexture() {
     return fbo::dbuffer::shadowDepthTexture;
 }
+
+
+GLuint renderDepthBuffer(int width, int height) {
+    return 0;
+}
+
 
 }   // end shadow
 

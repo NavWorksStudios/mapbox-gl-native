@@ -6,21 +6,16 @@
 
 #pragma once
 
-// intro
-// https://learnopengl.com/Advanced-Lighting/SSAO
-
-// source code
-// https://learnopengl.com/code_viewer_gh.php?code=src/5.advanced_lighting/9.ssao/ssao.cpp
-
 #include <functional>
 #include <gl_headers.hpp>
-#include <mbgl/util/mat4.hpp>
+#include "mbgl/nav/ssao/v1/mat4.h"
 
 namespace nav {
 namespace ssao {
-namespace v2 {
-    void renderTileFloor(const mbgl::mat4&, const mbgl::mat4&, const mbgl::mat4&);
-    void draw(float zoom, mbgl::mat4 projMatrix, std::function<void()> renderCallback);
-}
+
+void initResource(int width, int height);
+void renderGeoAndShadowBuffer(GLint shadowDepth, std::function<void()> renderCallback);
+GLint renderAOBuffer(int width, int height, float zoom, const Mat4& projMatrix);
+
 }
 }

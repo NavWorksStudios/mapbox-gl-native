@@ -4,18 +4,20 @@
 //  Created by BernieZhao on 2024/9/1.
 //
 
+// intro
+// https://learnopengl.com/Advanced-Lighting/SSAO
+// source code
+// https://learnopengl.com/code_viewer_gh.php?code=src/5.advanced_lighting/9.ssao/ssao.cpp
+
+
 #include "mbgl/nav/ssao/v2/nav.ssao.hpp"
+
+#include "mbgl/nav/nav.render.hpp"
 
 #include <random>
 
-#include "mbgl/nav/ssao/v1/shaders.h"
 #include "mbgl/nav/ssao/v1/vec3.h"
-#include "mbgl/nav/ssao/v1/mat4.h"
-
-#include "mbgl/nav/nav.style.hpp"
-#include "mbgl/nav/nav.palette.hpp"
-
-#include <mbgl/programs/fill_extrusion_ssao_program.hpp>
+#include "mbgl/nav/ssao/v1/shaders.h"
 #include <mbgl/programs/gl/nav_ssao.hpp>
 
 
@@ -95,21 +97,8 @@ void generate() {
 }
 
 
-namespace fbo {
-
-GLuint genTexture(GLint internalformat, GLsizei width, GLsizei height, GLenum format, GLenum type) {
-    GLuint texture;
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, internalformat, width, height, 0, format, type, NULL);
-    
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    
-    return texture;
-}
-
 namespace gbuffer {
+
 GLuint fbo = 0;
 GLuint position = 0;
 GLuint normal = 0;
@@ -121,17 +110,17 @@ void generate(int width, int height) {
 
     // position color buffer
     glDeleteTextures(1, &position);
-    position = genTexture(GL_RGB16F, width, height, GL_RGB, GL_FLOAT);
+    position = nav::render::util::genTexture(GL_RGB16F, width, height, GL_RGB, GL_FLOAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     // normal color buffer
     glDeleteTextures(1, &normal);
-    normal = genTexture(GL_RGB16F, width, height, GL_RGB, GL_FLOAT);
+    normal = nav::render::util::genTexture(GL_RGB16F, width, height, GL_RGB, GL_FLOAT);
 
     // color + specular color buffer
     glDeleteTextures(1, &albedo);
-    albedo = genTexture(GL_RGB16F, width, height, GL_RGB, GL_FLOAT);
+    albedo = nav::render::util::genTexture(GL_RGB16F, width, height, GL_RGB, GL_FLOAT);
 
     // create and attach depth buffer (renderbuffer)
     glDeleteRenderbuffers(1, &rboDepth);
@@ -140,7 +129,7 @@ void generate(int width, int height) {
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
 }
 
-void bind() {
+void bindFbo() {
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, position, 0);
@@ -155,132 +144,8 @@ void bind() {
 }
 
 
-namespace ssao {
-GLuint fbo = 0;
-GLuint buffer = 0;
-
-void generate(int width, int height) {
-    if (!fbo) glGenFramebuffers(1, &fbo);
-    
-    glDeleteTextures(1, &buffer);
-    buffer = genTexture(GL_RED, width, height, GL_RED, GL_FLOAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-}
-
-void bind() {
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, buffer, 0);
-    glDrawBuffer(GL_COLOR_ATTACHMENT0);
-}
-
-}
-
-
-void generate(int width, int height) {
-    static int w = 0, h = 0;
-    if (w != width || h != height) {
-        w = width;
-        h = height;
-        
-        gbuffer::generate(w, h);
-        ssao::generate(w, h);
-    }
-}
-
-}
-
-
-namespace shader {
-
-GLint floorPass;
-GLuint aoPass;
-GLint blurPass;
-GLint renderNDCPass;
-
-void load() {
-    // #*# 加载floor shader
-
-    floorPass =
-    createProgram(compileShader(GL_VERTEX_SHADER, mbgl::vertexShader()),
-                  compileShader(GL_FRAGMENT_SHADER, mbgl::fragmentShader()));
-    
-    aoPass =
-    createProgram(compileShader(GL_VERTEX_SHADER, nav::programs::ssao::vertexShader()),
-                  compileShader(GL_FRAGMENT_SHADER, nav::programs::ssao::genSSAOFragmentShader()));
-    
-    blurPass =
-    createProgram(compileShader(GL_VERTEX_SHADER, nav::programs::ssao::vertexShader()),
-                  compileShader(GL_FRAGMENT_SHADER, nav::programs::ssao::blurFragmentShader()));
-}
-
-}
-
-
-typedef GLint(*GetLocation)(GLuint, const GLchar*);
-
-template <GetLocation f> struct Location {
-    Location(GLint program, const char* name) {
-        value = f(program, name);
-        assert(value >= 0);
-    }
-    
-    operator GLint () { return value; }
-    GLint value;
-};
-
-using UniformLocation = Location<glGetUniformLocation>;
-using AttribLocation = Location<glGetAttribLocation>;
-
-
-// renderQuad() renders a 1x1 XY quad in NDC
-// -----------------------------------------
-
-void renderQuad(GLint program) {
-    static GLuint quadVAO = 0;
-    static GLuint quadVBO;
-    
-    if (quadVAO == 0)
-    {
-        float quadVertices[] = {
-            // positions            // texture Coords
-            -1.0f,  1.0f, 0.0f,     0.0f, 1.0f,
-            -1.0f, -1.0f, 0.0f,     0.0f, 0.0f,
-             1.0f,  1.0f, 0.0f,     1.0f, 1.0f,
-             1.0f, -1.0f, 0.0f,     1.0f, 0.0f,
-        };
-        
-        // setup plane VAO
-        glGenVertexArrays(1, &quadVAO);
-        glGenBuffers(1, &quadVBO);
-        glBindVertexArray(quadVAO);
-        glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-
-        static AttribLocation a0(program, "aPos");
-        glEnableVertexAttribArray(a0);
-        glVertexAttribPointer(a0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-        
-        static AttribLocation a1(program, "aTexCoords");
-        glEnableVertexAttribArray(a1);
-        glVertexAttribPointer(a1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-    }
-
-    glBindVertexArray(quadVAO);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    glBindVertexArray(0);
-}
-
-
-
-// 1. geometry pass: render scene's geometry/color data into gbuffer
-// -----------------------------------------------------------------
-
-void renderGBuffer(std::function<void()> renderCallback,
-                          std::function<void()> bindScreenFbo=nullptr) {
-    
-    if (bindScreenFbo) bindScreenFbo();
-    else fbo::gbuffer::bind();
+void renderGeoAndShadowBuffer(GLint shadowDepth, std::function<void()> renderCallback) {
+    gbuffer::bindFbo();
     
     glDisable(GL_BLEND);
     
@@ -292,21 +157,49 @@ void renderGBuffer(std::function<void()> renderCallback,
     renderCallback();
     
     glClearColor(color[0], color[1], color[2], color[3]);
-    
 }
 
-// 2. generate SSAO texture
-// ------------------------
-void generateShadowAndAOTexture(float width, float height, float zoom,
-                         const Mat4& projMatrix,
-                         std::function<void()> bindScreenFbo=nullptr) {
+
+namespace ao {
+
+GLuint fbo = 0;
+GLuint buffer = 0;
+
+void generate(int width, int height) {
+    if (!fbo) glGenFramebuffers(1, &fbo);
     
-    if (bindScreenFbo) bindScreenFbo();
-    else fbo::ssao::bind();
+    glDeleteTextures(1, &buffer);
+    buffer = nav::render::util::genTexture(GL_RED, width, height, GL_RED, GL_FLOAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+}
+
+void bindFbo() {
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, buffer, 0);
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+}
+
+GLuint program() {
+    static GLuint pass = 0;
+    if (!pass) {
+        pass =
+        createProgram(compileShader(GL_VERTEX_SHADER, nav::programs::ssao::vertexShader()),
+                      compileShader(GL_FRAGMENT_SHADER, nav::programs::ssao::genSSAOFragmentShader()));
+    }
+
+    return pass;
+}
+
+}
+
+GLint renderAOBuffer(int width, int height, float zoom, const Mat4& projMatrix) {
+    ao::bindFbo();
 
     glClear(GL_COLOR_BUFFER_BIT);
-    
-    const GLint program = shader::aoPass;
+
+    const GLint program = ao::program();
+
     glUseProgram(program);
     
     {
@@ -316,188 +209,69 @@ void generateShadowAndAOTexture(float width, float height, float zoom,
             const float z_factor = fmin(fmax(z / 5., 0.), 1.);
             const float scalar = 0.03 * z_scale * pow(1.35 - z_factor * 0.3, i);
             
-            UniformLocation u0(program, ("u_sample_radius[" + std::to_string(i) + "]").c_str());
+            programs::UniformLocation u0(program, ("u_sample_radius[" + std::to_string(i) + "]").c_str());
             glUniform1fv(u0, 1, &scalar);
 
-            UniformLocation u1(program, ("u_z_bias[" + std::to_string(i) + "]").c_str());
+            programs::UniformLocation u1(program, ("u_z_bias[" + std::to_string(i) + "]").c_str());
             glUniform1fv(u1, 1, &scalar);
         
             // Send kernel + rotation
             Vec3 v = sample::kernel::data[i].scale(scalar);
-            UniformLocation u2(program, ("u_samples[" + std::to_string(i) + "]").c_str());
+            programs::UniformLocation u2(program, ("u_samples[" + std::to_string(i) + "]").c_str());
             glUniform3fv(u2, 1, &v.x);
         }
     }
 
     {
-        static UniformLocation u0(program, "u_projection");
+        static programs::UniformLocation u0(program, "u_projection");
         glUniformMatrix4fv(u0, 1, GL_FALSE, reinterpret_cast<const float*>(&projMatrix));
         
-        static UniformLocation u1(program, "u_text_scale");
+        static programs::UniformLocation u1(program, "u_text_scale");
         glUniform2f(u1, width / sample::noise::SIZE, height / sample::noise::SIZE);
     }
 
     {
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, fbo::gbuffer::position);
-        static UniformLocation u0(program, "u_position");
+        glBindTexture(GL_TEXTURE_2D, gbuffer::position);
+        static programs::UniformLocation u0(program, "u_position");
         glUniform1i(u0, 0);
         
         glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, fbo::gbuffer::normal);
-        static UniformLocation u1(program, "u_normal");
+        glBindTexture(GL_TEXTURE_2D, gbuffer::normal);
+        static programs::UniformLocation u1(program, "u_normal");
         glUniform1i(u1, 1);
         
         glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, fbo::gbuffer::albedo);
-        static UniformLocation u2(program, "u_albedo");
+        glBindTexture(GL_TEXTURE_2D, gbuffer::albedo);
+        static programs::UniformLocation u2(program, "u_albedo");
         glUniform1i(u2, 2);
         
         glActiveTexture(GL_TEXTURE3);
         glBindTexture(GL_TEXTURE_2D, sample::noise::texture);
-        static UniformLocation u3(program, "u_noise");
+        static programs::UniformLocation u3(program, "u_noise");
         glUniform1i(u3, 3);
     }
     
-    renderQuad(program);
+    nav::render::util::renderQuad(program);
 
-}
-
-// 3. blur SSAO texture to screen
-// ------------------------------------
-void blurTextureToScreen(int width, int height,
-                     std::function<void()> bindScreenFbo=nullptr) {
-    
-    bindScreenFbo();
-    
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    const GLint program = shader::blurPass;
-    glUseProgram(program);
-    
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, fbo::ssao::buffer);
-    static UniformLocation u0(program, "u_ssao");
-    glUniform1i(u0, 0);
-    
-    static UniformLocation u1(program, "u_texsize");
-    glUniform2f(u1, width, height);
-    
-    renderQuad(program);
-    
-    glDisable(GL_BLEND);
-    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-
-}
-
-namespace v2 {
-
-static auto convertMatrix = [] (mbgl::mat4 matrix) {
-    Mat4 m;
-    for (int i=0; i<16; i++) ((float*)&m)[i] = float(matrix[i]);
-    return m;
-};
-
-
-namespace floor {
-
-GLuint tileFloorBuf = 0;
-
-void init() {
-    // Set up buffer for floor data, 6 triangles
-    const static GLfloat tileFloorData[36] = {
-        0.0f, 8192.0f,
-        0.0f, 0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f,
-        0.0f, 0.0f, 1.0f, 0.0f,
-        8192.0f, 8192.0f,
-        0.0f, 0.0f, 1.0f, 0.0f,
-
-        8192.0f, 8192.0f,
-        0.0f, 0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f,
-        0.0f, 0.0f, 1.0f, 0.0f,
-        8192.0f, 0.0f,
-        0.0f, 0.0f, 1.0f, 0.0f };
-    
-    glGenBuffers(1, &tileFloorBuf);
-    glBindBuffer(GL_ARRAY_BUFFER, tileFloorBuf);
-    glBufferData(GL_ARRAY_BUFFER, 36 * sizeof(GLfloat), tileFloorData, GL_STATIC_DRAW);
-}
-
+    return ao::buffer;
 }
 
 
-void renderTileFloor(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::mat4& normal) {
-    const GLint program = shader::floorPass;
-    glUseProgram(program);
-    
-    // convert 3*matrix mbgl::mat4 to Mat4
-    Mat4 MVP = convertMatrix(mvp);
-    Mat4 MV = convertMatrix(mv);
-    Mat4 NORMAL = convertMatrix(normal);
-    
-    // floor uniforms
-    static UniformLocation u0(program, "u_matrix");
-    glUniformMatrix4fv(u0, 1, GL_FALSE, reinterpret_cast<float*>(&MVP));
-    
-    static UniformLocation u1(program, "u_model_view_matrix");
-    glUniformMatrix4fv(u1, 1, GL_FALSE, reinterpret_cast<float*>(&MV));
-    
-    static UniformLocation u2(program, "u_normal_matrix");
-    glUniformMatrix4fv(u2, 1, GL_FALSE, reinterpret_cast<float*>(&NORMAL));
-    
-    // floor attributes
-    glBindBuffer(GL_ARRAY_BUFFER, floor::tileFloorBuf);
-    
-    static AttribLocation a0(program, "a_pos");
-    glEnableVertexAttribArray(a0);
-    glVertexAttribPointer(a0, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(0));
-    
-    static AttribLocation a1(program, "a_normal_ed");
-    glEnableVertexAttribArray(a1);
-    glVertexAttribPointer(a1, 4, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(2*sizeof(GLfloat)));
-    
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-}
-
-void draw(float zoom, mbgl::mat4 projMatrix, std::function<void()> renderCallback) {
-
+void initResource(int width, int height) {
     static std::once_flag flag;
     std::call_once(flag, [] () {
         sample::generate();
-        shader::load();
-        floor::init();
     });
     
-    GLint viewport[4];
-    glGetIntegerv(GL_VIEWPORT, viewport);
-    auto bindScreenFbo = [viewport] () {
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
-    };
-
-    {
-        const float BUFFER_SCALE = .7;
-        const int width = nav::display::pixels::width() * BUFFER_SCALE;
-        const int height = nav::display::pixels::height() * BUFFER_SCALE;
-        fbo::generate(width, height);
+    static int w = 0, h = 0;
+    if (w != width || h != height) {
+        w = width;
+        h = height;
         
-        glViewport(0, 0, width, height);
-        glEnable(GL_DEPTH_TEST);
-        glDepthMask(GL_TRUE);
-        glDepthFunc(GL_LESS);
-
-        renderGBuffer(renderCallback);
-        generateShadowAndAOTexture(width, height, zoom, convertMatrix(projMatrix));
-        blurTextureToScreen(width, height, bindScreenFbo);
+        gbuffer::generate(w, h);
+        ao::generate(w, h);
     }
-    
-    
-    bindScreenFbo();
-}
-
 }
 
 

@@ -19,8 +19,7 @@
 #include <mbgl/util/math.hpp>
 
 #include "mbgl/nav/nav.theme.hpp"
-#include "mbgl/nav/ssao/v1/nav.ssao.hpp"
-#include "mbgl/nav/ssao/v2/nav.ssao.hpp"
+#include "mbgl/nav/nav.render.hpp"
 #include "mbgl/nav/ssao/v1/vec3.h"
 #include "mbgl/nav/ssao/v1/mat4.h"
 
@@ -199,7 +198,7 @@ void RenderFillExtrusionLayer::doRenderSSAO(PaintParameters& parameters) {
             matrix::transpose(normalMatrix);
             
             // draw tile floors with ssao logic code
-            nav::ssao::v2::renderTileFloor(matrix, tile.modelViewMatrix, normalMatrix);
+            nav::render::renderTileFloor(matrix, tile.modelViewMatrix, normalMatrix);
         }
     };
 
