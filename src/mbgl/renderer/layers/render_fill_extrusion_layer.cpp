@@ -49,13 +49,12 @@ RenderFillExtrusionLayer::~RenderFillExtrusionLayer() {
     renderFillExtrusionLayer = nullptr;
 }
 
-void RenderFillExtrusionLayer::renderSSAO(PaintParameters& parameters) {
-    // render extrusion with SSAO shader
+void RenderFillExtrusionLayer::renderDeferredGeoBuffer(PaintParameters& parameters) {
     if(renderFillExtrusionLayer)
-        renderFillExtrusionLayer->doRenderSSAO(parameters);
+        renderFillExtrusionLayer->doRenderDeferredGeoBuffer(parameters);
 }
 
-void RenderFillExtrusionLayer::doRenderSSAO(PaintParameters& parameters) {
+void RenderFillExtrusionLayer::doRenderDeferredGeoBuffer(PaintParameters& parameters) {
     if(!renderTiles)
         return;
 
@@ -169,13 +168,8 @@ void RenderFillExtrusionLayer::doRenderSSAO(PaintParameters& parameters) {
             );
         }
     };
-    
+
     const auto drawTileFloors = [&]() {
-        auto layoutUniforms = FillExtrusionSSAOProgram::layoutUniformValues(
-            uniforms::matrix::Value(),
-            uniforms::model_view_matrix::Value(),
-            uniforms::normal_matrix::Value()
-        );
         size_t renderIndex = -1;
         for (const RenderTile& tile : *renderTiles) {
             renderIndex++;
@@ -184,16 +178,18 @@ void RenderFillExtrusionLayer::doRenderSSAO(PaintParameters& parameters) {
                 continue;
             }
             
+            const LayerRenderData* renderData = getRenderDataForPass(renderIndex, parameters.pass);
+            if (!renderData) {
+                continue;
+            }
+            
             const auto& translate = evaluated.get<FillExtrusionTranslate>();
             const auto& anchor = evaluated.get<FillExtrusionTranslateAnchor>();
             const auto& state = parameters.state;
             
             const auto matrix = tile.translatedClipMatrix(translate, anchor, state);
-            layoutUniforms.template get<uniforms::matrix>() = matrix;
 
-            layoutUniforms.template get<uniforms::model_view_matrix>() = tile.modelViewMatrix;
-            
-            auto& normalMatrix = layoutUniforms.template get<uniforms::normal_matrix>();
+            mat4 normalMatrix;
             matrix::invert(normalMatrix, tile.modelViewMatrix);
             matrix::transpose(normalMatrix);
             

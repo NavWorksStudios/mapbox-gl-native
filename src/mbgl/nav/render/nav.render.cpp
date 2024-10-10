@@ -14,9 +14,10 @@
 #include "mbgl/nav/render/shadow/nav.shadow.hpp"
 #include "mbgl/nav/render/ssao/nav.ssao.hpp"
 
-#include <mbgl/programs/gl/nav_ssao.hpp>
-
+#include <mbgl/programs/gl/nav.ssao.shader.hpp>
 #include <mbgl/programs/fill_extrusion_ssao_program.hpp>
+
+#include "mbgl/nav/nav.log.hpp"
 
 
 namespace nav {
@@ -31,20 +32,28 @@ static auto convertMatrix = [] (mbgl::mat4 matrix) {
 
 
 void deferred(float zoom, mbgl::mat4 projMatrix, std::function<void()> renderCallback) {
+
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT, viewport);
+    auto bindScreen = [viewport] () {
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+    };
     
-    glEnable(GL_DEPTH_TEST);
-    glDepthMask(GL_TRUE);
-    glDepthFunc(GL_LESS);
+    GLboolean depthTestEnabled;
+    glGetBooleanv(GL_DEPTH_TEST, &depthTestEnabled);
+    
 
     const float BUFFER_SCALE = .7;
     const int w = nav::display::pixels::width() * BUFFER_SCALE;
     const int h = nav::display::pixels::height() * BUFFER_SCALE;
     
-    GLint viewport[4];
-    glGetIntegerv(GL_VIEWPORT, viewport);
-    glViewport(0, 0, w, h);
-    
     nav::ssao::initResource(w, h);
+
+    glViewport(0, 0, w, h);
+    glEnable(GL_DEPTH_TEST);
+    glDepthMask(GL_TRUE);
+    glDepthFunc(GL_LESS);
     
     const GLint shadowDepth = nav::shadow::renderDepthBuffer(w, h);
 
@@ -52,10 +61,11 @@ void deferred(float zoom, mbgl::mat4 projMatrix, std::function<void()> renderCal
 
     const GLint renderBuffer = nav::ssao::renderAOBuffer(w, h, zoom, convertMatrix(projMatrix));
     
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+    bindScreen();
     
     nav::blur::render(renderBuffer, w, h);
+    
+    depthTestEnabled ? glEnable(GL_DEPTH_TEST) : glDisable(GL_DEPTH_TEST);
 
 }
 
@@ -104,14 +114,18 @@ GLuint data() {
 
 
 void renderTileFloor(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::mat4& normal) {
-    const GLint program = floor::program();
-
-    glUseProgram(program);
     
     // convert 3*matrix mbgl::mat4 to Mat4
     const Mat4 MVP = convertMatrix(mvp);
     const Mat4 MV = convertMatrix(mv);
     const Mat4 NORMAL = convertMatrix(normal);
+    
+    const GLint program = floor::program();
+    glUseProgram(program);
+    
+    GLboolean cullfaceEnabled;
+    glGetBooleanv(GL_CULL_FACE, &cullfaceEnabled);
+    glDisable(GL_CULL_FACE);
     
     // floor uniforms
     {
@@ -136,10 +150,13 @@ void renderTileFloor(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::ma
         
         static programs::AttribLocation a1(program, "a_normal_ed");
         glEnableVertexAttribArray(a1);
-        glVertexAttribPointer(a1, 4, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(2*sizeof(GLfloat)));
+        glVertexAttribPointer(a1, 4, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(2 * sizeof(GLfloat)));
     }
 
     glDrawArrays(GL_TRIANGLES, 0, 6);
+    
+    cullfaceEnabled ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
+
 }
 
 namespace util {

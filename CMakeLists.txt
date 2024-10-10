@@ -340,12 +340,12 @@ set(all_files
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/shadow/nav.shadow.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/shadow/nav.shadow.cpp
 
-    
+
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/ssao/v1/rply.h
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/ssao/v1/rply.c
 
 
-    ${PROJECT_SOURCE_DIR}/src/mbgl/programs/gl/nav_ssao.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/programs/gl/nav.ssao.shader.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/programs/gl/nav_fill_extrusion_P2.hpp
 
 

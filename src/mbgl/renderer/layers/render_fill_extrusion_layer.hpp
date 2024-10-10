@@ -13,11 +13,11 @@ public:
     ~RenderFillExtrusionLayer() override;
     
 public:
-    static void renderSSAO(PaintParameters& parameters);
+    static void renderDeferredGeoBuffer(PaintParameters& parameters);
     static void renderShadowDepth(PaintParameters& parameters);
 
 private:
-    void doRenderSSAO(PaintParameters&);
+    void doRenderDeferredGeoBuffer(PaintParameters&);
     void doRenderShadowDepth(PaintParameters&);
 
 private:

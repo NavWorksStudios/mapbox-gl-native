@@ -18,7 +18,7 @@
 #include "mbgl/nav/render/vec3.h"
 #include "mbgl/nav/render/shaders.h"
 
-#include <mbgl/programs/gl/nav_ssao.hpp>
+#include <mbgl/programs/gl/nav.ssao.shader.hpp>
 
 
 namespace nav {
@@ -144,8 +144,9 @@ void bindFbo() {
 }
 
 
-void renderGeoAndShadowBuffer(GLint shadowDepth, std::function<void()> renderCallback) {
-    gbuffer::bindFbo();
+void renderGeoAndShadowBuffer(GLint shadowDepth, std::function<void()> renderCallback, std::function<void()> bindScreen) {
+    if (bindScreen) bindScreen();
+    else gbuffer::bindFbo();
     
     glDisable(GL_BLEND);
     
@@ -193,8 +194,9 @@ GLuint program() {
 
 }
 
-GLint renderAOBuffer(int width, int height, float zoom, const Mat4& projMatrix) {
-    ao::bindFbo();
+GLint renderAOBuffer(int width, int height, float zoom, const Mat4& projMatrix, std::function<void()> bindScreen) {
+    if (bindScreen) bindScreen();
+    else ao::bindFbo();
 
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -207,7 +209,7 @@ GLint renderAOBuffer(int width, int height, float zoom, const Mat4& projMatrix) 
             const float z = zoom - 15.; // zoom (15, 20)
             const float z_scale = pow(2., z);
             const float z_factor = fmin(fmax(z / 5., 0.), 1.);
-            const float scalar = 0.03 * z_scale * pow(1.35 - z_factor * 0.3, i);
+            const float scalar = 0.03 * z_scale * pow(1.25 - z_factor * 0.2, i);
             
             programs::UniformLocation u0(program, ("u_sample_radius[" + std::to_string(i) + "]").c_str());
             glUniform1fv(u0, 1, &scalar);

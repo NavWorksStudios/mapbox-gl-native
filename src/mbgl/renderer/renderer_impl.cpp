@@ -183,7 +183,7 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
         parameters.state.getZoom(),
         parameters.state.getCameraToClipMatrix(),
         [&parameters] () {
-            RenderFillExtrusionLayer::renderSSAO(parameters);
+            RenderFillExtrusionLayer::renderDeferredGeoBuffer(parameters);
         });
     }
 
