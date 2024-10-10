@@ -20,8 +20,11 @@ namespace nav {
 
 namespace shadow {
 
-    void draw(std::function<void()> renderCallback);
-//    void enableShadowEnv();
+    GLuint getShadowDepthFBO();
+
+    GLuint getShadowDepthTexture();
+
+    void enableShadowDepthBuffer(std::function<void()> renderCallback);   // draw / drawShadowDepthBuffer
 
 }   // shadow
 

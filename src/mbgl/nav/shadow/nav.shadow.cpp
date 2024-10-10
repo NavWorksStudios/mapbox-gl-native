@@ -534,6 +534,105 @@ void draw(std::function<void()> renderCallback) {
     drawModel(true);
 }
 
+namespace fbo {
+
+namespace dbuffer {
+GLuint shadowDepthFBO;
+GLuint shadowDepthTexture;
+
+void generate(int width, int height) {
+    if (!shadowDepthFBO)
+        glGenFramebuffers(1, &shadowDepthFBO);
+    // shadow depth buffer
+    glDeleteTextures(1, &shadowDepthTexture);
+    glGenTextures(1, &shadowDepthTexture);
+    glBindTexture(GL_TEXTURE_2D, shadowDepthTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+}
+
+void bind() {
+    glBindFramebuffer(GL_FRAMEBUFFER, shadowDepthFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowDepthTexture, 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    
+    glClear(GL_DEPTH_BUFFER_BIT);
+}
+
+}
+
+void generate(int width, int height) {
+    static int w = 0, h = 0;
+    if (w != width || h != height) {
+        w = width;
+        h = height;
+        
+        dbuffer::generate(w, h);
+    }
+}
+
+}
+
+void renderDBuffer(std::function<void()> renderCallback,
+                   std::function<void()> bindScreenFbo = nullptr) {
+    
+    if (bindScreenFbo) bindScreenFbo();
+    else fbo::dbuffer::bind();
+    
+    glDisable(GL_BLEND);
+    
+    GLfloat color[4];
+    glGetFloatv(GL_COLOR_CLEAR_VALUE, color);
+    
+    glClearColor(0, 0, 0, 0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    renderCallback();
+    
+    glClearColor(color[0], color[1], color[2], color[3]);
+    
+}
+
+void enableShadowDepthBuffer(std::function<void()> renderCallback) {
+    static std::once_flag flag;
+    std::call_once(flag, [] () {
+        // No behavior
+    });
+    
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT, viewport);
+    auto bindScreenFbo = [viewport] () {
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+    };
+
+    {
+        const float BUFFER_SCALE = .7;
+        const int width = nav::display::pixels::width() * BUFFER_SCALE;
+        const int height = nav::display::pixels::height() * BUFFER_SCALE;
+        fbo::generate(width, height);
+        
+        glViewport(0, 0, width, height);
+        glEnable(GL_DEPTH_TEST);
+        glDepthMask(GL_TRUE);
+        glDepthFunc(GL_LESS);
+
+        renderDBuffer(renderCallback);
+    }
+    
+    bindScreenFbo();
+}
+
+GLuint getShadowDepthFBO() {
+    return fbo::dbuffer::shadowDepthFBO;
+}
+
+GLuint getShadowDepthTexture() {
+    return fbo::dbuffer::shadowDepthTexture;
+}
 
 }   // end shadow
 

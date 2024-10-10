@@ -14,10 +14,11 @@ public:
     
 public:
     static void renderSSAO(PaintParameters& parameters);
-    static void renderShadow(PaintParameters& parameters);
+    static void renderShadowDepth(PaintParameters& parameters);
 
 private:
     void doRenderSSAO(PaintParameters&);
+    void doRenderShadowDepth(PaintParameters&);
 
 private:
     void transition(const TransitionParameters&) override;

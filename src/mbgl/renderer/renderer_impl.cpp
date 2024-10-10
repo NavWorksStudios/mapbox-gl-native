@@ -180,10 +180,10 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
     
     // - Shadow SSAO PASS --------------------------------------------------------------------------------
     {
-        nav::shadow::draw([&parameters] () {
-            // RenderFillExtrusionLayer::renderShadow(parameters);
+        nav::shadow::enableShadowDepthBuffer([&parameters] () {
+            RenderFillExtrusionLayer::renderShadowDepth(parameters);
         });
-
+        
         nav::ssao::v2::draw(
         parameters.state.getZoom(),
         parameters.state.getCameraToClipMatrix(),

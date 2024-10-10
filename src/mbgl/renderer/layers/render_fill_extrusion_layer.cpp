@@ -326,6 +326,17 @@ void RenderFillExtrusionLayer::doRenderSSAO(PaintParameters& parameters) {
 //    drawTileShadows(gfx::StencilMode::disabled(), parameters.colorModeForRenderPass(), "color");
 }
 
+void RenderFillExtrusionLayer::renderShadowDepth(PaintParameters& parameters) {
+    // render extrusion with shadow depth shader
+    if(renderFillExtrusionLayer)
+        renderFillExtrusionLayer->doRenderShadowDepth(parameters);
+}
+
+void RenderFillExtrusionLayer::doRenderShadowDepth(PaintParameters&) {
+    
+    
+}
+
 void RenderFillExtrusionLayer::transition(const TransitionParameters& parameters) {
     unevaluated = impl_cast(baseImpl).paint.transitioned(parameters, std::move(unevaluated));
 }
