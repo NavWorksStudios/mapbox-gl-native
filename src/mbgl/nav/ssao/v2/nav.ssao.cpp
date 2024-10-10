@@ -89,7 +89,6 @@ void generate() {
 
 void generate() {
     kernel::generate();
-//    scale::generate();
     noise::generate();
 }
 
@@ -177,25 +176,6 @@ void bind() {
 
 }
 
-namespace blur {
-GLuint fbo = 0;
-GLuint buffer = 0;
-
-void generate(int width, int height) {
-    if (!fbo) glGenFramebuffers(1, &fbo);
-    
-    glDeleteTextures(1, &buffer);
-    buffer = genTexture(GL_RED, width, height, GL_RED, GL_FLOAT);
-}
-
-void bind() {
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, buffer, 0);
-    glDrawBuffer(GL_COLOR_ATTACHMENT0);
-}
-
-}
-
 
 void generate(int width, int height) {
     static int w = 0, h = 0;
@@ -205,7 +185,6 @@ void generate(int width, int height) {
         
         gbuffer::generate(w, h);
         ssao::generate(w, h);
-        blur::generate(w, h);
     }
 }
 
@@ -378,11 +357,6 @@ void generateShadowAndAOTexture(float width, float height, float zoom,
         glBindTexture(GL_TEXTURE_2D, sample::noise::texture);
         static UniformLocation u3(program, "u_noise");
         glUniform1i(u3, 3);
-        
-//        glActiveTexture(GL_TEXTURE4);
-//        glBindTexture(GL_TEXTURE_2D, nav::shadow::texture());
-//        static UniformLocation u4(program, "u_shadow");
-//        glUniform1i(u4, 4);
     }
     
     renderQuad(program);
@@ -394,11 +368,7 @@ void generateShadowAndAOTexture(float width, float height, float zoom,
 void blurTextureToScreen(int width, int height,
                      std::function<void()> bindScreenFbo=nullptr) {
     
-    if (bindScreenFbo) bindScreenFbo();
-    else {
-        fbo::blur::bind();
-        glClear(GL_COLOR_BUFFER_BIT);
-    }
+    bindScreenFbo();
     
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -423,7 +393,7 @@ void blurTextureToScreen(int width, int height,
 
 namespace v2 {
 
-auto convertMatrix = [] (mbgl::mat4 matrix) {
+static auto convertMatrix = [] (mbgl::mat4 matrix) {
     Mat4 m;
     for (int i=0; i<16; i++) ((float*)&m)[i] = float(matrix[i]);
     return m;
@@ -507,7 +477,6 @@ void draw(float zoom, mbgl::mat4 projMatrix, std::function<void()> renderCallbac
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
     };
-    
 
     {
         const float BUFFER_SCALE = .7;
