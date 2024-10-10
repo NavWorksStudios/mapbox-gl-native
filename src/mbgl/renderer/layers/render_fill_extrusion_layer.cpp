@@ -19,9 +19,9 @@
 #include <mbgl/util/math.hpp>
 
 #include "mbgl/nav/nav.theme.hpp"
-#include "mbgl/nav/nav.render.hpp"
-#include "mbgl/nav/ssao/v1/vec3.h"
-#include "mbgl/nav/ssao/v1/mat4.h"
+#include "mbgl/nav/render/nav.render.hpp"
+#include "mbgl/nav/render/vec3.h"
+#include "mbgl/nav/render/mat4.h"
 
 namespace mbgl {
 

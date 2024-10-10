@@ -15,7 +15,7 @@
 #include <mbgl/util/string.hpp>
 #include <mbgl/util/logging.hpp>
 
-#include "mbgl/nav/nav.render.hpp"
+#include "mbgl/nav/render/nav.render.hpp"
 
 #include <mbgl/renderer/layers/render_fill_extrusion_layer.hpp>
 

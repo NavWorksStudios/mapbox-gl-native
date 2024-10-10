@@ -8,7 +8,7 @@
 
 #include <functional>
 #include <gl_headers.hpp>
-#include "mbgl/nav/ssao/v1/mat4.h"
+#include "mbgl/nav/render/mat4.h"
 
 namespace nav {
 namespace ssao {

@@ -4,14 +4,15 @@
 //  Created by BernieZhao on 2024/9/1.
 //
 
-#include "mbgl/nav/shadow/nav.shadow.hpp"
+#include "mbgl/nav/render/shadow/nav.shadow.hpp"
 
 #include <random>
 
-#include "mbgl/nav/ssao/v1/shaders.h"
-#include "mbgl/nav/ssao/v1/vec3.h"
-#include "mbgl/nav/ssao/v1/mat4.h"
-#include "mbgl/nav/ssao/v1/rply.h"
+#include "mbgl/nav/render/shaders.h"
+#include "mbgl/nav/render/vec3.h"
+#include "mbgl/nav/render/mat4.h"
+
+#include "mbgl/nav/render/ssao/v1/rply.h"
 
 #include "mbgl/nav/nav.style.hpp"
 #include "mbgl/nav/nav.palette.hpp"

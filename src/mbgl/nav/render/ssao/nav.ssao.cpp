@@ -10,14 +10,14 @@
 // https://learnopengl.com/code_viewer_gh.php?code=src/5.advanced_lighting/9.ssao/ssao.cpp
 
 
-#include "mbgl/nav/ssao/v2/nav.ssao.hpp"
-
-#include "mbgl/nav/nav.render.hpp"
+#include "mbgl/nav/render/ssao/nav.ssao.hpp"
 
 #include <random>
 
-#include "mbgl/nav/ssao/v1/vec3.h"
-#include "mbgl/nav/ssao/v1/shaders.h"
+#include "mbgl/nav/render/nav.render.hpp"
+#include "mbgl/nav/render/vec3.h"
+#include "mbgl/nav/render/shaders.h"
+
 #include <mbgl/programs/gl/nav_ssao.hpp>
 
 

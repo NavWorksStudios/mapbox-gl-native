@@ -325,28 +325,26 @@ set(all_files
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.stringid.hpp
 
 
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.render.hpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.render.cpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.blur.hpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.blur.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.render.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.render.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.blur.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.blur.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/mat4.h
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/mat4.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/vec3.h
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/vec3.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/shaders.h
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/shaders.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/ssao/nav.ssao.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/ssao/nav.ssao.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/shadow/nav.shadow.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/shadow/nav.shadow.cpp
 
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v1/rply.h
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v1/rply.c
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v1/mat4.h
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v1/mat4.cpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v1/vec3.h
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v1/vec3.cpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v1/nav.ssao.hpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v1/nav.ssao.cpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v1/shaders.h
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v1/shaders.cpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v1/texture.h
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v1/texture.c
+    
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/ssao/v1/rply.h
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/ssao/v1/rply.c
 
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v2/nav.ssao.hpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/ssao/v2/nav.ssao.cpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/shadow/nav.shadow.hpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/shadow/nav.shadow.cpp
+
     ${PROJECT_SOURCE_DIR}/src/mbgl/programs/gl/nav_ssao.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/programs/gl/nav_fill_extrusion_P2.hpp
 

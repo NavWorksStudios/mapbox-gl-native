@@ -5,10 +5,11 @@
 //  Created by BernieZhao on 2024/10/10.
 //
 
-#include "mbgl/nav/nav.blur.hpp"
-#include "mbgl/nav/nav.render.hpp"
+#include "mbgl/nav/render/nav.blur.hpp"
 
-#include "mbgl/nav/ssao/v1/shaders.h"
+#include "mbgl/nav/render/nav.render.hpp"
+#include "mbgl/nav/render/shaders.h"
+
 #include <mbgl/programs/gl/nav_ssao.hpp>
 
 namespace nav {

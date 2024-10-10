@@ -5,15 +5,15 @@
 //  Created by BernieZhao on 2024/10/10.
 //
 
-#include "mbgl/nav/nav.render.hpp"
-
-#include "mbgl/nav/nav.blur.hpp"
-#include "mbgl/nav/shadow/nav.shadow.hpp"
-#include "mbgl/nav/ssao/v2/nav.ssao.hpp"
+#include "mbgl/nav/render/nav.render.hpp"
 
 #include "mbgl/nav/nav.style.hpp"
 
-#include "mbgl/nav/ssao/v1/shaders.h"
+#include "mbgl/nav/render/nav.blur.hpp"
+#include "mbgl/nav/render/shaders.h"
+#include "mbgl/nav/render/shadow/nav.shadow.hpp"
+#include "mbgl/nav/render/ssao/nav.ssao.hpp"
+
 #include <mbgl/programs/gl/nav_ssao.hpp>
 
 #include <mbgl/programs/fill_extrusion_ssao_program.hpp>
