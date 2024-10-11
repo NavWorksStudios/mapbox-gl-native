@@ -10,7 +10,11 @@
 
 #include "mbgl/nav/render/shaders.h"
 #include "mbgl/nav/render/vec3.h"
-#include "mbgl/nav/render/mat4.h"
+
+#include <mbgl/util/mat4.hpp>
+
+#include <mbgl/programs/gl/nav.ssao.shader.hpp>
+
 
 #include "mbgl/nav/render/ssao/v1/rply.h"
 
@@ -578,7 +582,8 @@ void generate(int width, int height) {
 
 }
 
-void renderDBuffer(std::function<void()> renderCallback,
+void renderDBuffer(const Mat4& lightMatrix,
+                   std::function<void()> renderCallback,
                    std::function<void()> bindScreenFbo = nullptr) {
     
     if (bindScreenFbo) bindScreenFbo();
@@ -591,15 +596,23 @@ void renderDBuffer(std::function<void()> renderCallback,
     
     glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
+    static GLint program = 0;
+    if (program) {
+        static programs::UniformLocation u0(program, "u_lightMatrix");
+        glUniformMatrix4fv(u0, 1, GL_FALSE, reinterpret_cast<const float*>(&lightMatrix));
+    }
+    
     renderCallback();
     
+    glGetIntegerv(GL_CURRENT_PROGRAM, &program);
     glClearColor(color[0], color[1], color[2], color[3]);
     
 }
 
-GLuint renderShadowDepthBuffer(int width, int height, std::function<void()> renderCallback) {
+GLuint renderShadowDepthBuffer(int width, int height, const Mat4& lightMatrix, std::function<void()> renderCallback) {
     fbo::generate(width, height);
-    renderDBuffer(renderCallback);
+    renderDBuffer(lightMatrix, renderCallback);
     return fbo::dbuffer::shadowDepthTexture;
 }
 

@@ -14,14 +14,13 @@
 namespace nav {
 namespace render {
 
+void renderTileFloor(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::mat4& normal);
+
 void deferred(float zoom,
               mbgl::mat4 projMatrix,
               mbgl::mat4 lightMatrix,
-              mbgl::vec3 lightPos,
               std::function<void()> shadowRenderDelegate,
               std::function<void()> geoRenderDelegate);
-
-void renderTileFloor(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::mat4& normal);
 
 namespace util {
 GLuint genTexture(GLint internalformat, GLsizei width, GLsizei height, GLenum format, GLenum type);

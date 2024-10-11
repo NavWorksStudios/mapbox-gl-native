@@ -36,53 +36,6 @@ static auto convertMatrix4 = [] (mbgl::mat4 matrix) {
 };
 
 
-void deferred(float zoom,
-              mbgl::mat4 projMatrix,
-              mbgl::mat4 lightMatrix,
-              mbgl::vec3 lightPos,
-              std::function<void()> shadowRenderDelegate,
-              std::function<void()> geoRenderDelegate) {
-
-    GLint viewport[4];
-    glGetIntegerv(GL_VIEWPORT, viewport);
-    auto bindScreen = [viewport] () {
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
-    };
-    
-    GLboolean depthTestEnabled;
-    glGetBooleanv(GL_DEPTH_TEST, &depthTestEnabled);
-    
-
-    const float BUFFER_SCALE = .7;
-    const int w = nav::display::pixels::width() * BUFFER_SCALE;
-    const int h = nav::display::pixels::height() * BUFFER_SCALE;
-    
-    nav::ssao::initResource(w, h);
-
-    glViewport(0, 0, w, h);
-    glEnable(GL_DEPTH_TEST);
-    glDepthMask(GL_TRUE);
-    glDepthFunc(GL_LESS);
-    
-    // 1
-    const GLint shadowDepth = nav::shadow::renderShadowDepthBuffer(w, h, shadowRenderDelegate);
-
-    // 2
-    nav::ssao::renderGeoAndShadowBuffer(convertMatrix4(lightMatrix), convertVec3(lightPos), shadowDepth, geoRenderDelegate);
-
-    // 3
-    const GLint renderBuffer = nav::ssao::renderAOBuffer(w, h, zoom, convertMatrix4(projMatrix));
-    
-    // 4
-    bindScreen();
-    nav::blur::render(renderBuffer, w, h);
-    
-    depthTestEnabled ? glEnable(GL_DEPTH_TEST) : glDisable(GL_DEPTH_TEST);
-
-}
-
-
 namespace floor {
 
 GLuint program() {
@@ -123,6 +76,9 @@ GLuint data() {
     return tileFloorBuf;
 }
 
+Mat4 lightMatrix;
+GLint shadowDepth;
+
 }
 
 
@@ -140,6 +96,7 @@ void renderTileFloor(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::ma
     glGetBooleanv(GL_CULL_FACE, &cullfaceEnabled);
     glDisable(GL_CULL_FACE);
     
+    
     // floor uniforms
     {
         static programs::UniformLocation u0(program, "u_matrix");
@@ -150,6 +107,14 @@ void renderTileFloor(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::ma
         
         static programs::UniformLocation u2(program, "u_normal_matrix");
         glUniformMatrix4fv(u2, 1, GL_FALSE, reinterpret_cast<const float*>(&NORMAL));
+        
+        static programs::UniformLocation u3(program, "u_lightMatrix");
+        glUniformMatrix4fv(u3, 1, GL_FALSE, reinterpret_cast<const float*>(&floor::lightMatrix));
+        
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, floor::shadowDepth);
+        static programs::UniformLocation u4(program, "u_shadowMap");
+        glUniform1i(u4, 0);
     }
 
     
@@ -171,6 +136,57 @@ void renderTileFloor(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::ma
     cullfaceEnabled ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
 
 }
+
+
+void deferred(float zoom,
+              mbgl::mat4 projMatrix,
+              mbgl::mat4 lightMatrix,
+              std::function<void()> shadowRenderDelegate,
+              std::function<void()> geoRenderDelegate) {
+
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT, viewport);
+    auto bindScreen = [viewport] () {
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+    };
+    
+    GLboolean depthTestEnabled;
+    glGetBooleanv(GL_DEPTH_TEST, &depthTestEnabled);
+    
+
+    const float BUFFER_SCALE = .7;
+    const int w = nav::display::pixels::width() * BUFFER_SCALE;
+    const int h = nav::display::pixels::height() * BUFFER_SCALE;
+    
+    nav::ssao::initResource(w, h);
+
+    glViewport(0, 0, w, h);
+    glEnable(GL_DEPTH_TEST);
+    glDepthMask(GL_TRUE);
+    glDepthFunc(GL_LESS);
+    
+    auto lightM = convertMatrix4(lightMatrix);
+    
+    // 1
+    const GLint shadowDepth = nav::shadow::renderShadowDepthBuffer(w, h, lightM, shadowRenderDelegate);
+
+    // 2
+    nav::ssao::renderGeoAndShadowBuffer(floor::lightMatrix = lightM,
+                                        floor::shadowDepth = shadowDepth,
+                                        geoRenderDelegate);
+
+    // 3
+    const GLint renderBuffer = nav::ssao::renderAOBuffer(w, h, zoom, convertMatrix4(projMatrix));
+    
+    // 4
+    bindScreen();
+    nav::blur::render(renderBuffer, w, h);
+    
+    depthTestEnabled ? glEnable(GL_DEPTH_TEST) : glDisable(GL_DEPTH_TEST);
+
+}
+
 
 namespace util {
 

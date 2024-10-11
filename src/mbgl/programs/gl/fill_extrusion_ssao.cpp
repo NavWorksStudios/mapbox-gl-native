@@ -82,10 +82,14 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
             float lowp z = t > 0. ? height : base;
             vec4 pos = vec4(a_pos, z, 1.0);
 
+            // ssao
             v_fragPos = vec3(u_model_view_matrix * pos) / 32.;
             v_normal = vec3(u_normal_matrix * vec4(-a_normal_ed.x, -a_normal_ed.y, a_normal_ed.z, a_normal_ed.w));
-            gl_Position = u_matrix * pos;
+    
+            // shadow
             v_lightSpacePos = u_lightMatrix * pos;
+    
+            gl_Position = u_matrix * pos;
         }
         
     )"; }
@@ -112,7 +116,6 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
     
     static const char* navFragment(const char* ) { return R"(
 
-        uniform vec3 u_lightPos;
         uniform sampler2D u_shadowMap;
 
         varying vec3 v_fragPos;
@@ -142,10 +145,11 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
             float currentDepth = projCoords.z;
     
             // check whether current frag pos is in shadow
-            vec3 normal = normalize(v_normal);
-            vec3 lightDir = normalize(u_lightPos - v_fragPos);
-            float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
-            float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
+//            vec3 normal = normalize(v_normal);
+//            vec3 lightDir = normalize(u_lightPos - v_fragPos);
+//            float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
+    
+            float shadow = currentDepth - 0.005 > closestDepth  ? 1.0 : 0.0;
             if(projCoords.z > 1.0)
                 shadow = 0.0;
 
@@ -165,7 +169,8 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
     
             // shadow
             float shadow = ShadowCalculation(v_lightSpacePos);
-            gl_FragData[3].rgb = vec3(shadow);
+            gl_FragData[3].rgb = vec3(0.2);
+            gl_FragData[3].a = min(shadow, 0.75);
         }
             
     )"; }
@@ -207,10 +212,14 @@ void main()
 {
     vec4 pos = vec4(a_pos, 0., 1.);
 
+    // ssao
     v_fragPos = vec3(u_model_view_matrix * pos) / 32.;
     v_normal = vec3(u_normal_matrix * vec4(-a_normal_ed.x, -a_normal_ed.y, a_normal_ed.z, a_normal_ed.w));
-    gl_Position = u_matrix * pos;
+
+    // shadow
     v_lightSpacePos = u_lightMatrix * pos;
+
+    gl_Position = u_matrix * pos;
 }
 
 )"; }

@@ -14,13 +14,15 @@
 
 #include <functional>
 #include <gl_headers.hpp>
-#include <mbgl/util/mat4.hpp>
+#include "mbgl/nav/render/mat4.h"
 
 namespace nav {
 
 namespace shadow {
 
-    GLuint renderShadowDepthBuffer(int width, int height, std::function<void()> renderCallback);   // draw / drawShadowDepthBuffer
+    GLuint renderShadowDepthBuffer(int width, int height,
+                                   const Mat4& lightMatrix,
+                                   std::function<void()> renderCallback);   // draw / drawShadowDepthBuffer
 
 }   // shadow
 

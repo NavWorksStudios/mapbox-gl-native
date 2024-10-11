@@ -180,7 +180,7 @@ GLuint program() {
 }
 
 
-void renderGeoAndShadowBuffer(const Mat4& lightMatrix, const Vec3& lightPos, GLint shadowDepth, std::function<void()> renderCallback, std::function<void()> bindScreen) {
+void renderGeoAndShadowBuffer(const Mat4& lightMatrix, GLint shadowDepth, std::function<void()> renderCallback, std::function<void()> bindScreen) {
     if (bindScreen) bindScreen();
     else gbuffer::bindFbo(ao::buffer);
     
@@ -196,9 +196,6 @@ void renderGeoAndShadowBuffer(const Mat4& lightMatrix, const Vec3& lightPos, GLi
     if (program) {
         static programs::UniformLocation u0(program, "u_lightMatrix");
         glUniformMatrix4fv(u0, 1, GL_FALSE, reinterpret_cast<const float*>(&lightMatrix));
-        
-        static programs::UniformLocation u1(program, "u_lightPos");
-        glUniform3fv(u1, 1, reinterpret_cast<const float*>(&lightPos));
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, shadowDepth);
