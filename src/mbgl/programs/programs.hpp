@@ -16,6 +16,7 @@ class HillshadeLayerPrograms;
 class FillLayerPrograms;
 class FillExtrusionLayerPrograms;
 class FillExtrusionSSAOLayerPrograms;
+class FillExtrusionShadowLayerPrograms;
 class LineLayerPrograms;
 class SymbolLayerPrograms;
 
@@ -32,6 +33,7 @@ public:
     FillLayerPrograms& getFillLayerPrograms() noexcept;
     FillExtrusionLayerPrograms& getFillExtrusionLayerPrograms() noexcept;
     FillExtrusionSSAOLayerPrograms& getFillExtrusionSSAOLayerPrograms() noexcept;
+    FillExtrusionShadowLayerPrograms& getFillExtrusionShadowLayerPrograms() noexcept;
     LineLayerPrograms& getLineLayerPrograms() noexcept;
     SymbolLayerPrograms& getSymbolLayerPrograms() noexcept;
 
@@ -47,6 +49,7 @@ private:
     std::unique_ptr<LayerTypePrograms> fillPrograms;
     std::unique_ptr<LayerTypePrograms> fillExtrusionPrograms;
     std::unique_ptr<LayerTypePrograms> fillExtrusionSSAOPrograms;
+    std::unique_ptr<LayerTypePrograms> fillExtrusionShadowPrograms;
     std::unique_ptr<LayerTypePrograms> linePrograms;
     std::unique_ptr<LayerTypePrograms> symbolPrograms;
 

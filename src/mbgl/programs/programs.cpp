@@ -6,6 +6,7 @@
 #include <mbgl/programs/hillshade_program.hpp>
 #include <mbgl/programs/fill_extrusion_program.hpp>
 #include <mbgl/programs/fill_extrusion_ssao_program.hpp>
+#include <mbgl/programs/fill_extrusion_shadow_program.hpp>
 #include <mbgl/programs/fill_program.hpp>
 #include <mbgl/programs/line_program.hpp>
 #include <mbgl/programs/raster_program.hpp>
@@ -68,6 +69,13 @@ FillExtrusionSSAOLayerPrograms& Programs::getFillExtrusionSSAOLayerPrograms() no
         fillExtrusionSSAOPrograms = std::make_unique<FillExtrusionSSAOLayerPrograms>(context, programParameters);
     }
     return static_cast<FillExtrusionSSAOLayerPrograms&>(*fillExtrusionSSAOPrograms);
+}
+
+FillExtrusionShadowLayerPrograms& Programs::getFillExtrusionShadowLayerPrograms() noexcept {
+    if (!fillExtrusionShadowPrograms) {
+        fillExtrusionShadowPrograms = std::make_unique<FillExtrusionShadowLayerPrograms>(context, programParameters);
+    }
+    return static_cast<FillExtrusionShadowLayerPrograms&>(*fillExtrusionShadowPrograms);
 }
 
 CircleLayerPrograms& Programs::getCircleLayerPrograms() noexcept {

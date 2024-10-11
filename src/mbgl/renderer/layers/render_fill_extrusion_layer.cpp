@@ -4,6 +4,7 @@
 #include <mbgl/gfx/renderer_backend.hpp>
 #include <mbgl/programs/fill_extrusion_program.hpp>
 #include <mbgl/programs/fill_extrusion_ssao_program.hpp>
+#include <mbgl/programs/fill_extrusion_shadow_program.hpp>
 #include <mbgl/programs/programs.hpp>
 #include <mbgl/renderer/buckets/fill_extrusion_bucket.hpp>
 #include <mbgl/renderer/image_manager.hpp>
@@ -198,6 +199,80 @@ void RenderFillExtrusionLayer::doRenderDeferredGeoBuffer(PaintParameters& parame
         }
     };
 
+    drawTileFloors();
+
+    drawTiles(gfx::StencilMode::disabled(), parameters.colorModeForRenderPass(), "color");
+    
+
+}
+
+void RenderFillExtrusionLayer::renderShadowDepth(PaintParameters& parameters) {
+    // render extrusion with shadow depth shader
+    if(renderFillExtrusionLayer)
+        renderFillExtrusionLayer->doRenderShadowDepth(parameters);
+}
+
+void RenderFillExtrusionLayer::doRenderShadowDepth(PaintParameters& parameters) {
+    if(!renderTiles)
+        return;
+
+    const auto& evaluated = static_cast<const FillExtrusionLayerProperties&>(*evaluatedProperties).evaluated;
+    const auto& crossfade = static_cast<const FillExtrusionLayerProperties&>(*evaluatedProperties).crossfade;
+    if (evaluatedProperties->renderPasses == mbgl::underlying_type(RenderPass::None)) {
+        return;
+    }
+
+    const auto depthMode = parameters.depthModeFor3D();
+    
+    bool refreshPaintUniforms = true;
+    using Properties = style::FillExtrusionPaintProperties::DataDrivenProperties;
+    mbgl::PaintPropertyBinders<Properties>::UniformValues paintUniformValues;
+    
+    const auto draw = [&](auto& programInstance,
+                          const auto& evaluated_,
+                          const auto& crossfade_,
+                          const gfx::StencilMode& stencilMode,
+                          const gfx::ColorMode& colorMode,
+                          const auto& tileBucket,
+                          auto& layoutUniformValues,
+                          const optional<ImagePosition>& patternPositionA,
+                          const optional<ImagePosition>& patternPositionB,
+                          const auto& textureBindings,
+                          const std::string& uniqueName) {
+        const auto& paintPropertyBinders = tileBucket.paintPropertyBinders.at(getID());
+        paintPropertyBinders.setPatternParameters(patternPositionA, patternPositionB, crossfade_);
+
+        if (refreshPaintUniforms) {
+            paintPropertyBinders.fillUniformValues(paintUniformValues, parameters.state.getZoom(), evaluated_);
+            refreshPaintUniforms = false;
+        }
+
+        const auto&& allAttributeBindings = programInstance.computeAllAttributeBindings(
+            *tileBucket.vertexBuffer,
+            paintPropertyBinders,
+            evaluated_
+        );
+        
+        checkRenderability(parameters, programInstance.activeBindingCount(allAttributeBindings));
+        
+        // draw self
+        programInstance.draw(
+            parameters.context,
+            *parameters.renderPass,
+            gfx::Triangles(),
+            depthMode,
+            stencilMode,
+            colorMode,
+            gfx::CullFaceMode::backCCW(),
+            *tileBucket.indexBuffer,
+            tileBucket.triangleSegments,
+            layoutUniformValues,
+            paintUniformValues,
+            allAttributeBindings,
+            textureBindings,
+            uniqueName);
+
+    };
     
     const auto drawTileShadows = [&](const gfx::StencilMode& stencilMode_, const gfx::ColorMode& colorMode_, const std::string& name) {
         auto layoutUniforms = FillExtrusionSSAOProgram::layoutUniformValues(
@@ -297,7 +372,7 @@ void RenderFillExtrusionLayer::doRenderDeferredGeoBuffer(PaintParameters& parame
             layoutUniforms.template get<uniforms::normal_matrix>() = u_mv_normal;
 #endif
             
-            draw(parameters.programs.getFillExtrusionSSAOLayerPrograms().fillExtrusion,
+            draw(parameters.programs.getFillExtrusionShadowLayerPrograms().fillExtrusion,
                  evaluated,
                  crossfade,
                  stencilMode_,
@@ -306,30 +381,46 @@ void RenderFillExtrusionLayer::doRenderDeferredGeoBuffer(PaintParameters& parame
                  layoutUniforms,
                  {},
                  {},
-                 FillExtrusionSSAOProgram::TextureBindings{},
+                 FillExtrusionShadowProgram::TextureBindings{},
                  uniqueName
             );
         }
     };
+    
+    const auto drawTileFloors = [&]() {
+        size_t renderIndex = -1;
+        for (const RenderTile& tile : *renderTiles) {
+            renderIndex++;
+            
+            if (!tile.isRenderable(Tile::RenderMode::Detailed)) {
+                continue;
+            }
+            
+            const LayerRenderData* renderData = getRenderDataForPass(renderIndex, parameters.pass);
+            if (!renderData) {
+                continue;
+            }
+            
+            const auto& translate = evaluated.get<FillExtrusionTranslate>();
+            const auto& anchor = evaluated.get<FillExtrusionTranslateAnchor>();
+            const auto& state = parameters.state;
+            
+            const auto matrix = tile.translatedClipMatrix(translate, anchor, state);
 
+            mat4 normalMatrix;
+            matrix::invert(normalMatrix, tile.modelViewMatrix);
+            matrix::transpose(normalMatrix);
+            
+            // draw tile floors with ssao logic code
+            nav::render::renderTileFloor(matrix, tile.modelViewMatrix, normalMatrix);
+        }
+    };
+    
     drawTileFloors();
-
-    drawTiles(gfx::StencilMode::disabled(), parameters.colorModeForRenderPass(), "color");
     
     // 绘制阴影画布前需要先设置相应gl环境
 //    nav::ssao::v2::enableShadowEnv();
-//    drawTileShadows(gfx::StencilMode::disabled(), parameters.colorModeForRenderPass(), "color");
-}
-
-void RenderFillExtrusionLayer::renderShadowDepth(PaintParameters& parameters) {
-    // render extrusion with shadow depth shader
-    if(renderFillExtrusionLayer)
-        renderFillExtrusionLayer->doRenderShadowDepth(parameters);
-}
-
-void RenderFillExtrusionLayer::doRenderShadowDepth(PaintParameters&) {
-    
-    
+    drawTileShadows(gfx::StencilMode::disabled(), parameters.colorModeForRenderPass(), "color");
 }
 
 void RenderFillExtrusionLayer::transition(const TransitionParameters& parameters) {
