@@ -33,7 +33,7 @@ std::default_random_engine generator;
 
 namespace kernel {
 
-enum { SIZE = 16, };
+enum { SIZE = 32, };
 Vec3 data[SIZE];
 
 GLfloat lerp(GLfloat a, GLfloat b, GLfloat f) {
@@ -180,7 +180,7 @@ GLuint program() {
 }
 
 
-void renderGeoAndShadowBuffer(const Mat4& lightMatrix, GLint shadowDepth, std::function<void()> renderCallback, std::function<void()> bindScreen) {
+void renderGeoAndShadowBuffer(GLint shadowDepth, std::function<bool()> renderCallback, std::function<void()> bindScreen) {
     if (bindScreen) bindScreen();
     else gbuffer::bindFbo(ao::buffer);
     
@@ -194,18 +194,16 @@ void renderGeoAndShadowBuffer(const Mat4& lightMatrix, GLint shadowDepth, std::f
     
     static GLint program = 0;
     if (program) {
-        static programs::UniformLocation u0(program, "u_lightMatrix");
-        glUniformMatrix4fv(u0, 1, GL_FALSE, reinterpret_cast<const float*>(&lightMatrix));
-
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, shadowDepth);
-        static programs::UniformLocation u2(program, "u_shadowMap");
-        glUniform1i(u2, 0);
+        static programs::UniformLocation u1(program, "u_shadowMap");
+        glUniform1i(u1, 0);
     }
     
-    renderCallback();
-    
-    glGetIntegerv(GL_CURRENT_PROGRAM, &program);
+    if (renderCallback()) {
+        glGetIntegerv(GL_CURRENT_PROGRAM, &program);
+    }
+
     glClearColor(color[0], color[1], color[2], color[3]);
 }
 
@@ -240,7 +238,7 @@ GLint renderAOBuffer(int width, int height, float zoom, const Mat4& projMatrix, 
         const float z_factor = fmin(fmax(z / 5., 0.), 1.);
         
         for (unsigned int i = 0; i < sample::kernel::SIZE; ++i) {
-            const float scalar = (.1 - .05 * z_factor) * z_scale * pow(1.2, i);
+            const float scalar = (.08 - .04 * z_factor) * z_scale * pow(1.1, i);
             
             glUniform1fv(u_sample_radius[i], 1, &scalar);
             
@@ -257,8 +255,8 @@ GLint renderAOBuffer(int width, int height, float zoom, const Mat4& projMatrix, 
         static programs::UniformLocation u1(program, "u_texscale");
         glUniform2f(u1, width / sample::noise::SIZE, height / sample::noise::SIZE);
         
-        static programs::UniformLocation u2(program, "u_z_factor");
-        glUniform1f(u2, z_factor);
+        static programs::UniformLocation u2(program, "u_darkness");
+        glUniform1f(u2, 1.6 - z_factor * .4);
     }
 
     {

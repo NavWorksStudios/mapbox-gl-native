@@ -26,6 +26,11 @@ namespace landscape {
 float value();
 }
 
+namespace performance {
+void enable(bool enabled);
+float priority(); // (0., 1.)
+}
+
 enum ViewMode : int8_t {
 Landscape,
 Browse,

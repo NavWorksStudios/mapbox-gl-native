@@ -50,19 +50,20 @@ RenderFillExtrusionLayer::~RenderFillExtrusionLayer() {
     renderFillExtrusionLayer = nullptr;
 }
 
-void RenderFillExtrusionLayer::renderDeferredGeoBuffer(PaintParameters& parameters) {
-    if(renderFillExtrusionLayer)
-        renderFillExtrusionLayer->doRenderDeferredGeoBuffer(parameters);
+bool RenderFillExtrusionLayer::renderDeferredGeoBuffer(PaintParameters& parameters) {
+    return renderFillExtrusionLayer ? renderFillExtrusionLayer->doRenderDeferredGeoBuffer(parameters) : false;
 }
 
-void RenderFillExtrusionLayer::doRenderDeferredGeoBuffer(PaintParameters& parameters) {
+bool RenderFillExtrusionLayer::doRenderDeferredGeoBuffer(PaintParameters& parameters) {
+    bool rendered = false;
+    
     if(!renderTiles)
-        return;
+        return rendered;
 
     const auto& evaluated = static_cast<const FillExtrusionLayerProperties&>(*evaluatedProperties).evaluated;
     const auto& crossfade = static_cast<const FillExtrusionLayerProperties&>(*evaluatedProperties).crossfade;
     if (evaluatedProperties->renderPasses == mbgl::underlying_type(RenderPass::None)) {
-        return;
+        return rendered;
     }
 
     const auto depthMode = parameters.depthModeFor3D();
@@ -114,6 +115,8 @@ void RenderFillExtrusionLayer::doRenderDeferredGeoBuffer(PaintParameters& parame
             allAttributeBindings,
             textureBindings,
             uniqueName);
+        
+        rendered = true;
 
     };
 
@@ -195,7 +198,7 @@ void RenderFillExtrusionLayer::doRenderDeferredGeoBuffer(PaintParameters& parame
             matrix::transpose(normalMatrix);
             
             // draw tile floors with ssao logic code
-            nav::render::renderTileFloor(matrix, tile.modelViewMatrix, normalMatrix);
+            nav::render::renderTileFloor(matrix, tile.modelViewMatrix, normalMatrix, normalMatrix);
         }
     };
 
@@ -203,23 +206,25 @@ void RenderFillExtrusionLayer::doRenderDeferredGeoBuffer(PaintParameters& parame
 
     drawTiles(gfx::StencilMode::disabled(), parameters.colorModeForRenderPass(), "color");
     
+    return rendered;
 
 }
 
-void RenderFillExtrusionLayer::renderShadowDepth(PaintParameters& parameters) {
+bool RenderFillExtrusionLayer::renderShadowDepth(PaintParameters& parameters) {
     // render extrusion with shadow depth shader
-    if(renderFillExtrusionLayer)
-        renderFillExtrusionLayer->doRenderShadowDepth(parameters);
+    return renderFillExtrusionLayer ? renderFillExtrusionLayer->doRenderShadowDepth(parameters) : false;
 }
 
-void RenderFillExtrusionLayer::doRenderShadowDepth(PaintParameters& parameters) {
+bool RenderFillExtrusionLayer::doRenderShadowDepth(PaintParameters& parameters) {
+    bool rendered = false;
+    
     if(!renderTiles)
-        return;
+        return rendered;
 
     const auto& evaluated = static_cast<const FillExtrusionLayerProperties&>(*evaluatedProperties).evaluated;
     const auto& crossfade = static_cast<const FillExtrusionLayerProperties&>(*evaluatedProperties).crossfade;
     if (evaluatedProperties->renderPasses == mbgl::underlying_type(RenderPass::None)) {
-        return;
+        return rendered;
     }
 
     const auto depthMode = parameters.depthModeFor3D();
@@ -272,6 +277,7 @@ void RenderFillExtrusionLayer::doRenderShadowDepth(PaintParameters& parameters) 
             textureBindings,
             uniqueName);
 
+        rendered = true;
     };
     
     const auto drawTileShadows = [&](const gfx::StencilMode& stencilMode_, const gfx::ColorMode& colorMode_, const std::string& name) {
@@ -412,7 +418,7 @@ void RenderFillExtrusionLayer::doRenderShadowDepth(PaintParameters& parameters) 
             matrix::transpose(normalMatrix);
             
             // draw tile floors with ssao logic code
-            nav::render::renderTileFloor(matrix, tile.modelViewMatrix, normalMatrix);
+            nav::render::renderTileFloor(matrix, tile.modelViewMatrix, normalMatrix, normalMatrix);
         }
     };
     
@@ -421,6 +427,8 @@ void RenderFillExtrusionLayer::doRenderShadowDepth(PaintParameters& parameters) 
     // 绘制阴影画布前需要先设置相应gl环境
 //    nav::ssao::v2::enableShadowEnv();
     drawTileShadows(gfx::StencilMode::disabled(), parameters.colorModeForRenderPass(), "color");
+    
+    return rendered;
 }
 
 void RenderFillExtrusionLayer::transition(const TransitionParameters& parameters) {

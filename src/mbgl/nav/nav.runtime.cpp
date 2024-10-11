@@ -78,12 +78,28 @@ ToggleValue toggle;
 float value() {
     return toggle;
 }
+
 }
 
 namespace landscape {
+
 ToggleValue toggle;
 
 float value() {
+    return toggle;
+}
+
+}
+
+namespace performance {
+
+ToggleValue toggle;
+
+void enable(bool enabled) {
+    enabled ? toggle.enable() : toggle.disable();
+}
+
+float priority() {
     return toggle;
 }
 
@@ -120,6 +136,7 @@ bool update() {
     
     oncemore |= spotlight::toggle.update();
     oncemore |= landscape::toggle.update();
+    oncemore |= performance::toggle.update();
     oncemore |= nav::palette::update();
     
     return isNeedUpdate = oncemore;

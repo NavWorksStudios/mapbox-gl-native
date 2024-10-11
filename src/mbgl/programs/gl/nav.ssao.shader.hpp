@@ -51,19 +51,19 @@ uniform sampler2D u_normal;
 uniform sampler2D u_albedo;
 uniform sampler2D u_noise;
 
-#define SAMPLE_SIZE 16
+#define SAMPLE_SIZE 32
 uniform float u_sample_radius[SAMPLE_SIZE];
 uniform float u_z_bias[SAMPLE_SIZE];
 uniform vec3 u_samples[SAMPLE_SIZE];
-uniform float u_z_factor;
+uniform float u_darkness;
 
 
 const float QUADRATIC = 1.5;
 //const float CONTRAST = 1.5;
 
 const float NEAR_Z = 0.;
-const float FAR_Z = -250.;
-const float HIDE_Z = -200.;
+const float FAR_Z = -350.;
+const float HIDE_Z = -300.;
 
 void main() {
 
@@ -109,7 +109,7 @@ void main() {
             }
         }
 
-        occlusion = pow(occlusion * (1.5 - u_z_factor), QUADRATIC);
+        occlusion = pow(occlusion * u_darkness, QUADRATIC);
         occlusion = occlusion / float(dynamic_sample_count);
 //        occlusion = CONTRAST * (occlusion - 0.5) + 0.5;
 
@@ -182,18 +182,37 @@ uniform sampler2D u_ssao;
 uniform vec2 u_texsize;
 
 float kawaseBlurSample(vec2 uv) {
-    vec2 offset = vec2(1.1) / u_texsize;
+    
     float color = texture2D(u_ssao, uv).r;
-    color += texture2D(u_ssao, uv + vec2(+offset.x, +offset.y)).r;
-    color += texture2D(u_ssao, uv + vec2(-offset.x, +offset.y)).r;
-    color += texture2D(u_ssao, uv + vec2(-offset.x, -offset.y)).r;
-    color += texture2D(u_ssao, uv + vec2(+offset.x, -offset.y)).r;
-    return color * .2;
+
+    vec2 d = vec2(1.1) / u_texsize;
+
+    color += texture2D(u_ssao, uv + vec2(+d.x, +d.y)).r;
+    color += texture2D(u_ssao, uv + vec2(+d.x, -d.y)).r;
+
+    color += texture2D(u_ssao, uv + vec2(-d.x, +d.y)).r;
+    color += texture2D(u_ssao, uv + vec2(-d.x, -d.y)).r;
+    
+    vec2 dd = vec2(2.9) / u_texsize;
+
+    color += texture2D(u_ssao, uv + vec2(+dd.x, +d.y)).r;
+    color += texture2D(u_ssao, uv + vec2(+dd.x, -d.y)).r;
+
+    color += texture2D(u_ssao, uv + vec2(-dd.x, +d.y)).r;
+    color += texture2D(u_ssao, uv + vec2(-dd.x, -d.y)).r;
+
+    color += texture2D(u_ssao, uv + vec2(+d.x, +dd.y)).r;
+    color += texture2D(u_ssao, uv + vec2(-d.x, +dd.y)).r;
+
+    color += texture2D(u_ssao, uv + vec2(+d.x, -dd.y)).r;
+    color += texture2D(u_ssao, uv + vec2(-d.x, -dd.y)).r;
+
+    return color / 13.;
 }
 
 void main() {
     float result = kawaseBlurSample(TexCoords);
-    gl_FragColor = vec4(.0, .0, .3, result);
+    gl_FragColor = vec4(.3, .3, .5, result);
 }
 
 )"; }

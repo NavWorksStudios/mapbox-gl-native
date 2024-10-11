@@ -180,15 +180,14 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
     // - NAV DEFERRED RENDERING PASS --------------------------------------------------------------------------------
     {
         auto shadowRenderDelegate = [&parameters] () {
-            RenderFillExtrusionLayer::renderShadowDepth(parameters);
+            return RenderFillExtrusionLayer::renderShadowDepth(parameters);
         };
         
         auto geoRenderDelegate = [&parameters] () {
-            RenderFillExtrusionLayer::renderDeferredGeoBuffer(parameters);
+            return RenderFillExtrusionLayer::renderDeferredGeoBuffer(parameters);
         };
         
         nav::render::deferred(parameters.state.getZoom(),
-                              parameters.state.getCameraToClipMatrix(),
                               parameters.state.getCameraToClipMatrix(),
                               shadowRenderDelegate,
                               geoRenderDelegate);

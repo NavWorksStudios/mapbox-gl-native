@@ -13,12 +13,12 @@ public:
     ~RenderFillExtrusionLayer() override;
     
 public:
-    static void renderDeferredGeoBuffer(PaintParameters& parameters);
-    static void renderShadowDepth(PaintParameters& parameters);
+    static bool renderDeferredGeoBuffer(PaintParameters& parameters);
+    static bool renderShadowDepth(PaintParameters& parameters);
 
 private:
-    void doRenderDeferredGeoBuffer(PaintParameters&);
-    void doRenderShadowDepth(PaintParameters&);
+    bool doRenderDeferredGeoBuffer(PaintParameters& parameters);
+    bool doRenderShadowDepth(PaintParameters& parameters);
 
 private:
     void transition(const TransitionParameters&) override;

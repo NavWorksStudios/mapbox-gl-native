@@ -76,18 +76,18 @@ GLuint data() {
     return tileFloorBuf;
 }
 
-Mat4 lightMatrix;
 GLint shadowDepth;
 
 }
 
 
-void renderTileFloor(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::mat4& normal) {
+void renderTileFloor(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::mat4& normal, const mbgl::mat4& lightmvp) {
     
     // convert 3*matrix mbgl::mat4 to Mat4
     const Mat4 MVP = convertMatrix4(mvp);
     const Mat4 MV = convertMatrix4(mv);
     const Mat4 NORMAL = convertMatrix4(normal);
+    const Mat4 LIGHTMVP = convertMatrix4(lightmvp);
     
     const GLint program = floor::program();
     glUseProgram(program);
@@ -109,7 +109,7 @@ void renderTileFloor(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::ma
         glUniformMatrix4fv(u2, 1, GL_FALSE, reinterpret_cast<const float*>(&NORMAL));
         
         static programs::UniformLocation u3(program, "u_lightMatrix");
-        glUniformMatrix4fv(u3, 1, GL_FALSE, reinterpret_cast<const float*>(&floor::lightMatrix));
+        glUniformMatrix4fv(u3, 1, GL_FALSE, reinterpret_cast<const float*>(&LIGHTMVP));
         
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, floor::shadowDepth);
@@ -140,9 +140,8 @@ void renderTileFloor(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::ma
 
 void deferred(float zoom,
               mbgl::mat4 projMatrix,
-              mbgl::mat4 lightMatrix,
-              std::function<void()> shadowRenderDelegate,
-              std::function<void()> geoRenderDelegate) {
+              std::function<bool()> shadowRenderDelegate,
+              std::function<bool()> geoRenderDelegate) {
 
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT, viewport);
@@ -165,16 +164,12 @@ void deferred(float zoom,
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
     glDepthFunc(GL_LESS);
-    
-    auto lightM = convertMatrix4(lightMatrix);
-    
+
     // 1
-    const GLint shadowDepth = nav::shadow::renderShadowDepthBuffer(w, h, lightM, shadowRenderDelegate);
+    const GLint shadowDepth = nav::shadow::renderShadowDepthBuffer(w, h, shadowRenderDelegate);
 
     // 2
-    nav::ssao::renderGeoAndShadowBuffer(floor::lightMatrix = lightM,
-                                        floor::shadowDepth = shadowDepth,
-                                        geoRenderDelegate);
+    nav::ssao::renderGeoAndShadowBuffer(floor::shadowDepth = shadowDepth, geoRenderDelegate);
 
     // 3
     const GLint renderBuffer = nav::ssao::renderAOBuffer(w, h, zoom, convertMatrix4(projMatrix));
