@@ -221,31 +221,44 @@ GLint renderAOBuffer(int width, int height, float zoom, const Mat4& projMatrix, 
     glUseProgram(program);
     
     {
-        for (unsigned int i = 0; i < sample::kernel::SIZE; ++i) {
-            const float z = zoom - 15.; // zoom (15, 20)
-            const float z_scale = pow(2., z);
-            const float z_factor = fmin(fmax(z / 5., 0.), 1.);
-            const float scalar = 0.03 * z_scale * pow(1.25 - z_factor * 0.2, i);
-            
-            programs::UniformLocation u0(program, ("u_sample_radius[" + std::to_string(i) + "]").c_str());
-            glUniform1fv(u0, 1, &scalar);
+        static GLint u_sample_radius[sample::kernel::SIZE];
+        static GLint u_z_bias[sample::kernel::SIZE];
+        static GLint u_samples[sample::kernel::SIZE];
 
-            programs::UniformLocation u1(program, ("u_z_bias[" + std::to_string(i) + "]").c_str());
-            glUniform1fv(u1, 1, &scalar);
+        static bool init = false;
+        if (!init) {
+            init = true;
+            for (unsigned int i = 0; i < sample::kernel::SIZE; ++i) {
+                u_sample_radius[i] = programs::UniformLocation(program, ("u_sample_radius[" + std::to_string(i) + "]").c_str());
+                u_z_bias[i] = programs::UniformLocation(program, ("u_z_bias[" + std::to_string(i) + "]").c_str());
+                u_samples[i] = programs::UniformLocation(program, ("u_samples[" + std::to_string(i) + "]").c_str());
+            }
+        }
+        
+        const float z = zoom - 15.; // zoom (15, 20)
+        const float z_scale = pow(2., z);
+        const float z_factor = fmin(fmax(z / 5., 0.), 1.);
+        
+        for (unsigned int i = 0; i < sample::kernel::SIZE; ++i) {
+            const float scalar = (.1 - .05 * z_factor) * z_scale * pow(1.2, i);
+            
+            glUniform1fv(u_sample_radius[i], 1, &scalar);
+            
+            glUniform1fv(u_z_bias[i], 1, &scalar);
         
             // Send kernel + rotation
             Vec3 v = sample::kernel::data[i].scale(scalar);
-            programs::UniformLocation u2(program, ("u_samples[" + std::to_string(i) + "]").c_str());
-            glUniform3fv(u2, 1, &v.x);
+            glUniform3fv(u_samples[i], 1, &v.x);
         }
-    }
 
-    {
         static programs::UniformLocation u0(program, "u_projection");
         glUniformMatrix4fv(u0, 1, GL_FALSE, reinterpret_cast<const float*>(&projMatrix));
         
         static programs::UniformLocation u1(program, "u_texscale");
         glUniform2f(u1, width / sample::noise::SIZE, height / sample::noise::SIZE);
+        
+        static programs::UniformLocation u2(program, "u_z_factor");
+        glUniform1f(u2, z_factor);
     }
 
     {
