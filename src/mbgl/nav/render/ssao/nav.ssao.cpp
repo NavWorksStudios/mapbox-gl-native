@@ -129,35 +129,20 @@ void generate(int width, int height) {
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
 }
 
-void bindFbo() {
+void bindFbo(GLint shadow) {
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, position, 0);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normal, 0);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, albedo, 0);
-    GLenum attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-    glDrawBuffers(3, attachments);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, shadow, 0);
+    
+    GLenum attachments[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
+    glDrawBuffers(4, attachments);
     
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
 }
 
-}
-
-
-void renderGeoAndShadowBuffer(GLint shadowDepth, std::function<void()> renderCallback, std::function<void()> bindScreen) {
-    if (bindScreen) bindScreen();
-    else gbuffer::bindFbo();
-    
-    glDisable(GL_BLEND);
-    
-    GLfloat color[4];
-    glGetFloatv(GL_COLOR_CLEAR_VALUE, color);
-    
-    glClearColor(0, 0, 0, 0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    renderCallback();
-    
-    glClearColor(color[0], color[1], color[2], color[3]);
 }
 
 
@@ -194,7 +179,41 @@ GLuint program() {
 
 }
 
-GLint renderAOBuffer(int width, int height, float zoom, const Mat4& projMatrix, const Mat4& lightMatrix, std::function<void()> bindScreen) {
+
+void renderGeoAndShadowBuffer(const Mat4& lightMatrix, const Vec3& lightPos, GLint shadowDepth, std::function<void()> renderCallback, std::function<void()> bindScreen) {
+    if (bindScreen) bindScreen();
+    else gbuffer::bindFbo(ao::buffer);
+    
+    glDisable(GL_BLEND);
+    
+    GLfloat color[4];
+    glGetFloatv(GL_COLOR_CLEAR_VALUE, color);
+    
+    glClearColor(0, 0, 0, 0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
+    static GLint program = 0;
+    if (program) {
+        static programs::UniformLocation u0(program, "u_lightMatrix");
+        glUniformMatrix4fv(u0, 1, GL_FALSE, reinterpret_cast<const float*>(&lightMatrix));
+        
+        static programs::UniformLocation u1(program, "u_lightPos");
+        glUniform3fv(u1, 1, reinterpret_cast<const float*>(&lightPos));
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, shadowDepth);
+        static programs::UniformLocation u2(program, "u_shadowMap");
+        glUniform1i(u2, 0);
+    }
+    
+    renderCallback();
+    
+    glGetIntegerv(GL_CURRENT_PROGRAM, &program);
+    glClearColor(color[0], color[1], color[2], color[3]);
+}
+
+
+GLint renderAOBuffer(int width, int height, float zoom, const Mat4& projMatrix, std::function<void()> bindScreen) {
     if (bindScreen) bindScreen();
     else ao::bindFbo();
 
@@ -228,11 +247,8 @@ GLint renderAOBuffer(int width, int height, float zoom, const Mat4& projMatrix, 
         static programs::UniformLocation u0(program, "u_projection");
         glUniformMatrix4fv(u0, 1, GL_FALSE, reinterpret_cast<const float*>(&projMatrix));
         
-        static programs::UniformLocation u1(program, "u_lightSpaceMatrix");
-        glUniformMatrix4fv(u1, 1, GL_FALSE, reinterpret_cast<const float*>(&lightMatrix));
-        
-        static programs::UniformLocation u2(program, "u_texscale");
-        glUniform2f(u2, width / sample::noise::SIZE, height / sample::noise::SIZE);
+        static programs::UniformLocation u1(program, "u_texscale");
+        glUniform2f(u1, width / sample::noise::SIZE, height / sample::noise::SIZE);
     }
 
     {

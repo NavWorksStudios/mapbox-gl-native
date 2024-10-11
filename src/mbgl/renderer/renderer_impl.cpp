@@ -190,6 +190,7 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
         nav::render::deferred(parameters.state.getZoom(),
                               parameters.state.getCameraToClipMatrix(),
                               parameters.state.getCameraToClipMatrix(),
+                              vec3({0, 0, 0}),
                               shadowRenderDelegate,
                               geoRenderDelegate);
     }

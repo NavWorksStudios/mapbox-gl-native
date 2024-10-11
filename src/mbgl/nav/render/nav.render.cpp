@@ -17,14 +17,19 @@
 #include <mbgl/programs/gl/nav.ssao.shader.hpp>
 #include <mbgl/programs/fill_extrusion_ssao_program.hpp>
 
-#include "mbgl/nav/nav.log.hpp"
+#include "mbgl/nav/render/vec3.h"
+#include "mbgl/nav/render/mat4.h"
 
 
 namespace nav {
 namespace render {
 
 
-static auto convertMatrix = [] (mbgl::mat4 matrix) {
+static auto convertVec3 = [] (mbgl::vec3 v) {
+    return Vec3((float) v[0], (float) v[1], (float) v[2]);
+};
+
+static auto convertMatrix4 = [] (mbgl::mat4 matrix) {
     Mat4 m;
     for (int i=0; i<16; i++) ((float*)&m)[i] = float(matrix[i]);
     return m;
@@ -34,6 +39,7 @@ static auto convertMatrix = [] (mbgl::mat4 matrix) {
 void deferred(float zoom,
               mbgl::mat4 projMatrix,
               mbgl::mat4 lightMatrix,
+              mbgl::vec3 lightPos,
               std::function<void()> shadowRenderDelegate,
               std::function<void()> geoRenderDelegate) {
 
@@ -59,16 +65,17 @@ void deferred(float zoom,
     glDepthMask(GL_TRUE);
     glDepthFunc(GL_LESS);
     
+    // 1
     const GLint shadowDepth = nav::shadow::renderShadowDepthBuffer(w, h, shadowRenderDelegate);
 
-    nav::ssao::renderGeoAndShadowBuffer(shadowDepth, geoRenderDelegate);
+    // 2
+    nav::ssao::renderGeoAndShadowBuffer(convertMatrix4(lightMatrix), convertVec3(lightPos), shadowDepth, geoRenderDelegate);
 
-    const GLint renderBuffer = nav::ssao::renderAOBuffer(w, h, zoom,
-                                                         convertMatrix(projMatrix),
-                                                         convertMatrix(lightMatrix));
+    // 3
+    const GLint renderBuffer = nav::ssao::renderAOBuffer(w, h, zoom, convertMatrix4(projMatrix));
     
+    // 4
     bindScreen();
-    
     nav::blur::render(renderBuffer, w, h);
     
     depthTestEnabled ? glEnable(GL_DEPTH_TEST) : glDisable(GL_DEPTH_TEST);
@@ -82,8 +89,8 @@ GLuint program() {
     static GLint pass = 0;
     if (!pass) {
         pass =
-        createProgram(compileShader(GL_VERTEX_SHADER, mbgl::vertexShader()),
-                      compileShader(GL_FRAGMENT_SHADER, mbgl::fragmentShader()));
+        createProgram(compileShader(GL_VERTEX_SHADER, mbgl::floorVertexShader()),
+                      compileShader(GL_FRAGMENT_SHADER, mbgl::floorFragmentShader()));
     }
 
     return pass;
@@ -122,9 +129,9 @@ GLuint data() {
 void renderTileFloor(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::mat4& normal) {
     
     // convert 3*matrix mbgl::mat4 to Mat4
-    const Mat4 MVP = convertMatrix(mvp);
-    const Mat4 MV = convertMatrix(mv);
-    const Mat4 NORMAL = convertMatrix(normal);
+    const Mat4 MVP = convertMatrix4(mvp);
+    const Mat4 MV = convertMatrix4(mv);
+    const Mat4 NORMAL = convertMatrix4(normal);
     
     const GLint program = floor::program();
     glUseProgram(program);

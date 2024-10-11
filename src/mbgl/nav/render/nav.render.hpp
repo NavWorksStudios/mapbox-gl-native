@@ -17,6 +17,7 @@ namespace render {
 void deferred(float zoom,
               mbgl::mat4 projMatrix,
               mbgl::mat4 lightMatrix,
+              mbgl::vec3 lightPos,
               std::function<void()> shadowRenderDelegate,
               std::function<void()> geoRenderDelegate);
 

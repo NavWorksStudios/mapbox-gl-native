@@ -85,7 +85,7 @@ public:
     FillExtrusionSSAOProgram fillExtrusion;
 };
 
-const char* vertexShader();
-const char* fragmentShader();
+const char* floorVertexShader();
+const char* floorFragmentShader();
 
 } // namespace mbgl

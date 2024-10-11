@@ -57,12 +57,14 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
         attribute highp vec2 a_pos;
         attribute lowp vec4 a_normal_ed;
         
-        varying vec3 v_fragPos;
-        varying vec3 v_normal;
-        
         uniform mat4 u_matrix;
         uniform mat4 u_model_view_matrix;
         uniform mat4 u_normal_matrix;
+        uniform mat4 u_lightMatrix;
+    
+        varying vec3 v_fragPos;
+        varying vec3 v_normal;
+        varying vec4 v_lightSpacePos;
         
         uniform lowp float u_base_t;
         attribute highp vec2 a_base;
@@ -83,6 +85,7 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
             v_fragPos = vec3(u_model_view_matrix * pos) / 32.;
             v_normal = vec3(u_normal_matrix * vec4(-a_normal_ed.x, -a_normal_ed.y, a_normal_ed.z, a_normal_ed.w));
             gl_Position = u_matrix * pos;
+            v_lightSpacePos = u_lightMatrix * pos;
         }
         
     )"; }
@@ -109,8 +112,12 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
     
     static const char* navFragment(const char* ) { return R"(
 
+        uniform vec3 u_lightPos;
+        uniform sampler2D u_shadowMap;
+
         varying vec3 v_fragPos;
         varying vec3 v_normal;
+        varying vec4 v_lightSpacePos;
 
 //        const float NEAR = 0.1; // 投影矩阵的近平面
 //        const float FAR = 50.0; // 投影矩阵的远平面
@@ -120,9 +127,32 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
 //            float z = depth * 2.0 - 1.0; // 回到NDC
 //            return (2.0 * NEAR * FAR) / (FAR + NEAR - z * (FAR - NEAR));
 //        }
+    
+        float ShadowCalculation(vec4 pos) {
+            // perform perspective divide
+            vec3 projCoords = pos.xyz / pos.w;
+    
+            // transform to [0,1] range
+            projCoords = projCoords * 0.5 + 0.5;
+    
+            // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
+            float closestDepth = texture2D(u_shadowMap, projCoords.xy).r; 
+    
+            // get depth of current fragment from light's perspective
+            float currentDepth = projCoords.z;
+    
+            // check whether current frag pos is in shadow
+            vec3 normal = normalize(v_normal);
+            vec3 lightDir = normalize(u_lightPos - v_fragPos);
+            float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
+            float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
+            if(projCoords.z > 1.0)
+                shadow = 0.0;
 
-        void main()
-        {
+            return shadow;
+        }
+
+        void main() {
             // store the fragment position vector in the first gbuffer texture
             gl_FragData[0].xyz = v_fragPos;
 //            gl_FragData[0].a = LinearizeDepth(gl_FragCoord.z);
@@ -132,6 +162,10 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
 
             // and the diffuse per-fragment color
             gl_FragData[2].rgb = vec3(0.95);
+    
+            // shadow
+            float shadow = ShadowCalculation(v_lightSpacePos);
+            gl_FragData[3].rgb = vec3(shadow);
         }
             
     )"; }
@@ -155,17 +189,19 @@ Backend::Create<gfx::Backend::Type::OpenGL>(const ProgramParameters& programPara
 } // namespace gfx
 
 
-const char* vertexShader() { return R"(
+const char* floorVertexShader() { return R"(
 
 attribute vec2 a_pos;
 attribute vec4 a_normal_ed;
 
-varying vec3 v_fragPos;
-varying vec3 v_normal;
-
 uniform mat4 u_matrix;
 uniform mat4 u_model_view_matrix;
 uniform mat4 u_normal_matrix;
+uniform mat4 u_lightMatrix;
+
+varying vec3 v_fragPos;
+varying vec3 v_normal;
+varying vec4 v_lightSpacePos;
 
 void main()
 {
@@ -174,11 +210,12 @@ void main()
     v_fragPos = vec3(u_model_view_matrix * pos) / 32.;
     v_normal = vec3(u_normal_matrix * vec4(-a_normal_ed.x, -a_normal_ed.y, a_normal_ed.z, a_normal_ed.w));
     gl_Position = u_matrix * pos;
+    v_lightSpacePos = u_lightMatrix * pos;
 }
 
 )"; }
 
-const char* fragmentShader() {
+const char* floorFragmentShader() {
     return programs::gl::ShaderSource<FillExtrusionSSAOProgram>::navFragment(0);
 }
 
