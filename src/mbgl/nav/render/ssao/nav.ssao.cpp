@@ -194,7 +194,7 @@ GLuint program() {
 
 }
 
-GLint renderAOBuffer(int width, int height, float zoom, const Mat4& projMatrix, std::function<void()> bindScreen) {
+GLint renderAOBuffer(int width, int height, float zoom, const Mat4& projMatrix, const Mat4& lightMatrix, std::function<void()> bindScreen) {
     if (bindScreen) bindScreen();
     else ao::bindFbo();
 
@@ -228,8 +228,11 @@ GLint renderAOBuffer(int width, int height, float zoom, const Mat4& projMatrix, 
         static programs::UniformLocation u0(program, "u_projection");
         glUniformMatrix4fv(u0, 1, GL_FALSE, reinterpret_cast<const float*>(&projMatrix));
         
-        static programs::UniformLocation u1(program, "u_text_scale");
-        glUniform2f(u1, width / sample::noise::SIZE, height / sample::noise::SIZE);
+        static programs::UniformLocation u1(program, "u_lightSpaceMatrix");
+        glUniformMatrix4fv(u1, 1, GL_FALSE, reinterpret_cast<const float*>(&lightMatrix));
+        
+        static programs::UniformLocation u2(program, "u_texscale");
+        glUniform2f(u2, width / sample::noise::SIZE, height / sample::noise::SIZE);
     }
 
     {

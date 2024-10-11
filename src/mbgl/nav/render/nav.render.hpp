@@ -14,7 +14,12 @@
 namespace nav {
 namespace render {
 
-void deferred(float zoom, mbgl::mat4 projMatrix, std::function<void()> renderCallback);
+void deferred(float zoom,
+              mbgl::mat4 projMatrix,
+              mbgl::mat4 lightMatrix,
+              std::function<void()> shadowRenderDelegate,
+              std::function<void()> geoRenderDelegate);
+
 void renderTileFloor(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::mat4& normal);
 
 namespace util {

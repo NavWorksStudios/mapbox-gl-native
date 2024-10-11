@@ -31,7 +31,11 @@ static auto convertMatrix = [] (mbgl::mat4 matrix) {
 };
 
 
-void deferred(float zoom, mbgl::mat4 projMatrix, std::function<void()> renderCallback) {
+void deferred(float zoom,
+              mbgl::mat4 projMatrix,
+              mbgl::mat4 lightMatrix,
+              std::function<void()> shadowRenderDelegate,
+              std::function<void()> geoRenderDelegate) {
 
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT, viewport);
@@ -55,11 +59,13 @@ void deferred(float zoom, mbgl::mat4 projMatrix, std::function<void()> renderCal
     glDepthMask(GL_TRUE);
     glDepthFunc(GL_LESS);
     
-    const GLint shadowDepth = nav::shadow::renderDepthBuffer(w, h);
+    const GLint shadowDepth = nav::shadow::renderShadowDepthBuffer(w, h, shadowRenderDelegate);
 
-    nav::ssao::renderGeoAndShadowBuffer(shadowDepth, renderCallback);
+    nav::ssao::renderGeoAndShadowBuffer(shadowDepth, geoRenderDelegate);
 
-    const GLint renderBuffer = nav::ssao::renderAOBuffer(w, h, zoom, convertMatrix(projMatrix));
+    const GLint renderBuffer = nav::ssao::renderAOBuffer(w, h, zoom,
+                                                         convertMatrix(projMatrix),
+                                                         convertMatrix(lightMatrix));
     
     bindScreen();
     

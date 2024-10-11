@@ -597,47 +597,10 @@ void renderDBuffer(std::function<void()> renderCallback,
     
 }
 
-void enableShadowDepthBuffer(std::function<void()> renderCallback) {
-    static std::once_flag flag;
-    std::call_once(flag, [] () {
-        // No behavior
-    });
-    
-    GLint viewport[4];
-    glGetIntegerv(GL_VIEWPORT, viewport);
-    auto bindScreenFbo = [viewport] () {
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
-    };
-
-    {
-        const float BUFFER_SCALE = .7;
-        const int width = nav::display::pixels::width() * BUFFER_SCALE;
-        const int height = nav::display::pixels::height() * BUFFER_SCALE;
-        fbo::generate(width, height);
-        
-        glViewport(0, 0, width, height);
-        glEnable(GL_DEPTH_TEST);
-        glDepthMask(GL_TRUE);
-        glDepthFunc(GL_LESS);
-
-        renderDBuffer(renderCallback);
-    }
-    
-    bindScreenFbo();
-}
-
-GLuint getShadowDepthFBO() {
-    return fbo::dbuffer::shadowDepthFBO;
-}
-
-GLuint getShadowDepthTexture() {
+GLuint renderShadowDepthBuffer(int width, int height, std::function<void()> renderCallback) {
+    fbo::generate(width, height);
+    renderDBuffer(renderCallback);
     return fbo::dbuffer::shadowDepthTexture;
-}
-
-
-GLuint renderDepthBuffer(int width, int height) {
-    return 0;
 }
 
 
