@@ -55,7 +55,7 @@ uniform sampler2D u_noise;
 uniform float u_sample_radius[SAMPLE_SIZE];
 uniform float u_z_bias[SAMPLE_SIZE];
 uniform vec3 u_samples[SAMPLE_SIZE];
-uniform float u_sample_factor;
+uniform float u_z_factor;
 
 
 const float QUADRATIC = 1.5;
@@ -109,7 +109,7 @@ void main() {
             }
         }
 
-        occlusion = pow(occlusion * 1.5, QUADRATIC);
+        occlusion = pow(occlusion * (1.5 - u_z_factor), QUADRATIC);
         occlusion = occlusion / float(dynamic_sample_count);
 //        occlusion = CONTRAST * (occlusion - 0.5) + 0.5;
 
