@@ -58,8 +58,8 @@ uniform vec3 u_samples[SAMPLE_SIZE];
 uniform float u_darkness;
 
 
-const float QUADRATIC = 1.5;
-//const float CONTRAST = 1.5;
+const float QUADRATIC = 1.4;
+//const float CONTRAST = 1.4;
 
 const float NEAR_Z = 0.;
 const float FAR_Z = -350.;
@@ -75,6 +75,7 @@ void main() {
 
         // 动态采样数，近密远疏，可以大幅降低开销
         float z_scale = min(1., (FAR_Z - kernelPos.z) / (FAR_Z - NEAR_Z));
+        z_scale = 1.;
         int dynamic_sample_count = int(float(SAMPLE_SIZE) * z_scale);
 
         // get input for SSAO algorithm
@@ -187,32 +188,44 @@ float kawaseBlurSample(vec2 uv) {
 
     vec2 d = vec2(1.1) / u_texsize;
 
-    color += texture2D(u_ssao, uv + vec2(+d.x, +d.y)).r;
-    color += texture2D(u_ssao, uv + vec2(+d.x, -d.y)).r;
+    { // 4 * .25
+        float c = 0.;
 
-    color += texture2D(u_ssao, uv + vec2(-d.x, +d.y)).r;
-    color += texture2D(u_ssao, uv + vec2(-d.x, -d.y)).r;
-    
+        c += texture2D(u_ssao, uv + vec2(+d.x, +d.y)).r;
+        c += texture2D(u_ssao, uv + vec2(+d.x, -d.y)).r;
+
+        c += texture2D(u_ssao, uv + vec2(-d.x, +d.y)).r;
+        c += texture2D(u_ssao, uv + vec2(-d.x, -d.y)).r;
+
+        color += c * .25;
+    }
+
     vec2 dd = vec2(2.9) / u_texsize;
 
-    color += texture2D(u_ssao, uv + vec2(+dd.x, +d.y)).r;
-    color += texture2D(u_ssao, uv + vec2(+dd.x, -d.y)).r;
+    { // 8 * .125
+        float c = 0.;
 
-    color += texture2D(u_ssao, uv + vec2(-dd.x, +d.y)).r;
-    color += texture2D(u_ssao, uv + vec2(-dd.x, -d.y)).r;
+        c += texture2D(u_ssao, uv + vec2(+dd.x, +d.y)).r;
+        c += texture2D(u_ssao, uv + vec2(+dd.x, -d.y)).r;
 
-    color += texture2D(u_ssao, uv + vec2(+d.x, +dd.y)).r;
-    color += texture2D(u_ssao, uv + vec2(-d.x, +dd.y)).r;
+        c += texture2D(u_ssao, uv + vec2(-dd.x, +d.y)).r;
+        c += texture2D(u_ssao, uv + vec2(-dd.x, -d.y)).r;
 
-    color += texture2D(u_ssao, uv + vec2(+d.x, -dd.y)).r;
-    color += texture2D(u_ssao, uv + vec2(-d.x, -dd.y)).r;
+        c += texture2D(u_ssao, uv + vec2(+d.x, +dd.y)).r;
+        c += texture2D(u_ssao, uv + vec2(-d.x, +dd.y)).r;
 
-    return color / 13.;
+        c += texture2D(u_ssao, uv + vec2(+d.x, -dd.y)).r;
+        c += texture2D(u_ssao, uv + vec2(-d.x, -dd.y)).r;
+
+        color += c * .125;
+    }
+
+    return color / 3.;
 }
 
 void main() {
     float result = kawaseBlurSample(TexCoords);
-    gl_FragColor = vec4(.3, .3, .5, result);
+    gl_FragColor = vec4(.0, .0, .2, result);
 }
 
 )"; }
