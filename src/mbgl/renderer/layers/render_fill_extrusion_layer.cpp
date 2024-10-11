@@ -198,7 +198,7 @@ bool RenderFillExtrusionLayer::doRenderDeferredGeoBuffer(PaintParameters& parame
             matrix::transpose(normalMatrix);
             
             // draw tile floors with ssao logic code
-            nav::render::renderTileFloor(matrix, tile.modelViewMatrix, normalMatrix, normalMatrix);
+            nav::render::renderTileFloor(matrix, tile.modelViewMatrix, normalMatrix, matrix);
         }
     };
 
@@ -311,72 +311,6 @@ bool RenderFillExtrusionLayer::doRenderShadowDepth(PaintParameters& parameters) 
             // #*# 使用相机矩阵进行渲染
             const auto matrix = tile.translatedClipMatrix(translate, anchor, state);
             layoutUniforms.template get<uniforms::matrix>() = matrix;
-            layoutUniforms.template get<uniforms::model_view_matrix>() = tile.modelViewMatrix;
-            auto& normalMatrix = layoutUniforms.template get<uniforms::normal_matrix>();
-            matrix::invert(normalMatrix, tile.modelViewMatrix);
-            matrix::transpose(normalMatrix);
-            
-#if 1
-            // #*# 使用光源矩阵进行渲染
-            auto convertVec3 = [] (std::array<float, 3> vec3) {
-                Vec3 v(vec3.at(0), vec3.at(1), vec3.at(2));
-                return v;
-            };
-
-            auto convertMatrixTo = [] (Mat4& m) {
-                mbgl::mat4 matrix;
-                for (int i = 0; i < 16; i++) matrix[i] = ((float*)&m)[i];
-                return matrix;
-            };
-            
-            auto latLonToWorldPositon = [] (const mbgl::Point<double>& point, mbgl::Point<double>& point_local, const float z) {
-                const double size_local = mbgl::util::EXTENT * std::pow(2, z);
-                const double size = std::pow(2, z);
-                
-                auto x_local = (point.x + mbgl::util::LONGITUDE_MAX) * size_local / mbgl::util::DEGREES_MAX;
-                auto y_local =
-                    (mbgl::util::LONGITUDE_MAX - (std::log(std::tan(point.y * M_PI / mbgl::util::DEGREES_MAX + M_PI / 4.0)) * mbgl::util::RAD2DEG)) *
-                    size_local / mbgl::util::DEGREES_MAX;
-                
-                point_local.x = x_local;
-                point_local.y = y_local;
-            };
-
-            const double worldsize = Projection::worldSize(state.zoomScale(state.getZoom()));
-            mbgl::Point<double> point_local;
-            mbgl::Point<double> point = {state.getLatLng().longitude(), state.getLatLng().latitude()};
-            latLonToWorldPositon(point, point_local, state.getZoom());
-            
-            // #*# lighting pos
-            auto lightPos = parameters.evaluatedLight.get<LightPosition>().getCartesian();
-            lightPos.at(0) *= worldsize;
-            lightPos.at(1) *= worldsize;
-            lightPos.at(2) *= worldsize;
-//            lightPos.at(2) = 0.000015;
-//            lightPos = {0., 1.5, 1.5};
-            Vec3 lookat = Vec3(point_local.x, point_local.y, 0);
-//            Vec3 lookat = Vec3(0, 0, 0);
-            const static double pi = acos(0.0) * 2;
-            Mat4 ident = Mat4::identityMatrix();
-            Mat4 view, viewNorm;
-            Mat4::lookAtMatrix(convertVec3(lightPos), lookat, Vec3(0, 1, 0), view, viewNorm);
-            Mat4 projMat = Mat4::perspectiveMatrix(pi * 0.5, 1.333333f, 0.1f, 1000.0f);
-            Mat4 invProjMat = Mat4::perspectiveInvMatrix(pi * 0.5, 1.3333333f, 0.1f, 1000.0f);
-            Mat4 vp = projMat * view;
-
-            mbgl::mat4 u_mvp, u_mv, u_mv_normal;
-            mbgl::mat4 u_view = convertMatrixTo(view);
-            mbgl::mat4 u_p = convertMatrixTo(projMat);
-
-            matrix::multiply(u_mv, tile.modelMatrix, u_view);
-            matrix::invert(u_mv_normal, u_mv);
-            matrix::transpose(u_mv_normal);
-            matrix::multiply(u_mvp, u_mv, u_p);
-
-            layoutUniforms.template get<uniforms::matrix>() = u_mvp;
-            layoutUniforms.template get<uniforms::model_view_matrix>() = u_mv;
-            layoutUniforms.template get<uniforms::normal_matrix>() = u_mv_normal;
-#endif
             
             draw(parameters.programs.getFillExtrusionShadowLayerPrograms().fillExtrusion,
                  evaluated,
@@ -393,7 +327,7 @@ bool RenderFillExtrusionLayer::doRenderShadowDepth(PaintParameters& parameters) 
         }
     };
     
-    const auto drawTileFloors = [&]() {
+    const auto drawTileFloorShadows = [&]() {
         size_t renderIndex = -1;
         for (const RenderTile& tile : *renderTiles) {
             renderIndex++;
@@ -417,15 +351,13 @@ bool RenderFillExtrusionLayer::doRenderShadowDepth(PaintParameters& parameters) 
             matrix::invert(normalMatrix, tile.modelViewMatrix);
             matrix::transpose(normalMatrix);
             
-            // draw tile floors with ssao logic code
-            nav::render::renderTileFloor(matrix, tile.modelViewMatrix, normalMatrix, normalMatrix);
+            // draw tile floors with shadow logic code
+            nav::render::renderTileFloor(matrix);
         }
     };
     
-    drawTileFloors();
+    drawTileFloorShadows();
     
-    // 绘制阴影画布前需要先设置相应gl环境
-//    nav::ssao::v2::enableShadowEnv();
     drawTileShadows(gfx::StencilMode::disabled(), parameters.colorModeForRenderPass(), "color");
     
     return rendered;

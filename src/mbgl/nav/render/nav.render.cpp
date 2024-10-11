@@ -16,6 +16,7 @@
 
 #include <mbgl/programs/gl/nav.ssao.shader.hpp>
 #include <mbgl/programs/fill_extrusion_ssao_program.hpp>
+#include <mbgl/programs/fill_extrusion_shadow_program.hpp>
 
 #include "mbgl/nav/render/vec3.h"
 #include "mbgl/nav/render/mat4.h"
@@ -44,6 +45,17 @@ GLuint program() {
         pass =
         createProgram(compileShader(GL_VERTEX_SHADER, mbgl::floorVertexShader()),
                       compileShader(GL_FRAGMENT_SHADER, mbgl::floorFragmentShader()));
+    }
+
+    return pass;
+}
+
+GLuint shadow_program() {
+    static GLint pass = 0;
+    if (!pass) {
+        pass =
+        createProgram(compileShader(GL_VERTEX_SHADER, mbgl::floorShadowVertexShader()),
+                      compileShader(GL_FRAGMENT_SHADER, mbgl::floorShadowFragmentShader()));
     }
 
     return pass;
@@ -129,6 +141,40 @@ void renderTileFloor(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::ma
         static programs::AttribLocation a1(program, "a_normal_ed");
         glEnableVertexAttribArray(a1);
         glVertexAttribPointer(a1, 4, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(2 * sizeof(GLfloat)));
+    }
+
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    
+    cullfaceEnabled ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
+
+}
+
+void renderTileFloor(const mbgl::mat4& lightmvp) {
+    
+    // convert 3*matrix mbgl::mat4 to Mat4
+    const Mat4 LIGHTMVP = convertMatrix4(lightmvp);
+    
+    const GLint program = floor::shadow_program();
+    glUseProgram(program);
+    
+    GLboolean cullfaceEnabled;
+    glGetBooleanv(GL_CULL_FACE, &cullfaceEnabled);
+    glDisable(GL_CULL_FACE);
+    
+    
+    // floor uniforms
+    {
+        static programs::UniformLocation u0(program, "u_matrix");
+        glUniformMatrix4fv(u0, 1, GL_FALSE, reinterpret_cast<const float*>(&LIGHTMVP));
+    }
+    
+    // floor attributes
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, floor::data());
+        
+        static programs::AttribLocation a0(program, "a_pos");
+        glEnableVertexAttribArray(a0);
+        glVertexAttribPointer(a0, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(0));
     }
 
     glDrawArrays(GL_TRIANGLES, 0, 6);

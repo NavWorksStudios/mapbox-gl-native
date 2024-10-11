@@ -132,14 +132,13 @@ Backend::Create<gfx::Backend::Type::OpenGL>(const ProgramParameters& programPara
 const char* floorShadowVertexShader() { return R"(
 
 attribute vec2 a_pos;
-attribute vec4 a_normal_ed;
 
-uniform mat4 u_matrix; // u_lightMatrix
+uniform mat4 u_matrix;
 
 void main()
 {
     vec4 pos = vec4(a_pos, 0., 1.);
-    // for shadow depth
+
     gl_Position = u_matrix * pos;
 }
 
