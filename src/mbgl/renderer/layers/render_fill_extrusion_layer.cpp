@@ -198,7 +198,7 @@ bool RenderFillExtrusionLayer::doRenderDeferredGeoBuffer(PaintParameters& parame
             matrix::transpose(normalMatrix);
             
             // draw tile floors with ssao logic code
-            nav::render::renderTileFloor(matrix, tile.modelViewMatrix, normalMatrix, normalMatrix);
+            nav::render::renderTileFloor(matrix, tile.modelViewMatrix, normalMatrix, matrix);
         }
     };
 
@@ -327,7 +327,7 @@ bool RenderFillExtrusionLayer::doRenderShadowDepth(PaintParameters& parameters) 
         }
     };
     
-    const auto drawTileFloors = [&]() {
+    const auto drawTileFloorShadows = [&]() {
         size_t renderIndex = -1;
         for (const RenderTile& tile : *renderTiles) {
             renderIndex++;
@@ -351,12 +351,12 @@ bool RenderFillExtrusionLayer::doRenderShadowDepth(PaintParameters& parameters) 
             matrix::invert(normalMatrix, tile.modelViewMatrix);
             matrix::transpose(normalMatrix);
             
-            // draw tile floors with ssao logic code
-            nav::render::renderTileFloor(matrix, tile.modelViewMatrix, normalMatrix, normalMatrix);
+            // draw tile floors with shadow logic code
+            nav::render::renderTileFloor(matrix);
         }
     };
     
-    drawTileFloors();
+    drawTileFloorShadows();
     
     drawTileShadows(gfx::StencilMode::disabled(), parameters.colorModeForRenderPass(), "color");
     

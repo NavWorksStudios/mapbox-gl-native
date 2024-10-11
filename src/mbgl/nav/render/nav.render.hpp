@@ -16,6 +16,8 @@ namespace render {
 
 void renderTileFloor(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::mat4& normal, const mbgl::mat4& lightmvp);
 
+void renderTileFloor(const mbgl::mat4& lightmvp);
+    
 void deferred(float zoom,
               mbgl::mat4 projMatrix,
               std::function<bool()> shadowRenderDelegate,
