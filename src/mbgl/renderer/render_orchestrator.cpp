@@ -27,7 +27,7 @@
 #include <mbgl/util/string.hpp>
 #include <mbgl/util/logging.hpp>
 
-#include "mbgl/nav/nav.style.hpp"
+#include "mbgl/nav/nav.runtime.hpp"
 #include <mbgl/route/route_line_layer_manager.hpp>
 
 namespace mbgl {

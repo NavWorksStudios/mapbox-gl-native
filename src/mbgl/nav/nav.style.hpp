@@ -47,37 +47,4 @@ private:
 };
 }
 
-namespace runtime {
-
-namespace rendertime {
-double value();
-}
-
-namespace spotlight {
-float value();
-}
-
-namespace landscape {
-float value();
-}
-
-enum ViewMode : int8_t {
-Landscape,
-Browse,
-Spotlight,
-};
-
-void setViewMode(ViewMode mode);
-bool update();
-bool needsUpdate();
-
-namespace texture {
-void load(const std::string& path);
-void release();
-void upload(mbgl::gfx::UploadPass& uploadPass);
-mbgl::gfx::TextureResource& get(const std::string& name);
-}
-
-}
-
 }

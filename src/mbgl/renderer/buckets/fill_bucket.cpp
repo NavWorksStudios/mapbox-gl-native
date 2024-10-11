@@ -9,7 +9,7 @@
 
 #include <cassert>
 
-#include "mbgl/nav/nav.style.hpp"
+#include "mbgl/nav/nav.runtime.hpp"
 
 
 namespace mapbox {

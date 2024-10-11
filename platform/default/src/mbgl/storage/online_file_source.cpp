@@ -29,6 +29,7 @@
 #include "mbgl/nav/nav.log.hpp"
 #include "mbgl/nav/nav.style.hpp"
 
+
 namespace mbgl {
 
 // For testing only

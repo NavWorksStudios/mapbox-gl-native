@@ -18,7 +18,7 @@
 #include <mbgl/util/intersection_tests.hpp>
 #include <mbgl/util/math.hpp>
 
-#include "mbgl/nav/nav.style.hpp"
+#include "mbgl/nav/nav.runtime.hpp"
 #include "mbgl/nav/nav.palette.hpp"
 
 namespace mbgl {

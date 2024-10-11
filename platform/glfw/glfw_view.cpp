@@ -48,7 +48,7 @@
 #if defined(MBGL_RENDER_BACKEND_OPENGL) && !defined(MBGL_LAYER_LOCATION_INDICATOR_DISABLE_ALL)
 #include <mbgl/style/layers/location_indicator_layer.hpp>
 
-#include "mbgl/nav/nav.style.hpp"
+#include "mbgl/nav/nav.runtime.hpp"
 #include "mbgl/nav/nav.log.hpp"
 #include "mbgl/nav/nav.address.hpp"
 

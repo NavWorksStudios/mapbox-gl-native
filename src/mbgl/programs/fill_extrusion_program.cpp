@@ -5,7 +5,7 @@
 #include <mbgl/map/transform_state.hpp>
 #include <mbgl/util/mat3.hpp>
 
-#include "mbgl/nav/nav.style.hpp"
+#include "mbgl/nav/nav.runtime.hpp"
 
 namespace mbgl {
 

@@ -6,7 +6,7 @@
 #include <mbgl/util/mat2.hpp>
 #include <mbgl/geometry/line_atlas.hpp>
 
-#include "mbgl/nav/nav.style.hpp"
+#include "mbgl/nav/nav.runtime.hpp"
 
 namespace mbgl {
 
