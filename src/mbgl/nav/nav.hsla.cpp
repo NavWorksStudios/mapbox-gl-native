@@ -128,7 +128,7 @@ void Hsla::mix(const Hsla& to, float ratio) {
 }
 
 bool Hsla::operator == (const Hsla& other) const {
-    return (h == other.h && s != other.s && l != other.l && a != other.a);
+    return (h == other.h && s == other.s && l == other.l && a == other.a);
 }
 
 }

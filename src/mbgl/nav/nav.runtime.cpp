@@ -46,22 +46,32 @@ double value() {
 }
 
 struct ToggleValue {
+    float _slop[2];
     bool _enabled = false;
     float _ratio = .5;
+    
+    ToggleValue(float upSlop, float downSlop) {
+        _slop[0] = upSlop;
+        _slop[1] = downSlop;
+    }
     
     bool update() {
         if (_enabled) {
             if (_ratio < 1.) {
-                _ratio = fmin(_ratio + fmax((1. - _ratio) * 0.1, 0.01), 1.);
+                const float step = fmax((1. - _ratio) * _slop[0], 0.001);
+                _ratio = fmin(_ratio + step, 1.);
                 return true;
+            } else {
+                return false;
             }
-            return false;
         } else {
             if (_ratio > 0.) {
-                _ratio = fmax(_ratio - fmax((_ratio - 0.) * 0.015, 0.0015), 0.);
+                const float step = fmax((_ratio - 0.) * _slop[1], 0.001);
+                _ratio = fmax(_ratio - step, 0.);
                 return true;
+            } else {
+                return false;
             }
-            return false;
         }
     }
     
@@ -73,7 +83,7 @@ struct ToggleValue {
 
 namespace spotlight {
 
-ToggleValue toggle;
+ToggleValue toggle(0.1, 0.015);
 
 float value() {
     return toggle;
@@ -83,7 +93,7 @@ float value() {
 
 namespace landscape {
 
-ToggleValue toggle;
+ToggleValue toggle(0.1, 0.015);
 
 float value() {
     return toggle;
@@ -93,7 +103,7 @@ float value() {
 
 namespace performance {
 
-ToggleValue toggle;
+ToggleValue toggle(0.2, 0.2);
 
 void enable(bool enabled) {
     enabled ? toggle.enable() : toggle.disable();
