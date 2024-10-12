@@ -77,6 +77,7 @@ struct ToggleValue {
     
     void enable() { _enabled = true; }
     void disable() { _enabled = false; }
+    bool isEnabled() { return _enabled; }
     operator float () const { return _ratio; }
 };
 
@@ -101,16 +102,20 @@ float value() {
 
 }
 
-namespace performance {
+namespace quality {
 
-ToggleValue toggle(0.2, 0.2);
+ToggleValue toggle(0.5, 0.5);
 
-void enable(bool enabled) {
-    enabled ? toggle.enable() : toggle.disable();
+void enable() {
+    toggle.enable();
 }
 
-float priority() {
-    return toggle;
+void disable() {
+    toggle.disable();
+}
+
+float value() {
+    return 1. - toggle;
 }
 
 }
@@ -146,8 +151,8 @@ bool update() {
     
     oncemore |= spotlight::toggle.update();
     oncemore |= landscape::toggle.update();
-    oncemore |= performance::toggle.update();
     oncemore |= nav::palette::update();
+    oncemore |= quality::toggle.update();
     
     return isNeedUpdate = oncemore;
 }

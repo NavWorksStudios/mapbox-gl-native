@@ -45,6 +45,7 @@ varying vec2 TexCoords;
 uniform mat4 u_projection;
 uniform mat4 u_lightSpaceMatrix;
 uniform vec2 u_texscale;
+uniform float u_far_z;
 
 uniform sampler2D u_position;
 uniform sampler2D u_normal;
@@ -59,22 +60,17 @@ uniform vec3 u_samples[SAMPLE_SIZE];
 const float QUADRATIC = 1.6;
 const float CONTRAST = 2.;
 
-const float NEAR_Z = 0.;
-const float FAR_Z = -350.;
-const float HIDE_Z = -300.;
-
 void main() {
 
     float occlusion = 0.0;
 
     vec3 kernelPos = texture2D(u_position, TexCoords).xyz;
     vec3 albedo = texture2D(u_albedo, TexCoords).xyz;
-    if (kernelPos.z > HIDE_Z || albedo.r > 0.) {
+    if (kernelPos.z > u_far_z || albedo.r > 0.) {
 
         // 动态采样数，近密远疏，可以大幅降低开销
-        float z_scale = min(1., (FAR_Z - kernelPos.z) / (FAR_Z - NEAR_Z));
-        z_scale = 1.;
-        int dynamic_sample_count = int(float(SAMPLE_SIZE) * z_scale);
+        float depth_scale = clamp((u_far_z - kernelPos.z) / u_far_z, .2, 1.);
+        int sample_count = int(float(SAMPLE_SIZE) * depth_scale);
 
         // get input for SSAO algorithm
         vec3 kernelNormal = texture2D(u_normal, TexCoords).xyz;
@@ -89,7 +85,7 @@ void main() {
 
         // iterate over the sample kernel and calculate occlusion factor
         // 遍历每个核心采样，将采样从切线空间转化到视图空间，接着进行深度对比
-        for(int i=0; i<dynamic_sample_count; i++) {
+        for(int i=0; i<sample_count; i++) {
             vec3 samplePos = kernelPos + TBN * u_samples[i]; // from tangent to view-space 从切线空间转化到视图空间
 
             // project sample position (to sample texture) (to get position on screen/texture) 投影smple点到深度纹理坐标，获取在纹理的位置
@@ -108,9 +104,9 @@ void main() {
             }
         }
 
-        occlusion = pow(occlusion, QUADRATIC);
-        occlusion = occlusion / float(dynamic_sample_count);
-        occlusion = CONTRAST * (occlusion - 0.5) + 0.5;
+        occlusion = pow(occlusion * 1.3, QUADRATIC);
+        occlusion = occlusion / float(sample_count);
+//        occlusion = CONTRAST * (occlusion - 0.5) + 0.5;
 
     }
 

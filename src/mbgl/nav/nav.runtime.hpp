@@ -26,9 +26,10 @@ namespace landscape {
 float value();
 }
 
-namespace performance {
-void enable(bool enabled);
-float priority(); // (0., 1.)
+namespace quality {
+void enable();
+void disable();
+float value(); // (0., 1.)
 }
 
 enum ViewMode : int8_t {

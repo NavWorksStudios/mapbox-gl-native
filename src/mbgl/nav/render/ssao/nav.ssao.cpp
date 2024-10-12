@@ -20,6 +20,8 @@
 
 #include <mbgl/programs/gl/nav.ssao.shader.hpp>
 
+#include "mbgl/nav/nav.runtime.hpp"
+
 
 namespace nav {
 namespace ssao {
@@ -235,14 +237,12 @@ GLint renderAOBuffer(int width, int height, float zoom, const Mat4& projMatrix, 
         
         const float z = zoom - 15.; // zoom (15, 20)
         const float z_scale = pow(2., z);
-        const float z_factor = fmin(fmax(z / 5., 0.), 1.);
+        const float radius = .04 * z_scale;
         
         for (unsigned int i = 0; i < sample::kernel::SIZE; ++i) {
-            const float scalar = (.04 - .01 * z_factor) * z_scale * pow(1.2, i);
-            
-            glUniform1fv(u_sample_radius[i], 1, &scalar);
-            
-            glUniform1fv(u_z_bias[i], 1, &scalar);
+            const float scalar = radius * pow(1.2, i);
+            glUniform1f(u_sample_radius[i], scalar);
+            glUniform1f(u_z_bias[i], scalar);
         
             // Send kernel + rotation
             Vec3 v = sample::kernel::data[i].scale(scalar);
@@ -254,6 +254,10 @@ GLint renderAOBuffer(int width, int height, float zoom, const Mat4& projMatrix, 
         
         static programs::UniformLocation u1(program, "u_texscale");
         glUniform2f(u1, width / sample::noise::SIZE, height / sample::noise::SIZE);
+        
+        static programs::UniformLocation u2(program, "u_far_z");
+        glUniform1f(u2, -300 / z_scale);
+        
     }
 
     {
