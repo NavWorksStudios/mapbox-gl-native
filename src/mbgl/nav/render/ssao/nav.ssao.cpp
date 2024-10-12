@@ -238,7 +238,7 @@ GLint renderAOBuffer(int width, int height, float zoom, const Mat4& projMatrix, 
         const float z_factor = fmin(fmax(z / 5., 0.), 1.);
         
         for (unsigned int i = 0; i < sample::kernel::SIZE; ++i) {
-            const float scalar = (.04 - .02 * z_factor) * z_scale * pow(1.2, i);
+            const float scalar = (.04 - .01 * z_factor) * z_scale * pow(1.2, i);
             
             glUniform1fv(u_sample_radius[i], 1, &scalar);
             
@@ -254,9 +254,6 @@ GLint renderAOBuffer(int width, int height, float zoom, const Mat4& projMatrix, 
         
         static programs::UniformLocation u1(program, "u_texscale");
         glUniform2f(u1, width / sample::noise::SIZE, height / sample::noise::SIZE);
-        
-        static programs::UniformLocation u2(program, "u_darkness");
-        glUniform1f(u2, 1.3 - z_factor * .3);
     }
 
     {
