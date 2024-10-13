@@ -31,7 +31,6 @@ void render(GLint buffer, int width, int height) {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     
     glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     GLint program = blur::program();
     glUseProgram(program);
@@ -44,16 +43,13 @@ void render(GLint buffer, int width, int height) {
     static programs::UniformLocation u1(program, "u_offset[0]");
     glUniform2f(u1, 1.1 / width, 1.1 / height);
     
-    static programs::UniformLocation u2(program, "u_offset[1]");
-    glUniform2f(u2, 2. / width, 2. / height);
+//    static programs::UniformLocation u2(program, "u_offset[1]");
+//    glUniform2f(u2, 2. / width, 2. / height);
     
 //    static programs::UniformLocation u3(program, "u_offset[2]");
 //    glUniform2f(u3, 2.9 / width, 2.9 / height);
 
     nav::render::util::renderQuad(program);
-    
-    glDisable(GL_BLEND);
-    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
 }
 

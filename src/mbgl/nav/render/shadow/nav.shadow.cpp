@@ -100,17 +100,11 @@ void renderDBuffer(std::function<void()> renderCallback,
     else fbo::dbuffer::bind();
     
     glDisable(GL_BLEND);
-    
-    GLfloat color[4];
-    glGetFloatv(GL_COLOR_CLEAR_VALUE, color);
-    
-    glClearColor(0, 0, 0, 0);
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     renderCallback();
-    
-    glClearColor(color[0], color[1], color[2], color[3]);
-    
+
 }
 
 GLuint renderShadowDepthBuffer(int width, int height, std::function<bool()> renderCallback) {

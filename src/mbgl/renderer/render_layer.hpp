@@ -123,6 +123,8 @@ public:
 
     // TODO: Only for background layers.
     virtual optional<Color> getSolidBackground() const;
+    
+    virtual bool isAnnotation() const { return false; }
 
 protected:
     // Checks whether the current hardware can render this layer. If it can't, we'll show a warning

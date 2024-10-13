@@ -73,6 +73,7 @@ private:
     bool hasCrossfade() const override;
     void render(PaintParameters&) override;
     void prepare(const LayerPrepareParameters&) override;
+    bool isAnnotation() const override { return true; }
 
     // Paint properties
     style::SymbolPaintProperties::Unevaluated unevaluated;

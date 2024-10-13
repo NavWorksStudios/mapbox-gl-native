@@ -193,14 +193,17 @@ void deferred(float zoom,
 
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT, viewport);
-    auto bindScreen = [viewport] () {
+    
+    GLfloat color[4];
+    glGetFloatv(GL_COLOR_CLEAR_VALUE, color);
+    
+    GLboolean blendEnabled;
+    glGetBooleanv(GL_BLEND, &blendEnabled);
+    
+    auto bindScreen = [viewport, color, blendEnabled] () {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
     };
-    
-    GLboolean depthTestEnabled;
-    glGetBooleanv(GL_DEPTH_TEST, &depthTestEnabled);
-    
 
     const float BUFFER_RATIO = .7;
     const int w = nav::display::pixels::width() * BUFFER_RATIO;
@@ -209,9 +212,10 @@ void deferred(float zoom,
     nav::ssao::initResource(w, h);
 
     glViewport(0, 0, w, h);
-    glEnable(GL_DEPTH_TEST);
-    glDepthMask(GL_TRUE);
-    glDepthFunc(GL_LESS);
+    glClearColor(0, 0, 0, 0);
+    
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // 1
     const GLint shadowDepth = nav::shadow::renderShadowDepthBuffer(w, h, shadowRenderDelegate);
@@ -226,7 +230,9 @@ void deferred(float zoom,
     bindScreen();
     nav::blur::render(renderBuffer, w, h);
     
-    depthTestEnabled ? glEnable(GL_DEPTH_TEST) : glDisable(GL_DEPTH_TEST);
+    glClearColor(color[0], color[1], color[2], color[3]);
+    blendEnabled ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
 }
 

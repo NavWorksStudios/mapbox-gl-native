@@ -170,7 +170,7 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
         for (auto it = layerRenderItems.begin(); it != layerRenderItems.end() && i >= 0; ++it, --i) {
             parameters.currentLayer = i;
             const RenderItem& renderItem = it->get();
-            if (renderItem.hasRenderPass(parameters.pass)) {
+            if (renderItem.hasRenderPass(parameters.pass) && !renderItem.isAnnotation()) {
                 const auto layerDebugGroup(parameters.renderPass->createDebugGroup(renderItem.getName().c_str()));
                 renderItem.render(parameters);
             }
@@ -191,6 +191,22 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
                               parameters.state.getCameraToClipMatrix(),
                               shadowRenderDelegate,
                               geoRenderDelegate);
+    }
+    
+    // - ANNOTATION PASS --------------------------------------------------------------------------
+    {
+        parameters.pass = RenderPass::Translucent;
+        const auto debugGroup(parameters.renderPass->createDebugGroup("annotation"));
+
+        int32_t i = static_cast<int32_t>(layerRenderItems.size()) - 1;
+        for (auto it = layerRenderItems.begin(); it != layerRenderItems.end() && i >= 0; ++it, --i) {
+            parameters.currentLayer = i;
+            const RenderItem& renderItem = it->get();
+            if (renderItem.hasRenderPass(parameters.pass) && renderItem.isAnnotation()) {
+                const auto layerDebugGroup(parameters.renderPass->createDebugGroup(renderItem.getName().c_str()));
+                renderItem.render(parameters);
+            }
+        }
     }
 
     // - DEBUG PASS --------------------------------------------------------------------------------

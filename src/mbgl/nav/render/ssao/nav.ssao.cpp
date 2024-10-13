@@ -187,11 +187,7 @@ void renderGeoAndShadowBuffer(GLint shadowDepth, std::function<bool()> renderCal
     else gbuffer::bindFbo(ao::buffer);
     
     glDisable(GL_BLEND);
-    
-    GLfloat color[4];
-    glGetFloatv(GL_COLOR_CLEAR_VALUE, color);
-    
-    glClearColor(0, 0, 0, 0);
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     static GLint program = 0;
@@ -205,8 +201,6 @@ void renderGeoAndShadowBuffer(GLint shadowDepth, std::function<bool()> renderCal
     if (renderCallback()) {
         glGetIntegerv(GL_CURRENT_PROGRAM, &program);
     }
-
-    glClearColor(color[0], color[1], color[2], color[3]);
 }
 
 
