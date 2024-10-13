@@ -61,7 +61,7 @@ const float QUADRATIC = 1.6;
 //const float CONTRAST = 2.;
 
 const float NEAR_DEPTH = 0.;
-const float FAR_DEPTH = -250.;
+const float FAR_DEPTH = -300.;
 
 void main() {
 
@@ -175,18 +175,41 @@ static const char* blurFragmentShader() { return R"(
 varying vec2 TexCoords;
 
 uniform sampler2D u_ssao;
-uniform vec2 u_texsize;
+uniform vec2 u_offset[3];
 
-float kawaseBlurSample5(vec2 uv) {
-    vec2 offset = vec2(1.1) / u_texsize;
+float kawaseBlurSample5(vec2 uv) {    
+    float color = texture2D(u_ssao, uv).r;
+
+    color += texture2D(u_ssao, uv + vec2(+u_offset[0].x, +u_offset[0].y)).r;
+    color += texture2D(u_ssao, uv + vec2(+u_offset[0].x, -u_offset[0].y)).r;
+    color += texture2D(u_ssao, uv + vec2(-u_offset[0].x, +u_offset[0].y)).r;
+    color += texture2D(u_ssao, uv + vec2(-u_offset[0].x, -u_offset[0].y)).r;
+
+    return color / 5.;
+}
+
+
+float kawaseBlurSample9(vec2 uv) {
     
     float color = texture2D(u_ssao, uv).r;
 
-    color += texture2D(u_ssao, uv + vec2(+offset.x, +offset.y)).r;
-    color += texture2D(u_ssao, uv + vec2(+offset.x, -offset.y)).r;
+    { // 4 * .5
+        float c = 0.;
+        c += texture2D(u_ssao, uv + vec2(+u_offset[0].x, +u_offset[0].y)).r;
+        c += texture2D(u_ssao, uv + vec2(+u_offset[0].x, -u_offset[0].y)).r;
+        c += texture2D(u_ssao, uv + vec2(-u_offset[0].x, +u_offset[0].y)).r;
+        c += texture2D(u_ssao, uv + vec2(-u_offset[0].x, -u_offset[0].y)).r;
+        color += c * .5;
+    }
 
-    color += texture2D(u_ssao, uv + vec2(-offset.x, +offset.y)).r;
-    color += texture2D(u_ssao, uv + vec2(-offset.x, -offset.y)).r;
+    { // 4 * .5
+        float c = 0.;
+        c += texture2D(u_ssao, uv + vec2(0., +u_offset[1].y)).r;
+        c += texture2D(u_ssao, uv + vec2(0., -u_offset[1].y)).r;
+        c += texture2D(u_ssao, uv + vec2(+u_offset[1].x, 0.)).r;
+        c += texture2D(u_ssao, uv + vec2(-u_offset[1].x, 0.)).r;
+        color += c * .5;
+    }
 
     return color / 5.;
 }
@@ -195,41 +218,29 @@ float kawaseBlurSample13(vec2 uv) {
     
     float color = texture2D(u_ssao, uv).r;
 
-    vec2 d = vec2(1.1) / u_texsize;
-
-    { // 4 * .5
+    { // 4 * .25
         float c = 0.;
-
-        c += texture2D(u_ssao, uv + vec2(+d.x, +d.y)).r;
-        c += texture2D(u_ssao, uv + vec2(+d.x, -d.y)).r;
-
-        c += texture2D(u_ssao, uv + vec2(-d.x, +d.y)).r;
-        c += texture2D(u_ssao, uv + vec2(-d.x, -d.y)).r;
-
-        color += c * .5;
-    }
-
-    vec2 dd = vec2(2.9) / u_texsize;
-
-    { // 8 * .25
-        float c = 0.;
-
-        c += texture2D(u_ssao, uv + vec2(+dd.x, +d.y)).r;
-        c += texture2D(u_ssao, uv + vec2(+dd.x, -d.y)).r;
-
-        c += texture2D(u_ssao, uv + vec2(-dd.x, +d.y)).r;
-        c += texture2D(u_ssao, uv + vec2(-dd.x, -d.y)).r;
-
-        c += texture2D(u_ssao, uv + vec2(+d.x, +dd.y)).r;
-        c += texture2D(u_ssao, uv + vec2(-d.x, +dd.y)).r;
-
-        c += texture2D(u_ssao, uv + vec2(+d.x, -dd.y)).r;
-        c += texture2D(u_ssao, uv + vec2(-d.x, -dd.y)).r;
-
+        c += texture2D(u_ssao, uv + vec2(+u_offset[0].x, +u_offset[0].y)).r;
+        c += texture2D(u_ssao, uv + vec2(+u_offset[0].x, -u_offset[0].y)).r;
+        c += texture2D(u_ssao, uv + vec2(-u_offset[0].x, +u_offset[0].y)).r;
+        c += texture2D(u_ssao, uv + vec2(-u_offset[0].x, -u_offset[0].y)).r;
         color += c * .25;
     }
 
-    return color / 5.;
+    { // 8 * .125
+        float c = 0.;
+        c += texture2D(u_ssao, uv + vec2(+u_offset[1].x, +u_offset[0].y)).r;
+        c += texture2D(u_ssao, uv + vec2(+u_offset[1].x, -u_offset[0].y)).r;
+        c += texture2D(u_ssao, uv + vec2(-u_offset[1].x, +u_offset[0].y)).r;
+        c += texture2D(u_ssao, uv + vec2(-u_offset[1].x, -u_offset[0].y)).r;
+        c += texture2D(u_ssao, uv + vec2(+u_offset[0].x, +u_offset[1].y)).r;
+        c += texture2D(u_ssao, uv + vec2(-u_offset[0].x, +u_offset[1].y)).r;
+        c += texture2D(u_ssao, uv + vec2(+u_offset[0].x, -u_offset[1].y)).r;
+        c += texture2D(u_ssao, uv + vec2(-u_offset[0].x, -u_offset[1].y)).r;
+        color += c * .125;
+    }
+
+    return color / 3.;
 }
 
 // 5点和13点效果差不多

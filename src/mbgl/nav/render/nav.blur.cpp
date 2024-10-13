@@ -41,8 +41,14 @@ void render(GLint buffer, int width, int height) {
     static programs::UniformLocation u0(program, "u_ssao");
     glUniform1i(u0, 0);
     
-    static programs::UniformLocation u1(program, "u_texsize");
-    glUniform2f(u1, width, height);
+    static programs::UniformLocation u1(program, "u_offset[0]");
+    glUniform2f(u1, 1.1 / width, 1.1 / height);
+    
+    static programs::UniformLocation u2(program, "u_offset[1]");
+    glUniform2f(u2, 2. / width, 2. / height);
+    
+//    static programs::UniformLocation u3(program, "u_offset[2]");
+//    glUniform2f(u3, 2.9 / width, 2.9 / height);
 
     nav::render::util::renderQuad(program);
     

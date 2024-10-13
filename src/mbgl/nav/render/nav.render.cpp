@@ -188,6 +188,8 @@ void deferred(float zoom,
               mbgl::mat4 projMatrix,
               std::function<bool()> shadowRenderDelegate,
               std::function<bool()> geoRenderDelegate) {
+    
+    if (zoom < 15.) return;
 
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT, viewport);
@@ -200,9 +202,9 @@ void deferred(float zoom,
     glGetBooleanv(GL_DEPTH_TEST, &depthTestEnabled);
     
 
-    const float BUFFER_SCALE = .7;
-    const int w = nav::display::pixels::width() * BUFFER_SCALE;
-    const int h = nav::display::pixels::height() * BUFFER_SCALE;
+    const float BUFFER_RATIO = .7;
+    const int w = nav::display::pixels::width() * BUFFER_RATIO;
+    const int h = nav::display::pixels::height() * BUFFER_RATIO;
     
     nav::ssao::initResource(w, h);
 
