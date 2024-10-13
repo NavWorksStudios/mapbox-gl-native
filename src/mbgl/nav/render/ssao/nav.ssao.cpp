@@ -255,8 +255,8 @@ GLint renderAOBuffer(int width, int height, float zoom, const Mat4& projMatrix, 
         static programs::UniformLocation u1(program, "u_texscale");
         glUniform2f(u1, width / sample::noise::SIZE, height / sample::noise::SIZE);
         
-        static programs::UniformLocation u2(program, "u_far_z");
-        glUniform1f(u2, -300 / z_scale);
+        static programs::UniformLocation u2(program, "u_darkness");
+        glUniform1f(u2, 1.3 - .3 * (z / 5.));
         
     }
 

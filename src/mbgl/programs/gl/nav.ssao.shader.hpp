@@ -45,7 +45,7 @@ varying vec2 TexCoords;
 uniform mat4 u_projection;
 uniform mat4 u_lightSpaceMatrix;
 uniform vec2 u_texscale;
-uniform float u_far_z;
+uniform float u_darkness;
 
 uniform sampler2D u_position;
 uniform sampler2D u_normal;
@@ -58,7 +58,10 @@ uniform float u_z_bias[SAMPLE_SIZE];
 uniform vec3 u_samples[SAMPLE_SIZE];
 
 const float QUADRATIC = 1.6;
-const float CONTRAST = 2.;
+//const float CONTRAST = 2.;
+
+const float NEAR_DEPTH = 0.;
+const float FAR_DEPTH = -250.;
 
 void main() {
 
@@ -66,11 +69,11 @@ void main() {
 
     vec3 kernelPos = texture2D(u_position, TexCoords).xyz;
     vec3 albedo = texture2D(u_albedo, TexCoords).xyz;
-    if (kernelPos.z > u_far_z || albedo.r > 0.) {
+    if (kernelPos.z > FAR_DEPTH && albedo.r > 0.) {
 
         // 动态采样数，近密远疏，可以大幅降低开销
-        float depth_scale = clamp((u_far_z - kernelPos.z) / u_far_z, .2, 1.);
-        int sample_count = int(float(SAMPLE_SIZE) * depth_scale);
+        float depth_factor = clamp((FAR_DEPTH - kernelPos.z) / FAR_DEPTH, .2, 1.);
+        int sample_count = int(float(SAMPLE_SIZE) * depth_factor);
 
         // get input for SSAO algorithm
         vec3 kernelNormal = texture2D(u_normal, TexCoords).xyz;
@@ -104,13 +107,11 @@ void main() {
             }
         }
 
-        occlusion = pow(occlusion * 1.3, QUADRATIC);
+        occlusion = pow(occlusion * u_darkness, QUADRATIC);
         occlusion = occlusion / float(sample_count);
 //        occlusion = CONTRAST * (occlusion - 0.5) + 0.5;
 
     }
-
-
 
 #if 1
     gl_FragColor.r = occlusion;
