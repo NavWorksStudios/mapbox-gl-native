@@ -200,7 +200,7 @@ void deferred(float zoom,
     GLboolean blendEnabled;
     glGetBooleanv(GL_BLEND, &blendEnabled);
     
-    auto bindScreen = [viewport, color, blendEnabled] () {
+    auto bindScreen = [viewport] () {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
     };
@@ -213,9 +213,6 @@ void deferred(float zoom,
 
     glViewport(0, 0, w, h);
     glClearColor(0, 0, 0, 0);
-    
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // 1
     const GLint shadowDepth = nav::shadow::renderShadowDepthBuffer(w, h, shadowRenderDelegate);
