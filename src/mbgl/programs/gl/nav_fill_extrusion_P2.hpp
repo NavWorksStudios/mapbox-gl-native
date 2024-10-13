@@ -94,7 +94,7 @@ struct FillExtrusionProgram {
             // Diffuse Lighting
             highp vec3 norm = normalize(normal);
             highp vec3 lightDir = normalize(u_lightpos);
-            float diffuse = dot(norm, lightDir) * 0.6;
+            float diffuse = dot(norm, lightDir) * 0.4;
     
             // Specular Lighting
             const float indensity = .6; // 强度
@@ -105,7 +105,7 @@ struct FillExtrusionProgram {
             highp vec3 reflectDir = reflect(lightDir, norm); // 反射向量
             float specular = indensity * pow(max(dot(viewDir, reflectDir), 0.), shininess); // power(max(0,dot(N,H)),shininess)
 
-            const vec3 specColor = vec3(1.,.9,.7);
+            const vec3 specColor = vec3(1., .9, .4);
             v_color = color * vec4(u_lightcolor * (ambient + diffuse) + specColor * specular, 1.) * u_opacity * .95;
         }
         
