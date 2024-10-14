@@ -185,10 +185,12 @@ GLuint program() {
 void renderGeoAndShadowBuffer(GLint shadowDepth, std::function<bool()> renderCallback, std::function<void()> bindScreen) {
     if (bindScreen) bindScreen();
     else gbuffer::bindFbo(ao::buffer);
-    
-    glDisable(GL_BLEND);
 
+    GLfloat color[4];
+    glGetFloatv(GL_COLOR_CLEAR_VALUE, color);
+    glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClearColor(color[0], color[1], color[2], color[3]);
     
     static GLint program = 0;
     if (program) {
@@ -198,9 +200,15 @@ void renderGeoAndShadowBuffer(GLint shadowDepth, std::function<bool()> renderCal
         glUniform1i(u1, 0);
     }
     
+    GLboolean blendEnabled;
+    glGetBooleanv(GL_BLEND, &blendEnabled);
+    glDisable(GL_BLEND);
+    
     if (renderCallback()) {
         glGetIntegerv(GL_CURRENT_PROGRAM, &program);
     }
+    
+    blendEnabled ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
 }
 
 
@@ -213,6 +221,10 @@ GLint renderAOBuffer(int width, int height, float zoom, const Mat4& projMatrix, 
     const GLint program = ao::program();
 
     glUseProgram(program);
+    
+    GLboolean blendEnabled;
+    glGetBooleanv(GL_BLEND, &blendEnabled);
+    glDisable(GL_BLEND);
     
     {
         static GLint u_sample_radius[sample::kernel::SIZE];
@@ -231,7 +243,7 @@ GLint renderAOBuffer(int width, int height, float zoom, const Mat4& projMatrix, 
         
         const float z = zoom - 15.; // zoom (15, 20)
         const float z_scale = pow(2., z);
-        const float radius = .04 * z_scale;
+        const float radius = .02 * z_scale;
         
         for (unsigned int i = 0; i < sample::kernel::SIZE; ++i) {
             const float scalar = radius * pow(1.2, i);
@@ -250,7 +262,7 @@ GLint renderAOBuffer(int width, int height, float zoom, const Mat4& projMatrix, 
         glUniform2f(u1, width / sample::noise::SIZE, height / sample::noise::SIZE);
         
         static programs::UniformLocation u2(program, "u_darkness");
-        glUniform1f(u2, 1.4 - .4 * (z / 5.));
+        glUniform1f(u2, 1.3 - .3 * (z / 5.));
         
     }
 
@@ -277,6 +289,8 @@ GLint renderAOBuffer(int width, int height, float zoom, const Mat4& projMatrix, 
     }
     
     nav::render::util::renderQuad(program);
+    
+    blendEnabled ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
 
     return ao::buffer;
 }

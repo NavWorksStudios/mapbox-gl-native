@@ -30,6 +30,8 @@ void render(GLint buffer, int width, int height) {
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     
+    GLboolean blendEnabled;
+    glGetBooleanv(GL_BLEND, &blendEnabled);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -51,6 +53,9 @@ void render(GLint buffer, int width, int height) {
 //    glUniform2f(u3, 2.9 / width, 2.9 / height);
 
     nav::render::util::renderQuad(program);
+
+    blendEnabled ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
 }
 

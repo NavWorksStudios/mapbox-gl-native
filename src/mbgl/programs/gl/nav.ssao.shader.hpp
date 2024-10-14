@@ -247,7 +247,7 @@ float kawaseBlurSample13(vec2 uv) {
 
 void main() {
     float result = kawaseBlurSample5(TexCoords);
-    gl_FragColor = vec4(.0, .0, .0, result);
+    gl_FragColor = vec4(vec3(.0), result);
 }
 
 )"; }
