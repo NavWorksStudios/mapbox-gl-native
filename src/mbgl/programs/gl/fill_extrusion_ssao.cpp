@@ -116,7 +116,7 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
     
     static const char* navFragment(const char* ) { return R"(
 
-        uniform sampler2D u_shadowMap;
+        uniform sampler2D u_shadow_map;
 
         varying vec3 v_fragPos;
         varying vec3 v_normal;
@@ -139,7 +139,7 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
             projCoords = projCoords * 0.5 + 0.5;
     
             // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
-            float closestDepth = texture2D(u_shadowMap, projCoords.xy).r; 
+            float closestDepth = texture2D(u_shadow_map, projCoords.xy).r; 
     
             // get depth of current fragment from light's perspective
             float currentDepth = projCoords.z;

@@ -163,13 +163,13 @@ void renderTileFloor(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::ma
         const Mat4 NORMAL = convertMatrix4(normal);
         glUniformMatrix4fv(u2, 1, GL_FALSE, reinterpret_cast<const float*>(&NORMAL));
         
-        static programs::UniformLocation u3(program, "u_lightMatrix");
+        static programs::UniformLocation u3(program, "u_light_matrix");
         const Mat4 LIGHTMVP = convertMatrix4(lightmvp);
         glUniformMatrix4fv(u3, 1, GL_FALSE, reinterpret_cast<const float*>(&LIGHTMVP));
         
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, floor::shadowDepth);
-        static programs::UniformLocation u4(program, "u_shadowMap");
+        static programs::UniformLocation u4(program, "u_shadow_map");
         glUniform1i(u4, 0);
     }
 

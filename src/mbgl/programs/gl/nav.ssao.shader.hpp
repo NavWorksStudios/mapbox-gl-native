@@ -43,9 +43,7 @@ static const char* genSSAOFragmentShader() { return R"(
 varying vec2 TexCoords;
 
 uniform mat4 u_projection;
-uniform mat4 u_lightSpaceMatrix;
 uniform vec2 u_texscale;
-uniform float u_darkness;
 
 uniform sampler2D u_position;
 uniform sampler2D u_normal;
@@ -58,10 +56,10 @@ uniform float u_z_bias[SAMPLE_SIZE];
 uniform vec3 u_samples[SAMPLE_SIZE];
 
 const float QUADRATIC = 1.6;
-//const float CONTRAST = 2.;
+//const float CONTRAST = 1.6;
 
 const float NEAR_DEPTH = 0.;
-const float FAR_DEPTH = -300.;
+const float FAR_DEPTH = -250.;
 
 void main() {
 
@@ -107,7 +105,7 @@ void main() {
             }
         }
 
-        occlusion = pow(occlusion * u_darkness, QUADRATIC);
+        occlusion = pow(occlusion, QUADRATIC);
         occlusion = occlusion / float(sample_count);
 //        occlusion = CONTRAST * (occlusion - 0.5) + 0.5;
 

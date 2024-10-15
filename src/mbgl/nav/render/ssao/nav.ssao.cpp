@@ -196,7 +196,7 @@ void renderGeoAndShadowBuffer(GLint shadowDepth, std::function<bool()> renderCal
     if (program) {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, shadowDepth);
-        static programs::UniformLocation u1(program, "u_shadowMap");
+        static programs::UniformLocation u1(program, "u_shadow_map");
         glUniform1i(u1, 0);
     }
     
@@ -241,10 +241,8 @@ GLint renderAOBuffer(int width, int height, float zoom, const Mat4& projMatrix, 
             }
         }
         
-        const float z = zoom - 15.; // zoom (15, 20)
-        const float z_scale = pow(2., z);
-        const float radius = .02 * z_scale;
-        
+        const float z = fmin(fmax(zoom - 15., 0.), 1.); // zoom (15, 20)
+        const float radius = .2 * z;
         for (unsigned int i = 0; i < sample::kernel::SIZE; ++i) {
             const float scalar = radius * pow(1.2, i);
             glUniform1f(u_sample_radius[i], scalar);
@@ -260,9 +258,6 @@ GLint renderAOBuffer(int width, int height, float zoom, const Mat4& projMatrix, 
         
         static programs::UniformLocation u1(program, "u_texscale");
         glUniform2f(u1, width / sample::noise::SIZE, height / sample::noise::SIZE);
-        
-        static programs::UniformLocation u2(program, "u_darkness");
-        glUniform1f(u2, 1.3 - .3 * (z / 5.));
         
     }
 
