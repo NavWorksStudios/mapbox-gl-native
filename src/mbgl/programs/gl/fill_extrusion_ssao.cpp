@@ -169,8 +169,7 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
     
             // shadow
             float shadow = ShadowCalculation(v_lightSpacePos);
-            gl_FragData[3].rgb = vec3(0.2);
-            gl_FragData[3].a = min(shadow, 0.75);
+            gl_FragData[3] = vec4(0.2, 0.2, 0.2, min(shadow, 0.75));
         }
             
     )"; }

@@ -105,7 +105,8 @@ struct ShaderSource<FillExtrusionShadowProgram> {
         
         void main() {
             // no need do anything
-            
+//            gl_FragDepth = gl_FragCoord.z;
+            gl_FragColor = vec4(1., 0., 0., 1.);
         }
 
     )"; }

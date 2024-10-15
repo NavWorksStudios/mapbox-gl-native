@@ -75,8 +75,6 @@ void bind() {
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowDepthTexture, 0);
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
-    
-    glClear(GL_DEPTH_BUFFER_BIT);
 }
 
 }
@@ -94,32 +92,20 @@ void generate(int width, int height) {
 }
 
 void renderDBuffer(std::function<void()> renderCallback,
-                   std::function<void()> bindScreenFbo = nullptr) {
+                   std::function<void()> bindScreenFbo) {
     
     if (bindScreenFbo) bindScreenFbo();
     else fbo::dbuffer::bind();
 
-    GLfloat color[4];
-    glGetFloatv(GL_COLOR_CLEAR_VALUE, color);
-    glClearColor(0, 0, 0, 0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glClearColor(color[0], color[1], color[2], color[3]);
-    
-    GLboolean blendEnabled;
-    glGetBooleanv(GL_BLEND, &blendEnabled);
-    glDisable(GL_BLEND);
-    
-    {
-        renderCallback();
-    }
-    
-    blendEnabled ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
+    glClear(GL_DEPTH_BUFFER_BIT);
+
+    renderCallback();
 
 }
 
-GLuint renderShadowDepthBuffer(int width, int height, std::function<bool()> renderCallback) {
+GLuint renderShadowDepthBuffer(int width, int height, std::function<bool()> renderCallback, std::function<void()> bindScreenFbo) {
     fbo::generate(width, height);
-    renderDBuffer(renderCallback);
+    renderDBuffer(renderCallback, bindScreenFbo);
     return fbo::dbuffer::shadowDepthTexture;
 }
 
