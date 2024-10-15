@@ -57,6 +57,14 @@ mat4 RenderTile::translatedClipMatrix(Translation& translation, TranslateAnchorT
     return translateVtxMatrix(nearClippedMatrix, translation, anchor, state, false);
 }
 
+mat4 RenderTile::translatedSunlightMatrix(Translation& translation, TranslateAnchorType anchor, const TransformState& state) const {
+    return translateVtxMatrix(sunlightMatrix, translation, anchor, state, false);
+}
+
+mat4 RenderTile::translatedSunlightClipMatrix(Translation& translation, TranslateAnchorType anchor, const TransformState& state) const {
+    return translateVtxMatrix(sunlightNearClippedMatrix, translation, anchor, state, false);
+}
+
 const OverscaledTileID& RenderTile::getOverscaledTileID() const { return tile.id; }
 bool RenderTile::holdForFade() const { return tile.holdForFade(); }
 
@@ -120,11 +128,18 @@ void RenderTile::prepare(const SourcePrepareParameters& parameters) {
     const auto& transform = parameters.transform;
 
     transform.state.matrixFor(modelMatrix, id);
+    
     viewMatrix = transform.state.getWorldToCameraMatrix();
     matrix::multiply(modelViewMatrix, viewMatrix, modelMatrix);
     
     matrix::multiply(matrix, transform.projMatrix, modelMatrix);
     matrix::multiply(nearClippedMatrix, transform.nearClippedProjMatrix, modelMatrix);
+    
+    sunlightViewMatrix = transform.state.getWorldToSunlightMatrix();
+    matrix::multiply(sunlightModelViewMatrix, sunlightViewMatrix, modelMatrix);
+    
+    matrix::multiply(sunlightMatrix, transform.sunlightProjMatrix, modelMatrix);
+    matrix::multiply(sunlightNearClippedMatrix, transform.sunlightNearClippedProjMatrix, modelMatrix);
 }
 
 void RenderTile::finishRender(PaintParameters& parameters) const {

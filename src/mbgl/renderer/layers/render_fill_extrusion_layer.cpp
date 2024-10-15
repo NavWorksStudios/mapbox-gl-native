@@ -192,6 +192,7 @@ bool RenderFillExtrusionLayer::doRenderDeferredGeoBuffer(PaintParameters& parame
             const auto& state = parameters.state;
             
             const auto matrix = tile.translatedClipMatrix(translate, anchor, state);
+            const auto sunlight_matrix = tile.translatedSunlightClipMatrix(translate, anchor, state);
 
             mat4 normalMatrix;
             matrix::invert(normalMatrix, tile.modelViewMatrix);
@@ -309,7 +310,8 @@ bool RenderFillExtrusionLayer::doRenderShadowDepth(PaintParameters& parameters) 
             const auto& state = parameters.state;
             
             // #*# 使用相机矩阵进行渲染
-            const auto matrix = tile.translatedClipMatrix(translate, anchor, state);
+//            const auto matrix = tile.translatedClipMatrix(translate, anchor, state);
+            const auto matrix = tile.translatedSunlightClipMatrix(translate, anchor, state);
             layoutUniforms.template get<uniforms::matrix>() = matrix;
             
             draw(parameters.programs.getFillExtrusionShadowLayerPrograms().fillExtrusion,
@@ -345,11 +347,8 @@ bool RenderFillExtrusionLayer::doRenderShadowDepth(PaintParameters& parameters) 
             const auto& anchor = evaluated.get<FillExtrusionTranslateAnchor>();
             const auto& state = parameters.state;
             
-            const auto matrix = tile.translatedClipMatrix(translate, anchor, state);
-
-            mat4 normalMatrix;
-            matrix::invert(normalMatrix, tile.modelViewMatrix);
-            matrix::transpose(normalMatrix);
+//            const auto matrix = tile.translatedClipMatrix(translate, anchor, state);
+            const auto matrix = tile.translatedSunlightClipMatrix(translate, anchor, state);
             
             // draw tile floors with shadow logic code
             nav::render::renderTileFloor(matrix);

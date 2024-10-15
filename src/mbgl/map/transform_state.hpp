@@ -114,9 +114,13 @@ public:
 
     void matrixFor(mat4&, const UnwrappedTileID&) const;
     void getProjMatrix(mat4& matrix, uint16_t nearZ = 1, bool aligned = false) const;
+    void getSunlightProjMatrix(mat4& matrix, uint16_t nearZ = 1, bool aligned = false) const;
     
     inline mat4& getWorldToCameraMatrix() const { return worldToCameraMatrix; }
     inline mat4& getCameraToClipMatrix() const { return cameraToClipMatrix; }
+    
+    inline mat4& getWorldToSunlightMatrix() const { return worldToSunlightMatrix; }
+    inline mat4& getSunlightToClipMatrix() const { return sunlightToClipMatrix; }
 
     // Dimensions
     Size getSize() const;
@@ -180,6 +184,14 @@ public:
     float getCameraToCenterDistance() const;
     double getPitch() const;
     void setPitch(double);
+    
+    // sunlight
+    double getSunlightBearing() const;
+    void setSunlightBearing(double);
+//    float getFieldOfView() const;
+    float getSunlightToCenterDistance() const;
+    double getSunlightPitch() const;
+    void setSunlightPitch(double);
 
     double getXSkew() const;
     void setXSkew(double);
@@ -263,6 +275,9 @@ private:
 
     const mat4& getCoordMatrix() const;
     const mat4& getInvertedMatrix() const;
+    
+    void updateSunlightState() const;
+
 
 private:
     ConstrainMode constrainMode;
@@ -277,6 +292,7 @@ private:
     // map position
     double x = 0, y = 0;
     double bearing = 0;
+    double sunlightBearing = 0;
     double scale = 1;
     // This fov value is somewhat arbitrary. The altitude of the camera used
     // to be defined as 1.5 screen heights above the ground, which was an
@@ -285,18 +301,21 @@ private:
 //    double fov = 0.6435011087932844;
     double fov = 2.0 * atan((nav::display::logic::height() / 2) / (nav::display::logic::height() * 1.5));
     double pitch = 0.0;
+    double sunlightPitch = 0.0;
     double xSkew = 0.0;
     double ySkew = 1.0;
     bool axonometric = false;
 
     EdgeInsets edgeInsets;
     mutable util::Camera camera;
+    mutable util::Camera sunlight;
 
     // cache values for spherical mercator math
     double Bc = Projection::worldSize(scale) / util::DEGREES_MAX;
     double Cc = Projection::worldSize(scale) / util::M2PI;
 
     mutable bool requestMatricesUpdate{true};
+    // camera matrix
     mutable mat4 projectionMatrix;
     mutable mat4 worldToCameraMatrix;
     mutable mat4 cameraToClipMatrix;
@@ -304,6 +323,11 @@ private:
     mutable mat4 coordMatrix;
     mutable mat4 invertedMatrix;
     mutable vec3 _cameraPosition;
+    // sunlight matrix
+    mutable mat4 sunlightProjectionMatrix;
+    mutable mat4 worldToSunlightMatrix;
+    mutable mat4 sunlightToClipMatrix;
+    mutable vec3 _sunlightPosition;
     
 public:
     inline vec3f getCameraPosition() const {
@@ -313,6 +337,16 @@ public:
     
     inline vec3f getCameraNDCPosition() const {
         const auto& pos = camera.getPosition();
+        return { float(pos[0]), float(pos[1]), float(pos[2]) };
+    }
+    
+    inline vec3f getSunlightPosition() const {
+        const auto& pos = _sunlightPosition;
+        return { float(pos[0]), float(pos[1]), float(pos[2]) };
+    }
+    
+    inline vec3f getSunlightNDCPosition() const {
+        const auto& pos = sunlight.getPosition();
         return { float(pos[0]), float(pos[1]), float(pos[2]) };
     }
 

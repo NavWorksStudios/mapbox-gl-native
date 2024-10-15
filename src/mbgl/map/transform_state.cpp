@@ -92,7 +92,6 @@ void TransformState::matrixFor(mat4& matrix, const UnwrappedTileID& tileID) cons
 }
 
 // world to camera to clip
-
 void TransformState::getProjMatrix(mat4& projMatrix, uint16_t nearZ, bool aligned) const {
     if (size.isEmpty()) {
         return;
@@ -203,6 +202,117 @@ void TransformState::getProjMatrix(mat4& projMatrix, uint16_t nearZ, bool aligne
     
 }
 
+// world to sunlight to clip
+void TransformState::getSunlightProjMatrix(mat4& projMatrix, uint16_t nearZ, bool aligned) const {
+    if (size.isEmpty()) {
+        return;
+    }
+    
+    // Make sure the camera state is up-to-date
+    updateSunlightState();
+    
+    // world to camera matrix
+    {
+        worldToSunlightMatrix = sunlight.getWorldToCamera(scale, viewportMode == ViewportMode::FlippedY);
+    }
+    
+    // camera to clip Matrix
+    {
+        const ScreenCoordinate offset = getCenterOffset();
+        
+        auto getFarZ = [this, &offset] () {
+            const double sunlightToCenterDistance = getSunlightToCenterDistance();
+
+            // Find the Z distance from the viewport center point
+            // [width/2 + offset.x, height/2 + offset.y] to the top edge; to point
+            // [width/2 + offset.x, 0] in Z units.
+            // 1 Z unit is equivalent to 1 horizontal px at the center of the map
+            // (the distance between[width/2, height/2] and [width/2 + 1, height/2])
+            // See https://github.com/mapbox/mapbox-gl-native/pull/15195 for details.
+            // See TransformState::fov description: fov = 2 * arctan((height / 2) / (height * 1.5)).
+            
+            // 计算Z距离，从视口中心点 [宽度/2+偏移.x，高度/2+偏移.y] 到顶部边缘；to point [宽度/2+偏移.x，0]，以Z为单位。
+            // 1个Z单位相当于地图中心的1水平像素（[width/2，height/2]和[width/2+1，height/2]之间的距离）
+            // 请参阅 https://github.com/mapbox/mapbox-gl-native/pull/15195 了解详情。
+            // 请参见 TransformState::fov description: fov = 2 * arctan((height / 2) / (height * 1.5)).
+            const double tanFovAboveCenter = (size.height * 0.5 + offset.y) / (size.height * 1.5);
+            const double tanMultiple = tanFovAboveCenter * std::tan(getPitch());
+            assert(tanMultiple < 1);
+            
+            // Calculate z distance of the farthest fragment that should be rendered.
+            // 计算应渲染的最远片段的z距离。
+            const double furthestDistance = sunlightToCenterDistance / (1 - tanMultiple);
+            
+            // Add a bit extra to avoid precision problems when a fragment's distance is exactly `furthestDistance`
+            // 当片段的距离恰好为 “furthestDistance” 时，添加一点额外的值以避免精度问题
+            const double farZ = furthestDistance * 1.01;
+            
+            return farZ;
+        };
+        
+        sunlightToClipMatrix = sunlight.getCameraToClipPerspective(getFieldOfView(), double(size.width) / size.height, nearZ, getFarZ());
+        
+        // Move the center of perspective to center of specified edgeInsets.
+        // Values are in range [-1, 1] where the upper and lower range values
+        // position viewport center to the screen edges. This is overriden
+        // if using axonometric perspective (not in public API yet, Issue #11882).
+        // TODO(astojilj): Issue #11882 should take edge insets into account, too.
+        // 将透视中心移动到指定边Insets的中心。值在范围[-1，1]内，其中上限和下限值将视口中心定位到屏幕边缘。
+        // 这被夸大了如果使用轴测透视（尚未公开API，第11882期）。
+        // TODO（astojilj）：第11882期也应考虑边缘插图。
+        if (!axonometric) { // 轴测法的
+            sunlightToClipMatrix[8] = -offset.x * 2.0 / size.width;
+            sunlightToClipMatrix[9] = offset.y * 2.0 / size.height;
+        }
+        
+        // Apply north orientation angle  应用北向角度
+        if (getNorthOrientation() != NorthOrientation::Upwards) {
+            matrix::rotate_z(sunlightToClipMatrix, sunlightToClipMatrix, -getNorthOrientationAngle());
+        }
+    }
+
+    matrix::multiply(projMatrix, sunlightToClipMatrix, worldToSunlightMatrix);
+
+    if (axonometric) { // 轴测法的
+        // mat[11] controls perspective
+        projMatrix[11] = 0.0;
+
+        // mat[8], mat[9] control x-skew, y-skew
+        double pixelsPerMeter = 1.0 / Projection::getMetersPerPixelAtLatitude(getLatLng().latitude(), getZoom());
+        projMatrix[8] = xSkew * pixelsPerMeter;
+        projMatrix[9] = ySkew * pixelsPerMeter;
+    }
+
+    // Make a second projection matrix that is aligned to a pixel grid for rendering raster tiles.
+    // We're rounding the (floating point) x/y values to achieve to avoid rendering raster images to fractional
+    // coordinates. Additionally, we adjust by half a pixel in either direction in case that viewport dimension
+    // is an odd integer to preserve rendering to the pixel grid. We're rotating this shift based on the angle
+    // of the transformation so that 0°, 90°, 180°, and 270° rasters are crisp, and adjust the shift so that
+    // it is always <= 0.5 pixels.
+    //制作第二个与像素网格对齐的投影矩阵，用于渲染光栅图块。
+    //我们正在对（浮点）x/y值进行四舍五入，以避免将光栅图像渲染为分数坐标。此外，如果视口尺寸是一个奇数，用于保持像素网格的渲染。
+    //我们根据角度旋转这个偏移调整转换，使0°、90°、180°和270°光栅清晰，并调整偏移，使它总是<=0.5像素。
+    if (aligned) {
+        const double worldSize = Projection::worldSize(scale);
+        const double dx = x - 0.5 * worldSize;
+        const double dy = y - 0.5 * worldSize;
+
+        const float xShift = float(size.width % 2) / 2;
+        const float yShift = float(size.height % 2) / 2;
+        const double bearingCos = std::cos(getSunlightBearing());
+        const double bearingSin = std::sin(getSunlightBearing());
+        double devNull;
+        const float dxa = -std::modf(dx, &devNull) + bearingCos * xShift + bearingSin * yShift;
+        const float dya = -std::modf(dy, &devNull) + bearingCos * yShift + bearingSin * xShift;
+        matrix::translate(projMatrix, projMatrix, dxa > 0.5 ? dxa - 1 : dxa, dya > 0.5 ? dya - 1 : dya, 0);
+    }
+    
+    mat4 inv;
+    matrix::invert(inv, worldToSunlightMatrix);
+    matrix::multiply(sunlightToClipMatrix, projMatrix, inv);
+    
+}
+
 void TransformState::updateCameraState() const {
     if (!valid()) {
         return;
@@ -219,7 +329,7 @@ void TransformState::updateCameraState() const {
     const double dy = 0.5 * worldSize - y;
 
     // Set camera orientation and move it to a proper distance from the map
-    camera.setOrientation(getPitch(), getBearing());
+    vec4 orientation = camera.setOrientation(getPitch(), getBearing());
 
     const vec3 forward = camera.forward();
     const vec3 orbitPosition = {{-forward[0] * cameraToCenterDistance,
@@ -234,6 +344,50 @@ void TransformState::updateCameraState() const {
     cameraPosition[2] /= worldSize;
 
     camera.setPosition(cameraPosition);
+
+}
+
+optional<Quaternion> lookat(const vec3& eye, const vec3& target) {
+    const vec3 forward = vec3Sub(target, eye);
+    return util::Camera::orientationFromFrame(forward, vec3{{0.0, 0.0, 1.0}});
+}
+
+// #*# 待完善
+void TransformState::updateSunlightState() const {
+    if (!valid()) {
+        return;
+    }
+
+    const double worldSize = Projection::worldSize(scale);
+    const double cameraToCenterDistance = getSunlightToCenterDistance();
+
+    // x & y tracks the center of the map in pixels. However as rendering is done in pixel coordinates the rendering
+    // origo is actually in the middle of the map (0.5 * worldSize). x&y positions have to be negated because it defines
+    // position of the map, not the camera. Moving map 10 units left has the same effect as moving camera 10 units to
+    // the right.
+    const double dx = 0.5 * worldSize - x;
+    const double dy = 0.5 * worldSize - y;
+    
+    const vec3 lightPos = {0.287499934, -0.497964621, 0.995929181};
+    const vec3 tarPos = camera.getPosition();
+
+    // Set camera orientation and move it to a proper distance from the map
+//    vec4 orientation = sunlight.setOrientation(getSunlightPitch(), getSunlightBearing());
+    sunlight.setOrientation(lookat(lightPos, tarPos).value());
+
+    const vec3 forward = sunlight.forward();
+    const vec3 orbitPosition = {{-forward[0] * cameraToCenterDistance,
+                                 -forward[1] * cameraToCenterDistance,
+                                 -forward[2] * cameraToCenterDistance}};
+
+    vec3 cameraPosition = {{dx + orbitPosition[0], dy + orbitPosition[1], orbitPosition[2]}};
+    _sunlightPosition = cameraPosition;
+
+    cameraPosition[0] /= worldSize;
+    cameraPosition[1] /= worldSize;
+    cameraPosition[2] /= worldSize;
+
+    sunlight.setPosition(cameraPosition);
 
 }
 
@@ -346,6 +500,8 @@ void TransformState::updateMatricesIfNeeded() const {
     if (!needsMatricesUpdate() || size.isEmpty()) return;
 
     getProjMatrix(projectionMatrix);
+    // #*# 放在此处是否合理待敲定
+    getSunlightProjMatrix(sunlightProjectionMatrix);
     coordMatrix = coordinatePointMatrix(projectionMatrix);
 
     bool err = matrix::invert(invProjectionMatrix, projectionMatrix);
@@ -620,6 +776,32 @@ void TransformState::setPitch(double val) {
         requestMatricesUpdate = true;
     }
 }
+
+double TransformState::getSunlightBearing() const {
+    return sunlightBearing;
+}
+
+void TransformState::setSunlightBearing(double val) {
+    if (sunlightBearing != val) {
+        sunlightBearing = val;
+    }
+}
+
+// #*# 0.5参数待调整
+float TransformState::getSunlightToCenterDistance() const {
+    return 0.5 * size.height / std::tan(fov / 2.0);
+}
+
+double TransformState::getSunlightPitch() const {
+    return sunlightPitch;
+}
+
+void TransformState::setSunlightPitch(double val) {
+    if (sunlightPitch != val) {
+        sunlightPitch = val;
+    }
+}
+
 
 double TransformState::getXSkew() const {
     return xSkew;
