@@ -35,7 +35,8 @@ using FillExtrusionSSAOLayoutAttributes = TypeList<
 using FillExtrusionSSAOUniforms = TypeList<
     uniforms::matrix,
     uniforms::model_view_matrix,
-    uniforms::normal_matrix>;
+    uniforms::normal_matrix,
+    uniforms::light_matrix>;
 
 class FillExtrusionSSAOProgram : public Program<
     FillExtrusionSSAOProgram,
@@ -69,7 +70,7 @@ public:
         };
     }
 
-    static LayoutUniformValues layoutUniformValues(const mat4&, const mat4&, const mat4&);
+    static LayoutUniformValues layoutUniformValues(const mat4&, const mat4&, const mat4&, const mat4&);
 };
 
 

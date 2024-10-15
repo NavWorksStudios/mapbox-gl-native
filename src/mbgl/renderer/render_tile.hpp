@@ -40,10 +40,15 @@ public:
     mat4 modelMatrix;
     mat4 viewMatrix;
     mat4 modelViewMatrix;
+    mat4 sunlightViewMatrix;
+    mat4 sunlightModelViewMatrix;
     
     // mvp matrix
     mat4 matrix; // the standard tile matrix
     mat4 nearClippedMatrix; // has near plane moved further, to enhance depth buffer precision
+    // sunlight mvp matrix
+    mat4 sunlightMatrix; // the standard tile matrix
+    mat4 sunlightNearClippedMatrix; // has near plane moved further, to enhance depth buffer precision
     
     // Contains the tile ID string for painting debug information.
     std::unique_ptr<DebugBucket> debugBucket;
@@ -51,7 +56,9 @@ public:
     using Translation = const std::array<float, 2>;
     mat4 translatedMatrix(Translation& translation, style::TranslateAnchorType anchor, const TransformState&) const;
     mat4 translatedClipMatrix(Translation& translation, style::TranslateAnchorType anchor, const TransformState&) const;
-
+    mat4 translatedSunlightMatrix(Translation& translation, style::TranslateAnchorType anchor, const TransformState&) const;
+    mat4 translatedSunlightClipMatrix(Translation& translation, style::TranslateAnchorType anchor, const TransformState&) const;
+    
     const OverscaledTileID& getOverscaledTileID() const;
     bool holdForFade() const;
 

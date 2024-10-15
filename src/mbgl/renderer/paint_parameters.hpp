@@ -38,6 +38,10 @@ public:
     mat4 projMatrix;
     mat4 alignedProjMatrix;
     mat4 nearClippedProjMatrix;
+    // sunlight proj matrix
+    mat4 sunlightProjMatrix;
+    mat4 sunlightAlignedProjMatrix;
+    mat4 sunlightNearClippedProjMatrix;
     const TransformState state;
 };
 

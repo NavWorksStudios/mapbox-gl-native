@@ -125,7 +125,8 @@ bool RenderFillExtrusionLayer::doRenderDeferredGeoBuffer(PaintParameters& parame
         auto layoutUniforms = FillExtrusionSSAOProgram::layoutUniformValues(
             uniforms::matrix::Value(),
             uniforms::model_view_matrix::Value(),
-            uniforms::normal_matrix::Value()
+            uniforms::normal_matrix::Value(),
+            uniforms::light_matrix::Value()
         );
         
         const std::string uniqueName = getID().get() + "/" + name;
@@ -157,6 +158,8 @@ bool RenderFillExtrusionLayer::doRenderDeferredGeoBuffer(PaintParameters& parame
             auto& normalMatrix = layoutUniforms.template get<uniforms::normal_matrix>();
             matrix::invert(normalMatrix, tile.modelViewMatrix);
             matrix::transpose(normalMatrix);
+            
+            layoutUniforms.template get<uniforms::light_matrix>() = tile.translatedSunlightClipMatrix(translate, anchor, state);;
             
             draw(parameters.programs.getFillExtrusionSSAOLayerPrograms().fillExtrusion,
                  evaluated,
@@ -192,13 +195,14 @@ bool RenderFillExtrusionLayer::doRenderDeferredGeoBuffer(PaintParameters& parame
             const auto& state = parameters.state;
             
             const auto matrix = tile.translatedClipMatrix(translate, anchor, state);
+            const auto sunlight_matrix = tile.translatedSunlightClipMatrix(translate, anchor, state);
 
             mat4 normalMatrix;
             matrix::invert(normalMatrix, tile.modelViewMatrix);
             matrix::transpose(normalMatrix);
             
             // draw tile floors with ssao logic code
-            nav::render::renderTileFloor(matrix, tile.modelViewMatrix, normalMatrix, mat4());
+            nav::render::renderTileFloor(matrix, tile.modelViewMatrix, normalMatrix, sunlight_matrix);
         }
     };
 
@@ -281,7 +285,7 @@ bool RenderFillExtrusionLayer::doRenderShadowDepth(PaintParameters& parameters) 
     };
     
     const auto drawTileShadows = [&](const gfx::StencilMode& stencilMode_, const gfx::ColorMode& colorMode_, const std::string& name) {
-        auto layoutUniforms = FillExtrusionSSAOProgram::layoutUniformValues(
+        auto layoutUniforms = FillExtrusionShadowProgram::layoutUniformValues(
             uniforms::matrix::Value(),
             uniforms::model_view_matrix::Value(),
             uniforms::normal_matrix::Value()
@@ -309,7 +313,8 @@ bool RenderFillExtrusionLayer::doRenderShadowDepth(PaintParameters& parameters) 
             const auto& state = parameters.state;
             
             // #*# 使用相机矩阵进行渲染
-            const auto matrix = tile.translatedClipMatrix(translate, anchor, state);
+//            const auto matrix = tile.translatedClipMatrix(translate, anchor, state);
+            const auto matrix = tile.translatedSunlightClipMatrix(translate, anchor, state);
             layoutUniforms.template get<uniforms::matrix>() = matrix;
             
             draw(parameters.programs.getFillExtrusionShadowLayerPrograms().fillExtrusion,
@@ -345,11 +350,8 @@ bool RenderFillExtrusionLayer::doRenderShadowDepth(PaintParameters& parameters) 
             const auto& anchor = evaluated.get<FillExtrusionTranslateAnchor>();
             const auto& state = parameters.state;
             
-            const auto matrix = tile.translatedClipMatrix(translate, anchor, state);
-
-            mat4 normalMatrix;
-            matrix::invert(normalMatrix, tile.modelViewMatrix);
-            matrix::transpose(normalMatrix);
+//            const auto matrix = tile.translatedClipMatrix(translate, anchor, state);
+            const auto matrix = tile.translatedSunlightClipMatrix(translate, anchor, state);
             
             // draw tile floors with shadow logic code
             nav::render::renderTileFloor(matrix);
