@@ -39,6 +39,24 @@ static auto convertMatrix4 = [] (mbgl::mat4 matrix) {
 
 namespace floor {
 
+// Set up buffer for floor data, 6 triangles
+const static GLfloat vertices[36] = {
+    0.0f, 8192.0f,
+    0.0f, 0.0f, 1.0f, 0.0f,
+    0.0f, 0.0f,
+    0.0f, 0.0f, 1.0f, 0.0f,
+    8192.0f, 8192.0f,
+    0.0f, 0.0f, 1.0f, 0.0f,
+
+    8192.0f, 8192.0f,
+    0.0f, 0.0f, 1.0f, 0.0f,
+    0.0f, 0.0f,
+    0.0f, 0.0f, 1.0f, 0.0f,
+    8192.0f, 0.0f,
+    0.0f, 0.0f, 1.0f, 0.0f };
+
+namespace ssao {
+
 GLuint program() {
     static GLint pass = 0;
     if (!pass) {
@@ -46,93 +64,21 @@ GLuint program() {
         createProgram(compileShader(GL_VERTEX_SHADER, mbgl::floorVertexShader()),
                       compileShader(GL_FRAGMENT_SHADER, mbgl::floorFragmentShader()));
     }
-
+    
     return pass;
 }
 
-GLuint shadow_program() {
-    static GLint pass = 0;
-    if (!pass) {
-        pass =
-        createProgram(compileShader(GL_VERTEX_SHADER, mbgl::floorShadowVertexShader()),
-                      compileShader(GL_FRAGMENT_SHADER, mbgl::floorShadowFragmentShader()));
-    }
-
-    return pass;
-}
-
-GLuint data() {
-    static GLuint tileFloorBuf = 0;
-    if (!tileFloorBuf) {
-        // Set up buffer for floor data, 6 triangles
-        const static GLfloat tileFloorData[36] = {
-            0.0f, 8192.0f,
-            0.0f, 0.0f, 1.0f, 0.0f,
-            0.0f, 0.0f,
-            0.0f, 0.0f, 1.0f, 0.0f,
-            8192.0f, 8192.0f,
-            0.0f, 0.0f, 1.0f, 0.0f,
-
-            8192.0f, 8192.0f,
-            0.0f, 0.0f, 1.0f, 0.0f,
-            0.0f, 0.0f,
-            0.0f, 0.0f, 1.0f, 0.0f,
-            8192.0f, 0.0f,
-            0.0f, 0.0f, 1.0f, 0.0f };
+GLuint vao(GLuint program) {
+    static GLuint vao = 0;
+    if (!vao) {
+        static GLuint vbo;
         
-        glGenBuffers(1, &tileFloorBuf);
-        glBindBuffer(GL_ARRAY_BUFFER, tileFloorBuf);
-        glBufferData(GL_ARRAY_BUFFER, 36 * sizeof(GLfloat), tileFloorData, GL_STATIC_DRAW);
-    }
-
-    return tileFloorBuf;
-}
-
-GLint shadowDepth;
-
-}
-
-
-void renderTileFloor(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::mat4& normal, const mbgl::mat4& lightmvp) {
-    
-    // convert 3*matrix mbgl::mat4 to Mat4
-    const Mat4 MVP = convertMatrix4(mvp);
-    const Mat4 MV = convertMatrix4(mv);
-    const Mat4 NORMAL = convertMatrix4(normal);
-    const Mat4 LIGHTMVP = convertMatrix4(lightmvp);
-    
-    const GLint program = floor::program();
-    glUseProgram(program);
-    
-    GLboolean cullfaceEnabled;
-    glGetBooleanv(GL_CULL_FACE, &cullfaceEnabled);
-    glDisable(GL_CULL_FACE);
-    
-    
-    // floor uniforms
-    {
-        static programs::UniformLocation u0(program, "u_matrix");
-        glUniformMatrix4fv(u0, 1, GL_FALSE, reinterpret_cast<const float*>(&MVP));
+        glGenBuffers(1, &vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, 36 * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
         
-        static programs::UniformLocation u1(program, "u_model_view_matrix");
-        glUniformMatrix4fv(u1, 1, GL_FALSE, reinterpret_cast<const float*>(&MV));
-        
-        static programs::UniformLocation u2(program, "u_normal_matrix");
-        glUniformMatrix4fv(u2, 1, GL_FALSE, reinterpret_cast<const float*>(&NORMAL));
-        
-        static programs::UniformLocation u3(program, "u_lightMatrix");
-        glUniformMatrix4fv(u3, 1, GL_FALSE, reinterpret_cast<const float*>(&LIGHTMVP));
-        
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, floor::shadowDepth);
-        static programs::UniformLocation u4(program, "u_shadowMap");
-        glUniform1i(u4, 0);
-    }
-
-    
-    // floor attributes
-    {
-        glBindBuffer(GL_ARRAY_BUFFER, floor::data());
+        glGenVertexArrays(1, &vao);
+        glBindVertexArray(vao);
         
         static programs::AttribLocation a0(program, "a_pos");
         glEnableVertexAttribArray(a0);
@@ -141,43 +87,118 @@ void renderTileFloor(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::ma
         static programs::AttribLocation a1(program, "a_normal_ed");
         glEnableVertexAttribArray(a1);
         glVertexAttribPointer(a1, 4, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(2 * sizeof(GLfloat)));
+        
+        glBindVertexArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+    
+    return vao;
+}
+
+}
+
+
+namespace shadow {
+
+GLuint program() {
+    static GLint pass = 0;
+    if (!pass) {
+        pass =
+        createProgram(compileShader(GL_VERTEX_SHADER, mbgl::floorShadowVertexShader()),
+                      compileShader(GL_FRAGMENT_SHADER, mbgl::floorShadowFragmentShader()));
+    }
+    
+    return pass;
+}
+
+GLuint vao(GLuint program) {
+    static GLuint vao = 0;
+    if (!vao) {
+        static GLuint vbo;
+        
+        glGenBuffers(1, &vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, 36 * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
+        
+        glGenVertexArrays(1, &vao);
+        glBindVertexArray(vao);
+        
+        static programs::AttribLocation a0(program, "a_pos");
+        glEnableVertexAttribArray(a0);
+        glVertexAttribPointer(a0, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(0));
+        
+        glBindVertexArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+    
+    return vao;
+}
+
+}
+
+GLint shadowDepth;
+
+}
+
+
+void renderTileFloor(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::mat4& normal, const mbgl::mat4& lightmvp) {
+
+    const GLint program = floor::ssao::program();
+    glUseProgram(program);
+    
+    GLboolean cullfaceEnabled;
+    glGetBooleanv(GL_CULL_FACE, &cullfaceEnabled);
+    glDisable(GL_CULL_FACE);
+
+    {
+        static programs::UniformLocation u0(program, "u_matrix");
+        const Mat4 MVP = convertMatrix4(mvp);
+        glUniformMatrix4fv(u0, 1, GL_FALSE, reinterpret_cast<const float*>(&MVP));
+        
+        static programs::UniformLocation u1(program, "u_model_view_matrix");
+        const Mat4 MV = convertMatrix4(mv);
+        glUniformMatrix4fv(u1, 1, GL_FALSE, reinterpret_cast<const float*>(&MV));
+        
+        static programs::UniformLocation u2(program, "u_normal_matrix");
+        const Mat4 NORMAL = convertMatrix4(normal);
+        glUniformMatrix4fv(u2, 1, GL_FALSE, reinterpret_cast<const float*>(&NORMAL));
+        
+        static programs::UniformLocation u3(program, "u_lightMatrix");
+        const Mat4 LIGHTMVP = convertMatrix4(lightmvp);
+        glUniformMatrix4fv(u3, 1, GL_FALSE, reinterpret_cast<const float*>(&LIGHTMVP));
+        
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, floor::shadowDepth);
+        static programs::UniformLocation u4(program, "u_shadowMap");
+        glUniform1i(u4, 0);
     }
 
+    glBindVertexArray(floor::ssao::vao(program));
     glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindVertexArray(0);
     
     cullfaceEnabled ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
 
 }
 
 void renderTileFloor(const mbgl::mat4& lightmvp) {
-    
-    // convert 3*matrix mbgl::mat4 to Mat4
-    const Mat4 LIGHTMVP = convertMatrix4(lightmvp);
-    
-    const GLint program = floor::shadow_program();
+
+    const GLint program = floor::shadow::program();
     glUseProgram(program);
     
     GLboolean cullfaceEnabled;
     glGetBooleanv(GL_CULL_FACE, &cullfaceEnabled);
     glDisable(GL_CULL_FACE);
-    
-    
-    // floor uniforms
+
     {
         static programs::UniformLocation u0(program, "u_matrix");
+        const Mat4 LIGHTMVP = convertMatrix4(lightmvp);
         glUniformMatrix4fv(u0, 1, GL_FALSE, reinterpret_cast<const float*>(&LIGHTMVP));
     }
-    
-    // floor attributes
-    {
-        glBindBuffer(GL_ARRAY_BUFFER, floor::data());
-        
-        static programs::AttribLocation a0(program, "a_pos");
-        glEnableVertexAttribArray(a0);
-        glVertexAttribPointer(a0, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(0));
-    }
 
+    glBindVertexArray(floor::shadow::vao(program));
     glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindVertexArray(0);
     
     cullfaceEnabled ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
 
@@ -190,49 +211,37 @@ void deferred(float zoom,
               std::function<bool()> geoRenderDelegate) {
     
     if (zoom < 15.) return;
+    
+    const float BUFFER_RATIO = .7;
+    const int w = nav::display::pixels::width() * BUFFER_RATIO;
+    const int h = nav::display::pixels::height() * BUFFER_RATIO;
+
+    nav::ssao::initResource(w, h);
 
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT, viewport);
-    
-    GLfloat color[4];
-    glGetFloatv(GL_COLOR_CLEAR_VALUE, color);
-    
-    GLboolean blendEnabled;
-    glGetBooleanv(GL_BLEND, &blendEnabled);
-    
-    auto bindScreen = [viewport, color, blendEnabled] () {
+    glViewport(0, 0, w, h);
+    auto bindScreen = [viewport] () {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
     };
 
-    const float BUFFER_RATIO = .7;
-    const int w = nav::display::pixels::width() * BUFFER_RATIO;
-    const int h = nav::display::pixels::height() * BUFFER_RATIO;
-    
-    nav::ssao::initResource(w, h);
-
-    glViewport(0, 0, w, h);
-    glClearColor(0, 0, 0, 0);
-    
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_DEPTH_TEST);
+    glDepthMask(GL_TRUE);
+    glDepthFunc(GL_LESS);
 
     // 1
     const GLint shadowDepth = nav::shadow::renderShadowDepthBuffer(w, h, shadowRenderDelegate);
 
     // 2
     nav::ssao::renderGeoAndShadowBuffer(floor::shadowDepth = shadowDepth, geoRenderDelegate);
-
+    
     // 3
     const GLint renderBuffer = nav::ssao::renderAOBuffer(w, h, zoom, convertMatrix4(projMatrix));
     
     // 4
     bindScreen();
     nav::blur::render(renderBuffer, w, h);
-    
-    glClearColor(color[0], color[1], color[2], color[3]);
-    blendEnabled ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
-    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
 }
 
