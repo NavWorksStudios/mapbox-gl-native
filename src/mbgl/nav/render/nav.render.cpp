@@ -163,7 +163,7 @@ void renderTileFloor(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::ma
         const Mat4 NORMAL = convertMatrix4(normal);
         glUniformMatrix4fv(u2, 1, GL_FALSE, reinterpret_cast<const float*>(&NORMAL));
         
-        static programs::UniformLocation u3(program, "u_lightMatrix");
+        static programs::UniformLocation u3(program, "u_light_matrix");
         const Mat4 LIGHTMVP = convertMatrix4(lightmvp);
         glUniformMatrix4fv(u3, 1, GL_FALSE, reinterpret_cast<const float*>(&LIGHTMVP));
         

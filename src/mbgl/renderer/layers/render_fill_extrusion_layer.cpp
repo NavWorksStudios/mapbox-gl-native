@@ -125,7 +125,8 @@ bool RenderFillExtrusionLayer::doRenderDeferredGeoBuffer(PaintParameters& parame
         auto layoutUniforms = FillExtrusionSSAOProgram::layoutUniformValues(
             uniforms::matrix::Value(),
             uniforms::model_view_matrix::Value(),
-            uniforms::normal_matrix::Value()
+            uniforms::normal_matrix::Value(),
+            uniforms::light_matrix::Value()
         );
         
         const std::string uniqueName = getID().get() + "/" + name;
@@ -157,6 +158,8 @@ bool RenderFillExtrusionLayer::doRenderDeferredGeoBuffer(PaintParameters& parame
             auto& normalMatrix = layoutUniforms.template get<uniforms::normal_matrix>();
             matrix::invert(normalMatrix, tile.modelViewMatrix);
             matrix::transpose(normalMatrix);
+            
+            layoutUniforms.template get<uniforms::light_matrix>() = tile.translatedSunlightClipMatrix(translate, anchor, state);;
             
             draw(parameters.programs.getFillExtrusionSSAOLayerPrograms().fillExtrusion,
                  evaluated,
@@ -199,7 +202,7 @@ bool RenderFillExtrusionLayer::doRenderDeferredGeoBuffer(PaintParameters& parame
             matrix::transpose(normalMatrix);
             
             // draw tile floors with ssao logic code
-            nav::render::renderTileFloor(matrix, tile.modelViewMatrix, normalMatrix, mat4());
+            nav::render::renderTileFloor(matrix, tile.modelViewMatrix, normalMatrix, sunlight_matrix);
         }
     };
 
@@ -282,7 +285,7 @@ bool RenderFillExtrusionLayer::doRenderShadowDepth(PaintParameters& parameters) 
     };
     
     const auto drawTileShadows = [&](const gfx::StencilMode& stencilMode_, const gfx::ColorMode& colorMode_, const std::string& name) {
-        auto layoutUniforms = FillExtrusionSSAOProgram::layoutUniformValues(
+        auto layoutUniforms = FillExtrusionShadowProgram::layoutUniformValues(
             uniforms::matrix::Value(),
             uniforms::model_view_matrix::Value(),
             uniforms::normal_matrix::Value()

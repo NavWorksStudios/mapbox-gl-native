@@ -60,7 +60,7 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
         uniform mat4 u_matrix;
         uniform mat4 u_model_view_matrix;
         uniform mat4 u_normal_matrix;
-        uniform mat4 u_lightMatrix;
+        uniform mat4 u_light_matrix;
     
         varying vec3 v_fragPos;
         varying vec3 v_normal;
@@ -87,7 +87,7 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
             v_normal = vec3(u_normal_matrix * vec4(-a_normal_ed.x, -a_normal_ed.y, a_normal_ed.z, a_normal_ed.w));
     
             // shadow
-            v_lightSpacePos = u_lightMatrix * pos;
+            v_lightSpacePos = u_light_matrix * pos;
     
             gl_Position = u_matrix * pos;
         }
@@ -202,7 +202,7 @@ attribute vec4 a_normal_ed;
 uniform mat4 u_matrix;
 uniform mat4 u_model_view_matrix;
 uniform mat4 u_normal_matrix;
-uniform mat4 u_lightMatrix;
+uniform mat4 u_light_matrix;
 
 varying vec3 v_fragPos;
 varying vec3 v_normal;
@@ -217,7 +217,7 @@ void main()
     v_normal = vec3(u_normal_matrix * vec4(-a_normal_ed.x, -a_normal_ed.y, a_normal_ed.z, a_normal_ed.w));
 
     // shadow
-    v_lightSpacePos = u_lightMatrix * pos;
+    v_lightSpacePos = u_light_matrix * pos;
 
     gl_Position = u_matrix * pos;
 }

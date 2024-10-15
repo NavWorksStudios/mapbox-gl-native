@@ -13,6 +13,7 @@ MBGL_DEFINE_UNIFORM_MATRIX(double, 4, matrix);              // mvp
 MBGL_DEFINE_UNIFORM_MATRIX(double, 4, model_matrix);        // m
 MBGL_DEFINE_UNIFORM_MATRIX(double, 4, model_view_matrix);   // mv
 MBGL_DEFINE_UNIFORM_MATRIX(double, 4, normal_matrix);       // mv normal
+MBGL_DEFINE_UNIFORM_MATRIX(double, 4, light_matrix);        // light mvp
 MBGL_DEFINE_UNIFORM_VECTOR(float, 3, camera_pos);
 MBGL_DEFINE_UNIFORM_SCALAR(float, opacity);
 MBGL_DEFINE_UNIFORM_SCALAR(Color, color);
