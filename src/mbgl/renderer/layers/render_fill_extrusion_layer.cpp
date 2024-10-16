@@ -312,7 +312,7 @@ bool RenderFillExtrusionLayer::doRenderShadowDepth(PaintParameters& parameters) 
             const auto& anchor = evaluated.get<FillExtrusionTranslateAnchor>();
             const auto& state = parameters.state;
             
-            // #*# 使用相机矩阵进行渲染
+            // #*# 使用灯光矩阵进行渲染
 //            const auto matrix = tile.translatedClipMatrix(translate, anchor, state);
             const auto matrix = tile.translatedSunlightClipMatrix(translate, anchor, state);
             layoutUniforms.template get<uniforms::matrix>() = matrix;
@@ -350,6 +350,7 @@ bool RenderFillExtrusionLayer::doRenderShadowDepth(PaintParameters& parameters) 
             const auto& anchor = evaluated.get<FillExtrusionTranslateAnchor>();
             const auto& state = parameters.state;
             
+            // #*# 使用灯光矩阵进行渲染
 //            const auto matrix = tile.translatedClipMatrix(translate, anchor, state);
             const auto matrix = tile.translatedSunlightClipMatrix(translate, anchor, state);
             
