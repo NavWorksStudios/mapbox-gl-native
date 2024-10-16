@@ -182,7 +182,7 @@ GLuint program() {
 }
 
 
-void renderGeoAndShadowBuffer(GLint shadowDepth, std::function<bool()> renderCallback, std::function<void()> bindScreen) {
+GLint renderGeoAndShadowBuffer(GLint shadowDepth, std::function<bool()> renderCallback, std::function<void()> bindScreen) {
     if (bindScreen) bindScreen();
     else gbuffer::bindFbo(ao::buffer);
 
@@ -209,6 +209,7 @@ void renderGeoAndShadowBuffer(GLint shadowDepth, std::function<bool()> renderCal
     }
     
     blendEnabled ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
+    return ao::buffer;
 }
 
 
@@ -216,7 +217,7 @@ GLint renderAOBuffer(int width, int height, float zoom, const Mat4& projMatrix, 
     if (bindScreen) bindScreen();
     else ao::bindFbo();
 
-    glClear(GL_COLOR_BUFFER_BIT);
+//    glClear(GL_COLOR_BUFFER_BIT);
 
     const GLint program = ao::program();
 
@@ -224,7 +225,7 @@ GLint renderAOBuffer(int width, int height, float zoom, const Mat4& projMatrix, 
     
     GLboolean blendEnabled;
     glGetBooleanv(GL_BLEND, &blendEnabled);
-    glDisable(GL_BLEND);
+//    glDisable(GL_BLEND);
     
     {
         static GLint u_sample_radius[sample::kernel::SIZE];

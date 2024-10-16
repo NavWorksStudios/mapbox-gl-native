@@ -14,7 +14,7 @@ namespace nav {
 namespace ssao {
 
 void initResource(int width, int height);
-void renderGeoAndShadowBuffer(GLint shadowDepth, std::function<bool()> renderCallback, std::function<void()> bindScreen=nullptr);
+GLint renderGeoAndShadowBuffer(GLint shadowDepth, std::function<bool()> renderCallback, std::function<void()> bindScreen=nullptr);
 GLint renderAOBuffer(int width, int height, float zoom, const Mat4& projMatrix, std::function<void()> bindScreen=nullptr);
 
 }

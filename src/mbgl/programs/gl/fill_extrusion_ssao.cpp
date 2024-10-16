@@ -152,7 +152,7 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
             float shadow = currentDepth - 0.005 > closestDepth  ? 1.0 : 0.0;
             if(projCoords.z > 1.0)
                 shadow = 0.0;
-
+            
             return shadow;
         }
 
@@ -169,7 +169,10 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
     
             // shadow
             float shadow = ShadowCalculation(v_lightSpacePos);
-            gl_FragData[3] = vec4(0.2, 0.2, 0.2, min(shadow, 0.75));
+            gl_FragData[3].r = .5 * min(shadow, 0.75);
+//            gl_FragData[0].r = min(shadow, 0.75);
+//            gl_FragData[0].g = min(shadow, 0.75);
+//            gl_FragData[0].b = min(shadow, 0.75);
         }
             
     )"; }

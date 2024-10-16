@@ -234,11 +234,14 @@ void deferred(float zoom,
     const GLint shadowDepth = nav::shadow::renderShadowDepthBuffer(w, h, shadowRenderDelegate);
 
     // 2
+//    const GLint renderBuffer =
     nav::ssao::renderGeoAndShadowBuffer(floor::shadowDepth = shadowDepth, geoRenderDelegate);
-    
+//    nav::ssao::renderGeoAndShadowBuffer(floor::shadowDepth = shadowDepth, geoRenderDelegate, bindScreen);
+
     // 3
     const GLint renderBuffer = nav::ssao::renderAOBuffer(w, h, zoom, convertMatrix4(projMatrix));
-    
+//    const GLint renderBuffer = nav::ssao::renderAOBuffer(w, h, zoom, convertMatrix4(projMatrix), bindScreen);
+
     // 4
     bindScreen();
     nav::blur::render(renderBuffer, w, h);
