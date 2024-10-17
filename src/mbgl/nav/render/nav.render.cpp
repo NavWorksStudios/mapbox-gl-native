@@ -218,33 +218,43 @@ void deferred(float zoom,
 
     nav::ssao::initResource(w, h);
 
-    GLint viewport[4];
-    glGetIntegerv(GL_VIEWPORT, viewport);
-    glViewport(0, 0, w, h);
-    auto bindScreen = [viewport] () {
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
-    };
+    GLfloat clearColor[4];
+    glGetFloatv(GL_COLOR_CLEAR_VALUE, clearColor);
+    
+    GLboolean blendEnabled;
+    glGetBooleanv(GL_BLEND, &blendEnabled);
+    
+    {
+        GLint viewport[4];
+        glGetIntegerv(GL_VIEWPORT, viewport);
+        
+        auto bindScreen = [viewport, clearColor] () {
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+            
+        };
 
-    glEnable(GL_DEPTH_TEST);
-    glDepthMask(GL_TRUE);
-    glDepthFunc(GL_LESS);
+        glViewport(0, 0, w, h);
+        
+        GLint renderBuffer = 0;
 
-    // 1
-    const GLint shadowDepth = nav::shadow::renderShadowDepthBuffer(w, h, shadowRenderDelegate);
+        // 1
+        const GLint shadowDepth = nav::shadow::renderShadowDepthBuffer(w, h, shadowRenderDelegate);
 
-    // 2
-//    const GLint renderBuffer =
-    nav::ssao::renderGeoAndShadowBuffer(floor::shadowDepth = shadowDepth, geoRenderDelegate);
-//    nav::ssao::renderGeoAndShadowBuffer(floor::shadowDepth = shadowDepth, geoRenderDelegate, bindScreen);
+        // 2
+        renderBuffer = nav::ssao::renderGeoAndShadowBuffer(floor::shadowDepth = shadowDepth, geoRenderDelegate);
 
-    // 3
-    const GLint renderBuffer = nav::ssao::renderAOBuffer(w, h, zoom, convertMatrix4(projMatrix));
-//    const GLint renderBuffer = nav::ssao::renderAOBuffer(w, h, zoom, convertMatrix4(projMatrix), bindScreen);
+        // 3
+        renderBuffer = nav::ssao::renderAOBuffer(w, h, zoom, convertMatrix4(projMatrix));
 
-    // 4
-    bindScreen();
-    nav::blur::render(renderBuffer, w, h);
+        // 4
+        bindScreen();
+        nav::blur::render(renderBuffer, w, h);
+    }
+    
+    glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
+    blendEnabled ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA); // mapbox config
 
 }
 

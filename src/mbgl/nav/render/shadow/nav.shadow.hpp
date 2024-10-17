@@ -16,7 +16,7 @@ namespace shadow {
 
     GLuint renderShadowDepthBuffer(int width, int height,
                                    std::function<bool()> renderCallback,
-                                   std::function<void()> bindScreenFbo = nullptr);   // draw / drawShadowDepthBuffer
+                                   std::function<void()> bindScreenFbo = nullptr);
 
 }   // shadow
 
