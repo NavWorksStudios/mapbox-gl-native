@@ -208,15 +208,15 @@ void TransformState::getSunlightProjMatrix(mat4& projMatrix, uint16_t nearZ, boo
         return;
     }
     
-    // Make sure the camera state is up-to-date
+    // Make sure the sunlight state is up-to-date
     updateSunlightState();
     
-    // world to camera matrix
+    // world to sunlight matrix
     {
         worldToSunlightMatrix = sunlight.getWorldToCamera(scale, viewportMode == ViewportMode::FlippedY);
     }
     
-    // camera to clip Matrix
+    // sunlight to clip Matrix
     {
         const ScreenCoordinate offset = getCenterOffset();
         
@@ -250,7 +250,18 @@ void TransformState::getSunlightProjMatrix(mat4& projMatrix, uint16_t nearZ, boo
             return farZ;
         };
         
-        sunlightToClipMatrix = sunlight.getCameraToClipPerspective(getFieldOfView(), double(size.width) / size.height, nearZ, getFarZ());
+        // util::EXTENT*
+        // matrix::ortho(viewportMat, 0, size.width, size.height, 0, 0, 1);
+        
+//        sunlightToClipMatrix = sunlight.getCameraToClipPerspective(getFieldOfView(), double(size.width) / size.height, nearZ, getFarZ());
+        
+//        sunlightToClipMatrix = sunlight.getCameraToClipOrtho(0, size.width, size.height, 0, 1.0, 7.5);
+        
+//        sunlightToClipMatrix = sunlight.getCameraToClipOrtho(512*-10.0f, 512*10.0f, 512*-10.0f, 512*10.0f, nearZ, getFarZ());
+        
+        sunlightToClipMatrix = sunlight.getCameraToClipOrtho(512*-10.0f, 512*10.0f, 512*-10.0f, 512*10.0f, 0, 4000);
+        
+//        sunlightToClipMatrix = sunlight.getCameraToClipOrtho(0, size.width, size.height, 0, 0, 4000);
         
         // Move the center of perspective to center of specified edgeInsets.
         // Values are in range [-1, 1] where the upper and lower range values
@@ -359,7 +370,7 @@ void TransformState::updateSunlightState() const {
     }
 
     const double worldSize = Projection::worldSize(scale);
-    const double cameraToCenterDistance = getSunlightToCenterDistance();
+    double cameraToCenterDistance = getSunlightToCenterDistance();
 
     // x & y tracks the center of the map in pixels. However as rendering is done in pixel coordinates the rendering
     // origo is actually in the middle of the map (0.5 * worldSize). x&y positions have to be negated because it defines
@@ -370,24 +381,25 @@ void TransformState::updateSunlightState() const {
     
     const vec3 lightPos = {0.287499934, -0.497964621, 0.995929181};
     const vec3 tarPos = {dx / worldSize, dy / worldSize, 0.0};
+//    const vec3 tarPos = camera.getPosition();
 
     // Set camera orientation and move it to a proper distance from the map
-//    vec4 orientation = sunlight.setOrientation(getSunlightPitch(), getSunlightBearing());
     sunlight.setOrientation(lookat(lightPos, tarPos).value());
+//    sunlight.setOrientation(lookat({0.5, 0.5 ,5.0}, {0.0, 0.0, 0.0}).value());
 
     const vec3 forward = sunlight.forward();
     const vec3 orbitPosition = {{-forward[0] * cameraToCenterDistance,
                                  -forward[1] * cameraToCenterDistance,
                                  -forward[2] * cameraToCenterDistance}};
 
-    vec3 cameraPosition = {{dx + orbitPosition[0], dy + orbitPosition[1], orbitPosition[2]}};
-    _sunlightPosition = cameraPosition;
+    vec3 lightPosition = {{dx + orbitPosition[0], dy + orbitPosition[1], orbitPosition[2]}};
+    _sunlightPosition = lightPosition;
 
-    cameraPosition[0] /= worldSize;
-    cameraPosition[1] /= worldSize;
-    cameraPosition[2] /= worldSize;
+    lightPosition[0] /= worldSize;
+    lightPosition[1] /= worldSize;
+    lightPosition[2] /= worldSize;
 
-    sunlight.setPosition(cameraPosition);
+    sunlight.setPosition(lightPosition);
 
 }
 

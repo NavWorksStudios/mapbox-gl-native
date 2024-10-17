@@ -144,6 +144,12 @@ mat4 Camera::getCameraToClipPerspective(double fovy, double aspectRatio, double 
     return projection;
 }
 
+mat4 Camera::getCameraToClipOrtho(double left, double right, double bottom, double top, double nearZ, double farZ) const {
+    mat4 projection;
+    matrix::ortho(projection, left, right, bottom, top, nearZ, farZ);
+    return projection;
+}
+
 vec3 Camera::forward() const {
     const double* column = getColumn(transform, 2);
     // The forward direction is towards the map, [0, 0, -1]
