@@ -43,11 +43,12 @@ void generate(int width, int height) {
 }
 
 GLuint render(int width, int height, std::function<bool()> renderCallback, std::function<void()> bindScreenFbo) {
-    depth::generate(width, height);
+    depth::generate(depth::width, depth::height);
     
     if (bindScreenFbo) {
         bindScreenFbo();
     } else {
+        glViewport(0, 0, depth::width, depth::height);
         glBindFramebuffer(GL_FRAMEBUFFER, depth::fbo);
         glClear(GL_DEPTH_BUFFER_BIT);
     }
@@ -61,6 +62,8 @@ GLuint render(int width, int height, std::function<bool()> renderCallback, std::
     
     glCullFace(GL_BACK);
     enabledCullface ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
+    
+    if (!bindScreenFbo) glViewport(0, 0, width, height);
 
     return depth::buffer;
 }

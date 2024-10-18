@@ -20,6 +20,8 @@
 
 #include <mbgl/programs/gl/nav.ssao.shader.hpp>
 
+#include "mbgl/nav/render/shadow/nav.shadow.hpp"
+
 
 namespace nav {
 
@@ -222,6 +224,9 @@ GLint renderGeoAndShadowBuffer(int width, int height, GLint shadowDepth, std::fu
         glBindTexture(GL_TEXTURE_2D, shadowDepth);
         static programs::UniformLocation u0(program, "u_shadow_map");
         glUniform1i(u0, 0);
+        
+        static programs::UniformLocation u1(program, "u_shadow_uv_scale");
+        glUniform2f(u1, 1. / nav::shadow::depth::width, 1. / nav::shadow::depth::height);
     }
     
     if (renderCallback()) {

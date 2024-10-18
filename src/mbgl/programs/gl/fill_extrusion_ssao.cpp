@@ -118,22 +118,16 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
     static const char* navFragment(const char* ) { return R"(
 
         uniform sampler2D u_shadow_map;
+        uniform vec2 u_shadow_uv_scale;
 
         varying vec3 v_fragPos;
         varying vec3 v_normal;
         varying vec4 v_lightSpacePos;
-
-//        const float NEAR = 1.; // 投影矩阵的近平面
-//        const float FAR = 4000.0; // 投影矩阵的远平面
-//
-//        float LinearizeDepth(float depth) {
-//            float z = depth * 2.0 - 1.0; // 回到NDC
-//            return (2.0 * NEAR * FAR) / (FAR + NEAR - z * (FAR - NEAR));
-//        }
     
         float ShadowCalculation(vec4 fragPosLightSpace) {
             // perform perspective divide
             vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    
             // Transform to [0,1] range
             projCoords = projCoords * 0.5 + 0.5;
     
@@ -148,11 +142,10 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
             // Check whether current frag pos is in shadow
             // PCF (percentage-closer filtering)
             float shadow = 0.0;
-            vec2 texelSize = 1.0 / vec2(1920.*.7*2., 1080.*.7*2.);
             for(int x = -1; x <= 1; ++x) {
                 for(int y = -1; y <= 1; ++y) {
-                    float pcfDepth = texture2D(u_shadow_map, projCoords.xy + vec2(x, y) * texelSize).r;
-                    shadow += currentDepth - bias > pcfDepth  ? 1.0 : 0.0;        
+                    float pcfDepth = texture2D(u_shadow_map, projCoords.xy + vec2(x, y) * u_shadow_uv_scale).r;
+                    shadow += currentDepth - bias > pcfDepth  ? 1.0 : 0.0;
                 }
             }
             shadow /= 9.0;
@@ -167,7 +160,6 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
         void main() {
             // store the fragment position vector in the first gbuffer texture
             gl_FragData[0].xyz = v_fragPos;
-//            gl_FragData[0].a = LinearizeDepth(gl_FragCoord.z);
 
             // also store the per-fragment normals into the gbuffer
             gl_FragData[1].xyz = normalize(v_normal);
@@ -177,7 +169,7 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
     
             // shadow
             float shadow = ShadowCalculation(v_lightSpacePos);
-            gl_FragData[3].r = min(shadow, .4);
+            gl_FragData[3].r = min(shadow, .5);
 
 //            gl_FragData[0].rgb = vec3(gl_FragData[3].r);
         }
