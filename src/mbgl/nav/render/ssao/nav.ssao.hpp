@@ -11,11 +11,15 @@
 #include "mbgl/nav/render/mat4.h"
 
 namespace nav {
-namespace ssao {
 
-void initResource(int width, int height);
-GLint renderGeoAndShadowBuffer(GLint shadowDepth, std::function<bool()> renderCallback, std::function<void()> bindScreen=nullptr);
-GLint renderAOBuffer(int width, int height, float zoom, const Mat4& projMatrix, std::function<void()> bindScreen=nullptr);
-
+namespace geo {
+GLint renderGeoAndShadowBuffer(int width, int height, GLint shadow,
+                               std::function<bool()> renderCallback,
+                               std::function<void()> bindScreen=nullptr);
 }
+
+namespace ssao {
+GLint render(int width, int height, float zoom, const Mat4& projMatrix, std::function<void()> bindScreen=nullptr);
+}
+
 }

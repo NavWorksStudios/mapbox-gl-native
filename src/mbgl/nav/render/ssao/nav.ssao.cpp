@@ -20,12 +20,8 @@
 
 #include <mbgl/programs/gl/nav.ssao.shader.hpp>
 
-#include "mbgl/nav/nav.runtime.hpp"
-
 
 namespace nav {
-namespace ssao {
-
 
 namespace sample {
 
@@ -99,7 +95,7 @@ void generate() {
 }
 
 
-namespace gbuffer {
+namespace geo {
 
 GLuint fbo = 0;
 GLuint position = 0;
@@ -136,8 +132,8 @@ void generate(int width, int height) {
 void bindFbo(GLuint shadow) {
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
     
-    if (gbuffer::shadow != shadow) {
-        gbuffer::shadow = shadow;
+    if (geo::shadow != shadow) {
+        geo::shadow = shadow;
 
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, position, 0);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normal, 0);
@@ -155,7 +151,7 @@ void bindFbo(GLuint shadow) {
 }
 
 
-namespace ao {
+namespace ssao {
 
 GLuint fbo = 0;
 GLuint buffer = 0;
@@ -188,12 +184,32 @@ GLuint program() {
 
 }
 
+void initResource(int width, int height) {
+    static std::once_flag flag;
+    std::call_once(flag, [] () {
+        sample::generate();
+    });
+    
+    static int w = 0, h = 0;
+    if (w != width || h != height) {
+        w = width;
+        h = height;
+        
+        geo::generate(w, h);
+        ssao::generate(w, h);
+    }
+}
 
-GLint renderGeoAndShadowBuffer(GLint shadowDepth, std::function<bool()> renderCallback, std::function<void()> bindScreen) {
+
+namespace geo {
+
+GLint renderGeoAndShadowBuffer(int width, int height, GLint shadowDepth, std::function<bool()> renderCallback, std::function<void()> bindScreen) {
+    initResource(width, height);
+
     if (bindScreen) {
         bindScreen();
     } else {
-        gbuffer::bindFbo(ao::buffer);
+        geo::bindFbo(ssao::buffer);
     }
 
     glClearColor(0, 0, 0, 0);
@@ -204,23 +220,28 @@ GLint renderGeoAndShadowBuffer(GLint shadowDepth, std::function<bool()> renderCa
     if (program) {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, shadowDepth);
-        static programs::UniformLocation u1(program, "u_shadow_map");
-        glUniform1i(u1, 0);
+        static programs::UniformLocation u0(program, "u_shadow_map");
+        glUniform1i(u0, 0);
     }
     
     if (renderCallback()) {
         glGetIntegerv(GL_CURRENT_PROGRAM, &program);
     }
     
-    return ao::buffer;
+    return ssao::buffer;
 }
 
+}
 
-GLint renderAOBuffer(int width, int height, float zoom, const Mat4& projMatrix, std::function<void()> bindScreen) {
+namespace ssao {
+
+GLint render(int width, int height, float zoom, const Mat4& projMatrix, std::function<void()> bindScreen) {
+    initResource(width, height);
+    
     if (bindScreen) bindScreen();
-    else glBindFramebuffer(GL_FRAMEBUFFER, ao::fbo);
+    else glBindFramebuffer(GL_FRAMEBUFFER, ssao::fbo);
 
-    const GLint program = ao::program();
+    const GLint program = ssao::program();
     glUseProgram(program);
 
     glEnable(GL_BLEND);
@@ -262,17 +283,17 @@ GLint renderAOBuffer(int width, int height, float zoom, const Mat4& projMatrix, 
 
     {
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, gbuffer::position);
+        glBindTexture(GL_TEXTURE_2D, geo::position);
         static programs::UniformLocation u0(program, "u_position");
         glUniform1i(u0, 0);
         
         glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, gbuffer::normal);
+        glBindTexture(GL_TEXTURE_2D, geo::normal);
         static programs::UniformLocation u1(program, "u_normal");
         glUniform1i(u1, 1);
         
         glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, gbuffer::albedo);
+        glBindTexture(GL_TEXTURE_2D, geo::albedo);
         static programs::UniformLocation u2(program, "u_albedo");
         glUniform1i(u2, 2);
         
@@ -284,27 +305,11 @@ GLint renderAOBuffer(int width, int height, float zoom, const Mat4& projMatrix, 
     
     nav::render::util::renderQuad(program);
 
-    return ao::buffer;
+    return ssao::buffer;
+}
+
 }
 
 
-void initResource(int width, int height) {
-    static std::once_flag flag;
-    std::call_once(flag, [] () {
-        sample::generate();
-    });
-    
-    static int w = 0, h = 0;
-    if (w != width || h != height) {
-        w = width;
-        h = height;
-        
-        gbuffer::generate(w, h);
-        ao::generate(w, h);
-    }
-}
-
-
-}
 
 }

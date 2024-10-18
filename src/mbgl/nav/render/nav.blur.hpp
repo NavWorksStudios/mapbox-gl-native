@@ -12,7 +12,7 @@
 namespace nav {
 namespace blur {
 
-void render(GLint buffer, int width, int height);
+void render(int width, int height, GLint buffer);
 
 }
 }

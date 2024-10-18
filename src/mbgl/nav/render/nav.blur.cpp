@@ -26,7 +26,7 @@ GLint program() {
     return pass;
 }
 
-void render(GLint buffer, int width, int height) {
+void render(int width, int height, GLint buffer) {
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 

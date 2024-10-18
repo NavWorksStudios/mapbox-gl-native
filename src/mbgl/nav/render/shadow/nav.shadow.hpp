@@ -14,9 +14,13 @@ namespace nav {
 
 namespace shadow {
 
-    GLuint renderShadowDepthBuffer(int width, int height,
-                                   std::function<bool()> renderCallback,
-                                   std::function<void()> bindScreenFbo = nullptr);
+namespace depth {
+
+GLuint render(int width, int height,
+              std::function<bool()> renderCallback,
+              std::function<void()> bindScreenFbo = nullptr);
+
+}
 
 }   // shadow
 
