@@ -241,17 +241,17 @@ void deferred(float zoom,
         glViewport(0, 0, w, h);
 
         // 1
-        floor::shadowDepthBuffer = nav::shadow::depth::render(w, h, shadowRenderDelegate, bindScreen);
+        floor::shadowDepthBuffer = nav::shadow::depth::render(w, h, shadowRenderDelegate);
 
-//        // 2
-//        nav::geo::renderGeoAndShadowBuffer(w, h, floor::shadowDepthBuffer, geoRenderDelegate);
-//
-//        // 3
-//        const GLint renderBuffer = nav::ssao::render(w, h, zoom, convertMatrix4(projMatrix));
-//
-//        // 4
-//        bindScreen();
-//        nav::blur::render(w, h, renderBuffer);
+        // 2
+        nav::geo::renderGeoAndShadowBuffer(w, h, floor::shadowDepthBuffer, geoRenderDelegate);
+
+        // 3
+        const GLint renderBuffer = nav::ssao::render(w, h, zoom, convertMatrix4(projMatrix));
+
+        // 4
+        bindScreen();
+        nav::blur::render(w, h, renderBuffer);
     }
     
     glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);

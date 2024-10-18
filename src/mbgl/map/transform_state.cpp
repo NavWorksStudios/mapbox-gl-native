@@ -222,11 +222,11 @@ void TransformState::getSunlightProjMatrix(mat4& projMatrix, uint16_t nearZ, boo
         
         double w = size.width * 2.;
         double h = size.height * 2.;
-        projMatrix = sunlight.getCameraToClipOrtho(-w, w, -h, h, nearZ, h * 2);
+        sunlightToClipMatrix = sunlight.getCameraToClipOrtho(-w, w, -h, h, nearZ, h * 2);
         
         if (!axonometric) { // 轴测法的
-            projMatrix[8] = -offset.x * 2.0 / size.width;
-            projMatrix[9] = offset.y * 2.0 / size.height;
+            sunlightToClipMatrix[8] = -offset.x * 2.0 / size.width;
+            sunlightToClipMatrix[9] = offset.y * 2.0 / size.height;
         }
     }
 
