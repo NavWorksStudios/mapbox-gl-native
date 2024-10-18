@@ -184,14 +184,7 @@ public:
     float getCameraToCenterDistance() const;
     double getPitch() const;
     void setPitch(double);
-    
-    // sunlight
-    double getSunlightBearing() const;
-    void setSunlightBearing(double);
-//    float getFieldOfView() const;
     float getSunlightToCenterDistance() const;
-    double getSunlightPitch() const;
-    void setSunlightPitch(double);
 
     double getXSkew() const;
     void setXSkew(double);
@@ -292,7 +285,6 @@ private:
     // map position
     double x = 0, y = 0;
     double bearing = 0;
-    double sunlightBearing = 0;
     double scale = 1;
     // This fov value is somewhat arbitrary. The altitude of the camera used
     // to be defined as 1.5 screen heights above the ground, which was an
@@ -301,7 +293,6 @@ private:
 //    double fov = 0.6435011087932844;
     double fov = 2.0 * atan((nav::display::logic::height() / 2) / (nav::display::logic::height() * 1.5));
     double pitch = 0.0;
-    double sunlightPitch = 0.0;
     double xSkew = 0.0;
     double ySkew = 1.0;
     bool axonometric = false;
@@ -323,6 +314,7 @@ private:
     mutable mat4 coordMatrix;
     mutable mat4 invertedMatrix;
     mutable vec3 _cameraPosition;
+    
     // sunlight matrix
     mutable mat4 sunlightProjectionMatrix;
     mutable mat4 worldToSunlightMatrix;
@@ -337,16 +329,6 @@ public:
     
     inline vec3f getCameraNDCPosition() const {
         const auto& pos = camera.getPosition();
-        return { float(pos[0]), float(pos[1]), float(pos[2]) };
-    }
-    
-    inline vec3f getSunlightPosition() const {
-        const auto& pos = _sunlightPosition;
-        return { float(pos[0]), float(pos[1]), float(pos[2]) };
-    }
-    
-    inline vec3f getSunlightNDCPosition() const {
-        const auto& pos = sunlight.getPosition();
         return { float(pos[0]), float(pos[1]), float(pos[2]) };
     }
 

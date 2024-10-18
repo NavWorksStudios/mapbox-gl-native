@@ -55,15 +55,15 @@ struct ShaderSource<FillExtrusionShadowProgram> {
     static const char* navVertex(const char* ) { return R"(
         
         attribute highp vec2 a_pos;
-        attribute lowp vec4 a_normal_ed;
+        attribute highp vec4 a_normal_ed;
         
-        uniform mat4 u_matrix; // u_lightMatrix
+        uniform highp mat4 u_matrix; // u_lightMatrix
         
         uniform lowp float u_base_t;
-        attribute highp vec2 a_base;
+        attribute lowp vec2 a_base;
 
-        uniform lowp float u_height_t;
-        attribute highp vec2 a_height;
+        uniform mediump float u_height_t;
+        attribute mediump vec2 a_height;
 
         void main() {
             highp float base=unpack_mix_vec2(a_base,u_base_t);
@@ -72,8 +72,8 @@ struct ShaderSource<FillExtrusionShadowProgram> {
             base = max(0.0, base);
             height = max(base, height);
             float lowp t = mod(a_normal_ed.x, 2.0);
-            float lowp z = t > 0. ? height : base;
-            vec4 pos = vec4(a_pos, z, 1.0);
+            float highp z = t > 0. ? height : base;
+            highp vec4 pos = vec4(a_pos, z, 1.0);
     
             // for shadow depth
             gl_Position = u_matrix * pos;
@@ -104,7 +104,7 @@ struct ShaderSource<FillExtrusionShadowProgram> {
     static const char* navFragment(const char* ) { return R"(
         
         void main() {
-//            gl_FragColor = vec4(vec3(pow(gl_FragCoord.z,3.)), 1.); // for debug
+//            gl_FragColor = vec4(vec3(pow((gl_FragCoord.z - 0.5) * 2., 2.)), 1.); // for shadow debug
         }
 
     )"; }

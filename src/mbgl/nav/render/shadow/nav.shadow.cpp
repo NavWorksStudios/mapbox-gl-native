@@ -50,34 +50,10 @@ void genrateLightMvp() {
     
 }
 
-namespace fbo {
+namespace depth {
 
-namespace dbuffer {
-GLuint shadowDepthFBO;
-GLuint shadowDepthTexture;
-
-void generate(int width, int height) {
-    if (!shadowDepthFBO)
-        glGenFramebuffers(1, &shadowDepthFBO);
-    // shadow depth buffer
-    glDeleteTextures(1, &shadowDepthTexture);
-    glGenTextures(1, &shadowDepthTexture);
-    glBindTexture(GL_TEXTURE_2D, shadowDepthTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-}
-
-void bind() {
-    glBindFramebuffer(GL_FRAMEBUFFER, shadowDepthFBO);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowDepthTexture, 0);
-    glDrawBuffer(GL_NONE);
-    glReadBuffer(GL_NONE);
-}
-
-}
+GLuint fbo;
+GLuint buffer;
 
 void generate(int width, int height) {
     static int w = 0, h = 0;
@@ -85,7 +61,23 @@ void generate(int width, int height) {
         w = width;
         h = height;
         
-        dbuffer::generate(w, h);
+        if (!fbo) glGenFramebuffers(1, &fbo);
+
+        // shadow depth buffer
+        glDeleteTextures(1, &buffer);
+        glGenTextures(1, &buffer);
+        glBindTexture(GL_TEXTURE_2D, buffer);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, buffer, 0);
+        glDrawBuffer(GL_NONE);
+        glReadBuffer(GL_NONE);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 }
 
@@ -93,25 +85,28 @@ void generate(int width, int height) {
 
 void renderDBuffer(std::function<void()> renderCallback,
                    std::function<void()> bindScreenFbo) {
-    
     if (bindScreenFbo) {
         bindScreenFbo();
-
-        glClearColor(0, 0, 0, 1);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     } else {
-        fbo::dbuffer::bind();
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glBindFramebuffer(GL_FRAMEBUFFER, depth::fbo);
+        glClear(GL_DEPTH_BUFFER_BIT);
     }
     
+    GLboolean enabledCullface;
+    glGetBooleanv(GL_CULL_FACE, &enabledCullface);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_FRONT);
+    
     renderCallback();
-
+    
+    glCullFace(GL_BACK);
+    enabledCullface ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
 }
 
 GLuint renderShadowDepthBuffer(int width, int height, std::function<bool()> renderCallback, std::function<void()> bindScreenFbo) {
-    fbo::generate(width, height);
+    depth::generate(width, height);
     renderDBuffer(renderCallback, bindScreenFbo);
-    return fbo::dbuffer::shadowDepthTexture;
+    return depth::buffer;
 }
 
 }   // end shadow

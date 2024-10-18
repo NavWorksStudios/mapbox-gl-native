@@ -55,12 +55,12 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
     static const char* navVertex(const char* ) { return R"(
         
         attribute highp vec2 a_pos;
-        attribute lowp vec4 a_normal_ed;
+        attribute highp vec4 a_normal_ed;
         
-        uniform mat4 u_matrix;
-        uniform mat4 u_model_view_matrix;
-        uniform mat4 u_normal_matrix;
-        uniform mat4 u_light_matrix;
+        uniform highp mat4 u_matrix;
+        uniform highp mat4 u_model_view_matrix;
+        uniform highp mat4 u_normal_matrix;
+        uniform highp mat4 u_light_matrix;
     
         varying vec3 v_fragPos;
         varying vec3 v_normal;
@@ -73,14 +73,15 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
         attribute highp vec2 a_height;
 
         void main() {
-            highp float base=unpack_mix_vec2(a_base,u_base_t);
-            highp float height=unpack_mix_vec2(a_height,u_height_t);
+            float base = unpack_mix_vec2(a_base,u_base_t);
+            float height = unpack_mix_vec2(a_height,u_height_t);
 
             base = max(0.0, base);
             height = max(base, height);
+    
             float lowp t = mod(a_normal_ed.x, 2.0);
-            float lowp z = t > 0. ? height : base;
-            vec4 pos = vec4(a_pos, z, 1.0);
+            float highp z = t > 0. ? height : base;
+            highp vec4 pos = vec4(a_pos, z, 1.0);
 
             // ssao
             v_fragPos = vec3(u_model_view_matrix * pos) / 32.;
@@ -122,37 +123,44 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
         varying vec3 v_normal;
         varying vec4 v_lightSpacePos;
 
-//        const float NEAR = 0.1; // 投影矩阵的近平面
-//        const float FAR = 50.0; // 投影矩阵的远平面
+//        const float NEAR = 1.; // 投影矩阵的近平面
+//        const float FAR = 4000.0; // 投影矩阵的远平面
 //
-//        float LinearizeDepth(float depth)
-//        {
+//        float LinearizeDepth(float depth) {
 //            float z = depth * 2.0 - 1.0; // 回到NDC
 //            return (2.0 * NEAR * FAR) / (FAR + NEAR - z * (FAR - NEAR));
 //        }
     
-        float ShadowCalculation(vec4 pos) {
+        float ShadowCalculation(vec4 fragPosLightSpace) {
             // perform perspective divide
-            vec3 projCoords = pos.xyz / pos.w;
-    
-            // transform to [0,1] range
+            vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+            // Transform to [0,1] range
             projCoords = projCoords * 0.5 + 0.5;
     
-            // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
-            float closestDepth = texture2D(u_shadow_map, projCoords.xy).r; 
-    
-            // get depth of current fragment from light's perspective
+            // Get depth of current fragment from light's perspective
             float currentDepth = projCoords.z;
     
-            // check whether current frag pos is in shadow
-//            vec3 normal = normalize(v_normal);
-//            vec3 lightDir = normalize(u_lightPos - v_fragPos);
-//            float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
+            // Calculate bias (based on depth map resolution and slope)
+            vec3 normal = normalize(v_normal);
+            vec3 lightDir = normalize(vec3(0.287499934, -0.497964621, 0.995929181) - v_fragPos);
+            float bias = max(0.005 * (1.0 - dot(normal, lightDir)), 0.0005);
     
-            float shadow = currentDepth - 0.005 > closestDepth  ? 1.0 : 0.0;
+            // Check whether current frag pos is in shadow
+            // PCF (percentage-closer filtering)
+            float shadow = 0.0;
+            vec2 texelSize = 1.0 / vec2(1920.*.7*2., 1080.*.7*2.);
+            for(int x = -1; x <= 1; ++x) {
+                for(int y = -1; y <= 1; ++y) {
+                    float pcfDepth = texture2D(u_shadow_map, projCoords.xy + vec2(x, y) * texelSize).r;
+                    shadow += currentDepth - bias > pcfDepth  ? 1.0 : 0.0;        
+                }
+            }
+            shadow /= 9.0;
+
+            // Keep the shadow at 0.0 when outside the far_plane region of the light's frustum.
             if(projCoords.z > 1.0)
                 shadow = 0.0;
-            
+                
             return shadow;
         }
 
@@ -169,10 +177,9 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
     
             // shadow
             float shadow = ShadowCalculation(v_lightSpacePos);
-            gl_FragData[3].r = .5 * min(shadow, 0.75);
-//            gl_FragData[0].r = min(shadow, 0.75);
-//            gl_FragData[0].g = min(shadow, 0.75);
-//            gl_FragData[0].b = min(shadow, 0.75);
+            gl_FragData[3].r = min(shadow, .4);
+
+//            gl_FragData[0].rgb = vec3(gl_FragData[3].r);
         }
             
     )"; }

@@ -107,6 +107,8 @@ GLuint normal = 0;
 GLuint albedo = 0;
 GLuint rboDepth = 0;
 
+GLuint shadow = 0;
+
 void generate(int width, int height) {
     if (!fbo) glGenFramebuffers(1, &fbo);
 
@@ -131,18 +133,23 @@ void generate(int width, int height) {
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
 }
 
-void bindFbo(GLint shadow) {
+void bindFbo(GLuint shadow) {
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    
+    if (gbuffer::shadow != shadow) {
+        gbuffer::shadow = shadow;
 
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, position, 0);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normal, 0);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, albedo, 0);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, shadow, 0);
-    
-    GLenum attachments[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
-    glDrawBuffers(4, attachments);
-    
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, position, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normal, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, albedo, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, shadow, 0);
+        
+        GLenum attachments[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
+        glDrawBuffers(4, attachments);
+        
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
+    }
+
 }
 
 }
@@ -160,12 +167,12 @@ void generate(int width, int height) {
     buffer = nav::render::util::genTexture(GL_RED, width, height, GL_RED, GL_FLOAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-}
-
-void bindFbo() {
+    
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, buffer, 0);
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
+    
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 GLuint program() {
@@ -211,7 +218,7 @@ GLint renderGeoAndShadowBuffer(GLint shadowDepth, std::function<bool()> renderCa
 
 GLint renderAOBuffer(int width, int height, float zoom, const Mat4& projMatrix, std::function<void()> bindScreen) {
     if (bindScreen) bindScreen();
-    else ao::bindFbo();
+    else glBindFramebuffer(GL_FRAMEBUFFER, ao::fbo);
 
     const GLint program = ao::program();
     glUseProgram(program);
