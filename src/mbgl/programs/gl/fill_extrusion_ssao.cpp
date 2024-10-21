@@ -138,7 +138,7 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
             // Calculate bias (based on depth map resolution and slope)
             vec3 normal = normalize(v_normal);
             vec3 lightDir = normalize(u_light_dir);
-            float bias = max(0.005 * (1.0 - dot(normal, lightDir)), 0.0005);
+            float bias = max(0.0002 * (1.0 - dot(normal, lightDir)), 0.00002);
     
             // Check whether current frag pos is in shadow
             // PCF (percentage-closer filtering)
@@ -170,7 +170,8 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
     
             // shadow
             float shadow = ShadowCalculation(v_lightSpacePos);
-            gl_FragData[3].r = min(shadow, .5);
+//            gl_FragData[3].r = min(shadow, .5);
+            gl_FragData[3].r = shadow * .25;
 
 //            gl_FragData[0].rgb = vec3(gl_FragData[3].r);
         }

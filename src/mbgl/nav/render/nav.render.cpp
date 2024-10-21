@@ -71,14 +71,13 @@ GLuint program() {
 GLuint vao(GLuint program) {
     static GLuint vao = 0;
     if (!vao) {
-        static GLuint vbo;
+        glGenVertexArrays(1, &vao);
+        glBindVertexArray(vao);
         
+        static GLuint vbo;
         glGenBuffers(1, &vbo);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glBufferData(GL_ARRAY_BUFFER, 36 * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
-        
-        glGenVertexArrays(1, &vao);
-        glBindVertexArray(vao);
         
         static programs::AttribLocation a0(program, "a_pos");
         glEnableVertexAttribArray(a0);
@@ -114,14 +113,13 @@ GLuint program() {
 GLuint vao(GLuint program) {
     static GLuint vao = 0;
     if (!vao) {
-        static GLuint vbo;
+        glGenVertexArrays(1, &vao);
+        glBindVertexArray(vao);
         
+        static GLuint vbo;
         glGenBuffers(1, &vbo);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glBufferData(GL_ARRAY_BUFFER, 36 * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
-        
-        glGenVertexArrays(1, &vao);
-        glBindVertexArray(vao);
         
         static programs::AttribLocation a0(program, "a_pos");
         glEnableVertexAttribArray(a0);
@@ -142,9 +140,12 @@ GLint shadowDepthBuffer;
 
 
 void renderTileFloor(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::mat4& normal, const mbgl::mat4& lightmvp) {
-
+    GLboolean cullfaceEnabled;
+    glGetBooleanv(GL_CULL_FACE, &cullfaceEnabled);
+    
     const GLint program = floor::ssao::program();
     glUseProgram(program);
+    glDisable(GL_CULL_FACE); // for render ground
 
     {
         static programs::UniformLocation u0(program, "u_matrix");
@@ -172,13 +173,17 @@ void renderTileFloor(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::ma
     glBindVertexArray(floor::ssao::vao(program));
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
-
+    
+    cullfaceEnabled ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
 }
 
 void renderTileFloor(const mbgl::mat4& lightmvp) {
-
+    GLboolean cullfaceEnabled;
+    glGetBooleanv(GL_CULL_FACE, &cullfaceEnabled);
+    
     const GLint program = floor::shadow::program();
     glUseProgram(program);
+    glDisable(GL_CULL_FACE); // for render ground
 
     {
         static programs::UniformLocation u0(program, "u_matrix");
@@ -189,7 +194,8 @@ void renderTileFloor(const mbgl::mat4& lightmvp) {
     glBindVertexArray(floor::shadow::vao(program));
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
-
+    
+    cullfaceEnabled ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
 }
 
 const float BUFFER_RATIO = .7;
@@ -240,13 +246,7 @@ void deferred(float zoom,
         // 4
         bindScreen();
         nav::blur::render(w, h, renderBuffer);
-        
-//        floor::shadowDepthBuffer = nav::shadow::depth::render(w, h, shadowRenderDelegate, [w, h] () {
-//            glBindFramebuffer(GL_FRAMEBUFFER, 0);
-//            glViewport(0, 0, nav::display::pixels::width(), nav::display::pixels::height());
-//        });
-//        
-//        bindScreen();
+
     }
     
     glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);

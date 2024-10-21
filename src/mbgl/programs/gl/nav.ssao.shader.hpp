@@ -55,11 +55,11 @@ uniform float u_sample_radius[SAMPLE_SIZE];
 uniform float u_z_bias[SAMPLE_SIZE];
 uniform vec3 u_samples[SAMPLE_SIZE];
 
-const float QUADRATIC = 1.6;
-//const float CONTRAST = 1.6;
+const float QUADRATIC = 1.5;
+const float CONTRAST = 1.5;
 
 const float NEAR_DEPTH = 0.;
-const float FAR_DEPTH = -250.;
+const float FAR_DEPTH = -350.;
 
 void main() {
 
@@ -70,7 +70,7 @@ void main() {
     if (kernelPos.z > FAR_DEPTH && albedo.r > 0.) {
 
         // 动态采样数，近密远疏，可以大幅降低开销
-        float depth_factor = clamp((FAR_DEPTH - kernelPos.z) / FAR_DEPTH, .2, 1.);
+        float depth_factor = clamp((FAR_DEPTH - kernelPos.z) / FAR_DEPTH, .3, 1.);
         int sample_count = int(float(SAMPLE_SIZE) * depth_factor);
 
         // get input for SSAO algorithm
@@ -101,7 +101,7 @@ void main() {
             // 用范围检查，来确保某一片段的深度值在采样半径内，这样才会对遮蔽因数做影响。添加bias可以帮助调整环境光遮蔽的效果，也可以解决痤疮问题。
             float dz = z - samplePos.z;
             if (dz > u_z_bias[i]) {
-                occlusion += u_sample_radius[i] / dz;
+                occlusion += smoothstep(0.0, 1.0, u_sample_radius[i] / dz);
             }
         }
 
