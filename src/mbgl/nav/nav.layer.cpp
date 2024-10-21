@@ -386,7 +386,8 @@ bool accepted(const std::string& id) {
 bool filter(const std::string& id) {
 //    return true;
     
-    if (street::accepted(id)) {
+    if (mono::accepted(id)) {
+//    if (street::accepted(id)) {
         return true;
     } else {
         return false;
