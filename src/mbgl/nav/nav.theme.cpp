@@ -97,6 +97,7 @@ const Config PLAIN_MODEL = {
     "白模",
     "https://studio.mapbox.com/styles/navworks/clzqn4giv00a801pi06quhgz7/edit/#7.03/31.635/120.897",
     "mapbox://styles/navworks/clzqn4giv00a801pi06quhgz7",
+//    "mapbox://styles/navworks/cm2fm0xc2011l01pi3pg7hgqa",
     false,
     false,
     [] (const std::string& uri, Hsla color) -> std::tuple<Hsla,bool> {

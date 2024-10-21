@@ -225,7 +225,11 @@ struct ShaderSource<LineProgram> {
             else if(v_condition == -3.0)
                 v_condi_color = vec4(1.0, 0.0, 1.0, 1);
             else
+    #ifndef HAS_UNIFORM_u_color
+                v_condi_color = color;
+    #else
                 v_condi_color = u_color;
+    #endif
         }
 
     )"; }
@@ -285,6 +289,8 @@ struct ShaderSource<LineProgram> {
     void main() {
     #ifdef HAS_UNIFORM_u_color
         highp vec4 color=u_color;
+    #else
+        highp vec4 color;
     #endif
 
     #ifdef HAS_UNIFORM_u_blur
