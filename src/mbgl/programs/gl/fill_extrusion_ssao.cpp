@@ -119,6 +119,7 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
 
         uniform sampler2D u_shadow_map;
         uniform vec2 u_shadow_uv_scale;
+        uniform vec3 u_light_dir;
 
         varying vec3 v_fragPos;
         varying vec3 v_normal;
@@ -136,7 +137,7 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
     
             // Calculate bias (based on depth map resolution and slope)
             vec3 normal = normalize(v_normal);
-            vec3 lightDir = normalize(vec3(0.287499934, -0.497964621, 0.995929181) - v_fragPos);
+            vec3 lightDir = normalize(u_light_dir);
             float bias = max(0.005 * (1.0 - dot(normal, lightDir)), 0.0005);
     
             // Check whether current frag pos is in shadow

@@ -220,9 +220,9 @@ void TransformState::getSunlightProjMatrix(mat4& projMatrix, uint16_t nearZ, boo
     {
         const ScreenCoordinate offset = getCenterOffset();
         
-        double w = size.width * 2.;
-        double h = size.height * 2.;
-        sunlightToClipMatrix = sunlight.getCameraToClipOrtho(-w, w, -h, h, nearZ, h * 2);
+        double w = size.width;
+        double h = size.height;
+        sunlightToClipMatrix = sunlight.getCameraToClipOrtho(-w * 2, w * 2, -h, h * 3, -h, h * 10);
         
         if (!axonometric) { // 轴测法的
             sunlightToClipMatrix[8] = -offset.x * 2.0 / size.width;
@@ -300,13 +300,11 @@ void TransformState::updateSunlightState() const {
 
     const vec3 lightPos = {0.287499934, -0.497964621, 0.995929181};
     const vec3 targetPos = {dx / worldSize, dy / worldSize, 0.0};
-    static auto lookat = [] (const vec3& eye, const vec3& target) {
-        const vec3 dir = vec3Sub(target, eye);
-        return util::Camera::orientationFromFrame(dir, vec3{{0.0, 0.0, 1.0}});
-    };
     
     // Set camera orientation and move it to a proper distance from the map
-    sunlight.setOrientation(lookat(lightPos, targetPos).value());
+    _sunlightDirection = vec3Sub(targetPos, lightPos);
+    const auto& orientation = util::Camera::orientationFromFrame(_sunlightDirection, vec3{{0.0, 0.0, 1.0}});
+    sunlight.setOrientation(orientation.value());
 
     const vec3 forward = sunlight.forward();
     const vec3 orbitPosition = {{-forward[0] * cameraToCenterDistance,

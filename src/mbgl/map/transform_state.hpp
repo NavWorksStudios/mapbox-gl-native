@@ -320,6 +320,7 @@ private:
     mutable mat4 worldToSunlightMatrix;
     mutable mat4 sunlightToClipMatrix;
     mutable vec3 _sunlightPosition;
+    mutable vec3 _sunlightDirection;
     
 public:
     inline vec3f getCameraPosition() const {
@@ -330,6 +331,11 @@ public:
     inline vec3f getCameraNDCPosition() const {
         const auto& pos = camera.getPosition();
         return { float(pos[0]), float(pos[1]), float(pos[2]) };
+    }
+    
+    inline vec3f getSunlightDirection() const {
+        const auto& dir = _sunlightDirection;
+        return { float(dir[0]), float(dir[1]), float(dir[2]) };
     }
 
 };
