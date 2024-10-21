@@ -205,7 +205,7 @@ void initResource(int width, int height) {
 
 namespace geo {
 
-GLint renderGeoAndShadowBuffer(int width, int height, GLint shadowDepth, std::function<bool()> renderCallback, std::function<void()> bindScreen) {
+GLint renderGeoBufferAndShadowBuffer(int width, int height, GLint shadowDepth, std::function<bool()> renderCallback, std::function<void()> bindScreen) {
     initResource(width, height);
 
     if (bindScreen) {

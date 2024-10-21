@@ -145,10 +145,6 @@ void renderTileFloor(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::ma
 
     const GLint program = floor::ssao::program();
     glUseProgram(program);
-    
-    GLboolean cullfaceEnabled;
-    glGetBooleanv(GL_CULL_FACE, &cullfaceEnabled);
-    glDisable(GL_CULL_FACE);
 
     {
         static programs::UniformLocation u0(program, "u_matrix");
@@ -176,8 +172,6 @@ void renderTileFloor(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::ma
     glBindVertexArray(floor::ssao::vao(program));
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
-    
-    cullfaceEnabled ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
 
 }
 
@@ -185,10 +179,6 @@ void renderTileFloor(const mbgl::mat4& lightmvp) {
 
     const GLint program = floor::shadow::program();
     glUseProgram(program);
-    
-    GLboolean cullfaceEnabled;
-    glGetBooleanv(GL_CULL_FACE, &cullfaceEnabled);
-    glDisable(GL_CULL_FACE);
 
     {
         static programs::UniformLocation u0(program, "u_matrix");
@@ -199,8 +189,6 @@ void renderTileFloor(const mbgl::mat4& lightmvp) {
     glBindVertexArray(floor::shadow::vao(program));
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
-    
-    cullfaceEnabled ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
 
 }
 
@@ -230,7 +218,7 @@ void deferred(float zoom,
     {
         GLint viewport[4];
         glGetIntegerv(GL_VIEWPORT, viewport);
-        auto bindScreen = [viewport, clearColor] () {
+        auto bindScreen = [viewport] () {
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
             
@@ -244,7 +232,7 @@ void deferred(float zoom,
         floor::shadowDepthBuffer = nav::shadow::depth::render(w, h, shadowRenderDelegate);
 
         // 2
-        nav::geo::renderGeoAndShadowBuffer(w, h, floor::shadowDepthBuffer, geoRenderDelegate);
+        nav::geo::renderGeoBufferAndShadowBuffer(w, h, floor::shadowDepthBuffer, geoRenderDelegate);
 
         // 3
         const GLint renderBuffer = nav::ssao::render(w, h, zoom, convertMatrix4(projMatrix));
@@ -252,6 +240,13 @@ void deferred(float zoom,
         // 4
         bindScreen();
         nav::blur::render(w, h, renderBuffer);
+        
+//        floor::shadowDepthBuffer = nav::shadow::depth::render(w, h, shadowRenderDelegate, [w, h] () {
+//            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+//            glViewport(0, 0, nav::display::pixels::width(), nav::display::pixels::height());
+//        });
+//        
+//        bindScreen();
     }
     
     glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);

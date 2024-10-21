@@ -13,9 +13,9 @@
 namespace nav {
 
 namespace geo {
-GLint renderGeoAndShadowBuffer(int width, int height, GLint shadow,
-                               std::function<bool()> renderCallback,
-                               std::function<void()> bindScreen=nullptr);
+GLint renderGeoBufferAndShadowBuffer(int width, int height, GLint shadow,
+                                     std::function<bool()> renderCallback,
+                                     std::function<void()> bindScreen=nullptr);
 }
 
 namespace ssao {
