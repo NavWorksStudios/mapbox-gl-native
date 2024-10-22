@@ -316,9 +316,9 @@ private:
     mutable vec3 _cameraPosition;
     
     // sunlight matrix
-    mutable mat4 sunlightProjectionMatrix;
-    mutable mat4 worldToSunlightMatrix;
-    mutable mat4 sunlightToClipMatrix;
+    mutable mat4 sunlightProjectionMatrix; // vp
+    mutable mat4 worldToSunlightMatrix; // v
+    mutable mat4 sunlightToClipMatrix; // p
     mutable vec3 _sunlightPosition;
     mutable vec3 _sunlightDirection;
     

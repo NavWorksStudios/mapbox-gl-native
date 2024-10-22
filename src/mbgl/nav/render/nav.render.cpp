@@ -21,6 +21,10 @@
 #include "mbgl/nav/render/vec3.h"
 #include "mbgl/nav/render/mat4.h"
 
+#include <mbgl/util/mat4.hpp>
+
+#include <limits>
+
 
 namespace nav {
 namespace render {
@@ -246,6 +250,9 @@ void deferred(float zoom,
         // 4
         bindScreen();
         nav::blur::render(w, h, renderBuffer);
+        
+        nav::shadow::depth::render(w, h, shadowRenderDelegate, bindScreen);
+        bindScreen();
 
     }
     
@@ -303,6 +310,65 @@ void renderQuad(GLint program) {
     glBindVertexArray(quadVAO);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);
+
+}
+
+}
+
+namespace shadow {
+
+std::array<float, 6> envelope;
+
+const std::array<float, 6>& getEnvelope() {
+    return envelope;
+}
+
+void updateEnvelope(const mbgl::TransformState& state, const std::vector<mbgl::OverscaledTileID>& tileIDs) {
+    envelope = {
+        std::numeric_limits<float>::max(),
+        std::numeric_limits<float>::min(),
+        std::numeric_limits<float>::max(),
+        std::numeric_limits<float>::min(),
+        std::numeric_limits<float>::max(),
+        std::numeric_limits<float>::min() };
+    
+    const auto& lightSpaceMatrix = state.getWorldToSunlightMatrix();
+    
+    for (const auto& tile : tileIDs) {
+        mbgl::mat4 matrix;
+        state.matrixFor(matrix, tile.toUnwrapped());
+
+        // model pos
+        mbgl::vec4 pos[4] = {
+            { 0, 0, 0, 1 },
+            { 0, mbgl::util::EXTENT, 0, 1 },
+            { mbgl::util::EXTENT, 0, 0, 1 },
+            { mbgl::util::EXTENT, mbgl::util::EXTENT, 0, 1 },
+        };
+
+        for (int i=0; i<4; i++) {
+            auto& p = pos[i];
+            
+            // world pos
+            mbgl::matrix::transformMat4(p, p, matrix);
+        
+            // light space pos
+            mbgl::matrix::transformMat4(p, p, lightSpaceMatrix);
+
+            // envelope box
+            const auto& x = p[0];
+            const auto& y = p[1];
+            const auto& z = p[2];
+            
+            envelope[0] = fmin(envelope[0], x);
+            envelope[1] = fmax(envelope[1], x);
+            envelope[2] = fmin(envelope[2], y);
+            envelope[3] = fmax(envelope[3], y);
+            envelope[4] = fmin(envelope[4], z);
+            envelope[5] = fmax(envelope[5], z);
+        }
+        
+    }
 
 }
 

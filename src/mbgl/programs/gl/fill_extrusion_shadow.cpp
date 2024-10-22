@@ -104,7 +104,7 @@ struct ShaderSource<FillExtrusionShadowProgram> {
     static const char* navFragment(const char* ) { return R"(
         
         void main() {
-//            gl_FragColor = vec4(vec3(pow(gl_FragCoord.z, 2.)), 1.); // for shadow debug
+            gl_FragColor = vec4(vec3(pow(gl_FragCoord.z, 2.)), 1.); // for shadow debug
         }
 
     )"; }

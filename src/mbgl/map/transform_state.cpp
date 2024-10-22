@@ -8,6 +8,8 @@
 #include <mbgl/util/projection.hpp>
 #include <mbgl/util/tile_coordinate.hpp>
 
+#include "mbgl/nav/render/nav.render.hpp"
+
 namespace mbgl {
 
 namespace {
@@ -220,9 +222,16 @@ void TransformState::getSunlightProjMatrix(mat4& projMatrix, uint16_t nearZ, boo
     {
         const ScreenCoordinate offset = getCenterOffset();
         
+#if 0
         double w = size.width;
         double h = size.height;
         sunlightToClipMatrix = sunlight.getCameraToClipOrtho(-w * 2, w * 2, -h, h * 3, -h, h * 10);
+#else
+        const auto& envelope = nav::render::shadow::getEnvelope();
+        sunlightToClipMatrix = sunlight.getCameraToClipOrtho(envelope[0], envelope[1],
+                                                             envelope[2], envelope[3],
+                                                             envelope[4], envelope[5]);
+#endif
         
         if (!axonometric) { // 轴测法的
             sunlightToClipMatrix[8] = -offset.x * 2.0 / size.width;

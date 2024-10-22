@@ -9,7 +9,10 @@
 
 #include <functional>
 #include <gl_headers.hpp>
+
 #include <mbgl/util/mat4.hpp>
+#include <mbgl/tile/tile_id.hpp>
+#include <mbgl/map/transform_state.hpp>
 
 namespace nav {
 namespace render {
@@ -30,6 +33,11 @@ void deferred(float zoom,
 namespace util {
 GLuint genTexture(GLint internalformat, GLsizei width, GLsizei height, GLenum format, GLenum type);
 void renderQuad(GLint program);
+}
+
+namespace shadow {
+const std::array<float, 6>& getEnvelope();
+void updateEnvelope(const mbgl::TransformState& state, const std::vector<mbgl::OverscaledTileID>& tileIDs);
 }
 
 }
