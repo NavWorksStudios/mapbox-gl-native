@@ -358,7 +358,7 @@ void updateEnvelope(const mbgl::TransformState& state, const std::vector<mbgl::O
             // envelope box
             const auto& x = p[0];
             const auto& y = p[1];
-            const auto& z = p[2];
+            const auto& z = -p[2];
             
             envelope[0] = fmin(envelope[0], x);
             envelope[1] = fmax(envelope[1], x);

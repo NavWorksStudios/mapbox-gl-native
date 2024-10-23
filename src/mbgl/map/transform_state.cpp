@@ -307,7 +307,8 @@ void TransformState::updateSunlightState() const {
     const double dx = 0.5 * worldSize - x;
     const double dy = 0.5 * worldSize - y;
 
-    const vec3 lightPos = {0.287499934, -0.497964621, 0.995929181};
+    const vec3 lightPos = {0.287499934, 1.497964621, 0.995929181};
+//    const vec3 lightPos = {0.287499934, -0.497964621, 0.995929181};
     const vec3 targetPos = {dx / worldSize, dy / worldSize, 0.0};
     
     // Set camera orientation and move it to a proper distance from the map
