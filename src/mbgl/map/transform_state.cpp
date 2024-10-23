@@ -222,7 +222,7 @@ void TransformState::getSunlightProjMatrix(mat4& projMatrix, uint16_t nearZ, boo
     {
         const ScreenCoordinate offset = getCenterOffset();
         
-#if 0
+#if 1
         double w = size.width;
         double h = size.height;
         sunlightToClipMatrix = sunlight.getCameraToClipOrtho(-w * 2, w * 2, -h, h * 3, -h, h * 10);

@@ -251,8 +251,13 @@ void deferred(float zoom,
         bindScreen();
         nav::blur::render(w, h, renderBuffer);
         
-        nav::shadow::depth::render(w, h, shadowRenderDelegate, bindScreen);
+#if 1
+        nav::shadow::depth::render(w, h, shadowRenderDelegate, [w, h] () {
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            glViewport(50, 50, w / 3., h / 3.);
+        });
         bindScreen();
+#endif
 
     }
     
@@ -326,39 +331,43 @@ const std::array<float, 6>& getEnvelope() {
 void updateEnvelope(const mbgl::TransformState& state, const std::vector<mbgl::OverscaledTileID>& tileIDs) {
     envelope = {
         std::numeric_limits<float>::max(),
-        std::numeric_limits<float>::min(),
+        std::numeric_limits<float>::lowest(),
         std::numeric_limits<float>::max(),
-        std::numeric_limits<float>::min(),
+        std::numeric_limits<float>::lowest(),
         std::numeric_limits<float>::max(),
-        std::numeric_limits<float>::min() };
+        std::numeric_limits<float>::lowest() };
     
     const auto& lightSpaceMatrix = state.getWorldToSunlightMatrix();
+    
+    // model pos
+    const mbgl::vec4 vertices[4] = {
+        { 0, 0, 0, 1 },
+        { 0, mbgl::util::EXTENT, 0, 1 },
+        { mbgl::util::EXTENT, 0, 0, 1 },
+        { mbgl::util::EXTENT, mbgl::util::EXTENT, 0, 1 },
+    };
+    
+    printf("light ++++++++++++++++++++++++++++++\n");
     
     for (const auto& tile : tileIDs) {
         mbgl::mat4 matrix;
         state.matrixFor(matrix, tile.toUnwrapped());
-
-        // model pos
-        mbgl::vec4 pos[4] = {
-            { 0, 0, 0, 1 },
-            { 0, mbgl::util::EXTENT, 0, 1 },
-            { mbgl::util::EXTENT, 0, 0, 1 },
-            { mbgl::util::EXTENT, mbgl::util::EXTENT, 0, 1 },
-        };
-
-        for (int i=0; i<4; i++) {
-            auto& p = pos[i];
-            
-            // world pos
-            mbgl::matrix::transformMat4(p, p, matrix);
         
-            // light space pos
-            mbgl::matrix::transformMat4(p, p, lightSpaceMatrix);
+//        printf("light ++++\n");
+        
+        for (int i=0; i<4; i++) {
+            mbgl::vec4 pos = vertices[i];
+            mbgl::matrix::transformMat4(pos, pos, matrix); // to world pos
+            mbgl::matrix::transformMat4(pos, pos, lightSpaceMatrix); // to light space pos
+            
+            pos[0] = -pos[0];
+            pos[1] = -pos[1];
+            pos[2] = -pos[2];
 
             // envelope box
-            const auto& x = p[0];
-            const auto& y = p[1];
-            const auto& z = p[2];
+            const float x = pos[0];
+            const float y = pos[1];
+            const float z = pos[2];
             
             envelope[0] = fmin(envelope[0], x);
             envelope[1] = fmax(envelope[1], x);
@@ -366,9 +375,17 @@ void updateEnvelope(const mbgl::TransformState& state, const std::vector<mbgl::O
             envelope[3] = fmax(envelope[3], y);
             envelope[4] = fmin(envelope[4], z);
             envelope[5] = fmax(envelope[5], z);
+            
+//            printf("light (%f,%f,%f) -> (%f,%f,%f,%f,%f,%f) \n", x, y, z,
+//                   envelope[0], envelope[1], envelope[2], envelope[3], envelope[4], envelope[5]);
         }
         
+//        printf("light ----\n");
     }
+    
+    printf("light (%f,%f,%f, \n", envelope[0], envelope[1], envelope[2]);
+    printf("light %f,%f,%f) \n", envelope[3], envelope[4], envelope[5]);
+    printf("light -----------------------------\n");
 
 }
 

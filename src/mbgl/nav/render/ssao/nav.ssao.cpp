@@ -225,8 +225,8 @@ GLint renderGeoBufferAndShadowBuffer(int width, int height, GLint shadowDepth, s
         static programs::UniformLocation u0(program, "u_shadow_map");
         glUniform1i(u0, 0);
         
-        static programs::UniformLocation u1(program, "u_shadow_uv_scale");
-        glUniform2f(u1, 1. / nav::shadow::depth::width, 1. / nav::shadow::depth::height);
+//        static programs::UniformLocation u1(program, "u_shadow_uv_scale");
+//        glUniform2f(u1, 1. / nav::shadow::depth::width, 1. / nav::shadow::depth::height);
     }
     
     if (renderCallback()) {
