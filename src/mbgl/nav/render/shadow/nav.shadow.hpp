@@ -21,7 +21,7 @@ const int height = 4096 * 2;
 
 GLuint render(int width, int height,
               std::function<bool()> renderCallback,
-              std::function<void()> bindScreenFbo = nullptr);
+              std::function<void()> bindScreen = nullptr);
 
 }
 

@@ -136,9 +136,9 @@ GLuint vao(GLuint program) {
     return vao;
 }
 
-}
+GLint depthBuffer = 0;
 
-GLint shadowDepthBuffer;
+}
 
 }
 
@@ -169,7 +169,7 @@ void renderTileFloor(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::ma
         glUniformMatrix4fv(u3, 1, GL_FALSE, reinterpret_cast<const float*>(&LIGHTMVP));
         
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, floor::shadowDepthBuffer);
+        glBindTexture(GL_TEXTURE_2D, floor::shadow::depthBuffer);
         static programs::UniformLocation u4(program, "u_shadow_map");
         glUniform1i(u4, 0);
     }
@@ -239,25 +239,38 @@ void deferred(float zoom,
         glViewport(0, 0, w, h);
 
         // 1
-        floor::shadowDepthBuffer = nav::shadow::depth::render(w, h, shadowRenderDelegate);
+        floor::shadow::depthBuffer = nav::shadow::depth::render(w, h, shadowRenderDelegate);
 
         // 2
-        nav::geo::renderGeoBufferAndShadowBuffer(w, h, floor::shadowDepthBuffer, geoRenderDelegate);
+        nav::geo::renderGeoAndShadow(w, h, floor::shadow::depthBuffer, geoRenderDelegate);
 
         // 3
-        const GLint renderBuffer = nav::ssao::render(w, h, zoom, convertMatrix4(projMatrix));
+        const GLint shadowAndAO = nav::ssao::render(w, h, zoom, convertMatrix4(projMatrix));
 
         // 4
-        bindScreen();
-        nav::blur::render(w, h, renderBuffer);
+        nav::blur::render(w, h, shadowAndAO, true, bindScreen);
         
-#if 1
-        nav::shadow::depth::render(w, h, shadowRenderDelegate, [w, h] () {
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
-            glViewport(50, 50, w / 3., h / 3.);
-        });
-        bindScreen();
-#endif
+        // debug info window
+        if (1) {
+            int x = 20;
+            int y = 20;
+            int ww = w / 3.;
+            int hh = h / 3.;
+
+            nav::blur::render(w, h, floor::shadow::depthBuffer, false, [x, y, ww, hh] () {
+                glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                glViewport(x, y, ww, hh);
+            });
+            
+            x += ww + 20;
+            
+            nav::blur::render(w, h, shadowAndAO, false, [x, y, ww, hh] () {
+                glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                glViewport(x, y, ww, hh);
+            });
+            
+            glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+        }
 
     }
     

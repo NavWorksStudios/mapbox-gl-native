@@ -8,11 +8,12 @@
 #pragma once
 
 #include <gl_headers.hpp>
+#include <functional>
 
 namespace nav {
 namespace blur {
 
-void render(int width, int height, GLint buffer);
+void render(int width, int height, GLint buffer, bool enableBlur, std::function<void()> bindScreen);
 
 }
 }

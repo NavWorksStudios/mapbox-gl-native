@@ -26,9 +26,9 @@ GLint program() {
     return pass;
 }
 
-void render(int width, int height, GLint buffer) {
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+void render(int width, int height, GLint buffer, bool enableBlur, std::function<void()> bindScreen) {
+    
+    if (bindScreen) bindScreen();
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -41,16 +41,21 @@ void render(int width, int height, GLint buffer) {
     static programs::UniformLocation u0(program, "u_ssao");
     glUniform1i(u0, 0);
     
-    static programs::UniformLocation u1(program, "u_offset[0]");
-    glUniform2f(u1, 1.1 / width, 1.1 / height);
+    static programs::UniformLocation u1(program, "u_enable_blur");
+    glUniform1f(u1, enableBlur ? 1 : 0);
     
-//    static programs::UniformLocation u2(program, "u_offset[1]");
-//    glUniform2f(u2, 2. / width, 2. / height);
+    static programs::UniformLocation u2(program, "u_offset[0]");
+    glUniform2f(u2, 1.1 / width, 1.1 / height);
     
-//    static programs::UniformLocation u3(program, "u_offset[2]");
-//    glUniform2f(u3, 2.9 / width, 2.9 / height);
+//    static programs::UniformLocation u3(program, "u_offset[1]");
+//    glUniform2f(u3, 2. / width, 2. / height);
+    
+//    static programs::UniformLocation u4(program, "u_offset[2]");
+//    glUniform2f(u4, 2.9 / width, 2.9 / height);
 
     nav::render::util::renderQuad(program);
+    
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 }
 

@@ -173,6 +173,7 @@ static const char* blurFragmentShader() { return R"(
 varying vec2 TexCoords;
 
 uniform sampler2D u_ssao;
+uniform float u_enable_blur;
 uniform vec2 u_offset[3];
 
 float kawaseBlurSample5(vec2 uv) {    
@@ -244,8 +245,8 @@ float kawaseBlurSample13(vec2 uv) {
 // 5点和13点效果差不多
 
 void main() {
-    float result = kawaseBlurSample5(TexCoords);
-    gl_FragColor = vec4(vec3(.0), result);
+    float result = (u_enable_blur > 0.) ? kawaseBlurSample5(TexCoords) : texture2D(u_ssao, TexCoords).r;
+    gl_FragColor = vec4(0., 0., 0., result);
 
 //    gl_FragColor = vec4(vec3(.0), texture2D(u_ssao, TexCoords).r);
 }

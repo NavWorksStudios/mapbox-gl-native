@@ -133,10 +133,11 @@ void generate(int width, int height) {
 
 void bindFbo(GLuint shadow) {
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-    
+
     if (geo::shadow != shadow) {
         geo::shadow = shadow;
 
+        // color attachment
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, position, 0);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normal, 0);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, albedo, 0);
@@ -145,6 +146,7 @@ void bindFbo(GLuint shadow) {
         GLenum attachments[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
         glDrawBuffers(4, attachments);
         
+        // depth attachment
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
     }
 
@@ -169,7 +171,6 @@ void generate(int width, int height) {
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, buffer, 0);
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
-    
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -205,7 +206,7 @@ void initResource(int width, int height) {
 
 namespace geo {
 
-GLint renderGeoBufferAndShadowBuffer(int width, int height, GLint shadowDepth, std::function<bool()> renderCallback, std::function<void()> bindScreen) {
+GLint renderGeoAndShadow(int width, int height, GLint shadowDepth, std::function<bool()> renderCallback, std::function<void()> bindScreen) {
     initResource(width, height);
 
     if (bindScreen) {
@@ -215,7 +216,8 @@ GLint renderGeoBufferAndShadowBuffer(int width, int height, GLint shadowDepth, s
     }
 
     glClearColor(0, 0, 0, 0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // 清空所有颜色附件
+    
     glDisable(GL_BLEND);
     
     static GLint program = 0;
@@ -226,12 +228,14 @@ GLint renderGeoBufferAndShadowBuffer(int width, int height, GLint shadowDepth, s
         glUniform1i(u0, 0);
         
 //        static programs::UniformLocation u1(program, "u_shadow_uv_scale");
-//        glUniform2f(u1, 1. / nav::shadow::depth::width, 1. / nav::shadow::depth::height);
+//        glUniform2f(u1, 1.1 / nav::shadow::depth::width, 1.1 / nav::shadow::depth::height);
     }
     
     if (renderCallback()) {
         glGetIntegerv(GL_CURRENT_PROGRAM, &program);
     }
+    
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     
     return ssao::buffer;
 }
@@ -314,6 +318,8 @@ GLint render(int width, int height, float zoom, const Mat4& projMatrix, std::fun
     }
     
     nav::render::util::renderQuad(program);
+    
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     return ssao::buffer;
 }
