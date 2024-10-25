@@ -48,28 +48,30 @@ void generate(int width, int height) {
 GLuint render(int width, int height, std::function<bool()> renderCallback, std::function<void()> bindScreen) {
     depth::generate(depth::width, depth::height);
     
-    GLboolean enableCullface;
-    glGetBooleanv(GL_CULL_FACE, &enableCullface);
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_FRONT);
-    
-    GLboolean depthMaskValue;
-    glGetBooleanv(GL_DEPTH_WRITEMASK, &depthMaskValue);
-    glDepthMask(GL_TRUE);
-    
     if (bindScreen) {
         bindScreen();
     } else {
         glViewport(0, 0, depth::width, depth::height);
         glBindFramebuffer(GL_FRAMEBUFFER, depth::fbo);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
+        GLboolean depthMaskValue;
+        glGetBooleanv(GL_DEPTH_WRITEMASK, &depthMaskValue);
+        glDepthMask(GL_TRUE);
+        glClear(GL_DEPTH_BUFFER_BIT);
+        depthMaskValue ? glDepthMask(GL_TRUE) : glDepthMask(GL_FALSE);
     }
     
-    renderCallback();
-    
-    glCullFace(GL_BACK);
-    enableCullface ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
-    depthMaskValue ? glDepthMask(GL_TRUE) : glDepthMask(GL_FALSE);
+    {
+        GLboolean enableCullface;
+        glGetBooleanv(GL_CULL_FACE, &enableCullface);
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_FRONT);
+        
+        renderCallback();
+        
+        glCullFace(GL_BACK);
+        enableCullface ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
+    }
     
     if (!bindScreen) glViewport(0, 0, width, height);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
