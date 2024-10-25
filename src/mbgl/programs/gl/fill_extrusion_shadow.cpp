@@ -104,7 +104,7 @@ struct ShaderSource<FillExtrusionShadowProgram> {
     static const char* navFragment(const char* ) { return R"(
         
         void main() {
-            gl_FragColor = vec4(vec3(pow(gl_FragCoord.z, 2.)), 1.); // for shadow debug
+//            gl_FragColor = vec4(vec3(pow(gl_FragCoord.z, 2.)), 1.); // for shadow debug
         }
 
     )"; }
@@ -126,27 +126,6 @@ Backend::Create<gfx::Backend::Type::OpenGL>(const ProgramParameters& programPara
 }
 
 } // namespace gfx
-
-
-const char* floorShadowVertexShader() { return R"(
-
-attribute vec2 a_pos;
-
-uniform mat4 u_matrix;
-
-void main()
-{
-    vec4 pos = vec4(a_pos, -20., 1.);
-
-    gl_Position = u_matrix * pos;
-}
-
-)"; }
-
-const char* floorShadowFragmentShader() {
-    return programs::gl::ShaderSource<FillExtrusionShadowProgram>::navFragment(0);
-}
-
 
 } // namespace mbgl
 

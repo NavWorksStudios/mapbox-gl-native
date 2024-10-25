@@ -245,10 +245,15 @@ float kawaseBlurSample13(vec2 uv) {
 // 5点和13点效果差不多
 
 void main() {
-    float result = (u_enable_blur > 0.) ? kawaseBlurSample5(TexCoords) : texture2D(u_ssao, TexCoords).r;
-    gl_FragColor = vec4(0., 0., 0., result);
+    if (u_enable_blur > 0.) {
+        float result = kawaseBlurSample5(TexCoords);
+        gl_FragColor = vec4(0., 0., 0., result);
 
-//    gl_FragColor = vec4(vec3(.0), texture2D(u_ssao, TexCoords).r);
+//        gl_FragColor = vec4(vec3(.0), texture2D(u_ssao, TexCoords).r);
+    } else {
+        float result = texture2D(u_ssao, TexCoords).r;
+        gl_FragColor = vec4(vec3(1.) * result, .8);
+    }
 }
 
 )"; }

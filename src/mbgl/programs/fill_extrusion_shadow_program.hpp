@@ -85,7 +85,5 @@ public:
     FillExtrusionShadowProgram fillExtrusion;
 };
 
-const char* floorShadowVertexShader();
-const char* floorShadowFragmentShader();
 
 } // namespace mbgl

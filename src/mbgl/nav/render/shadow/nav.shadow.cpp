@@ -5,6 +5,7 @@
 //
 
 #include "mbgl/nav/render/shadow/nav.shadow.hpp"
+#include "mbgl/nav/render/nav.render.hpp"
 
 
 namespace nav {
@@ -13,8 +14,8 @@ namespace shadow {
 
 namespace depth {
 
-GLuint fbo;
-GLuint buffer;
+GLuint fbo = 0;
+GLuint buffer = 0;
 
 void generate(int width, int height) {
     static int w = 0, h = 0;
@@ -47,23 +48,28 @@ void generate(int width, int height) {
 GLuint render(int width, int height, std::function<bool()> renderCallback, std::function<void()> bindScreen) {
     depth::generate(depth::width, depth::height);
     
-    if (bindScreen) {
-        bindScreen();
-    } else {
-        glViewport(0, 0, depth::width, depth::height);
-        glBindFramebuffer(GL_FRAMEBUFFER, depth::fbo);
-        glClear(GL_DEPTH_BUFFER_BIT);
-    }
-    
     GLboolean enableCullface;
     glGetBooleanv(GL_CULL_FACE, &enableCullface);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_FRONT);
     
+    GLboolean depthMaskValue;
+    glGetBooleanv(GL_DEPTH_WRITEMASK, &depthMaskValue);
+    glDepthMask(GL_TRUE);
+    
+    if (bindScreen) {
+        bindScreen();
+    } else {
+        glViewport(0, 0, depth::width, depth::height);
+        glBindFramebuffer(GL_FRAMEBUFFER, depth::fbo);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    }
+    
     renderCallback();
     
     glCullFace(GL_BACK);
     enableCullface ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
+    depthMaskValue ? glDepthMask(GL_TRUE) : glDepthMask(GL_FALSE);
     
     if (!bindScreen) glViewport(0, 0, width, height);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);

@@ -333,33 +333,6 @@ bool RenderFillExtrusionLayer::doRenderShadowDepth(PaintParameters& parameters) 
         }
     };
     
-    const auto drawTileFloorShadows = [&]() {
-        size_t renderIndex = -1;
-        for (const RenderTile& tile : *renderTiles) {
-            renderIndex++;
-            
-            if (!tile.isRenderable(Tile::RenderMode::Detailed)) {
-                continue;
-            }
-            
-            const LayerRenderData* renderData = getRenderDataForPass(renderIndex, parameters.pass);
-            if (!renderData) {
-                continue;
-            }
-            
-            const auto& translate = evaluated.get<FillExtrusionTranslate>();
-            const auto& anchor = evaluated.get<FillExtrusionTranslateAnchor>();
-            const auto& state = parameters.state;
-            
-            // #*# 使用灯光矩阵进行渲染
-            auto lightmvp = tile.translatedSunlightClipMatrix(translate, anchor, state);
-            // draw tile floors with shadow logic code
-            nav::render::renderTileFloor(lightmvp);
-        }
-    };
-    
-    drawTileFloorShadows();
-    
     drawTileShadows(gfx::StencilMode::disabled(), parameters.colorModeForRenderPass(), "color");
     
     return rendered;
