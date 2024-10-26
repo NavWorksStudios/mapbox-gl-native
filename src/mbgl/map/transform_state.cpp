@@ -222,12 +222,16 @@ void TransformState::getSunlightProjMatrix(mat4& projMatrix, uint16_t nearZ, boo
     {
         const ScreenCoordinate offset = getCenterOffset();
         
-#if 1
+#if 0
         double w = size.width;
         double h = size.height;
         sunlightToClipMatrix = sunlight.getCameraToClipOrtho(-w * 2, w * 2, -h, h * 3, -h, h * 10);
 #else
         const auto& envelope = nav::render::shadow::getEnvelope();
+        
+        printf("light x(%6.1f,%6.1f) y(%6.1f,%6.1f) z(%6.1f,%6.1f) \n",
+               envelope[0], envelope[1], envelope[2], envelope[3], envelope[4], envelope[5]);
+        
         sunlightToClipMatrix = sunlight.getCameraToClipOrtho(envelope[0], envelope[1],
                                                              envelope[2], envelope[3],
                                                              envelope[4], envelope[5]);

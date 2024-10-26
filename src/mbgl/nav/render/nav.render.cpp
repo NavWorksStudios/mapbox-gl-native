@@ -301,9 +301,7 @@ void updateEnvelope(const mbgl::TransformState& state, const std::vector<mbgl::O
         { mbgl::util::EXTENT, 0, 0, 1 },
         { mbgl::util::EXTENT, mbgl::util::EXTENT, 0, 1 },
     };
-    
-    printf("light ++++++++++++++++++++++++++++++\n");
-    
+
     for (const auto& tile : tileIDs) {
         mbgl::mat4 matrix;
         state.matrixFor(matrix, tile.toUnwrapped());
@@ -335,9 +333,8 @@ void updateEnvelope(const mbgl::TransformState& state, const std::vector<mbgl::O
 //        printf("light ----\n");
     }
     
-    printf("light (%6.1f,%6.1f,%6.1f, \n", envelope[0], envelope[1], envelope[2]);
-    printf("light %6.1f,%6.1f,%6.1f) \n", envelope[3], envelope[4], envelope[5]);
-    printf("light -----------------------------\n");
+    printf("light ===== x(%6.1f,%6.1f) y(%6.1f,%6.1f) z(%6.1f,%6.1f) ===== \n",
+           envelope[0], envelope[1], envelope[2], envelope[3], envelope[4], envelope[5]);
 
 }
 
