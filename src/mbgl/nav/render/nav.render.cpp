@@ -282,6 +282,8 @@ const std::array<float, 6>& getEnvelope() {
 }
 
 void updateEnvelope(const mbgl::TransformState& state, const std::vector<mbgl::OverscaledTileID>& tileIDs) {
+    if (tileIDs.size() == 0) return;
+
     envelope = {
         std::numeric_limits<float>::max(),
         std::numeric_limits<float>::lowest(),
@@ -312,20 +314,17 @@ void updateEnvelope(const mbgl::TransformState& state, const std::vector<mbgl::O
             mbgl::vec4 pos = vertices[i];
             mbgl::matrix::transformMat4(pos, pos, matrix); // to world pos
             mbgl::matrix::transformMat4(pos, pos, lightSpaceMatrix); // to light space pos
-            
-            pos[0] = -pos[0];
-            pos[1] = -pos[1];
-            pos[2] = -pos[2];
 
             // envelope box
             const float x = pos[0];
-            const float y = pos[1];
-            const float z = pos[2];
-            
             envelope[0] = fmin(envelope[0], x);
             envelope[1] = fmax(envelope[1], x);
+            
+            const float y = pos[1];
             envelope[2] = fmin(envelope[2], y);
             envelope[3] = fmax(envelope[3], y);
+            
+            const float z = pos[2];
             envelope[4] = fmin(envelope[4], z);
             envelope[5] = fmax(envelope[5], z);
             
@@ -336,8 +335,8 @@ void updateEnvelope(const mbgl::TransformState& state, const std::vector<mbgl::O
 //        printf("light ----\n");
     }
     
-    printf("light (%f,%f,%f, \n", envelope[0], envelope[1], envelope[2]);
-    printf("light %f,%f,%f) \n", envelope[3], envelope[4], envelope[5]);
+    printf("light (%6.1f,%6.1f,%6.1f, \n", envelope[0], envelope[1], envelope[2]);
+    printf("light %6.1f,%6.1f,%6.1f) \n", envelope[3], envelope[4], envelope[5]);
     printf("light -----------------------------\n");
 
 }
