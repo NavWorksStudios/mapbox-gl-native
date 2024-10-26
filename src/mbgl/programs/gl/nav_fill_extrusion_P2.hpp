@@ -98,17 +98,17 @@ struct FillExtrusionProgram {
     
             // Specular Lighting
             const float indensity = .1; // 强度
-            const float shininess = .05; // 反射率
+            const float shininess = .5; // 反射率
             highp vec3 verPos = (u_model_matrix * pos).xyz;
             highp vec3 viewDir = normalize(u_camera_pos - verPos);
             highp vec3 reflectDir = reflect(lightDir, norm); // 反射向量
             float specular = indensity * pow(max(0., dot(viewDir, reflectDir)), shininess); // power(max(0,dot(N,H)),shininess)
 
-            const highp vec3 specTone = vec3(1., .95, .8);
-            highp vec3 specLight = specTone * (specular + diffuse);
+            const highp vec3 specTone = vec3(1.5, 1.4, 1.);
+            highp vec3 specLight = specTone * specular;
     
-            v_color = color * vec4(u_lightcolor * (ambient + specLight), 1.) * u_opacity;
-            v_color.a *= .95;
+            v_color = color * vec4(u_lightcolor * (ambient + diffuse + specLight), 1.) * u_opacity;
+            v_color.a *= .9;
         }
         
     )"; }

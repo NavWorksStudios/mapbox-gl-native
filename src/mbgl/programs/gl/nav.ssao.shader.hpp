@@ -55,8 +55,8 @@ uniform float u_sample_radius[SAMPLE_SIZE];
 uniform float u_z_bias[SAMPLE_SIZE];
 uniform vec3 u_samples[SAMPLE_SIZE];
 
-const float QUADRATIC = 1.5;
-const float CONTRAST = 1.5;
+const float QUADRATIC = 1.3; // 强度
+const float CONTRAST = 1.3; // 对比度
 
 const float NEAR_DEPTH = 0.;
 const float FAR_DEPTH = -350.;
@@ -70,7 +70,7 @@ void main() {
     if (kernelPos.z > FAR_DEPTH && albedo.r > 0.) {
 
         // 动态采样数，近密远疏，可以大幅降低开销
-        float depth_factor = clamp((FAR_DEPTH - kernelPos.z) / FAR_DEPTH, .3, 1.);
+        float depth_factor = clamp((FAR_DEPTH - kernelPos.z) / FAR_DEPTH, .2, 1.);
         int sample_count = int(float(SAMPLE_SIZE) * depth_factor);
 
         // get input for SSAO algorithm
@@ -107,7 +107,7 @@ void main() {
 
         occlusion = pow(occlusion, QUADRATIC);
         occlusion = occlusion / float(sample_count);
-//        occlusion = CONTRAST * (occlusion - 0.5) + 0.5;
+        occlusion = CONTRAST * (occlusion - 0.5) + 0.5;
 
     }
 

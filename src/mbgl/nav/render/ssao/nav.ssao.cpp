@@ -270,13 +270,7 @@ GLint render(int width, int height, float zoom, const Mat4& projMatrix, std::fun
             }
         }
         
-#if 0
-        const float z = fmin(fmax(zoom - 15., 0.), 1.); // zoom (15, 20)
-        const float radius = .2 * z;
-#else
-        const float radius = .15;
-#endif
-
+        const float radius = .1;
         for (unsigned int i = 0; i < sample::kernel::SIZE; ++i) {
             const float scalar = radius * pow(1.1, i);
             glUniform1f(u_sample_radius[i], scalar);
