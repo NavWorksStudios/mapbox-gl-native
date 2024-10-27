@@ -53,7 +53,7 @@ void render(int width, int height, GLint buffer, bool enableBlur, std::function<
 //    static programs::UniformLocation u4(program, "u_offset[2]");
 //    glUniform2f(u4, 2.9 / width, 2.9 / height);
 
-    nav::render::util::renderQuad(program);
+    nav::renderer::util::renderQuad(program);
     
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 

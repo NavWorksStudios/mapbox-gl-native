@@ -21,6 +21,7 @@
 #include "mbgl/nav/render/vec3.h"
 #include "mbgl/nav/render/mat4.h"
 
+#include <mbgl/util/vectors.hpp>
 #include <mbgl/util/mat4.hpp>
 #include <mbgl/util/bounding_volumes.hpp>
 
@@ -28,8 +29,6 @@
 
 
 namespace nav {
-namespace render {
-
 
 static auto convertVec3 = [] (mbgl::vec3 v) {
     return Vec3((float) v[0], (float) v[1], (float) v[2]);
@@ -42,7 +41,11 @@ static auto convertMatrix4 = [] (mbgl::mat4 matrix) {
 };
 
 
-namespace floor {
+namespace renderer {
+
+GLint depthBuffer = 0;
+
+namespace ground {
 
 // Set up buffer for floor data, 6 triangles
 const static GLfloat vertices[36] = {
@@ -52,15 +55,13 @@ const static GLfloat vertices[36] = {
     0.0f, 0.0f, 1.0f, 0.0f,
     8192.0f, 8192.0f,
     0.0f, 0.0f, 1.0f, 0.0f,
-
+    
     8192.0f, 8192.0f,
     0.0f, 0.0f, 1.0f, 0.0f,
     0.0f, 0.0f,
     0.0f, 0.0f, 1.0f, 0.0f,
     8192.0f, 0.0f,
     0.0f, 0.0f, 1.0f, 0.0f };
-
-namespace ssao {
 
 GLuint program() {
     static GLint pass = 0;
@@ -99,20 +100,14 @@ GLuint vao(GLuint program) {
     return vao;
 }
 
-}
-
-}
-
-GLint depthBuffer = 0;
-
-void renderTileFloor(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::mat4& normal, const mbgl::mat4& lightmvp) {
+void render(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::mat4& normal, const mbgl::mat4& lightmvp) {
     GLboolean cullfaceEnabled;
     glGetBooleanv(GL_CULL_FACE, &cullfaceEnabled);
     
-    const GLint program = floor::ssao::program();
+    const GLint program = ground::program();
     glUseProgram(program);
     glDisable(GL_CULL_FACE); // for render ground
-
+    
     {
         static programs::UniformLocation u0(program, "u_matrix");
         const Mat4 MVP = convertMatrix4(mvp);
@@ -135,13 +130,18 @@ void renderTileFloor(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::ma
         static programs::UniformLocation u4(program, "u_shadow_map");
         glUniform1i(u4, 0);
     }
-
-    glBindVertexArray(floor::ssao::vao(program));
+    
+    glBindVertexArray(ground::vao(program));
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
     
     cullfaceEnabled ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
 }
+
+} // ground
+
+
+namespace deferred {
 
 const float BUFFER_RATIO = .7;
 
@@ -153,13 +153,12 @@ int height() {
     return nav::display::pixels::height() * BUFFER_RATIO;
 }
 
-void deferred(float zoom,
-              mbgl::mat4 projMatrix,
-              std::function<bool()> shadowRenderDelegate,
-              std::function<bool()> geoRenderDelegate) {
+void render(float zoom, mbgl::mat4 projMatrix,
+            std::function<bool()> shadowRenderDelegate,
+            std::function<bool()> geoRenderDelegate) {
     
     if (zoom < 15.) return;
-
+    
     GLfloat clearColor[4];
     glGetFloatv(GL_COLOR_CLEAR_VALUE, clearColor);
     
@@ -174,20 +173,20 @@ void deferred(float zoom,
             glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
             
         };
-
+        
         const int w = width();
         const int h = height();
         glViewport(0, 0, w, h);
-
+        
         // 1
         depthBuffer = nav::shadow::depth::render(w, h, shadowRenderDelegate);
-
+        
         // 2
         nav::geo::renderGeoAndShadow(w, h, depthBuffer, geoRenderDelegate);
-
+        
         // 3
         const GLint shadowAndAO = nav::ssao::render(w, h, zoom, convertMatrix4(projMatrix));
-
+        
         // 4
         nav::blur::render(w, h, shadowAndAO, true, bindScreen);
         
@@ -197,7 +196,7 @@ void deferred(float zoom,
             int y = 20;
             int ww = w / 5.;
             int hh = h / 5.;
-
+            
             nav::blur::render(w, h, depthBuffer, false, [x, y, ww, hh] () {
                 glBindFramebuffer(GL_FRAMEBUFFER, 0);
                 glViewport(x, y, ww, hh);
@@ -212,14 +211,16 @@ void deferred(float zoom,
             
             glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
         }
-
+        
     }
     
     glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
     blendEnabled ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA); // mapbox config
-
+    
 }
+
+} // deffered
 
 
 namespace util {
@@ -237,15 +238,14 @@ GLuint genTexture(GLint internalformat, GLsizei width, GLsizei height, GLenum fo
 }
 
 void renderQuad(GLint program) {
-    
     static GLuint quadVAO = 0;
     if (!quadVAO) {
         float quadVertices[] = {
             // positions            // texture Coords
             -1.0f,  1.0f, 0.0f,     0.0f, 1.0f,
             -1.0f, -1.0f, 0.0f,     0.0f, 0.0f,
-             1.0f,  1.0f, 0.0f,     1.0f, 1.0f,
-             1.0f, -1.0f, 0.0f,     1.0f, 0.0f,
+            1.0f,  1.0f, 0.0f,     1.0f, 1.0f,
+            1.0f, -1.0f, 0.0f,     1.0f, 0.0f,
         };
         
         static GLuint quadVBO;
@@ -256,7 +256,7 @@ void renderQuad(GLint program) {
         glBindVertexArray(quadVAO);
         glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-
+        
         static programs::AttribLocation a0(program, "aPos");
         glEnableVertexAttribArray(a0);
         glVertexAttribPointer(a0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
@@ -265,16 +265,24 @@ void renderQuad(GLint program) {
         glEnableVertexAttribArray(a1);
         glVertexAttribPointer(a1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     }
-
+    
     glBindVertexArray(quadVAO);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);
-
 }
 
-}
+} // util
 
-namespace shadow {
+} // renderer
+
+
+namespace sunlight {
+
+std::array<float, 6> frustum;
+
+const std::array<float, 6>& getFrustum() {
+    return frustum;
+}
 
 struct Plane {
     mbgl::vec3 normal;
@@ -313,23 +321,18 @@ mbgl::optional<mbgl::vec3> getIntersect(const Plane& plane, const Linesegment& l
     }
 }
 
-
-std::array<float, 6> envelope;
-
-const std::array<float, 6>& getEnvelope() {
-    return envelope;
-}
-
-const std::array<float, 4> EMPTY_REGION = {
+using box2 = std::array<mbgl::vec2, 2>;
+const box2 EMPTY_BOX2 = {
+    std::numeric_limits<float>::max(),
     std::numeric_limits<float>::max(),
     -std::numeric_limits<float>::max(),
-    std::numeric_limits<float>::max(),
-    -std::numeric_limits<float>::max() };
+    -std::numeric_limits<float>::max(),
+};
 
-void updateEnvelope(const mbgl::TransformState& state, const std::vector<mbgl::OverscaledTileID>& tileIDs) {
+void updateFrustum(const mbgl::TransformState& state, const std::vector<mbgl::OverscaledTileID>& tileIDs) {
     if (tileIDs.size() == 0) return;
     
-    std::array<float, 4> tilecover = EMPTY_REGION;
+    box2 tilecover = EMPTY_BOX2;
     {
         // model pos
         const mbgl::vec4 model[4] = {
@@ -338,39 +341,37 @@ void updateEnvelope(const mbgl::TransformState& state, const std::vector<mbgl::O
             { mbgl::util::EXTENT, 0, 0, 1 },
             { mbgl::util::EXTENT, mbgl::util::EXTENT, 0, 1 },
         };
-
+        
         for (const auto& tile : tileIDs) {
             mbgl::mat4 matrix;
             state.matrixFor(matrix, tile.toUnwrapped());
-
+            
             for (int i=0; i<4; i++) {
                 mbgl::vec4 pos = model[i];
                 mbgl::matrix::transformMat4(pos, pos, matrix); // to world pos
-
                 const float x = pos[0];
-                tilecover[0] = fmin(tilecover[0], x);
-                tilecover[1] = fmax(tilecover[1], x);
-                
                 const float y = pos[1];
-                tilecover[2] = fmin(tilecover[2], y);
-                tilecover[3] = fmax(tilecover[3], y);
+                
+                mbgl::vec2& min = tilecover[0];
+                min[0] = fmin(min[0], x);
+                min[1] = fmin(min[1], y);
+                
+                mbgl::vec2& max = tilecover[1];
+                max[0] = fmax(max[0], x);
+                max[1] = fmax(max[1], y);
             }
         }
         
-        nav::log::i("updateEnvelope", "tilecover x(%6.1f,%6.1f) y(%6.1f,%6.1f)",
-                    tilecover[0], tilecover[1], tilecover[2], tilecover[3]);
+        nav::log::i("sunlight frustum", "tilecover  x(%8.2f,%8.2f) y(%8.2f,%8.2f)",
+                    tilecover[0][0], tilecover[1][0],
+                    tilecover[0][1], tilecover[0][1]);
     }
     
-    std::array<float, 4> projection = EMPTY_REGION;
+    box2 projection = EMPTY_BOX2;
     {
         const auto worldSize = mbgl::Projection::worldSize(state.getScale());
         const auto flippedY = state.getViewportMode() == mbgl::ViewportMode::FlippedY;
-        
-        mbgl::mat4 m;
-        mbgl::matrix::multiply(m, state.getViewToClipMatrix(), state.getWorldToViewMatrix());
-        mbgl::matrix::invert(m, m);
-        const auto frustum = mbgl::util::Frustum::fromInvProjMatrix(m, worldSize, state.getZoom(), flippedY);
-//        const auto frustum = mbgl::util::Frustum::fromInvProjMatrix(state.getInvProjectionMatrix(), worldSize, state.getZoom(), flippedY);
+        const auto frustum = mbgl::util::Frustum::fromInvProjMatrix(state.getInvProjectionMatrix(), worldSize, state.getZoom(), flippedY);
         auto& points = frustum.getPoints();
         
         const Plane ground = { { 0, 0, 1 }, 0 };
@@ -382,39 +383,52 @@ void updateEnvelope(const mbgl::TransformState& state, const std::vector<mbgl::O
         
         for (int i=0; i<4; i++) {
             const mbgl::vec3& pos = *intersection[i];
-
-            const float x = pos[0];
-            projection[0] = fmin(projection[0], x);
-            projection[1] = fmax(projection[1], x);
+            const float x = pos[0] * mbgl::util::tileSize;
+            const float y = pos[1] * mbgl::util::tileSize;
             
-            const float y = pos[1];
-            projection[2] = fmin(projection[2], y);
-            projection[3] = fmax(projection[3], y);
+            mbgl::vec2& min = projection[0];
+            min[0] = fmin(min[0], x);
+            min[1] = fmin(min[1], y);
+            
+            mbgl::vec2& max = projection[1];
+            max[0] = fmax(max[0], x);
+            max[1] = fmax(max[1], y);
         }
-
-        nav::log::i("updateEnvelope", "projection x(%6.1f,%6.1f) y(%6.1f,%6.1f)",
-                    projection[0], projection[1], projection[2], projection[3]);
+        
+        nav::log::i("sunlight frustum", "projection x(%8.2f,%8.2f) y(%8.2f,%8.2f)",
+                    projection[0][0], projection[1][0],
+                    projection[1][0], projection[1][1]);
     }
     
+    box2 box = {
+        fmax(tilecover[0][0], projection[0][0]),
+        fmax(tilecover[0][1], projection[0][1]),
+        fmin(tilecover[1][0], projection[1][0]),
+        fmin(tilecover[1][1], projection[1][1]),
+    };
+    
     {
-//        const auto& lightSpaceMatrix = state.getWorldToSunlightMatrix();
-//        mbgl::matrix::transformMat4(pos, pos, lightSpaceMatrix); // to light space pos
+        mbgl::vec4 min = { box[0][0], box[0][1], 0., 1. };
+        mbgl::vec4 max = { box[1][0], box[1][1], 0., 1. };
+
+        const auto& lightSpaceMatrix = state.getSunlightWorldToViewMatrix();
+        mbgl::matrix::transformMat4(min, min, lightSpaceMatrix);
+        mbgl::matrix::transformMat4(max, max, lightSpaceMatrix);
         
-        envelope = {
-            fmax(tilecover[0], projection[0]), fmin(tilecover[1], projection[1]),
-            fmax(tilecover[2], projection[2]), fmin(tilecover[3], projection[3]),
-            0, 0
+        frustum = {
+            (float) fmin(min[0], max[0]), (float) fmax(min[0], max[0]),
+            (float) fmin(min[1], max[1]), (float) fmax(min[1], max[1]),
+            - (float) fmax(min[2], max[2]), - (float) fmin(min[2], max[2]),
         };
         
-        nav::log::i("updateEnvelope", "envelope x(%6.1f,%6.1f) y(%6.1f,%6.1f) z(%6.1f,%6.1f)",
-                    envelope[0], envelope[1], envelope[2], envelope[3], envelope[4], envelope[5]);
+        nav::log::i("sunlight frustum", "frustum    x(%8.2f,%8.2f) y(%8.2f,%8.2f) z(%8.2f,%8.2f)",
+                    frustum[0], frustum[1],
+                    frustum[2], frustum[3],
+                    frustum[4], frustum[5]);
     }
-
+    
 }
 
-}
+} // sunlight
 
-
-
-}
-}
+} // nav

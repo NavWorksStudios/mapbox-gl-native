@@ -112,17 +112,17 @@ void generate(int width, int height) {
 
     // position color buffer
     glDeleteTextures(1, &position);
-    position = nav::render::util::genTexture(GL_RGB16F, width, height, GL_RGB, GL_FLOAT);
+    position = nav::renderer::util::genTexture(GL_RGB16F, width, height, GL_RGB, GL_FLOAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     // normal color buffer
     glDeleteTextures(1, &normal);
-    normal = nav::render::util::genTexture(GL_RGB16F, width, height, GL_RGB, GL_FLOAT);
+    normal = nav::renderer::util::genTexture(GL_RGB16F, width, height, GL_RGB, GL_FLOAT);
 
     // color + specular color buffer
     glDeleteTextures(1, &albedo);
-    albedo = nav::render::util::genTexture(GL_RGB16F, width, height, GL_RGB, GL_FLOAT);
+    albedo = nav::renderer::util::genTexture(GL_RGB16F, width, height, GL_RGB, GL_FLOAT);
 
     // create and attach depth buffer (renderbuffer)
     glDeleteRenderbuffers(1, &rboDepth);
@@ -164,7 +164,7 @@ void generate(int width, int height) {
     if (!fbo) glGenFramebuffers(1, &fbo);
     
     glDeleteTextures(1, &buffer);
-    buffer = nav::render::util::genTexture(GL_RED, width, height, GL_RED, GL_FLOAT);
+    buffer = nav::renderer::util::genTexture(GL_RED, width, height, GL_RED, GL_FLOAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     
@@ -311,7 +311,7 @@ GLint render(int width, int height, float zoom, const Mat4& projMatrix, std::fun
         glUniform1i(u3, 3);
     }
     
-    nav::render::util::renderQuad(program);
+    nav::renderer::util::renderQuad(program);
     
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 

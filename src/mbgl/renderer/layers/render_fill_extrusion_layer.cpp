@@ -202,9 +202,8 @@ bool RenderFillExtrusionLayer::doRenderDeferredGeoBuffer(PaintParameters& parame
             mat4 normalMatrix;
             matrix::invert(normalMatrix, tile.modelViewMatrix);
             matrix::transpose(normalMatrix);
-            
-            // draw tile floors with ssao logic code
-            nav::render::renderTileFloor(matrix, tile.modelViewMatrix, normalMatrix, sunlight_matrix);
+
+            nav::renderer::ground::render(matrix, tile.modelViewMatrix, normalMatrix, sunlight_matrix);
         }
     };
 

@@ -15,29 +15,33 @@
 #include <mbgl/map/transform_state.hpp>
 
 namespace nav {
-namespace render {
 
-void renderTileFloor(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::mat4& normal, const mbgl::mat4& lightmvp);
+namespace renderer {
 
+namespace ground {
+void render(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::mat4& normal, const mbgl::mat4& lightmvp);
+}
+
+namespace deferred {
 int width();
-
 int height();
-    
-void deferred(float zoom,
-              mbgl::mat4 projMatrix,
-              std::function<bool()> shadowRenderDelegate,
-              std::function<bool()> geoRenderDelegate);
+
+void render(float zoom, mbgl::mat4 projMatrix,
+            std::function<bool()> shadowRenderDelegate,
+            std::function<bool()> geoRenderDelegate);
+}
 
 namespace util {
 GLuint genTexture(GLint internalformat, GLsizei width, GLsizei height, GLenum format, GLenum type);
 void renderQuad(GLint program);
 }
 
-namespace shadow {
-const std::array<float, 6>& getEnvelope();
-void updateEnvelope(const mbgl::TransformState& state, const std::vector<mbgl::OverscaledTileID>& tileIDs);
 }
 
+namespace sunlight {
+const std::array<float, 6>& getFrustum();
+void updateFrustum(const mbgl::TransformState& state, const std::vector<mbgl::OverscaledTileID>& tileIDs);
 }
+
 }
 

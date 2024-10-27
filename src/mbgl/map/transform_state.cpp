@@ -198,6 +198,7 @@ void TransformState::getProjMatrix(mat4& projMatrix, uint16_t nearZ, bool aligne
         matrix::translate(projMatrix, projMatrix, dxa > 0.5 ? dxa - 1 : dxa, dya > 0.5 ? dya - 1 : dya, 0);
     }
     
+    // 增加后处理之后，重新计算viewToClip
     mat4 inv;
     matrix::invert(inv, _worldToViewMatrix);
     matrix::multiply(_viewToClipMatrix, projMatrix, inv);
@@ -227,10 +228,10 @@ void TransformState::getSunlightProjMatrix(mat4& projMatrix, uint16_t nearZ, boo
         double h = size.height;
         sunlightToClipMatrix = sunlight.getCameraToClipOrtho(-w * 2, w * 2, -h, h * 3, -h, h * 10);
 #else
-        const auto& envelope = nav::render::shadow::getEnvelope();
-        _sunlightViewToClipMatrix = sunlight.getCameraToClipOrtho(envelope[0], envelope[1],
-                                                             envelope[2], envelope[3],
-                                                             envelope[4], envelope[5]);
+        const auto& frustum = nav::sunlight::getFrustum();
+        _sunlightViewToClipMatrix = sunlight.getCameraToClipOrtho(frustum[0], frustum[1],
+                                                                  frustum[2], frustum[3],
+                                                                  frustum[4], frustum[5]);
 #endif
         
         if (!axonometric) { // 轴测法的
@@ -251,6 +252,7 @@ void TransformState::getSunlightProjMatrix(mat4& projMatrix, uint16_t nearZ, boo
         projMatrix[9] = ySkew * pixelsPerMeter;
     }
     
+    // 增加后处理之后，重新计算viewToClip
     mat4 inv;
     matrix::invert(inv, _sunlightWorldToViewMatrix);
     matrix::multiply(_sunlightViewToClipMatrix, projMatrix, inv);
