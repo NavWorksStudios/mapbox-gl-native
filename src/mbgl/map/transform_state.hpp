@@ -116,8 +116,8 @@ public:
     void getProjMatrix(mat4& matrix, uint16_t nearZ = 1, bool aligned = false) const;
     void getSunlightProjMatrix(mat4& matrix, uint16_t nearZ = 1, bool aligned = false) const;
     
-    inline mat4& getWorldToCameraMatrix() const { return worldToCameraMatrix; }
-    inline mat4& getCameraToClipMatrix() const { return cameraToClipMatrix; }
+    inline mat4& getWorldToCameraMatrix() const { return _worldToCameraMatrix; }
+    inline mat4& getCameraToClipMatrix() const { return _cameraToClipMatrix; }
     
     inline mat4& getWorldToSunlightMatrix() const { return worldToSunlightMatrix; }
     inline mat4& getSunlightToClipMatrix() const { return sunlightToClipMatrix; }
@@ -308,12 +308,14 @@ private:
     mutable bool requestMatricesUpdate{true};
     // camera matrix
     mutable mat4 projectionMatrix;
-    mutable mat4 worldToCameraMatrix;
-    mutable mat4 cameraToClipMatrix;
     mutable mat4 invProjectionMatrix;
+    
     mutable mat4 coordMatrix;
-    mutable mat4 invertedMatrix;
+    mutable mat4 invCoordMatrix;
+    
     mutable vec3 _cameraPosition;
+    mutable mat4 _worldToCameraMatrix;
+    mutable mat4 _cameraToClipMatrix;
     
     // sunlight matrix
     mutable mat4 sunlightProjectionMatrix; // vp
@@ -323,17 +325,17 @@ private:
     mutable vec3 _sunlightDirection;
     
 public:
-    inline vec3f getCameraPosition() const {
+    vec3f getCameraPosition() const {
         const auto& pos = _cameraPosition;
         return { float(pos[0]), float(pos[1]), float(pos[2]) };
     }
     
-    inline vec3f getCameraNDCPosition() const {
+    vec3f getCameraNDCPosition() const {
         const auto& pos = camera.getPosition();
         return { float(pos[0]), float(pos[1]), float(pos[2]) };
     }
     
-    inline vec3f getSunlightDirection() const {
+    vec3f getSunlightDirection() const {
         const auto& dir = _sunlightDirection;
         return { float(dir[0]), float(dir[1]), float(dir[2]) };
     }

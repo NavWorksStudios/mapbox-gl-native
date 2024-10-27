@@ -22,6 +22,7 @@
 #include "mbgl/nav/render/mat4.h"
 
 #include <mbgl/util/mat4.hpp>
+#include <mbgl/util/bounding_volumes.hpp>
 
 #include <limits>
 
@@ -275,66 +276,134 @@ void renderQuad(GLint program) {
 
 namespace shadow {
 
+struct Plane {
+    mbgl::vec3 normal;
+    float distance;
+};
+
+struct Linesegment {
+    mbgl::vec3 from;
+    mbgl::vec3 to;
+    
+    mbgl::vec3 direction() const {
+        return { to[0] - from[0], to[1] - from[1], to[2] - from[2] };
+    }
+};
+
+mbgl::optional<mbgl::vec3> getIntersect(const Plane& plane, const Linesegment& line) {
+    const auto dir = line.direction();
+    const auto& nor = plane.normal;
+    
+    double denominator = nor[0] * dir[0] + nor[1] * dir[1] + nor[2] * dir[2];
+    if (denominator == 0) {
+        // 线段与平面平行，无交点
+        return mbgl::nullopt;
+    }
+    
+    double t = -(nor[0] * line.from[0] + nor[1] * line.from[1] + nor[2] * line.from[2] + plane.distance) / denominator;
+    if (t >= 0 && t <= 1) {
+        mbgl::vec3 intersection;
+        intersection[0] = line.from[0] + t * dir[0];
+        intersection[1] = line.from[1] + t * dir[1];
+        intersection[2] = line.from[2] + t * dir[2];
+        return { intersection };
+    } else {
+        // 交点不在线段上
+        return mbgl::nullopt;
+    }
+}
+
+
 std::array<float, 6> envelope;
 
 const std::array<float, 6>& getEnvelope() {
     return envelope;
 }
 
+const std::array<float, 4> EMPTY_REGION = {
+    std::numeric_limits<float>::max(),
+    -std::numeric_limits<float>::max(),
+    std::numeric_limits<float>::max(),
+    -std::numeric_limits<float>::max() };
+
 void updateEnvelope(const mbgl::TransformState& state, const std::vector<mbgl::OverscaledTileID>& tileIDs) {
     if (tileIDs.size() == 0) return;
-
-    envelope = {
-        std::numeric_limits<float>::max(),
-        std::numeric_limits<float>::lowest(),
-        std::numeric_limits<float>::max(),
-        std::numeric_limits<float>::lowest(),
-        std::numeric_limits<float>::max(),
-        std::numeric_limits<float>::lowest() };
     
-    const auto& lightSpaceMatrix = state.getWorldToSunlightMatrix();
-    
-    // model pos
-    const mbgl::vec4 vertices[4] = {
-        { 0, 0, 0, 1 },
-        { 0, mbgl::util::EXTENT, 0, 1 },
-        { mbgl::util::EXTENT, 0, 0, 1 },
-        { mbgl::util::EXTENT, mbgl::util::EXTENT, 0, 1 },
-    };
+    std::array<float, 4> tilecover = EMPTY_REGION;
+    {
+        // model pos
+        const mbgl::vec4 model[4] = {
+            { 0, 0, 0, 1 },
+            { 0, mbgl::util::EXTENT, 0, 1 },
+            { mbgl::util::EXTENT, 0, 0, 1 },
+            { mbgl::util::EXTENT, mbgl::util::EXTENT, 0, 1 },
+        };
 
-    for (const auto& tile : tileIDs) {
-        mbgl::mat4 matrix;
-        state.matrixFor(matrix, tile.toUnwrapped());
-        
-//        printf("light ++++\n");
-        
-        for (int i=0; i<4; i++) {
-            mbgl::vec4 pos = vertices[i];
-            mbgl::matrix::transformMat4(pos, pos, matrix); // to world pos
-            mbgl::matrix::transformMat4(pos, pos, lightSpaceMatrix); // to light space pos
+        for (const auto& tile : tileIDs) {
+            mbgl::mat4 matrix;
+            state.matrixFor(matrix, tile.toUnwrapped());
 
-            // envelope box
-            const float x = pos[0];
-            envelope[0] = fmin(envelope[0], x);
-            envelope[1] = fmax(envelope[1], x);
-            
-            const float y = pos[1];
-            envelope[2] = fmin(envelope[2], y);
-            envelope[3] = fmax(envelope[3], y);
-            
-            const float z = pos[2];
-            envelope[4] = fmin(envelope[4], z);
-            envelope[5] = fmax(envelope[5], z);
-            
-//            printf("light (%f,%f,%f) -> (%f,%f,%f,%f,%f,%f) \n", x, y, z,
-//                   envelope[0], envelope[1], envelope[2], envelope[3], envelope[4], envelope[5]);
+            for (int i=0; i<4; i++) {
+                mbgl::vec4 pos = model[i];
+                mbgl::matrix::transformMat4(pos, pos, matrix); // to world pos
+
+                const float x = pos[0];
+                tilecover[0] = fmin(tilecover[0], x);
+                tilecover[1] = fmax(tilecover[1], x);
+                
+                const float y = pos[1];
+                tilecover[2] = fmin(tilecover[2], y);
+                tilecover[3] = fmax(tilecover[3], y);
+            }
         }
         
-//        printf("light ----\n");
+        nav::log::i("updateEnvelope", "tilecover x(%6.1f,%6.1f) y(%6.1f,%6.1f)",
+                    tilecover[0], tilecover[1], tilecover[2], tilecover[3]);
     }
     
-    printf("light ===== x(%6.1f,%6.1f) y(%6.1f,%6.1f) z(%6.1f,%6.1f) ===== \n",
-           envelope[0], envelope[1], envelope[2], envelope[3], envelope[4], envelope[5]);
+    std::array<float, 4> projection = EMPTY_REGION;
+    {
+        const auto worldSize = mbgl::Projection::worldSize(state.getScale());
+        const auto flippedY = state.getViewportMode() == mbgl::ViewportMode::FlippedY;
+        const auto frustum = mbgl::util::Frustum::fromInvProjMatrix(state.getInvProjectionMatrix(), worldSize, state.getZoom(), flippedY);
+        auto& points = frustum.getPoints();
+        
+        const Plane ground = { { 0, 0, 1 }, 0 };
+        mbgl::optional<mbgl::vec3> intersection[4];
+        intersection[0] = getIntersect(ground, { points[0], points[4] });
+        intersection[1] = getIntersect(ground, { points[1], points[5] });
+        intersection[2] = getIntersect(ground, { points[2], points[6] });
+        intersection[3] = getIntersect(ground, { points[3], points[7] });
+        
+        for (int i=0; i<4; i++) {
+            const mbgl::vec3& pos = *intersection[i];
+
+            const float x = pos[0];
+            projection[0] = fmin(projection[0], x);
+            projection[1] = fmax(projection[1], x);
+            
+            const float y = pos[1];
+            projection[2] = fmin(projection[2], y);
+            projection[3] = fmax(projection[3], y);
+        }
+
+        nav::log::i("updateEnvelope", "projection x(%6.1f,%6.1f) y(%6.1f,%6.1f)",
+                    projection[0], projection[1], projection[2], projection[3]);
+    }
+    
+    {
+//        const auto& lightSpaceMatrix = state.getWorldToSunlightMatrix();
+//        mbgl::matrix::transformMat4(pos, pos, lightSpaceMatrix); // to light space pos
+        
+        envelope = {
+            fmax(tilecover[0], projection[0]), fmin(tilecover[1], projection[1]),
+            fmax(tilecover[2], projection[2]), fmin(tilecover[3], projection[3]),
+            0, 0
+        };
+        
+        nav::log::i("updateEnvelope", "envelope x(%6.1f,%6.1f) y(%6.1f,%6.1f) z(%6.1f,%6.1f)",
+                    envelope[0], envelope[1], envelope[2], envelope[3], envelope[4], envelope[5]);
+    }
 
 }
 

@@ -104,7 +104,7 @@ void TransformState::getProjMatrix(mat4& projMatrix, uint16_t nearZ, bool aligne
     
     // world to camera matrix
     {
-        worldToCameraMatrix = camera.getWorldToCamera(scale, viewportMode == ViewportMode::FlippedY);
+        _worldToCameraMatrix = camera.getWorldToCamera(scale, viewportMode == ViewportMode::FlippedY);
     }
     
     // camera to clip Matrix
@@ -141,7 +141,7 @@ void TransformState::getProjMatrix(mat4& projMatrix, uint16_t nearZ, bool aligne
             return farZ;
         };
         
-        cameraToClipMatrix = camera.getCameraToClipPerspective(getFieldOfView(), double(size.width) / size.height, nearZ, getFarZ());
+        _cameraToClipMatrix = camera.getCameraToClipPerspective(getFieldOfView(), double(size.width) / size.height, nearZ, getFarZ());
         
         // Move the center of perspective to center of specified edgeInsets.
         // Values are in range [-1, 1] where the upper and lower range values
@@ -152,17 +152,17 @@ void TransformState::getProjMatrix(mat4& projMatrix, uint16_t nearZ, bool aligne
         // 这被夸大了如果使用轴测透视（尚未公开API，第11882期）。
         // TODO（astojilj）：第11882期也应考虑边缘插图。
         if (!axonometric) { // 轴测法的
-            cameraToClipMatrix[8] = -offset.x * 2.0 / size.width;
-            cameraToClipMatrix[9] = offset.y * 2.0 / size.height;
+            _cameraToClipMatrix[8] = -offset.x * 2.0 / size.width;
+            _cameraToClipMatrix[9] = offset.y * 2.0 / size.height;
         }
         
         // Apply north orientation angle  应用北向角度
         if (getNorthOrientation() != NorthOrientation::Upwards) {
-            matrix::rotate_z(cameraToClipMatrix, cameraToClipMatrix, -getNorthOrientationAngle());
+            matrix::rotate_z(_cameraToClipMatrix, _cameraToClipMatrix, -getNorthOrientationAngle());
         }
     }
 
-    matrix::multiply(projMatrix, cameraToClipMatrix, worldToCameraMatrix);
+    matrix::multiply(projMatrix, _cameraToClipMatrix, _worldToCameraMatrix);
 
     if (axonometric) { // 轴测法的
         // mat[11] controls perspective
@@ -199,8 +199,8 @@ void TransformState::getProjMatrix(mat4& projMatrix, uint16_t nearZ, bool aligne
     }
     
     mat4 inv;
-    matrix::invert(inv, worldToCameraMatrix);
-    matrix::multiply(cameraToClipMatrix, projMatrix, inv);
+    matrix::invert(inv, _worldToCameraMatrix);
+    matrix::multiply(_cameraToClipMatrix, projMatrix, inv);
     
 }
 
@@ -228,10 +228,6 @@ void TransformState::getSunlightProjMatrix(mat4& projMatrix, uint16_t nearZ, boo
         sunlightToClipMatrix = sunlight.getCameraToClipOrtho(-w * 2, w * 2, -h, h * 3, -h, h * 10);
 #else
         const auto& envelope = nav::render::shadow::getEnvelope();
-        
-        printf("light x(%6.1f,%6.1f) y(%6.1f,%6.1f) z(%6.1f,%6.1f) \n",
-               envelope[0], envelope[1], envelope[2], envelope[3], envelope[4], envelope[5]);
-        
         sunlightToClipMatrix = sunlight.getCameraToClipOrtho(envelope[0], envelope[1],
                                                              envelope[2], envelope[3],
                                                              envelope[4], envelope[5]);
@@ -447,15 +443,14 @@ void TransformState::updateMatricesIfNeeded() const {
     if (!needsMatricesUpdate() || size.isEmpty()) return;
 
     getProjMatrix(projectionMatrix);
-    // #*# 放在此处是否合理待敲定
-    getSunlightProjMatrix(sunlightProjectionMatrix);
-    coordMatrix = coordinatePointMatrix(projectionMatrix);
-
     bool err = matrix::invert(invProjectionMatrix, projectionMatrix);
     if (err) throw std::runtime_error("failed to invert projectionMatrix");
 
-    err = matrix::invert(invertedMatrix, coordMatrix);
+    coordMatrix = coordinatePointMatrix(projectionMatrix);
+    err = matrix::invert(invCoordMatrix, coordMatrix);
     if (err) throw std::runtime_error("failed to invert coordinatePointMatrix");
+    
+    getSunlightProjMatrix(sunlightProjectionMatrix);
 
     requestMatricesUpdate = false;
 }
@@ -477,7 +472,7 @@ const mat4& TransformState::getCoordMatrix() const {
 
 const mat4& TransformState::getInvertedMatrix() const {
     updateMatricesIfNeeded();
-    return invertedMatrix;
+    return invCoordMatrix;
 }
 
 #pragma mark - Dimensions
