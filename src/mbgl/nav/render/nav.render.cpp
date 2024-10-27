@@ -409,16 +409,20 @@ void updateFrustum(const mbgl::TransformState& state, const std::vector<mbgl::Ov
     
     {
         mbgl::vec4 min = { box[0][0], box[0][1], 0., 1. };
-        mbgl::vec4 max = { box[1][0], box[1][1], 0., 1. };
+        mbgl::vec4 max = { box[1][0], box[1][1], pow(400., 1. / (20 - state.getZoom())), 1. };
 
         const auto& lightSpaceMatrix = state.getSunlightWorldToViewMatrix();
         mbgl::matrix::transformMat4(min, min, lightSpaceMatrix);
         mbgl::matrix::transformMat4(max, max, lightSpaceMatrix);
         
+        nav::log::i("sunlight frustum", "min(%8.2f,%8.2f,%8.2f) max(%8.2f,%8.2f,%8.2f)",
+                    (float) min[0], (float) min[1], (float) min[2],
+                    (float) max[0], (float) max[1], (float) max[2]);
+        
         frustum = {
-            (float) fmin(min[0], max[0]), (float) fmax(min[0], max[0]),
-            (float) fmin(min[1], max[1]), (float) fmax(min[1], max[1]),
-            - (float) fmax(min[2], max[2]), - (float) fmin(min[2], max[2]),
+            float(fmin(min[0], max[0]) - 100.), float(fmax(min[0], max[0]) + 100.),
+            float(fmin(min[1], max[1]) - 100.), float(fmax(min[1], max[1]) + 100.),
+            float(-fmax(min[2], max[2]) - 100.), float(-fmin(min[2], max[2]) + 100.),
         };
         
         nav::log::i("sunlight frustum", "frustum    x(%8.2f,%8.2f) y(%8.2f,%8.2f) z(%8.2f,%8.2f)",
