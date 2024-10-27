@@ -129,13 +129,13 @@ void RenderTile::prepare(const SourcePrepareParameters& parameters) {
 
     transform.state.matrixFor(modelMatrix, id);
     
-    viewMatrix = transform.state.getWorldToCameraMatrix();
+    viewMatrix = transform.state.getWorldToViewMatrix();
     matrix::multiply(modelViewMatrix, viewMatrix, modelMatrix);
     
     matrix::multiply(matrix, transform.projMatrix, modelMatrix);
     matrix::multiply(nearClippedMatrix, transform.nearClippedProjMatrix, modelMatrix);
     
-    sunlightViewMatrix = transform.state.getWorldToSunlightMatrix();
+    sunlightViewMatrix = transform.state.getSunlightWorldToViewMatrix();
     matrix::multiply(sunlightModelViewMatrix, sunlightViewMatrix, modelMatrix);
     
     matrix::multiply(sunlightMatrix, transform.sunlightProjMatrix, modelMatrix);

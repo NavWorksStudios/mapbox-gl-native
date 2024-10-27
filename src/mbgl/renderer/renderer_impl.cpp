@@ -188,7 +188,7 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
         };
         
         nav::render::deferred(parameters.state.getZoom(),
-                              parameters.state.getCameraToClipMatrix(),
+                              parameters.state.getViewToClipMatrix(),
                               shadowRenderDelegate,
                               geoRenderDelegate);
     }

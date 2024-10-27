@@ -127,7 +127,7 @@ bool RenderFillExtrusionLayer::doRenderDeferredGeoBuffer(PaintParameters& parame
             uniforms::model_view_matrix::Value(),
             uniforms::normal_matrix::Value(),
             uniforms::light_matrix::Value(),
-            uniforms::light_dir::Value( parameters.state.getSunlightDirection() )
+            uniforms::light_dir::Value( parameters.state.getSunlightToCenterDir() )
         );
         
         const std::string uniqueName = getID().get() + "/" + name;

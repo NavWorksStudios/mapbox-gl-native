@@ -104,7 +104,7 @@ void TransformState::getProjMatrix(mat4& projMatrix, uint16_t nearZ, bool aligne
     
     // world to camera matrix
     {
-        _worldToCameraMatrix = camera.getWorldToCamera(scale, viewportMode == ViewportMode::FlippedY);
+        _worldToViewMatrix = camera.getWorldToCamera(scale, viewportMode == ViewportMode::FlippedY);
     }
     
     // camera to clip Matrix
@@ -141,7 +141,7 @@ void TransformState::getProjMatrix(mat4& projMatrix, uint16_t nearZ, bool aligne
             return farZ;
         };
         
-        _cameraToClipMatrix = camera.getCameraToClipPerspective(getFieldOfView(), double(size.width) / size.height, nearZ, getFarZ());
+        _viewToClipMatrix = camera.getCameraToClipPerspective(getFieldOfView(), double(size.width) / size.height, nearZ, getFarZ());
         
         // Move the center of perspective to center of specified edgeInsets.
         // Values are in range [-1, 1] where the upper and lower range values
@@ -152,17 +152,17 @@ void TransformState::getProjMatrix(mat4& projMatrix, uint16_t nearZ, bool aligne
         // 这被夸大了如果使用轴测透视（尚未公开API，第11882期）。
         // TODO（astojilj）：第11882期也应考虑边缘插图。
         if (!axonometric) { // 轴测法的
-            _cameraToClipMatrix[8] = -offset.x * 2.0 / size.width;
-            _cameraToClipMatrix[9] = offset.y * 2.0 / size.height;
+            _viewToClipMatrix[8] = -offset.x * 2.0 / size.width;
+            _viewToClipMatrix[9] = offset.y * 2.0 / size.height;
         }
         
         // Apply north orientation angle  应用北向角度
         if (getNorthOrientation() != NorthOrientation::Upwards) {
-            matrix::rotate_z(_cameraToClipMatrix, _cameraToClipMatrix, -getNorthOrientationAngle());
+            matrix::rotate_z(_viewToClipMatrix, _viewToClipMatrix, -getNorthOrientationAngle());
         }
     }
 
-    matrix::multiply(projMatrix, _cameraToClipMatrix, _worldToCameraMatrix);
+    matrix::multiply(projMatrix, _viewToClipMatrix, _worldToViewMatrix);
 
     if (axonometric) { // 轴测法的
         // mat[11] controls perspective
@@ -199,8 +199,8 @@ void TransformState::getProjMatrix(mat4& projMatrix, uint16_t nearZ, bool aligne
     }
     
     mat4 inv;
-    matrix::invert(inv, _worldToCameraMatrix);
-    matrix::multiply(_cameraToClipMatrix, projMatrix, inv);
+    matrix::invert(inv, _worldToViewMatrix);
+    matrix::multiply(_viewToClipMatrix, projMatrix, inv);
     
 }
 
@@ -215,7 +215,7 @@ void TransformState::getSunlightProjMatrix(mat4& projMatrix, uint16_t nearZ, boo
     
     // world to sunlight matrix
     {
-        worldToSunlightMatrix = sunlight.getWorldToCamera(scale, viewportMode == ViewportMode::FlippedY);
+        _sunlightWorldToViewMatrix = sunlight.getWorldToCamera(scale, viewportMode == ViewportMode::FlippedY);
     }
     
     // sunlight to clip Matrix
@@ -228,18 +228,18 @@ void TransformState::getSunlightProjMatrix(mat4& projMatrix, uint16_t nearZ, boo
         sunlightToClipMatrix = sunlight.getCameraToClipOrtho(-w * 2, w * 2, -h, h * 3, -h, h * 10);
 #else
         const auto& envelope = nav::render::shadow::getEnvelope();
-        sunlightToClipMatrix = sunlight.getCameraToClipOrtho(envelope[0], envelope[1],
+        _sunlightViewToClipMatrix = sunlight.getCameraToClipOrtho(envelope[0], envelope[1],
                                                              envelope[2], envelope[3],
                                                              envelope[4], envelope[5]);
 #endif
         
         if (!axonometric) { // 轴测法的
-            sunlightToClipMatrix[8] = -offset.x * 2.0 / size.width;
-            sunlightToClipMatrix[9] = offset.y * 2.0 / size.height;
+            _sunlightViewToClipMatrix[8] = -offset.x * 2.0 / size.width;
+            _sunlightViewToClipMatrix[9] = offset.y * 2.0 / size.height;
         }
     }
 
-    matrix::multiply(projMatrix, sunlightToClipMatrix, worldToSunlightMatrix);
+    matrix::multiply(projMatrix, _sunlightViewToClipMatrix, _sunlightWorldToViewMatrix);
 
     if (axonometric) { // 轴测法的
         // mat[11] controls perspective
@@ -252,8 +252,8 @@ void TransformState::getSunlightProjMatrix(mat4& projMatrix, uint16_t nearZ, boo
     }
     
     mat4 inv;
-    matrix::invert(inv, worldToSunlightMatrix);
-    matrix::multiply(sunlightToClipMatrix, projMatrix, inv);
+    matrix::invert(inv, _sunlightWorldToViewMatrix);
+    matrix::multiply(_sunlightViewToClipMatrix, projMatrix, inv);
     
 }
 
@@ -307,13 +307,12 @@ void TransformState::updateSunlightState() const {
     const double dx = 0.5 * worldSize - x;
     const double dy = 0.5 * worldSize - y;
 
-    const vec3 lightPos = {0.287499934, 1.497964621, 0.995929181};
-//    const vec3 lightPos = {0.287499934, -0.497964621, 0.995929181};
-    const vec3 targetPos = {dx / worldSize, dy / worldSize, 0.0};
+    const vec3 lightNDC = {0.287499934, 1.497964621, 0.995929181};
+    const vec3 centerNDC = {dx / worldSize, dy / worldSize, 0.0};
     
     // Set camera orientation and move it to a proper distance from the map
-    _sunlightDirection = vec3Sub(targetPos, lightPos);
-    const auto& orientation = util::Camera::orientationFromFrame(_sunlightDirection, vec3{{0.0, 0.0, 1.0}});
+    _sunlightToCenterDir = vec3Sub(centerNDC, lightNDC);
+    const auto& orientation = util::Camera::orientationFromFrame(_sunlightToCenterDir, vec3{{0.0, 0.0, 1.0}});
     sunlight.setOrientation(orientation.value());
 
     const vec3 forward = sunlight.forward();
@@ -450,7 +449,7 @@ void TransformState::updateMatricesIfNeeded() const {
     err = matrix::invert(invCoordMatrix, coordMatrix);
     if (err) throw std::runtime_error("failed to invert coordinatePointMatrix");
     
-    getSunlightProjMatrix(sunlightProjectionMatrix);
+    getSunlightProjMatrix(_sunlightProjectionMatrix);
 
     requestMatricesUpdate = false;
 }

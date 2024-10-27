@@ -111,16 +111,18 @@ public:
     TransformState(ConstrainMode = ConstrainMode::HeightOnly, ViewportMode = ViewportMode::Default);
 
     void setProperties(const TransformStateProperties& properties);
-
-    void matrixFor(mat4&, const UnwrappedTileID&) const;
-    void getProjMatrix(mat4& matrix, uint16_t nearZ = 1, bool aligned = false) const;
-    void getSunlightProjMatrix(mat4& matrix, uint16_t nearZ = 1, bool aligned = false) const;
     
-    inline mat4& getWorldToCameraMatrix() const { return _worldToCameraMatrix; }
-    inline mat4& getCameraToClipMatrix() const { return _cameraToClipMatrix; }
+    void matrixFor(mat4&, const UnwrappedTileID&) const;                                    // model matrix : model to world space
     
-    inline mat4& getWorldToSunlightMatrix() const { return worldToSunlightMatrix; }
-    inline mat4& getSunlightToClipMatrix() const { return sunlightToClipMatrix; }
+    // camera
+    void getProjMatrix(mat4& matrix, uint16_t nearZ=1, bool aligned=false) const;           // v&p matrix : world to view to clip space
+    inline mat4& getWorldToViewMatrix() const { return _worldToViewMatrix; }                // view matrix : world to view space
+    inline mat4& getViewToClipMatrix() const { return _viewToClipMatrix; }                  // proj matrix : view to clip space
+    
+    // sunlight
+    void getSunlightProjMatrix(mat4& matrix, uint16_t nearZ=1, bool aligned=false) const;      // v&p matrix : world to view to clip space
+    inline mat4& getSunlightWorldToViewMatrix() const { return _sunlightWorldToViewMatrix; }   // view matrix : world to view space
+    inline mat4& getSunlightViewToClipMatrix() const { return _sunlightViewToClipMatrix; }     // proj matrix : view to clip space
 
     // Dimensions
     Size getSize() const;
@@ -263,6 +265,7 @@ private:
 
     bool setCameraPosition(const vec3& position);
     bool setCameraOrientation(const Quaternion& orientation);
+
     void updateCameraState() const;
     void updateStateFromCamera();
 
@@ -306,23 +309,22 @@ private:
     double Cc = Projection::worldSize(scale) / util::M2PI;
 
     mutable bool requestMatricesUpdate{true};
+
     // camera matrix
-    mutable mat4 projectionMatrix;
+    mutable mat4 projectionMatrix;              // vp matrix
     mutable mat4 invProjectionMatrix;
-    
     mutable mat4 coordMatrix;
     mutable mat4 invCoordMatrix;
-    
+    mutable mat4 _worldToViewMatrix;            // v matrix
+    mutable mat4 _viewToClipMatrix;             // p matrix
     mutable vec3 _cameraPosition;
-    mutable mat4 _worldToCameraMatrix;
-    mutable mat4 _cameraToClipMatrix;
     
     // sunlight matrix
-    mutable mat4 sunlightProjectionMatrix; // vp
-    mutable mat4 worldToSunlightMatrix; // v
-    mutable mat4 sunlightToClipMatrix; // p
+    mutable mat4 _sunlightProjectionMatrix;     // vp matrix
+    mutable mat4 _sunlightWorldToViewMatrix;    // v matrix
+    mutable mat4 _sunlightViewToClipMatrix;     // p matrix
     mutable vec3 _sunlightPosition;
-    mutable vec3 _sunlightDirection;
+    mutable vec3 _sunlightToCenterDir;
     
 public:
     vec3f getCameraPosition() const {
@@ -330,13 +332,8 @@ public:
         return { float(pos[0]), float(pos[1]), float(pos[2]) };
     }
     
-    vec3f getCameraNDCPosition() const {
-        const auto& pos = camera.getPosition();
-        return { float(pos[0]), float(pos[1]), float(pos[2]) };
-    }
-    
-    vec3f getSunlightDirection() const {
-        const auto& dir = _sunlightDirection;
+    vec3f getSunlightToCenterDir() const {
+        const auto& dir = _sunlightToCenterDir;
         return { float(dir[0]), float(dir[1]), float(dir[2]) };
     }
 

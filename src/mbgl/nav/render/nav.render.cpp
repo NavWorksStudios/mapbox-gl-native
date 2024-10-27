@@ -365,7 +365,12 @@ void updateEnvelope(const mbgl::TransformState& state, const std::vector<mbgl::O
     {
         const auto worldSize = mbgl::Projection::worldSize(state.getScale());
         const auto flippedY = state.getViewportMode() == mbgl::ViewportMode::FlippedY;
-        const auto frustum = mbgl::util::Frustum::fromInvProjMatrix(state.getInvProjectionMatrix(), worldSize, state.getZoom(), flippedY);
+        
+        mbgl::mat4 m;
+        mbgl::matrix::multiply(m, state.getViewToClipMatrix(), state.getWorldToViewMatrix());
+        mbgl::matrix::invert(m, m);
+        const auto frustum = mbgl::util::Frustum::fromInvProjMatrix(m, worldSize, state.getZoom(), flippedY);
+//        const auto frustum = mbgl::util::Frustum::fromInvProjMatrix(state.getInvProjectionMatrix(), worldSize, state.getZoom(), flippedY);
         auto& points = frustum.getPoints();
         
         const Plane ground = { { 0, 0, 1 }, 0 };
