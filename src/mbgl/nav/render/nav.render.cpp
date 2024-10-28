@@ -413,11 +413,20 @@ void updateFrustum(const mbgl::TransformState& state, const std::vector<mbgl::Ov
         // near
         projection[2] = getIntersect(ground, { points[2], points[6] }); // near-bl, far-bl
         projection[3] = getIntersect(ground, { points[3], points[7] }); // near-br, far-br
+               
+//             far
+//  [0] __________________ [1]
+//      \                /
+//     0 \______________/ 1
+//        \            /
+//         \__________/
+//      [2]            [3]
+//             near
         
         {
-            // zoom大时，减小平视距离
-            // p(1),z(20)=1        p(1),z(15)=1
-            // p(0),z(20)=0.05     p(0),z(15)=1
+            // pitch(1),zoom(20)=1        pitch(1),zoom(15)=1
+            // pitch(0),zoom(20)=0.05     pitch(0),zoom(15)=1
+
             const double p = fmax(.05, 1. - sin(state.getPitch())); // 俯视1，平视0
             const double z = 1. - pow(fmin(1., (state.getZoom() - 15.) / 5.), 0.1); // 15等于1，17等于0.2, 20等于0
             const double r = fmin(1., p + z);

@@ -227,8 +227,9 @@ GLint renderGeoAndShadow(int width, int height, GLint shadowDepth, std::function
         static programs::UniformLocation u0(program, "u_shadow_map");
         glUniform1i(u0, 0);
         
-//        static programs::UniformLocation u1(program, "u_shadow_uv_scale");
-//        glUniform2f(u1, 1.1 / nav::shadow::depth::width, 1.1 / nav::shadow::depth::height);
+        const float STEP = 2.5;
+        static programs::UniformLocation u1(program, "u_shadow_uv_scale");
+        glUniform2f(u1, STEP / nav::shadow::depth::width, STEP / nav::shadow::depth::height);
     }
     
     if (renderCallback()) {
@@ -270,7 +271,7 @@ GLint render(int width, int height, float zoom, const Mat4& projMatrix, std::fun
             }
         }
         
-        const float radius = .2;
+        const float radius = .15;
         for (unsigned int i = 0; i < sample::kernel::SIZE; ++i) {
             const float scalar = radius * pow(1.2, i);
             glUniform1f(u_sample_radius[i], scalar);
