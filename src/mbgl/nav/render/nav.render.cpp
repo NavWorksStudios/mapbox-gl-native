@@ -321,54 +321,70 @@ mbgl::optional<mbgl::vec3> getIntersect(const Plane& plane, const Linesegment& l
     }
 }
 
-using box2 = std::array<mbgl::vec2, 2>;
-const box2 EMPTY_BOX2 = {
-    std::numeric_limits<float>::max(),
-    std::numeric_limits<float>::max(),
-    -std::numeric_limits<float>::max(),
-    -std::numeric_limits<float>::max(),
+
+// AABB（Axis-Aligned Bounding Box）即轴对齐包围盒，是一种在三维空间中常用的几何包围体。它是一个长方体，其边与坐标轴平行，这使得它在计算和存储上相对简单。
+struct AABB {
+    mbgl::vec3 min = {  std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), };
+    mbgl::vec3 max = { -std::numeric_limits<float>::max(), -std::numeric_limits<float>::max(), -std::numeric_limits<float>::max(), };
 };
 
 void updateFrustum(const mbgl::TransformState& state, const std::vector<mbgl::OverscaledTileID>& tileIDs) {
     if (tileIDs.size() == 0) return;
     
-    box2 tilecover = EMPTY_BOX2;
+    const auto& viewMatrix = state.getSunlightWorldToViewMatrix();
+    const float h = pow(400., 1. / (20 - state.getZoom()));
+    
+    // (light space) 主相机可见楼块tile的最小外接矩形
+    AABB tileAABB;
     {
         // model pos
-        const mbgl::vec4 model[4] = {
+        const mbgl::vec4 model[8] = {
             { 0, 0, 0, 1 },
             { 0, mbgl::util::EXTENT, 0, 1 },
             { mbgl::util::EXTENT, 0, 0, 1 },
             { mbgl::util::EXTENT, mbgl::util::EXTENT, 0, 1 },
+
+            { 0, 0, h, 1 },
+            { 0, mbgl::util::EXTENT, h, 1 },
+            { mbgl::util::EXTENT, 0, h, 1 },
+            { mbgl::util::EXTENT, mbgl::util::EXTENT, h, 1 },
         };
         
+        // 计算最小外接
         for (const auto& tile : tileIDs) {
-            mbgl::mat4 matrix;
-            state.matrixFor(matrix, tile.toUnwrapped());
+            mbgl::mat4 modelmatrix;
+            state.matrixFor(modelmatrix, tile.toUnwrapped());
             
-            for (int i=0; i<4; i++) {
+            for (int i=0; i<8; i++) {
                 mbgl::vec4 pos = model[i];
-                mbgl::matrix::transformMat4(pos, pos, matrix); // to world pos
+                mbgl::matrix::transformMat4(pos, pos, modelmatrix); // to world space
+                mbgl::matrix::transformMat4(pos, pos, viewMatrix); // to view space
+                
                 const float x = pos[0];
                 const float y = pos[1];
+                const float z = pos[2];
                 
-                mbgl::vec2& min = tilecover[0];
+                auto& min = tileAABB.min;
                 min[0] = fmin(min[0], x);
                 min[1] = fmin(min[1], y);
+                min[2] = fmin(min[2], z);
                 
-                mbgl::vec2& max = tilecover[1];
+                auto& max = tileAABB.max;
                 max[0] = fmax(max[0], x);
                 max[1] = fmax(max[1], y);
+                max[2] = fmax(max[2], z);
             }
         }
         
-        nav::log::i("sunlight frustum", "tilecover  x(%8.2f,%8.2f) y(%8.2f,%8.2f)",
-                    tilecover[0][0], tilecover[1][0],
-                    tilecover[0][1], tilecover[0][1]);
+        nav::log::i("sunlight frustum", "tile  min(%8.2f,%8.2f,%8.2f) max(%8.2f,%8.2f,%8.2f)",
+                    tileAABB.min[0], tileAABB.min[1], tileAABB.min[2],
+                    tileAABB.max[0], tileAABB.max[1], tileAABB.max[2]);
     }
     
-    box2 projection = EMPTY_BOX2;
+    // (light space) 主相机可见地面的最小外接矩形
+    AABB groundAABB;
     {
+        // 相机视锥体与地面交点
         const auto worldSize = mbgl::Projection::worldSize(state.getScale());
         const auto flippedY = state.getViewportMode() == mbgl::ViewportMode::FlippedY;
         const auto frustum = mbgl::util::Frustum::fromInvProjMatrix(state.getInvProjectionMatrix(), worldSize, state.getZoom(), flippedY);
@@ -381,48 +397,61 @@ void updateFrustum(const mbgl::TransformState& state, const std::vector<mbgl::Ov
         intersection[2] = getIntersect(ground, { points[2], points[6] });
         intersection[3] = getIntersect(ground, { points[3], points[7] });
         
+        // 计算最小外接
         for (int i=0; i<4; i++) {
-            const mbgl::vec3& pos = *intersection[i];
-            const float x = pos[0] * mbgl::util::tileSize;
-            const float y = pos[1] * mbgl::util::tileSize;
+            auto p = *intersection[i];
+            p = mbgl::vec3Scale(p, mbgl::util::tileSize); // to world space
             
-            mbgl::vec2& min = projection[0];
-            min[0] = fmin(min[0], x);
-            min[1] = fmin(min[1], y);
+            mbgl::vec4 pos[2] = {
+                { p[0], p[1], 0, 1 },
+                { p[0], p[1], h, 1 },
+            };
             
-            mbgl::vec2& max = projection[1];
-            max[0] = fmax(max[0], x);
-            max[1] = fmax(max[1], y);
+            mbgl::matrix::transformMat4(pos[0], pos[0], viewMatrix); // to view space
+            mbgl::matrix::transformMat4(pos[1], pos[1], viewMatrix); // to view space
+            
+            for (int i=0; i<2; i++) {
+                const float x = pos[i][0];
+                const float y = pos[i][1];
+                const float z = pos[i][2];
+                
+                auto& min = groundAABB.min;
+                min[0] = fmin(min[0], x);
+                min[1] = fmin(min[1], y);
+                min[2] = fmin(min[2], z);
+                
+                auto& max = groundAABB.max;
+                max[0] = fmax(max[0], x);
+                max[1] = fmax(max[1], y);
+                max[2] = fmax(max[2], z);
+            }
         }
         
-        nav::log::i("sunlight frustum", "projection x(%8.2f,%8.2f) y(%8.2f,%8.2f)",
-                    projection[0][0], projection[1][0],
-                    projection[1][0], projection[1][1]);
+        nav::log::i("sunlight frustum", "proj min(%8.2f,%8.2f,%8.2f) max(%8.2f,%8.2f,%8.2f)",
+                    groundAABB.min[0], groundAABB.min[1], groundAABB.min[2],
+                    groundAABB.max[0], groundAABB.max[1], groundAABB.max[2]);
     }
     
-    box2 box = {
-        fmax(tilecover[0][0], projection[0][0]),
-        fmax(tilecover[0][1], projection[0][1]),
-        fmin(tilecover[1][0], projection[1][0]),
-        fmin(tilecover[1][1], projection[1][1]),
-    };
-    
+    // (light space) tile和可见地面的相交区域
     {
-        mbgl::vec4 min = { box[0][0], box[0][1], 0., 1. };
-        mbgl::vec4 max = { box[1][0], box[1][1], pow(400., 1. / (20 - state.getZoom())), 1. };
-
-        const auto& lightSpaceMatrix = state.getSunlightWorldToViewMatrix();
-        mbgl::matrix::transformMat4(min, min, lightSpaceMatrix);
-        mbgl::matrix::transformMat4(max, max, lightSpaceMatrix);
+        const mbgl::vec3 min = {
+            fmax(tileAABB.min[0], groundAABB.min[0]),
+            fmax(tileAABB.min[1], groundAABB.min[1]),
+            fmax(tileAABB.min[2], groundAABB.min[2]), };
         
+        const mbgl::vec3 max = {
+            fmin(tileAABB.max[0], groundAABB.max[0]),
+            fmin(tileAABB.max[1], groundAABB.max[1]),
+            fmin(tileAABB.max[2], groundAABB.max[2]), };
+
         nav::log::i("sunlight frustum", "min(%8.2f,%8.2f,%8.2f) max(%8.2f,%8.2f,%8.2f)",
                     (float) min[0], (float) min[1], (float) min[2],
                     (float) max[0], (float) max[1], (float) max[2]);
         
         frustum = {
-            float(fmin(min[0], max[0]) - 100.), float(fmax(min[0], max[0]) + 100.),
-            float(fmin(min[1], max[1]) - 100.), float(fmax(min[1], max[1]) + 100.),
-            float(-fmax(min[2], max[2]) - 100.), float(-fmin(min[2], max[2]) + 100.),
+            float(fmin(min[0], max[0])), float(fmax(min[0], max[0])),       // minX, maxX
+            float(fmin(min[1], max[1])), float(fmax(min[1], max[1])),       // minY, maxY
+            float(fmax(min[2], max[2])), float(fmin(min[2], max[2])),       // minZ, maxZ
         };
         
         nav::log::i("sunlight frustum", "frustum    x(%8.2f,%8.2f) y(%8.2f,%8.2f) z(%8.2f,%8.2f)",
