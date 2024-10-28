@@ -278,10 +278,10 @@ void renderQuad(GLint program) {
 
 namespace sunlight {
 
-std::array<float, 6> frustum;
+std::array<float, 6> frustumAABB;
 
 const std::array<float, 6>& getFrustum() {
-    return frustum;
+    return frustumAABB;
 }
 
 struct Plane {
@@ -322,7 +322,10 @@ mbgl::optional<mbgl::vec3> getIntersect(const Plane& plane, const Linesegment& l
 }
 
 
-// AABB（Axis-Aligned Bounding Box）即轴对齐包围盒，是一种在三维空间中常用的几何包围体。它是一个长方体，其边与坐标轴平行，这使得它在计算和存储上相对简单。
+// AABB（Axis-Aligned Bounding Box）
+// “轴平行包围盒”，是一种在三维空间中常用的几何包围体。
+// 它是一个长方体，其边与坐标轴平行，这使得它在计算和存储上相对简单。
+
 struct AABB {
     mbgl::vec3 min = {  std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), };
     mbgl::vec3 max = { -std::numeric_limits<float>::max(), -std::numeric_limits<float>::max(), -std::numeric_limits<float>::max(), };
@@ -332,13 +335,13 @@ void updateFrustum(const mbgl::TransformState& state, const std::vector<mbgl::Ov
     if (tileIDs.size() == 0) return;
     
     const auto& viewMatrix = state.getSunlightWorldToViewMatrix();
-    const float h = pow(400., 1. / (20 - state.getZoom()));
+    const float h = pow(400., 1. / (21 - state.getZoom()));
     
-    // (light space) 主相机可见楼块tile的最小外接矩形
+    // (light space) 主相机可见楼块tile的AABB
     AABB tileAABB;
     {
         // model pos
-        const mbgl::vec4 model[8] = {
+        const mbgl::vec4 tileBox[8] = {
             { 0, 0, 0, 1 },
             { 0, mbgl::util::EXTENT, 0, 1 },
             { mbgl::util::EXTENT, 0, 0, 1 },
@@ -356,7 +359,7 @@ void updateFrustum(const mbgl::TransformState& state, const std::vector<mbgl::Ov
             state.matrixFor(modelmatrix, tile.toUnwrapped());
             
             for (int i=0; i<8; i++) {
-                mbgl::vec4 pos = model[i];
+                mbgl::vec4 pos = tileBox[i];
                 mbgl::matrix::transformMat4(pos, pos, modelmatrix); // to world space
                 mbgl::matrix::transformMat4(pos, pos, viewMatrix); // to view space
                 
@@ -388,14 +391,24 @@ void updateFrustum(const mbgl::TransformState& state, const std::vector<mbgl::Ov
         const auto worldSize = mbgl::Projection::worldSize(state.getScale());
         const auto flippedY = state.getViewportMode() == mbgl::ViewportMode::FlippedY;
         const auto frustum = mbgl::util::Frustum::fromInvProjMatrix(state.getInvProjectionMatrix(), worldSize, state.getZoom(), flippedY);
+
+//            camera
+//             near
+//            /   |
+//           /    |
+//          /     |
+//         /      |
+//     ___/_______|_______
+//  top  /        |  bottom
+//           far
+
         auto& points = frustum.getPoints();
-        
         const Plane ground = { { 0, 0, 1 }, 0 };
         mbgl::optional<mbgl::vec3> intersection[4];
-        intersection[0] = getIntersect(ground, { points[0], points[4] });
-        intersection[1] = getIntersect(ground, { points[1], points[5] });
-        intersection[2] = getIntersect(ground, { points[2], points[6] });
-        intersection[3] = getIntersect(ground, { points[3], points[7] });
+        intersection[0] = getIntersect(ground, { points[0], points[4] }); // n-tl, f-tl
+        intersection[1] = getIntersect(ground, { points[1], points[5] }); // n-tr, f-tr
+        intersection[2] = getIntersect(ground, { points[2], points[6] }); // n-bl, f-bl
+        intersection[3] = getIntersect(ground, { points[3], points[7] }); // n-br, f-br
         
         // 计算最小外接
         for (int i=0; i<4; i++) {
@@ -432,7 +445,7 @@ void updateFrustum(const mbgl::TransformState& state, const std::vector<mbgl::Ov
                     groundAABB.max[0], groundAABB.max[1], groundAABB.max[2]);
     }
     
-    // (light space) tile和可见地面的相交区域
+    // (light space) 求tileAABB和groundAABB交集，得frustumAABB
     {
         const mbgl::vec3 min = {
             fmax(tileAABB.min[0], groundAABB.min[0]),
@@ -448,16 +461,16 @@ void updateFrustum(const mbgl::TransformState& state, const std::vector<mbgl::Ov
                     (float) min[0], (float) min[1], (float) min[2],
                     (float) max[0], (float) max[1], (float) max[2]);
         
-        frustum = {
+        frustumAABB = {
             float(fmin(min[0], max[0])), float(fmax(min[0], max[0])),       // minX, maxX
             float(fmin(min[1], max[1])), float(fmax(min[1], max[1])),       // minY, maxY
-            float(fmax(min[2], max[2])), float(fmin(min[2], max[2])),       // minZ, maxZ
+            float(fmin(min[2], max[2])), float(fmax(min[2], max[2])),       // minZ, maxZ
         };
         
         nav::log::i("sunlight frustum", "frustum    x(%8.2f,%8.2f) y(%8.2f,%8.2f) z(%8.2f,%8.2f)",
-                    frustum[0], frustum[1],
-                    frustum[2], frustum[3],
-                    frustum[4], frustum[5]);
+                    frustumAABB[0], frustumAABB[1],
+                    frustumAABB[2], frustumAABB[3],
+                    frustumAABB[4], frustumAABB[5]);
     }
     
 }
