@@ -39,7 +39,7 @@ void renderQuad(GLint program);
 }
 
 namespace sunlight {
-const std::array<float, 6>& getFrustum();
+const std::array<double, 6>& getFrustum();
 void updateFrustum(const mbgl::TransformState& state, const std::vector<mbgl::OverscaledTileID>& tileIDs);
 }
 

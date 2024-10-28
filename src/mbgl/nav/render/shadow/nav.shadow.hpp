@@ -16,8 +16,8 @@ namespace shadow {
 
 namespace depth {
 
-const int width = 4096;
-const int height = 4096;
+const int width = 4096 * 1.;
+const int height = 4096 * 1.;
 
 GLuint render(int width, int height,
               std::function<bool()> renderCallback,

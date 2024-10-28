@@ -151,7 +151,6 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
             vec3 normal = normalize(v_normal);
             vec3 lightDir = normalize(u_light_dir);
             float diff = 1. - dot(normal, lightDir); // (平行光面 1)(背光面 1到0)(受光面 1到2)
-            if (v_normal.z < .0001 && diff > .9) return 0.0; // 放弃接近于光照方向的立面，以避免闪烁
 
             // 系数调整方法：
             // 先将threshold置0，调整transform到最大值，使阴影刚好完全(越小越全)。再调整threshold收边
@@ -169,7 +168,7 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
             for(int x = -1; x <= 1; ++x) {
                 for(int y = -1; y <= 1; ++y) {
                     float pcfDepth = texture2D(u_shadow_map, projCoords.xy + vec2(x, y) * u_shadow_uv_scale).r;
-                    shadow += (currentDepth - pcfDepth > bias) ? 1.0 : 0.0;
+                    shadow += ((currentDepth - pcfDepth > bias) ? 1.0 : 0.0);
                 }
             }
             return shadow / 9.0;
@@ -188,7 +187,7 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
     
             // shadow
             float shadow = ShadowCalculation(v_lightSpacePos);
-            gl_FragData[3].r = shadow * .6;
+            gl_FragData[3].r = shadow * .4;
 
 //            gl_FragData[0].rgb = vec3(gl_FragData[3].r);
         }
