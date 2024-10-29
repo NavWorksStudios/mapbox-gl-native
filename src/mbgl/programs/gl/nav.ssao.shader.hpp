@@ -43,7 +43,7 @@ static const char* genSSAOFragmentShader() { return R"(
 varying vec2 TexCoords;
 
 uniform mat4 u_projection;
-uniform vec2 u_texscale;
+uniform vec2 u_noise_uv_scale;
 
 uniform sampler2D u_position;
 uniform sampler2D u_normal;
@@ -75,7 +75,7 @@ void main() {
 
         // get input for SSAO algorithm
         vec3 kernelNormal = texture2D(u_normal, TexCoords).xyz;
-        vec3 random = texture2D(u_noise, TexCoords * u_texscale).xyz;
+        vec3 random = texture2D(u_noise, TexCoords * u_noise_uv_scale).xyz;
 
         // create TBN change-of-basis matrix: from tangent-space to view-space
         // 使用Gramm-Schmidt方法我们可以创建正交的TBN矩，同时使用random进行偏移。

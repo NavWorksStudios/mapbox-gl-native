@@ -120,7 +120,7 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
     static const char* navFragment(const char* ) { return R"(
 
         uniform sampler2D u_shadow_map;
-        uniform vec2 u_shadow_uv_scale;
+        uniform vec2 u_shadow_offset;
         uniform vec3 u_light_dir;
 
         varying vec3 v_fragPos;
@@ -158,23 +158,33 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
             float bias = max(diff * transform, threshold);
 
             float shadow = 0.0;
-    #if 0
-            float depth = texture2D(u_shadow_map, projCoords.xy).r;
-            shadow = (currentDepth - depth > bias) ? 1.0 : 0.0;
-    #else
+    
             // Check whether current frag pos is in shadow
             // PCF (percentage-closer filtering)
-            for(int x = -1; x <= 1; ++x) {
-                for(int y = -1; y <= 1; ++y) {
-                    float pcfDepth = texture2D(u_shadow_map, projCoords.xy + vec2(x,y) * u_shadow_uv_scale).r;
-                    shadow += ((currentDepth - pcfDepth > bias) ? 1.0 : 0.0);
-                }
-            }
-            shadow /= 9.0;
-    #endif
+            {
+                float pcfDepth = texture2D(u_shadow_map, projCoords.xy).r;
+                shadow += ((currentDepth - pcfDepth > bias) ? 1.0 : 0.0);
 
-            diff = abs(1. - diff);
-            if (normal.z < 0.1) shadow *= diff + .2;
+                pcfDepth = texture2D(u_shadow_map, projCoords.xy + vec2(+u_shadow_offset.x,+u_shadow_offset.y)).r;
+                shadow += ((currentDepth - pcfDepth > bias) ? 1.0 : 0.0);
+    
+                pcfDepth = texture2D(u_shadow_map, projCoords.xy + vec2(+u_shadow_offset.x,-u_shadow_offset.y)).r;
+                shadow += ((currentDepth - pcfDepth > bias) ? 1.0 : 0.0);
+
+                pcfDepth = texture2D(u_shadow_map, projCoords.xy + vec2(-u_shadow_offset.x,+u_shadow_offset.y)).r;
+                shadow += ((currentDepth - pcfDepth > bias) ? 1.0 : 0.0);
+
+                pcfDepth = texture2D(u_shadow_map, projCoords.xy + vec2(-u_shadow_offset.x,-u_shadow_offset.y)).r;
+                shadow += ((currentDepth - pcfDepth > bias) ? 1.0 : 0.0);
+    
+                shadow /= 5.;
+            }
+
+            // 消除平行于光线的面的阴影闪动。越平行于光线越淡。
+            if (normal.z < 0.000001) { // 刨除地面
+                shadow *= abs(1. - diff);
+            }
+    
             return shadow;
         }
 
@@ -189,8 +199,7 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
             gl_FragData[2].rgb = vec3(0.95);
     
             // shadow
-            float shadow = ShadowCalculation(v_lightSpacePos);
-            gl_FragData[3].r = shadow * .5;
+            gl_FragData[3].r = ShadowCalculation(v_lightSpacePos) * .5;
 
 //            gl_FragData[0].rgb = vec3(gl_FragData[3].r);
         }

@@ -226,10 +226,9 @@ GLint renderGeoAndShadow(int width, int height, GLint shadowDepth, std::function
         glBindTexture(GL_TEXTURE_2D, shadowDepth);
         static programs::UniformLocation u0(program, "u_shadow_map");
         glUniform1i(u0, 0);
-        
-        const float STEP = 2.5;
-        static programs::UniformLocation u1(program, "u_shadow_uv_scale");
-        glUniform2f(u1, STEP / nav::shadow::depth::width, STEP / nav::shadow::depth::height);
+
+        static programs::UniformLocation u1(program, "u_shadow_offset");
+        glUniform2f(u1, .5 / nav::shadow::depth::width, .5 / nav::shadow::depth::height);
     }
     
     if (renderCallback()) {
@@ -285,8 +284,8 @@ GLint render(int width, int height, float zoom, const Mat4& projMatrix, std::fun
         static programs::UniformLocation u0(program, "u_projection");
         glUniformMatrix4fv(u0, 1, GL_FALSE, reinterpret_cast<const float*>(&projMatrix));
         
-        static programs::UniformLocation u1(program, "u_texscale");
-        glUniform2f(u1, width / sample::noise::SIZE, height / sample::noise::SIZE);
+        static programs::UniformLocation u1(program, "u_noise_uv_scale");
+        glUniform2f(u1, (float) width / sample::noise::SIZE, (float) height / sample::noise::SIZE);
         
     }
 
