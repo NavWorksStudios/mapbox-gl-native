@@ -10,9 +10,9 @@ struct FillExtrusionProgram {
         uniform highp mat4 u_matrix;
         uniform highp mat4 u_model_matrix;
     
-        uniform highp vec3 u_camera_pos;
-        uniform lowp vec3 u_lightcolor;
-        uniform highp vec3 u_lightpos;
+        uniform vec3 u_camera_pos;
+        uniform vec3 u_lightcolor;
+        uniform vec3 u_lightpos;
 
         uniform lowp float u_lightintensity;
     
@@ -21,8 +21,8 @@ struct FillExtrusionProgram {
         uniform float u_clip_region;
 //        uniform float u_focus_region;
     
-        attribute highp vec2 a_pos;
-        attribute highp vec4 a_normal_ed;
+        attribute vec2 a_pos;
+        attribute vec4 a_normal_ed;
     
         varying vec4 v_color;
                 
@@ -92,23 +92,22 @@ struct FillExtrusionProgram {
             const float ambient = .6;
     
             // Diffuse Lighting
-            highp vec3 norm = normalize(normal);
-            highp vec3 lightDir = normalize(vec3(gl_Position) - u_lightpos);
+            vec3 norm = normalize(normal);
+            vec3 lightDir = normalize(vec3(gl_Position) - u_lightpos);
             float diffuse = max(0., dot(norm, lightDir)) * .3;
     
             // Specular Lighting
             const float indensity = .2; // 强度
-            const float shininess = .5; // 反射率
-            highp vec3 verPos = (u_model_matrix * pos).xyz;
-            highp vec3 viewDir = normalize(u_camera_pos - verPos);
-            highp vec3 reflectDir = reflect(lightDir, norm); // 反射向量
+            const float shininess = .2; // 反射率
+            vec3 verPos = (u_model_matrix * pos).xyz;
+            vec3 viewDir = normalize(u_camera_pos - verPos);
+            vec3 reflectDir = reflect(lightDir, norm); // 反射向量
             float specular = indensity * pow(max(0., dot(viewDir, reflectDir)), shininess); // power(max(0,dot(N,H)),shininess)
 
-            const highp vec3 specTone = vec3(1.5, 1.4, 1.);
-            highp vec3 specLight = specTone * specular;
+            const vec3 specularcolor = vec3(1.5, 1.4, 1.);
     
-            v_color = color * vec4(u_lightcolor * (ambient + diffuse + specLight), 1.) * u_opacity;
-            v_color.a *= .9;
+            v_color = color * vec4(u_lightcolor * (ambient + diffuse) + specularcolor * specular, 1.) * u_opacity;
+            v_color.a *= .95;
         }
         
     )"; }

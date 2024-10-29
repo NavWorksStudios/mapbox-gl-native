@@ -149,12 +149,13 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
             // 所有面都可能被遮挡，都需要计算阴影
             vec3 normal = normalize(v_normal);
             vec3 lightDir = normalize(u_light_dir);
-            float diff = 1. - dot(normal, lightDir); // (0, 1, 2) (背向, 平行, 面向)
+            float diff = dot(normal, lightDir); // (1, 0, -1) (背向, 平行, 面向)
+            diff = pow(diff, 2.);
 
             // 系数调整方法：
             // 先将threshold置0，调整transform到最大值，使阴影刚好完全(越小越全)。再调整threshold收边
-            const float transform = 0.0001; // for cullface back
-            const float threshold = 0.00005;
+            const float transform = 0.001; // for cullface back
+            const float threshold = 0.0025;
             float bias = max(diff * transform, threshold);
 
             float shadow = 0.0;
@@ -181,8 +182,8 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
             }
 
             // 消除平行于光线的面的阴影闪动。越平行于光线越淡。
-            if (normal.z < 0.000001) { // 刨除地面
-                shadow *= abs(1. - diff);
+            if (normal.z < 0.00001) { // 刨除地面
+                shadow *= min(diff * 2., 1.);
             }
     
             return shadow;
@@ -200,8 +201,6 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
     
             // shadow
             gl_FragData[3].r = ShadowCalculation(v_lightSpacePos) * .5;
-
-//            gl_FragData[0].rgb = vec3(gl_FragData[3].r);
         }
             
     )"; }

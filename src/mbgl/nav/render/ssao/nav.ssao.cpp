@@ -33,8 +33,8 @@ std::default_random_engine generator;
 
 namespace kernel {
 
-enum { SIZE = 32, };
-Vec3 data[SIZE];
+enum { SIZE = 16, };
+Vec3 random[SIZE];
 
 GLfloat lerp(GLfloat a, GLfloat b, GLfloat f) {
     return a + f * (b - a);
@@ -54,7 +54,7 @@ void generate() {
         // scale samples s.t. they're more aligned to center of kernel
         scale = lerp(0.1f, 1.0f, scale * scale);
         sample.scale(scale);
-        data[i] = sample;
+        random[i] = sample;
     }
 }
 
@@ -256,29 +256,29 @@ GLint render(int width, int height, float zoom, const Mat4& projMatrix, std::fun
     glEnable(GL_BLEND);
     
     {
+        static GLint u_smaple_kernels[sample::kernel::SIZE];
         static GLint u_sample_radius[sample::kernel::SIZE];
-        static GLint u_z_bias[sample::kernel::SIZE];
-        static GLint u_samples[sample::kernel::SIZE];
+        static GLint u_depth_bias[sample::kernel::SIZE];
 
-        static bool init = false;
-        if (!init) {
-            init = true;
+        static std::once_flag flag;
+        std::call_once(flag, [program] () {
             for (unsigned int i = 0; i < sample::kernel::SIZE; ++i) {
-                u_sample_radius[i] = programs::UniformLocation(program, ("u_sample_radius[" + std::to_string(i) + "]").c_str());
-                u_z_bias[i] = programs::UniformLocation(program, ("u_z_bias[" + std::to_string(i) + "]").c_str());
-                u_samples[i] = programs::UniformLocation(program, ("u_samples[" + std::to_string(i) + "]").c_str());
+                std::string num = "[" + std::to_string(i) + "]";
+                
+                u_smaple_kernels[i] = programs::UniformLocation(program, ("u_smaple_kernels" + num).c_str());
+                u_sample_radius[i] = programs::UniformLocation(program, ("u_sample_radius" + num).c_str());
+                u_depth_bias[i] = programs::UniformLocation(program, ("u_depth_bias" + num).c_str());
             }
-        }
-        
-        const float radius = .15;
-        for (unsigned int i = 0; i < sample::kernel::SIZE; ++i) {
-            const float scalar = radius * pow(1.2, i);
-            glUniform1f(u_sample_radius[i], scalar);
-            glUniform1f(u_z_bias[i], scalar);
-        
-            // Send kernel + rotation
-            Vec3 v = sample::kernel::data[i].scale(scalar);
-            glUniform3fv(u_samples[i], 1, &v.x);
+        });
+
+        const float radius = .1;
+        const float bias = .002;
+        for (int i=0; i<sample::kernel::SIZE; i++) {
+            const float scale = pow(1.3, i);
+            const Vec3 v = sample::kernel::random[i].scale(radius * scale);
+            glUniform3f(u_smaple_kernels[i], v.x, v.y, v.z);
+            glUniform1f(u_sample_radius[i], radius * scale);
+            glUniform1f(u_depth_bias[i], bias * scale);
         }
 
         static programs::UniformLocation u0(program, "u_projection");

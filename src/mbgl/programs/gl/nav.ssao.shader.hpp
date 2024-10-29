@@ -50,13 +50,13 @@ uniform sampler2D u_normal;
 uniform sampler2D u_albedo;
 uniform sampler2D u_noise;
 
-#define SAMPLE_SIZE 32
+#define SAMPLE_SIZE 16
+uniform vec3 u_smaple_kernels[SAMPLE_SIZE];
 uniform float u_sample_radius[SAMPLE_SIZE];
-uniform float u_z_bias[SAMPLE_SIZE];
-uniform vec3 u_samples[SAMPLE_SIZE];
+uniform float u_depth_bias[SAMPLE_SIZE];
 
-const float QUADRATIC = 1.3; // 强度
-const float CONTRAST = 1.3; // 对比度
+const float QUADRATIC = 1.1; // 强度
+const float CONTRAST = 1.1; // 对比度
 
 const float NEAR_DEPTH = 0.;
 const float FAR_DEPTH = -350.;
@@ -87,7 +87,7 @@ void main() {
         // iterate over the sample kernel and calculate occlusion factor
         // 遍历每个核心采样，将采样从切线空间转化到视图空间，接着进行深度对比
         for(int i=0; i<sample_count; i++) {
-            vec3 samplePos = kernelPos + TBN * u_samples[i]; // from tangent to view-space 从切线空间转化到视图空间
+            vec3 samplePos = kernelPos + TBN * u_smaple_kernels[i]; // from tangent to view-space 从切线空间转化到视图空间
 
             // project sample position (to sample texture) (to get position on screen/texture) 投影smple点到深度纹理坐标，获取在纹理的位置
             vec4 depth_uv = u_projection * vec4(samplePos, 1.0); // from view to clip-space 使用projection将其转化到裁剪空间
@@ -98,16 +98,16 @@ void main() {
             float z = texture2D(u_position, depth_uv.xy).z; // get depth value of kernel sample
 
             // range check & accumulate 将当前的采样深度值和存储的深度值进行比较，如果大一些的话，添加遮蔽因数的影响。
-            // 用范围检查，来确保某一片段的深度值在采样半径内，这样才会对遮蔽因数做影响。添加bias可以帮助调整环境光遮蔽的效果，也可以解决痤疮问题。
+            // 用范围检查，来确保某一片段的深度值在采样半径内，这样才会对遮蔽因数做影响。添加bias可以帮助调整环境光遮蔽的效果，也可以解决波纹问题。
             float dz = z - samplePos.z;
-            if (dz > u_z_bias[i]) {
+            if (dz > u_depth_bias[i]) {
                 occlusion += smoothstep(0.0, 1.0, u_sample_radius[i] / dz);
             }
         }
 
-        occlusion = pow(occlusion, QUADRATIC);
+//        occlusion = pow(occlusion, QUADRATIC);
         occlusion = occlusion / float(sample_count);
-        occlusion = CONTRAST * (occlusion - 0.5) + 0.5;
+//        occlusion = CONTRAST * (occlusion - 0.5) + 0.5;
 
     }
 
@@ -122,49 +122,6 @@ void main() {
 
 )"; }
 
-
-
-#if 0
-
-// box blur
-
-static const char* blurFragmentShader() { return R"(
-
-varying vec2 TexCoords;
-
-uniform sampler2D u_ssao;
-uniform vec2 u_texsize;
-
-void main() 
-{
-    float result = 0.0;
-
-    for (int x = -2; x < 2; ++x) 
-    {
-        for (int y = -2; y < 2; ++y) 
-        {
-            vec2 offset = vec2(float(x), float(y)) / u_texsize;
-            result += texture2D(u_ssao, TexCoords + offset).r;
-        }
-    }
-
-    result /= (4.0 * 4.0);
-
-    // gl_FragColor.r = result;
-    gl_FragColor = vec4(.1 * 1.5, .1 * .85, .1 * .65, max(1. - result, 0.));
-
-    // gl_FragColor = vec4( vec3(result), 1.); // 白色
-    // gl_FragColor = vec4(result * 1.5, result * .9, result * 1.2, 1.); // 粉色
-    // gl_FragColor = vec4(result * .65, result * .85, result * 1.5, 1.); // 蓝色
-    // gl_FragColor = vec4(result * 1.5, result * .85, result * .65, 1.); // 黄色
-
-
-    
-}
-
-)"; }
-
-#else
 
 // kawase blur
 
@@ -187,69 +144,10 @@ float kawaseBlurSample5(vec2 uv) {
     return color / 5.;
 }
 
-
-float kawaseBlurSample9(vec2 uv) {
-    
-    float color = texture2D(u_ssao, uv).r;
-
-    { // 4 * .5
-        float c = 0.;
-        c += texture2D(u_ssao, uv + vec2(+u_offset[0].x, +u_offset[0].y)).r;
-        c += texture2D(u_ssao, uv + vec2(+u_offset[0].x, -u_offset[0].y)).r;
-        c += texture2D(u_ssao, uv + vec2(-u_offset[0].x, +u_offset[0].y)).r;
-        c += texture2D(u_ssao, uv + vec2(-u_offset[0].x, -u_offset[0].y)).r;
-        color += c * .5;
-    }
-
-    { // 4 * .5
-        float c = 0.;
-        c += texture2D(u_ssao, uv + vec2(0., +u_offset[1].y)).r;
-        c += texture2D(u_ssao, uv + vec2(0., -u_offset[1].y)).r;
-        c += texture2D(u_ssao, uv + vec2(+u_offset[1].x, 0.)).r;
-        c += texture2D(u_ssao, uv + vec2(-u_offset[1].x, 0.)).r;
-        color += c * .5;
-    }
-
-    return color / 5.;
-}
-
-float kawaseBlurSample13(vec2 uv) {
-    
-    float color = texture2D(u_ssao, uv).r;
-
-    { // 4 * .25
-        float c = 0.;
-        c += texture2D(u_ssao, uv + vec2(+u_offset[0].x, +u_offset[0].y)).r;
-        c += texture2D(u_ssao, uv + vec2(+u_offset[0].x, -u_offset[0].y)).r;
-        c += texture2D(u_ssao, uv + vec2(-u_offset[0].x, +u_offset[0].y)).r;
-        c += texture2D(u_ssao, uv + vec2(-u_offset[0].x, -u_offset[0].y)).r;
-        color += c * .25;
-    }
-
-    { // 8 * .125
-        float c = 0.;
-        c += texture2D(u_ssao, uv + vec2(+u_offset[1].x, +u_offset[0].y)).r;
-        c += texture2D(u_ssao, uv + vec2(+u_offset[1].x, -u_offset[0].y)).r;
-        c += texture2D(u_ssao, uv + vec2(-u_offset[1].x, +u_offset[0].y)).r;
-        c += texture2D(u_ssao, uv + vec2(-u_offset[1].x, -u_offset[0].y)).r;
-        c += texture2D(u_ssao, uv + vec2(+u_offset[0].x, +u_offset[1].y)).r;
-        c += texture2D(u_ssao, uv + vec2(-u_offset[0].x, +u_offset[1].y)).r;
-        c += texture2D(u_ssao, uv + vec2(+u_offset[0].x, -u_offset[1].y)).r;
-        c += texture2D(u_ssao, uv + vec2(-u_offset[0].x, -u_offset[1].y)).r;
-        color += c * .125;
-    }
-
-    return color / 3.;
-}
-
-// 5点和13点效果差不多
-
 void main() {
     if (u_enable_blur > 0.) {
         float result = kawaseBlurSample5(TexCoords);
         gl_FragColor = vec4(0., 0., 0., result);
-
-//        gl_FragColor = vec4(vec3(.0), texture2D(u_ssao, TexCoords).r);
     } else {
         float result = texture2D(u_ssao, TexCoords).r;
         gl_FragColor = vec4(vec3(1.) * result, .8);
@@ -257,9 +155,6 @@ void main() {
 }
 
 )"; }
-
-#endif
-
 
 
 } // namespace ssao

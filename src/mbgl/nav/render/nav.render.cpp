@@ -143,7 +143,7 @@ void render(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::mat4& norma
 
 namespace deferred {
 
-const float BUFFER_RATIO = .7;
+const float BUFFER_RATIO = 1.;
 
 int width() {
     return nav::display::pixels::width() * BUFFER_RATIO;
