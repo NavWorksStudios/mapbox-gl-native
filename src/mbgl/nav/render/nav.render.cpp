@@ -186,10 +186,8 @@ void render(float zoom, mbgl::mat4 projMatrix,
         
         // debug info window
         if (1) {
-            int x = 20;
-            int y = 20;
-            int ww = w / 6.;
-            int hh = h / 6.;
+            int x = 20, y = 20;
+            int ww = w / 6., hh = h / 6.;
             
             nav::blur::render(w, h, depthBuffer, false, [x, y, ww, hh] () {
                 glBindFramebuffer(GL_FRAMEBUFFER, 0);
