@@ -229,9 +229,9 @@ void TransformState::getSunlightProjMatrix(mat4& projMatrix, uint16_t nearZ, boo
         sunlightToClipMatrix = sunlight.getCameraToClipOrtho(-w * 2, w * 2, -h, h * 3, -h, h * 10);
 #else
         const auto& frustum = nav::sunlight::getFrustum();
-        _sunlightViewToClipMatrix = sunlight.getCameraToClipOrtho(frustum[0], frustum[1],       // left, right
-                                                                  frustum[2], frustum[3],       // bottom, top
-                                                                  frustum[4], frustum[5]);      // near, far
+        _sunlightViewToClipMatrix = sunlight.getCameraToClipOrtho(frustum.min[0], frustum.max[0],       // left, right
+                                                                  frustum.min[1], frustum.max[1],       // bottom, top
+                                                                  frustum.min[2], frustum.max[2]);      // near, far
 #endif
         
         if (!axonometric) { // 轴测法的

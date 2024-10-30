@@ -39,7 +39,17 @@ void renderQuad(GLint program);
 }
 
 namespace sunlight {
-const std::array<double, 6>& getFrustum();
+
+// AABB（Axis-Aligned Bounding Box）
+// “轴平行包围盒”，是一种在三维空间中常用的几何包围体。它是一个长方体，其边与坐标轴平行，这使得它在计算和存储上相对简单。
+struct AABB {
+    const double MAX = std::numeric_limits<double>::max();
+
+    mbgl::vec3 min = {  MAX, MAX, MAX, };
+    mbgl::vec3 max = { -MAX, -MAX, -MAX, };
+};
+
+const AABB& getFrustum();
 void updateFrustum(const mbgl::TransformState& state, const std::vector<mbgl::OverscaledTileID>& tileIDs);
 }
 
