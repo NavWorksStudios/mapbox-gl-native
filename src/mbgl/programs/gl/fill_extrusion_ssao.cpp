@@ -183,7 +183,7 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
 
             // 消除平行于光线的面的阴影闪动。越平行于光线越淡。
             if (normal.z < 0.00001) { // 刨除地面
-                shadow *= min(diff * 2., 1.);
+                shadow *= min(diff * 6., 1.);
             }
     
             return shadow;
@@ -200,7 +200,7 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
             gl_FragData[2].rgb = vec3(0.95);
     
             // shadow
-            gl_FragData[3].r = ShadowCalculation(v_lightSpacePos) * .35;
+            gl_FragData[3].r = ShadowCalculation(v_lightSpacePos) * .8;
         }
             
     )"; }

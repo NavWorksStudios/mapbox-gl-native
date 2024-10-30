@@ -111,12 +111,7 @@ void main() {
 
     }
 
-#if 1
     gl_FragColor.r = occlusion;
-#else
-    float result = 1.0 - occlusion;
-    gl_FragColor = vec4(result * .65, result * .85, result * 1.5, 1.);
-#endif
 
 }
 
@@ -147,7 +142,7 @@ float kawaseBlurSample5(vec2 uv) {
 void main() {
     if (u_enable_blur > 0.) {
         float result = kawaseBlurSample5(TexCoords);
-        gl_FragColor = vec4(0., 0., 0., result);
+        gl_FragColor = vec4(0.2, 0.28, 0.29, result);
     } else {
         float result = texture2D(u_ssao, TexCoords).r;
         gl_FragColor = vec4(vec3(1.) * result, .8);
