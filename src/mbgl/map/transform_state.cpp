@@ -9,6 +9,8 @@
 #include <mbgl/util/tile_coordinate.hpp>
 
 #include "mbgl/nav/render/nav.render.hpp"
+#include "mbgl/nav/render/shadow/nav.shadow.hpp"
+
 
 namespace mbgl {
 
@@ -222,17 +224,11 @@ void TransformState::getSunlightProjMatrix(mat4& projMatrix, uint16_t nearZ, boo
     // sunlight to clip Matrix
     {
         const ScreenCoordinate offset = getCenterOffset();
-        
-#if 0
-        double w = size.width;
-        double h = size.height;
-        sunlightToClipMatrix = sunlight.getCameraToClipOrtho(-w * 2, w * 2, -h, h * 3, -h, h * 10);
-#else
-        const auto& frustum = nav::sunlight::getFrustum();
-        _sunlightViewToClipMatrix = sunlight.getCameraToClipOrtho(frustum.min[0], frustum.max[0],       // left, right
-                                                                  frustum.min[1], frustum.max[1],       // bottom, top
-                                                                  frustum.min[2], frustum.max[2]);      // near, far
-#endif
+
+        const auto& frustum = nav::shadow::frustum::ortho::sunlight().getFrustum();
+        _sunlightViewToClipMatrix = sunlight.getCameraToClipOrtho(frustum.min[0], frustum.max[0],
+                                                                  frustum.min[1], frustum.max[1],
+                                                                  frustum.min[2], frustum.max[2]);
         
         if (!axonometric) { // 轴测法的
             _sunlightViewToClipMatrix[8] = -offset.x * 2.0 / size.width;
