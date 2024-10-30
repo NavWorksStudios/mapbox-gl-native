@@ -271,8 +271,8 @@ GLint render(int width, int height, float zoom, const Mat4& projMatrix, std::fun
             }
         });
 
-        const float radius = .1;
-        const float bias = .002;
+        const float radius = .05;
+        const float bias = .008;
         for (int i=0; i<sample::kernel::SIZE; i++) {
             const float scale = pow(1.3, i);
             const Vec3 v = sample::kernel::random[i].scale(radius * scale);

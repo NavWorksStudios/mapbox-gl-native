@@ -55,8 +55,8 @@ uniform vec3 u_smaple_kernels[SAMPLE_SIZE];
 uniform float u_sample_radius[SAMPLE_SIZE];
 uniform float u_depth_bias[SAMPLE_SIZE];
 
-const float QUADRATIC = 1.1; // 强度
-const float CONTRAST = 1.1; // 对比度
+const float QUADRATIC = 1.2; // 强度
+const float CONTRAST = 1.2; // 对比度
 
 const float NEAR_DEPTH = 0.;
 const float FAR_DEPTH = -350.;
@@ -105,7 +105,7 @@ void main() {
             }
         }
 
-//        occlusion = pow(occlusion, QUADRATIC);
+        occlusion = pow(occlusion, QUADRATIC);
         occlusion = occlusion / float(sample_count);
 //        occlusion = CONTRAST * (occlusion - 0.5) + 0.5;
 

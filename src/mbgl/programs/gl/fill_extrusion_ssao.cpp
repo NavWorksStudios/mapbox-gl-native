@@ -200,7 +200,7 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
             gl_FragData[2].rgb = vec3(0.95);
     
             // shadow
-            gl_FragData[3].r = ShadowCalculation(v_lightSpacePos) * .5;
+            gl_FragData[3].r = ShadowCalculation(v_lightSpacePos) * .3;
         }
             
     )"; }
