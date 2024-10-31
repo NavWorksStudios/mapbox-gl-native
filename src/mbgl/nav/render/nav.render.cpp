@@ -9,17 +9,17 @@
 
 #include "mbgl/nav/nav.style.hpp"
 
-#include "mbgl/nav/render/nav.blur.hpp"
 #include "mbgl/nav/render/shaders.h"
-#include "mbgl/nav/render/shadow/nav.shadow.hpp"
-#include "mbgl/nav/render/ssao/nav.ssao.hpp"
-
-#include <mbgl/programs/gl/nav.ssao.shader.hpp>
-#include <mbgl/programs/fill_extrusion_ssao_program.hpp>
-#include <mbgl/programs/fill_extrusion_shadow_program.hpp>
-
 #include "mbgl/nav/render/vec3.h"
 #include "mbgl/nav/render/mat4.h"
+
+#include "mbgl/nav/render/nav.shadow.hpp"
+#include "mbgl/nav/render/nav.ssao.hpp"
+#include "mbgl/nav/render/nav.blur.hpp"
+#include "mbgl/nav/render/programs/nav.program.hpp"
+
+#include <mbgl/programs/nav_fill_extrusion_ssao_program.hpp>
+#include <mbgl/programs/nav_fill_extrusion_shadow_program.hpp>
 
 
 namespace nav {
@@ -188,6 +188,11 @@ void render(float zoom, mbgl::mat4 projMatrix,
         if (1) {
             int x = 20, y = 20;
             int ww = w / 6., hh = h / 6.;
+            
+            nav::shadow::frustum::ortho::sunlight().render([x, y, ww, hh] () {
+                glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                glViewport(x, y, ww, hh);
+            });
             
             nav::blur::render(w, h, depthBuffer, false, [x, y, ww, hh] () {
                 glBindFramebuffer(GL_FRAMEBUFFER, 0);

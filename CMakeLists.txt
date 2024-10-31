@@ -326,29 +326,33 @@ set(all_files
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.address.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/nav.stringid.hpp
 
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.render.hpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.render.cpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.blur.hpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.blur.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/mat4.h
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/mat4.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/vec3.h
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/vec3.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/shaders.h
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/shaders.cpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/ssao/nav.ssao.hpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/ssao/nav.ssao.cpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/shadow/nav.shadow.hpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/shadow/nav.shadow.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.ssao.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.ssao.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.shadow.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.shadow.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.render.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.render.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.blur.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.blur.cpp
 
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/programs/nav.program.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/programs/nav.program.ssao.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/programs/nav.program.shadow.hpp
 
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/ssao/v1/rply.h
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/ssao/v1/rply.c
-
-
-    ${PROJECT_SOURCE_DIR}/src/mbgl/programs/gl/nav.ssao.shader.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/programs/nav_fill_extrusion_ssao_program.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/programs/nav_fill_extrusion_ssao_program.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/programs/nav_fill_extrusion_shadow_program.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/programs/nav_fill_extrusion_shadow_program.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/programs/gl/nav_fill_extrusion_P1.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/programs/gl/nav_fill_extrusion_P2.hpp
-
+    ${PROJECT_SOURCE_DIR}/src/mbgl/programs/gl/nav_fill_extrusion_ssao.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/programs/gl/nav_fill_extrusion_shadow.cpp
 
     ${PROJECT_SOURCE_DIR}/src/mbgl/actor/mailbox.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/actor/scheduler.cpp
@@ -455,10 +459,6 @@ set(all_files
     ${PROJECT_SOURCE_DIR}/src/mbgl/programs/fill_extrusion_pattern_program.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/programs/fill_extrusion_program.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/programs/fill_extrusion_program.hpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/programs/fill_extrusion_ssao_program.cpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/programs/fill_extrusion_ssao_program.hpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/programs/fill_extrusion_shadow_program.cpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/programs/fill_extrusion_shadow_program.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/programs/fill_outline_pattern_program.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/programs/fill_outline_program.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/programs/fill_pattern_program.hpp
@@ -1035,8 +1035,6 @@ if(MBGL_WITH_OPENGL)
             ${PROJECT_SOURCE_DIR}/src/mbgl/programs/gl/debug.cpp
             ${PROJECT_SOURCE_DIR}/src/mbgl/programs/gl/fill.cpp
             ${PROJECT_SOURCE_DIR}/src/mbgl/programs/gl/fill_extrusion.cpp
-            ${PROJECT_SOURCE_DIR}/src/mbgl/programs/gl/fill_extrusion_ssao.cpp
-            ${PROJECT_SOURCE_DIR}/src/mbgl/programs/gl/fill_extrusion_shadow.cpp
             ${PROJECT_SOURCE_DIR}/src/mbgl/programs/gl/fill_extrusion_pattern.cpp
             ${PROJECT_SOURCE_DIR}/src/mbgl/programs/gl/fill_outline.cpp
             ${PROJECT_SOURCE_DIR}/src/mbgl/programs/gl/fill_outline_pattern.cpp

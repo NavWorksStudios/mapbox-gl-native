@@ -5,8 +5,8 @@
 #include <mbgl/programs/heatmap_program.hpp>
 #include <mbgl/programs/hillshade_program.hpp>
 #include <mbgl/programs/fill_extrusion_program.hpp>
-#include <mbgl/programs/fill_extrusion_ssao_program.hpp>
-#include <mbgl/programs/fill_extrusion_shadow_program.hpp>
+#include <mbgl/programs/nav_fill_extrusion_ssao_program.hpp>
+#include <mbgl/programs/nav_fill_extrusion_shadow_program.hpp>
 #include <mbgl/programs/fill_program.hpp>
 #include <mbgl/programs/line_program.hpp>
 #include <mbgl/programs/raster_program.hpp>

@@ -4,7 +4,8 @@
 //  Created by ZHM on 2024/10/11.
 //
 
-#include "mbgl/nav/render/shadow/nav.shadow.hpp"
+#include "mbgl/nav/render/nav.shadow.hpp"
+
 #include "mbgl/nav/render/nav.render.hpp"
 #include "mbgl/nav/nav.log.hpp"
 
@@ -306,6 +307,10 @@ void Frumstum::update(const mbgl::TransformState& state, const std::vector<mbgl:
                     frustumAABB.min[0], frustumAABB.min[1], frustumAABB.min[2],
                     frustumAABB.max[0], frustumAABB.max[1], frustumAABB.min[2]);
     }
+    
+}
+
+void Frumstum::render(std::function<void()> bindScreen) {
     
 }
 

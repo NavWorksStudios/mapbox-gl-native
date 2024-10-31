@@ -1,6 +1,6 @@
 // NOTE: DO NOT CHANGE THIS FILE. IT IS AUTOMATICALLY GENERATED.
 // clang-format off
-#include <mbgl/programs/fill_extrusion_ssao_program.hpp>
+#include <mbgl/programs/nav_fill_extrusion_ssao_program.hpp>
 #include <mbgl/programs/gl/preludes.hpp>
 #include <mbgl/programs/gl/shader_source.hpp>
 #include <mbgl/gl/program.hpp>

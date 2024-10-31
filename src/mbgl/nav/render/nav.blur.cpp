@@ -7,10 +7,11 @@
 
 #include "mbgl/nav/render/nav.blur.hpp"
 
-#include "mbgl/nav/render/nav.render.hpp"
 #include "mbgl/nav/render/shaders.h"
+#include "mbgl/nav/render/nav.render.hpp"
 
-#include <mbgl/programs/gl/nav.ssao.shader.hpp>
+#include "mbgl/nav/render/programs/nav.program.hpp"
+#include "mbgl/nav/render/programs/nav.program.ssao.hpp"
 
 namespace nav {
 namespace blur {

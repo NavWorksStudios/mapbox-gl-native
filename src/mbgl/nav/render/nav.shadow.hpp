@@ -45,6 +45,7 @@ struct AABB {
 
 struct Frumstum {
     void update(const mbgl::TransformState& state, const std::vector<mbgl::OverscaledTileID>& tileIDs);
+    void render(std::function<void()> bindScreen);
     inline const AABB& getTile() const { return tileAABB; }
     inline const AABB& getGround() const { return groundAABB; }
     inline const AABB& getFrustum() const { return frustumAABB; }

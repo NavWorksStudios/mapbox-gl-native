@@ -8,8 +8,7 @@
 #include <mbgl/util/projection.hpp>
 #include <mbgl/util/tile_coordinate.hpp>
 
-#include "mbgl/nav/render/nav.render.hpp"
-#include "mbgl/nav/render/shadow/nav.shadow.hpp"
+#include "mbgl/nav/render/nav.shadow.hpp"
 
 
 namespace mbgl {
