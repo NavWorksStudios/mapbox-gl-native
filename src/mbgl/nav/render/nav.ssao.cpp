@@ -15,6 +15,7 @@
 #include "mbgl/nav/render/vec3.h"
 #include "mbgl/nav/render/shaders.h"
 #include "mbgl/nav/render/nav.render.hpp"
+#include "mbgl/nav/render/nav.quad.hpp"
 #include "mbgl/nav/render/nav.shadow.hpp"
 
 #include "mbgl/nav/render/programs/nav.program.hpp"
@@ -97,6 +98,19 @@ void generate() {
 }
 
 
+GLuint genTexture(GLint internalformat, GLsizei width, GLsizei height, GLenum format, GLenum type) {
+    GLuint texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, internalformat, width, height, 0, format, type, NULL);
+    
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    
+    return texture;
+}
+
+
 namespace geo {
 
 GLuint fbo = 0;
@@ -112,17 +126,17 @@ void generate(int width, int height) {
 
     // position color buffer
     glDeleteTextures(1, &position);
-    position = nav::renderer::util::genTexture(GL_RGB16F, width, height, GL_RGB, GL_FLOAT);
+    position = genTexture(GL_RGB16F, width, height, GL_RGB, GL_FLOAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     // normal color buffer
     glDeleteTextures(1, &normal);
-    normal = nav::renderer::util::genTexture(GL_RGB16F, width, height, GL_RGB, GL_FLOAT);
+    normal = genTexture(GL_RGB16F, width, height, GL_RGB, GL_FLOAT);
 
     // color + specular color buffer
     glDeleteTextures(1, &albedo);
-    albedo = nav::renderer::util::genTexture(GL_RGB16F, width, height, GL_RGB, GL_FLOAT);
+    albedo = genTexture(GL_RGB16F, width, height, GL_RGB, GL_FLOAT);
 
     // create and attach depth buffer (renderbuffer)
     glDeleteRenderbuffers(1, &rboDepth);
@@ -164,7 +178,7 @@ void generate(int width, int height) {
     if (!fbo) glGenFramebuffers(1, &fbo);
     
     glDeleteTextures(1, &buffer);
-    buffer = nav::renderer::util::genTexture(GL_RED, width, height, GL_RED, GL_FLOAT);
+    buffer = genTexture(GL_RED, width, height, GL_RED, GL_FLOAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     
@@ -179,7 +193,7 @@ GLuint program() {
     if (!pass) {
         pass =
         createProgram(compileShader(GL_VERTEX_SHADER, nav::programs::ssao::vertexShader()),
-                      compileShader(GL_FRAGMENT_SHADER, nav::programs::ssao::genSSAOFragmentShader()));
+                      compileShader(GL_FRAGMENT_SHADER, nav::programs::ssao::fragmentShader()));
     }
 
     return pass;
@@ -311,7 +325,7 @@ GLint render(int width, int height, float zoom, const Mat4& projMatrix, std::fun
         glUniform1i(u3, 3);
     }
     
-    nav::renderer::util::renderQuad(program);
+    nav::quad::render(program);
     
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 

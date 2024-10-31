@@ -338,12 +338,13 @@ set(all_files
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.shadow.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.render.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.render.cpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.blur.hpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.blur.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.quad.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.quad.cpp
 
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/programs/nav.program.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/programs/nav.program.ssao.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/programs/nav.program.shadow.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/programs/nav.program.quad.hpp
 
     ${PROJECT_SOURCE_DIR}/src/mbgl/programs/nav_fill_extrusion_ssao_program.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/programs/nav_fill_extrusion_ssao_program.hpp

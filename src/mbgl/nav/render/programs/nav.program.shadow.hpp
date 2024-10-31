@@ -22,7 +22,7 @@ void main()
 
 )"; }
 
-static const char* genSSAOFragmentShader() { return R"(
+static const char* fragmentShader() { return R"(
 
 varying vec2 TexCoords;
 
@@ -97,40 +97,6 @@ void main() {
 
     gl_FragColor.r = occlusion;
 
-}
-
-)"; }
-
-
-// kawase blur
-
-static const char* blurFragmentShader() { return R"(
-
-varying vec2 TexCoords;
-
-uniform sampler2D u_ssao;
-uniform float u_enable_blur;
-uniform vec2 u_offset[3];
-
-float kawaseBlurSample5(vec2 uv) {    
-    float color = texture2D(u_ssao, uv).r;
-
-    color += texture2D(u_ssao, uv + vec2(+u_offset[0].x, +u_offset[0].y)).r;
-    color += texture2D(u_ssao, uv + vec2(+u_offset[0].x, -u_offset[0].y)).r;
-    color += texture2D(u_ssao, uv + vec2(-u_offset[0].x, +u_offset[0].y)).r;
-    color += texture2D(u_ssao, uv + vec2(-u_offset[0].x, -u_offset[0].y)).r;
-
-    return color / 5.;
-}
-
-void main() {
-    if (u_enable_blur > 0.) {
-        float result = kawaseBlurSample5(TexCoords);
-        gl_FragColor = vec4(0.2, 0.28, 0.29, result);
-    } else {
-        float result = texture2D(u_ssao, TexCoords).r;
-        gl_FragColor = vec4(vec3(1.) * result, .8);
-    }
 }
 
 )"; }

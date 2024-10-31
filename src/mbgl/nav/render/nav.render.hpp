@@ -29,11 +29,6 @@ void render(float zoom, mbgl::mat4 projMatrix,
             std::function<bool()> geoRenderDelegate);
 }
 
-namespace util {
-GLuint genTexture(GLint internalformat, GLsizei width, GLsizei height, GLenum format, GLenum type);
-void renderQuad(GLint program);
-}
-
 }
 
 }

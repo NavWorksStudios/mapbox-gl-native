@@ -15,7 +15,7 @@
 
 #include "mbgl/nav/render/nav.shadow.hpp"
 #include "mbgl/nav/render/nav.ssao.hpp"
-#include "mbgl/nav/render/nav.blur.hpp"
+#include "mbgl/nav/render/nav.quad.hpp"
 #include "mbgl/nav/render/programs/nav.program.hpp"
 
 #include <mbgl/programs/nav_fill_extrusion_ssao_program.hpp>
@@ -182,7 +182,7 @@ void render(float zoom, mbgl::mat4 projMatrix,
         const GLint shadowAndAO = nav::ssao::render(w, h, zoom, convertMatrix4(projMatrix));
         
         // 4
-        nav::blur::render(w, h, shadowAndAO, true, bindScreen);
+        nav::quad::renderBlur(w, h, shadowAndAO, bindScreen);
         
         // debug info window
         if (1) {
@@ -194,14 +194,14 @@ void render(float zoom, mbgl::mat4 projMatrix,
                 glViewport(x, y, ww, hh);
             });
             
-            nav::blur::render(w, h, depthBuffer, false, [x, y, ww, hh] () {
+            nav::quad::render(w, h, depthBuffer, [x, y, ww, hh] () {
                 glBindFramebuffer(GL_FRAMEBUFFER, 0);
                 glViewport(x, y, ww, hh);
             });
             
             x += ww + 20;
             
-            nav::blur::render(w, h, shadowAndAO, false, [x, y, ww, hh] () {
+            nav::quad::render(w, h, shadowAndAO, [x, y, ww, hh] () {
                 glBindFramebuffer(GL_FRAMEBUFFER, 0);
                 glViewport(x, y, ww, hh);
             });
@@ -218,57 +218,6 @@ void render(float zoom, mbgl::mat4 projMatrix,
 }
 
 } // deffered
-
-
-namespace util {
-
-GLuint genTexture(GLint internalformat, GLsizei width, GLsizei height, GLenum format, GLenum type) {
-    GLuint texture;
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, internalformat, width, height, 0, format, type, NULL);
-    
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    
-    return texture;
-}
-
-void renderQuad(GLint program) {
-    static GLuint quadVAO = 0;
-    if (!quadVAO) {
-        float quadVertices[] = {
-            // positions            // texture Coords
-            -1.0f,  1.0f, 0.0f,     0.0f, 1.0f,
-            -1.0f, -1.0f, 0.0f,     0.0f, 0.0f,
-            1.0f,  1.0f, 0.0f,     1.0f, 1.0f,
-            1.0f, -1.0f, 0.0f,     1.0f, 0.0f,
-        };
-        
-        static GLuint quadVBO;
-        
-        // setup plane VAO
-        glGenVertexArrays(1, &quadVAO);
-        glGenBuffers(1, &quadVBO);
-        glBindVertexArray(quadVAO);
-        glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-        
-        static programs::AttribLocation a0(program, "aPos");
-        glEnableVertexAttribArray(a0);
-        glVertexAttribPointer(a0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-        
-        static programs::AttribLocation a1(program, "aTexCoords");
-        glEnableVertexAttribArray(a1);
-        glVertexAttribPointer(a1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-    }
-    
-    glBindVertexArray(quadVAO);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    glBindVertexArray(0);
-}
-
-} // util
 
 } // renderer
 
