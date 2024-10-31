@@ -30,6 +30,7 @@
 #include <mapbox/geometry.hpp>
 #include <mapbox/geojson.hpp>
 
+#include <mbgl/nav/render/nav.render.hpp>
 #include <mbgl/route/route_plan.hpp>
 
 #if MBGL_USE_GLES2
@@ -353,6 +354,8 @@ void GLFWView::onKey(int key, int action, int mods) {
         } break;
         case GLFW_KEY_P:
             pauseResumeCallback();
+            nav::renderer::debugPrint();
+            invalidate();
             break;
         case GLFW_KEY_C:
             clearAnnotations();

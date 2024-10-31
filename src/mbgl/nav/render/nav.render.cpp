@@ -38,8 +38,6 @@ GLuint genTexture(GLint internalformat, GLsizei width, GLsizei height, GLenum fo
 
 namespace renderer {
 
-namespace deferred {
-
 const float BUFFER_RATIO = 1.;
 
 int width() {
@@ -65,6 +63,12 @@ GLuint getRenderBuffer(int width, int height) {
     }
     
     return buffer;
+}
+
+bool _debugRadar = true;
+
+void debugPrint() {
+    _debugRadar = !_debugRadar;
 }
 
 void render(float zoom, mbgl::mat4 projMatrix,
@@ -103,32 +107,31 @@ void render(float zoom, mbgl::mat4 projMatrix,
         
         nav::quad::renderBlur(w, h, renderBuffer, bindScreen);
         
-        // debug info window
-        if (1) {
-            int x = 10;
-            int ww = w / 8.;
+        // debug radar
+        if (_debugRadar) {
+            int x = 20, y = 20;
+            int width = w / 8., height = h / 8.;
             
             auto fboBinder = [&] () {
                 glBindFramebuffer(GL_FRAMEBUFFER, 0);
-                glViewport(x, 10, ww, h/8.);
+                glViewport(x, y, width, height);
             };
             
             nav::shadow::frustum::ortho::sunlight().render(fboBinder);
             nav::quad::renderMono(w, h, shadowDepth, fboBinder);
             
+            x += width + 20;
+            nav::quad::renderMono(w, h, renderBuffer, fboBinder);
             
-            x += ww + 80;
+            
+            x = w - width * 3 - 60;
             nav::quad::render(w, h, gbuffer[0], fboBinder);
             
-            x += ww + 10;
+            x += width + 20;
             nav::quad::render(w, h, gbuffer[1], fboBinder);
             
-            x += ww + 10;
+            x += width + 20;
             nav::quad::render(w, h, gbuffer[2], fboBinder);
-            
-            
-            x += ww + 80;
-            nav::quad::renderMono(w, h, renderBuffer, fboBinder);
             
             glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
         }
@@ -140,8 +143,6 @@ void render(float zoom, mbgl::mat4 projMatrix,
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA); // mapbox config
     
 }
-
-} // deffered
 
 } // renderer
 

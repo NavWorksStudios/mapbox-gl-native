@@ -8,22 +8,17 @@
 #pragma once
 
 #include <functional>
-#include <gl_headers.hpp>
-
 #include <mbgl/util/mat4.hpp>
 
 namespace nav {
 
 namespace renderer {
 
-namespace deferred {
-int width();
-int height();
-
 void render(float zoom, mbgl::mat4 projMatrix,
             std::function<bool()> shadowRenderDelegate,
             std::function<bool()> geoRenderDelegate);
-}
+
+void debugPrint();
 
 }
 
