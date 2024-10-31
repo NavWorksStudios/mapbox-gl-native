@@ -16,10 +16,6 @@ namespace nav {
 
 namespace renderer {
 
-namespace ground {
-void render(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::mat4& normal, const mbgl::mat4& lightmvp);
-}
-
 namespace deferred {
 int width();
 int height();

@@ -14,6 +14,7 @@ namespace nav {
 namespace quad {
 void render(GLint program);
 void render(int width, int height, GLint buffer, std::function<void()> bindScreen);
+void renderMono(int width, int height, GLint buffer, std::function<void()> bindScreen);
 void renderBlur(int width, int height, GLint buffer, std::function<void()> bindScreen);
 }
 }

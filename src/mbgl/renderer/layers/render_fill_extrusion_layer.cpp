@@ -20,9 +20,8 @@
 #include <mbgl/util/math.hpp>
 
 #include "mbgl/nav/nav.theme.hpp"
-#include "mbgl/nav/render/nav.render.hpp"
-#include "mbgl/nav/render/vec3.h"
-#include "mbgl/nav/render/mat4.h"
+#include "mbgl/nav/render/nav.shadow.hpp"
+
 
 namespace mbgl {
 
@@ -203,7 +202,7 @@ bool RenderFillExtrusionLayer::doRenderDeferredGeoBuffer(PaintParameters& parame
             matrix::invert(normalMatrix, tile.modelViewMatrix);
             matrix::transpose(normalMatrix);
 
-            nav::renderer::ground::render(matrix, tile.modelViewMatrix, normalMatrix, sunlight_matrix);
+            nav::shadow::renderGround(matrix, tile.modelViewMatrix, normalMatrix, sunlight_matrix);
         }
     };
 

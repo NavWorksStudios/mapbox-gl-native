@@ -332,10 +332,14 @@ set(all_files
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/vec3.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/shaders.h
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/shaders.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.geo.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.geo.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.ssao.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.ssao.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.shadow.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.shadow.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.shadow.frustum.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.shadow.frustum.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.render.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.render.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.quad.hpp

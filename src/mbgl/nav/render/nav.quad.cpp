@@ -9,8 +9,6 @@
 
 #include "mbgl/nav/render/shaders.h"
 #include "mbgl/nav/render/nav.render.hpp"
-
-#include "mbgl/nav/render/programs/nav.program.hpp"
 #include "mbgl/nav/render/programs/nav.program.quad.hpp"
 
 namespace nav {
@@ -51,12 +49,23 @@ void render(GLint program) {
 }
 
 
-GLint quadProgram() {
+GLint standardProgram() {
     static GLint pass = 0;
     if (!pass) {
         pass =
         createProgram(compileShader(GL_VERTEX_SHADER, nav::programs::quad::vertexShader()),
-                      compileShader(GL_FRAGMENT_SHADER, nav::programs::quad::fragmentShader()));
+                      compileShader(GL_FRAGMENT_SHADER, nav::programs::quad::standardFragmentShader()));
+    }
+    
+    return pass;
+}
+
+GLint monoProgram() {
+    static GLint pass = 0;
+    if (!pass) {
+        pass =
+        createProgram(compileShader(GL_VERTEX_SHADER, nav::programs::quad::vertexShader()),
+                      compileShader(GL_FRAGMENT_SHADER, nav::programs::quad::monoFragmentShader()));
     }
     
     return pass;
@@ -81,7 +90,28 @@ void render(int width, int height, GLint buffer, std::function<void()> bindScree
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    GLint program = quadProgram();
+    GLint program = standardProgram();
+    glUseProgram(program);
+    
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, buffer);
+    static programs::UniformLocation u0(program, "u_buffer");
+    glUniform1i(u0, 0);
+
+    render(program);
+    
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+}
+
+void renderMono(int width, int height, GLint buffer, std::function<void()> bindScreen) {
+    
+    if (bindScreen) bindScreen();
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    GLint program = monoProgram();
     glUseProgram(program);
     
     glActiveTexture(GL_TEXTURE0);

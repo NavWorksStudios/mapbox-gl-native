@@ -17,7 +17,7 @@
 #include <cmath>
 #include <algorithm>
 
-#include "mbgl/nav/render/nav.shadow.hpp"
+#include "mbgl/nav/render/nav.shadow.frustum.hpp"
 
 
 namespace mbgl {

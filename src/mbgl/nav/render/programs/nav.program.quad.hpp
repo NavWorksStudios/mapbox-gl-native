@@ -1,4 +1,6 @@
 
+#include "mbgl/nav/render/programs/nav.program.hpp"
+
 namespace nav {
 namespace programs {
 namespace quad {
@@ -18,15 +20,27 @@ void main() {
 
 )"; }
 
+static const char* standardFragmentShader() { return R"(
 
-static const char* fragmentShader() { return R"(
+varying vec2 TexCoords;
+uniform sampler2D u_buffer;
+
+void main() {
+    gl_FragColor = texture2D(u_buffer, TexCoords);
+    gl_FragColor.a = .7;
+}
+
+)"; }
+
+
+static const char* monoFragmentShader() { return R"(
 
 varying vec2 TexCoords;
 uniform sampler2D u_buffer;
 
 void main() {
     float result = texture2D(u_buffer, TexCoords).r;
-    gl_FragColor = vec4(vec3(1.) * result, .8);
+    gl_FragColor = vec4(vec3(1.) * result, .7);
 }
 
 )"; }

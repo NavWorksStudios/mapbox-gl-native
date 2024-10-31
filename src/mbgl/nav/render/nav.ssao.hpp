@@ -12,16 +12,12 @@
 
 namespace nav {
 
-namespace geo {
-GLint renderGeoAndShadow(int width, int height, GLint shadow,
-                         std::function<bool()> renderCallback,
-                         std::function<void()> bindScreen=nullptr);
-}
-
 namespace ssao {
-GLint render(int width, int height, float zoom,
-             const Mat4& projMatrix,
-             std::function<void()> bindScreen=nullptr);
+
+void render(int width, int height,
+            GLuint renderBuffer, const std::array<GLuint, 3>& gbuffer,
+            float zoom, const Mat4& projMatrix, std::function<void()> bindScreen=nullptr);
+
 }
 
 }

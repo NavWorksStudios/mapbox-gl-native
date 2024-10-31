@@ -1,6 +1,6 @@
 
 #include <cassert>
-
+#include "mbgl/nav/render/programs/nav.program.hpp"
 
 namespace nav {
 namespace programs {

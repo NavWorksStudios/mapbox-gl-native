@@ -14,11 +14,7 @@
 
 #include "mbgl/nav/render/vec3.h"
 #include "mbgl/nav/render/shaders.h"
-#include "mbgl/nav/render/nav.render.hpp"
 #include "mbgl/nav/render/nav.quad.hpp"
-#include "mbgl/nav/render/nav.shadow.hpp"
-
-#include "mbgl/nav/render/programs/nav.program.hpp"
 #include "mbgl/nav/render/programs/nav.program.ssao.hpp"
 
 #include <random>
@@ -90,103 +86,15 @@ void generate() {
 
 }
 
-void generate() {
-    kernel::generate();
-    noise::generate();
-}
-
 }
 
 
-GLuint genTexture(GLint internalformat, GLsizei width, GLsizei height, GLenum format, GLenum type) {
-    GLuint texture;
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, internalformat, width, height, 0, format, type, NULL);
-    
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    
-    return texture;
-}
-
-
-namespace geo {
-
-GLuint fbo = 0;
-GLuint position = 0;
-GLuint normal = 0;
-GLuint albedo = 0;
-GLuint rboDepth = 0;
-
-GLuint shadow = 0;
-
-void generate(int width, int height) {
-    if (!fbo) glGenFramebuffers(1, &fbo);
-
-    // position color buffer
-    glDeleteTextures(1, &position);
-    position = genTexture(GL_RGB16F, width, height, GL_RGB, GL_FLOAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-    // normal color buffer
-    glDeleteTextures(1, &normal);
-    normal = genTexture(GL_RGB16F, width, height, GL_RGB, GL_FLOAT);
-
-    // color + specular color buffer
-    glDeleteTextures(1, &albedo);
-    albedo = genTexture(GL_RGB16F, width, height, GL_RGB, GL_FLOAT);
-
-    // create and attach depth buffer (renderbuffer)
-    glDeleteRenderbuffers(1, &rboDepth);
-    glGenRenderbuffers(1, &rboDepth);
-    glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
-}
-
-void bindFbo(GLuint shadow) {
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-
-    if (geo::shadow != shadow) {
-        geo::shadow = shadow;
-
-        // color attachment
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, position, 0);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normal, 0);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, albedo, 0);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, shadow, 0);
-        
-        GLenum attachments[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
-        glDrawBuffers(4, attachments);
-        
-        // depth attachment
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
-    }
-
-}
-
-}
-
+GLuint genTexture(GLint internalformat, GLsizei width, GLsizei height, GLenum format, GLenum type);
 
 namespace ssao {
 
 GLuint fbo = 0;
 GLuint buffer = 0;
-
-void generate(int width, int height) {
-    if (!fbo) glGenFramebuffers(1, &fbo);
-    
-    glDeleteTextures(1, &buffer);
-    buffer = genTexture(GL_RED, width, height, GL_RED, GL_FLOAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, buffer, 0);
-    glDrawBuffer(GL_COLOR_ATTACHMENT0);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
 
 GLuint program() {
     static GLuint pass = 0;
@@ -199,70 +107,35 @@ GLuint program() {
     return pass;
 }
 
-}
-
 void initResource(int width, int height) {
     static std::once_flag flag;
     std::call_once(flag, [] () {
-        sample::generate();
+        sample::kernel::generate();
+        sample::noise::generate();
     });
     
-    static int w = 0, h = 0;
-    if (w != width || h != height) {
-        w = width;
-        h = height;
-        
-        geo::generate(w, h);
-        ssao::generate(w, h);
-    }
+    if (!fbo) glGenFramebuffers(1, &fbo);
 }
 
+void bindFbo(GLuint buffer) {
+    glBindFramebuffer(GL_FRAMEBUFFER, ssao::fbo);
 
-namespace geo {
+    if (ssao::buffer != buffer) {
+        ssao::buffer = buffer;
 
-GLint renderGeoAndShadow(int width, int height, GLint shadowDepth, std::function<bool()> renderCallback, std::function<void()> bindScreen) {
-    initResource(width, height);
-
-    if (bindScreen) {
-        bindScreen();
-    } else {
-        geo::bindFbo(ssao::buffer);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssao::buffer, 0);
+        glDrawBuffer(GL_COLOR_ATTACHMENT0);
     }
-
-    glClearColor(0, 0, 0, 0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // 清空所有颜色附件
-    
-    glDisable(GL_BLEND);
-    
-    static GLint program = 0;
-    if (program) {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, shadowDepth);
-        static programs::UniformLocation u0(program, "u_shadow_map");
-        glUniform1i(u0, 0);
-
-        static programs::UniformLocation u1(program, "u_shadow_offset");
-        glUniform2f(u1, .5 / nav::shadow::depth::width, .5 / nav::shadow::depth::height);
-    }
-    
-    if (renderCallback()) {
-        glGetIntegerv(GL_CURRENT_PROGRAM, &program);
-    }
-    
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    
-    return ssao::buffer;
-}
 
 }
 
-namespace ssao {
-
-GLint render(int width, int height, float zoom, const Mat4& projMatrix, std::function<void()> bindScreen) {
+void render(int width, int height,
+            GLuint renderBuffer, const std::array<GLuint, 3>& gbuffer,
+            float zoom, const Mat4& projMatrix, std::function<void()> bindScreen) {
     initResource(width, height);
     
     if (bindScreen) bindScreen();
-    else glBindFramebuffer(GL_FRAMEBUFFER, ssao::fbo);
+    else bindFbo(renderBuffer);
 
     const GLint program = ssao::program();
     glUseProgram(program);
@@ -305,17 +178,17 @@ GLint render(int width, int height, float zoom, const Mat4& projMatrix, std::fun
 
     {
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, geo::position);
+        glBindTexture(GL_TEXTURE_2D, gbuffer[0]);
         static programs::UniformLocation u0(program, "u_position");
         glUniform1i(u0, 0);
         
         glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, geo::normal);
+        glBindTexture(GL_TEXTURE_2D, gbuffer[1]);
         static programs::UniformLocation u1(program, "u_normal");
         glUniform1i(u1, 1);
         
         glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, geo::albedo);
+        glBindTexture(GL_TEXTURE_2D, gbuffer[2]);
         static programs::UniformLocation u2(program, "u_albedo");
         glUniform1i(u2, 2);
         
@@ -328,8 +201,6 @@ GLint render(int width, int height, float zoom, const Mat4& projMatrix, std::fun
     nav::quad::render(program);
     
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    return ssao::buffer;
 }
 
 }
