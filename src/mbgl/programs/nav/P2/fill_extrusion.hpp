@@ -98,7 +98,7 @@ struct FillExtrusionProgram {
     
             // Specular Lighting
             const float indensity = .3; // 强度
-            const float shininess = .1; // 反射率
+            const float shininess = .001; // 反射率
             vec3 verPos = (u_model_matrix * pos).xyz;
             vec3 viewDir = normalize(u_camera_pos - verPos);
             vec3 reflectDir = reflect(lightDir, norm); // 反射向量

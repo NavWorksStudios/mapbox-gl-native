@@ -1,4 +1,5 @@
-#include <mbgl/programs/nav_fill_extrusion_ssao_program.hpp>
+
+#include <mbgl/programs/nav/deferred/ssao_fill_extrusion_program.hpp>
 #include <mbgl/renderer/image_atlas.hpp>
 #include <mbgl/renderer/cross_faded_property_evaluator.hpp>
 #include <mbgl/tile/tile_id.hpp>

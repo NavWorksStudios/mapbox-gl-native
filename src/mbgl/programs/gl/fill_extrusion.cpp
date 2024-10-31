@@ -6,8 +6,8 @@
 #include <mbgl/gl/program.hpp>
 
 #include "mbgl/nav/nav.theme.hpp"
-#include <mbgl/programs/gl/nav_fill_extrusion_P1.hpp>
-#include <mbgl/programs/gl/nav_fill_extrusion_P2.hpp>
+#include <mbgl/programs/nav/P1/fill_extrusion.hpp>
+#include <mbgl/programs/nav/P2/fill_extrusion.hpp>
 
 namespace mbgl {
 namespace programs {
