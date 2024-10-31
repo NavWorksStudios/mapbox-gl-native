@@ -121,17 +121,10 @@ void render(float zoom, mbgl::mat4 projMatrix,
             nav::quad::renderMono(w, h, shadowDepth, fboBinder);
             
             x += width + 20;
-            nav::quad::renderMono(w, h, renderBuffer, fboBinder);
-            
-            
-            x = w - width * 3 - 60;
-            nav::quad::render(w, h, gbuffer[0], fboBinder);
-            
-            x += width + 20;
             nav::quad::render(w, h, gbuffer[1], fboBinder);
             
             x += width + 20;
-            nav::quad::render(w, h, gbuffer[2], fboBinder);
+            nav::quad::renderMono(w, h, renderBuffer, fboBinder);
             
             glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
         }

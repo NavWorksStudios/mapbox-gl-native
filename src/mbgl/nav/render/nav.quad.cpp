@@ -49,48 +49,24 @@ void render(GLint program) {
 }
 
 
-GLint standardProgram() {
-    static GLint pass = 0;
-    if (!pass) {
-        pass =
-        createProgram(compileShader(GL_VERTEX_SHADER, nav::programs::quad::vertexShader()),
-                      compileShader(GL_FRAGMENT_SHADER, nav::programs::quad::standardFragmentShader()));
+template <const char*(*Frag)()>
+GLint getProgram() {
+    static GLint program = 0;
+    if (!program) {
+        GLuint vs = compileShader(GL_VERTEX_SHADER, nav::programs::quad::vertexShader());
+        GLuint fs = compileShader(GL_FRAGMENT_SHADER, Frag());
+        program = createProgram(vs, fs);
     }
-    
-    return pass;
+    return program;
 }
 
-GLint monoProgram() {
-    static GLint pass = 0;
-    if (!pass) {
-        pass =
-        createProgram(compileShader(GL_VERTEX_SHADER, nav::programs::quad::vertexShader()),
-                      compileShader(GL_FRAGMENT_SHADER, nav::programs::quad::monoFragmentShader()));
-    }
-    
-    return pass;
-}
-
-GLint blurProgram() {
-    static GLint pass = 0;
-    if (!pass) {
-        pass =
-        createProgram(compileShader(GL_VERTEX_SHADER, nav::programs::quad::vertexShader()),
-                      compileShader(GL_FRAGMENT_SHADER, nav::programs::quad::blurFragmentShader()));
-    }
-    
-    return pass;
-}
-
-
-void render(int width, int height, GLint buffer, std::function<void()> bindScreen) {
+void doRender(GLint program, int width, int height, GLint buffer, std::function<void()> bindScreen) {
     
     if (bindScreen) bindScreen();
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    GLint program = standardProgram();
     glUseProgram(program);
     
     glActiveTexture(GL_TEXTURE0);
@@ -102,51 +78,26 @@ void render(int width, int height, GLint buffer, std::function<void()> bindScree
     
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+}
+
+void render(int width, int height, GLint buffer, std::function<void()> bindScreen) {
+    GLint program = getProgram<nav::programs::quad::standardFragmentShader>();
+    doRender(program, width, height, buffer, bindScreen);
 }
 
 void renderMono(int width, int height, GLint buffer, std::function<void()> bindScreen) {
-    
-    if (bindScreen) bindScreen();
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    GLint program = monoProgram();
-    glUseProgram(program);
-    
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, buffer);
-    static programs::UniformLocation u0(program, "u_buffer");
-    glUniform1i(u0, 0);
-
-    render(program);
-    
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
+    GLint program = getProgram<nav::programs::quad::monoFragmentShader>();
+    doRender(program, width, height, buffer, bindScreen);
 }
 
 void renderBlur(int width, int height, GLint buffer, std::function<void()> bindScreen) {
+    GLint program = getProgram<nav::programs::quad::blurFragmentShader>();
     
-    if (bindScreen) bindScreen();
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    GLint program = blurProgram();
     glUseProgram(program);
-    
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, buffer);
-    static programs::UniformLocation u0(program, "u_buffer");
-    glUniform1i(u0, 0);
-    
     static programs::UniformLocation u2(program, "u_offset");
-    glUniform2f(u2, 1.1 / width, 1.1 / height);
+    glUniform2f(u2, 1. / width, 1. / height);
 
-    render(program);
-    
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
+    doRender(program, width, height, buffer, bindScreen);
 }
 
 }

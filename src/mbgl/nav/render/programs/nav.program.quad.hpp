@@ -10,7 +10,6 @@ static const char* vertexShader() { return R"(
 
 attribute vec3 aPos;
 attribute vec2 aTexCoords;
-
 varying vec2 TexCoords;
 
 void main() {
@@ -22,12 +21,12 @@ void main() {
 
 static const char* standardFragmentShader() { return R"(
 
-varying vec2 TexCoords;
 uniform sampler2D u_buffer;
+varying vec2 TexCoords;
 
 void main() {
     gl_FragColor = texture2D(u_buffer, TexCoords);
-    gl_FragColor.a = .7;
+    gl_FragColor.a = .8;
 }
 
 )"; }
@@ -35,12 +34,12 @@ void main() {
 
 static const char* monoFragmentShader() { return R"(
 
-varying vec2 TexCoords;
 uniform sampler2D u_buffer;
+varying vec2 TexCoords;
 
 void main() {
     float result = texture2D(u_buffer, TexCoords).r;
-    gl_FragColor = vec4(vec3(1.) * result, .7);
+    gl_FragColor = vec4(vec3(1.) * result, .8);
 }
 
 )"; }
@@ -48,10 +47,9 @@ void main() {
 
 static const char* blurFragmentShader() { return R"(
 
-varying vec2 TexCoords;
-
 uniform sampler2D u_buffer;
 uniform vec2 u_offset;
+varying vec2 TexCoords;
 
 float kawaseBlur(vec2 uv) {    
     float color = texture2D(u_buffer, uv).r;
