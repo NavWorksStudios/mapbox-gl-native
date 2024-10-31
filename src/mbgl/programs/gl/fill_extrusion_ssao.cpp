@@ -155,7 +155,7 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
             // 系数调整方法：
             // 先将threshold置0，调整transform到最大值，使阴影刚好完全(越小越全)。再调整threshold收边
             const float transform = 0.001; // for cullface back
-            const float threshold = 0.001;
+            const float threshold = 0.0015;
             float bias = max(diff * transform, threshold);
 
             float shadow = 0.0;

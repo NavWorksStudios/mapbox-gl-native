@@ -89,12 +89,12 @@ struct FillExtrusionProgram {
             }
     
             // Ambient Lighting
-            const float ambient = .5;
+            const float ambient = .6;
     
             // Diffuse Lighting
             vec3 norm = normalize(normal);
             vec3 lightDir = normalize(vec3(gl_Position) - u_lightpos);
-            float diffuse = max(0., dot(norm, lightDir)) * .5;
+            float diffuse = max(0., dot(norm, lightDir)) * .6;
     
             // Specular Lighting
             const float indensity = .3; // 强度
