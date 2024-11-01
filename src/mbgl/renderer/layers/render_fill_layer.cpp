@@ -42,6 +42,7 @@ RenderFillLayer::RenderFillLayer(Immutable<style::FillLayer::Impl> _impl)
 
     enableShaderPalette = nav::palette::enableLayerMonoPalette(getID());
     enableWaterEffect = (getID() == "water");
+    enableGrassEffect = (getID() == "national-park");
 }
 
 RenderFillLayer::~RenderFillLayer() = default;
@@ -171,11 +172,15 @@ void RenderFillLayer::render(PaintParameters& parameters) {
             if (bucket.triangleIndexBuffer && parameters.pass == fillRenderPass) {
                 const auto depthMaskType = parameters.pass == RenderPass::Opaque ? gfx::DepthMaskType::ReadWrite : gfx::DepthMaskType::ReadOnly;
                 draw(parameters.programs.getFillLayerPrograms().fill,
-                     gfx::Triangles(),
-                     parameters.depthModeForSublayer(1, depthMaskType),
-                     *bucket.triangleIndexBuffer,
-                     bucket.triangleSegments,
-                     FillProgram::TextureBindings{});
+                    gfx::Triangles(),
+                    parameters.depthModeForSublayer(1, depthMaskType),
+                    *bucket.triangleIndexBuffer,
+                    bucket.triangleSegments,
+                    FillProgram::TextureBindings{
+                        // #*# 添加草地或水面贴图
+//                        textures::image::Value{ tile.getIconAtlasTexture().getResource(), gfx::TextureFilterType::Linear },
+                    }
+                );
             }
 
             if (evaluated.get<FillAntialias>() && parameters.pass == RenderPass::Translucent) {

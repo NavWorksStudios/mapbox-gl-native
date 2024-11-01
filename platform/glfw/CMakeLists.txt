@@ -22,6 +22,7 @@ add_executable(
 set_property(
     SOURCE ${PROJECT_SOURCE_DIR}/platform/glfw/glfw_view.cpp
     PROPERTY COMPILE_DEFINITIONS MAPBOX_PUCK_ASSETS_PATH=\"${PROJECT_SOURCE_DIR}/platform/glfw/assets/\"
+    PROPERTY COMPILE_DEFINITIONS MAPBOX_FILL_ASSETS_PATH=\"${PROJECT_SOURCE_DIR}/platform/glfw/assets/\"
 )
 
 if(MBGL_WITH_OPENGL)

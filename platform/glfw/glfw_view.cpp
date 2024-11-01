@@ -56,6 +56,7 @@
 
 namespace {
 const std::string mbglPuckAssetsPath{MAPBOX_PUCK_ASSETS_PATH};
+const std::string mbglFillAssetsPath{MAPBOX_FILL_ASSETS_PATH};
 
 mbgl::Color premultiply(mbgl::Color c) {
     c.r *= c.a;
@@ -1229,7 +1230,7 @@ void GLFWView::run() {
         }
     };
 
-    frameTick.start(mbgl::Duration::zero(), mbgl::Milliseconds(1000 / 60), callback);
+    frameTick.start(mbgl::Duration::zero(), mbgl::Milliseconds(1000 / 10), callback);
 
 #if defined(__APPLE__)
     while (window && !glfwWindowShouldClose(window)) {
@@ -1293,10 +1294,13 @@ void GLFWView::onDidFinishLoadingStyle() {
 #if defined(MBGL_RENDER_BACKEND_OPENGL) && !defined(MBGL_LAYER_CUSTOM_DISABLE_ALL)
     puck = nullptr;
 #endif
-
+    
     if (show3DExtrusions) {
         toggle3DExtrusions(show3DExtrusions);
     }
+    
+    // add images(water & grass) after style loading finished
+    addImagesForCustomFillStyle();
 }
 
 void GLFWView::toggle3DExtrusions(bool visible) {
@@ -1404,6 +1408,15 @@ void GLFWView::toggleLocationIndicatorLayer(bool visibility) {
         routePaused = true;
     }
 #endif
+}
+
+void GLFWView::addImagesForCustomFillStyle() {
+    
+    map->getStyle().addImage(std::make_unique<mbgl::style::Image>("fill_water",
+                                                                  mbgl::decodeImage(mbgl::util::read_file(mbglFillAssetsPath + "water.jpg")), 1.0));
+    
+    map->getStyle().addImage(std::make_unique<mbgl::style::Image>("fill_grass",
+                                                                  mbgl::decodeImage(mbgl::util::read_file(mbglFillAssetsPath + "grass.jpg")), 1.0));
 }
 
 using Nanoseconds = std::chrono::nanoseconds;

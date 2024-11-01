@@ -105,6 +105,7 @@ private:
     void updateAnimatedAnnotations();
     void toggleCustomSource();
     void toggleLocationIndicatorLayer(bool visibility);
+    void addImagesForCustomFillStyle();
     
     // test route
     mbgl::Point<int64_t> latLonToTileCoodinates(const mbgl::Point<double>& point, const mbgl::CanonicalTileID& canonical);

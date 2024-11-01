@@ -82,6 +82,8 @@ MBGL_DEFINE_UNIFORM_SCALAR(Color, palette_color);
 MBGL_DEFINE_UNIFORM_SCALAR(float, palette_lightness);
 MBGL_DEFINE_UNIFORM_SCALAR(float, water_wave);
 MBGL_DEFINE_UNIFORM_SCALAR(float, water_data_z_scale);
+MBGL_DEFINE_UNIFORM_SCALAR(float, water_texture);
+MBGL_DEFINE_UNIFORM_SCALAR(float, grass_texture);
 
 } // namespace uniforms
 } // namespace mbgl

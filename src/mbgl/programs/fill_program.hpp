@@ -23,14 +23,15 @@ using FillLayoutAttributes = PositionOnlyLayoutAttributes;
 using FillUniforms = TypeList<
     uniforms::matrix,
     uniforms::world,
-    uniforms::spotlight,
-    uniforms::render_time,
-    uniforms::palette_color,
-    uniforms::palette_lightness,
-    uniforms::water_wave,
-    uniforms::water_data_z_scale,
-    uniforms::clip_region,
-    uniforms::focus_region>;
+    
+    uniforms::spotlight,                // 五彩地面开启标示
+    uniforms::render_time,              // 渲染周期时间
+    uniforms::palette_color,            // 调色板基色
+    uniforms::palette_lightness,        // 调色板参数
+    uniforms::water_wave,               // 水波纹参数
+    uniforms::water_data_z_scale,       // 水波纹参数
+    uniforms::clip_region,              // 视口远端切割范围
+    uniforms::focus_region>;            // 探照灯范围
 
 using FillPatternUniforms = TypeList<
     uniforms::matrix,
