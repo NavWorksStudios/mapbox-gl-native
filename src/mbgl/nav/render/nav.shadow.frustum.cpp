@@ -215,15 +215,15 @@ void Frumstum::update(const mbgl::TransformState& state, const std::vector<mbgl:
         {
             // zoom-15 z(0)
             // 俯视 p(0) -> 视野100%
-            // 平视 p(1) -> 视野20%
+            // 平视 p(1) -> 视野15%
             
             // zoom-20 z(1)
             // 俯视 p(0) -> 视野100%
-            // 平视 p(1) -> 视野10%
+            // 平视 p(1) -> 视野5%
 
             const double z = fmax(0., fmin(1., (state.getZoom() - 15.) / 4.)); // (0, 1) 15-20
-            const double p = state.getPitch() / (3.141592653589793 * 70. / 180.); // (0, 1) 俯视, 平视
-            const double r = 1. - (.1 + .1 * z) * p;
+            const double p = pow(state.getPitch() / (M_PI * 70. / 180.), 2.); // (0, 1) 俯视, 平视
+            const double r = 1. - (.85 + .1 * z) * p;
             printf("I <sunlight> zoom(%lf) pitch(%lf) | z(%lf) p(%lf) r(%lf)\n", state.getZoom(), state.getPitch(), z, p, r);
 
             static auto shrink = [] (mbgl::vec3& near, mbgl::vec3& far, float shrink) {
