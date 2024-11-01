@@ -3,8 +3,6 @@
 #include <mbgl/gfx/render_pass.hpp>
 #include <mbgl/gfx/renderer_backend.hpp>
 #include <mbgl/programs/fill_extrusion_program.hpp>
-#include <mbgl/programs/nav_fill_extrusion_ssao_program.hpp>
-#include <mbgl/programs/nav_fill_extrusion_shadow_program.hpp>
 #include <mbgl/programs/programs.hpp>
 #include <mbgl/renderer/buckets/fill_extrusion_bucket.hpp>
 #include <mbgl/renderer/image_manager.hpp>
@@ -21,6 +19,9 @@
 
 #include "mbgl/nav/nav.theme.hpp"
 #include "mbgl/nav/render/nav.shadow.hpp"
+
+#include <mbgl/programs/nav/deferred/ssao_fill_extrusion_program.hpp>
+#include <mbgl/programs/nav/deferred/shadow_fill_extrusion_program.hpp>
 
 
 namespace mbgl {

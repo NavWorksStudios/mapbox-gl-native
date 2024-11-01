@@ -27,7 +27,7 @@ struct Source {
 #define LINE
 #define FILL
 #define SYMBOL
-#define SYMBOL_ARROW
+#define TRAFFIC_SIGN
 #define EXTRUSION
 #define ROUTE_LINE
 
@@ -76,7 +76,7 @@ static const std::unordered_map<std::string, Source> layerIds = {
     { "tunnel-motorway-trunk-navigation", { "line", "composite", "road", } },
 #endif
     
-#ifdef SYMBOL_ARROW
+#ifdef TRAFFIC_SIGN
     { "tunnel-oneway-arrow-blue-navigation", { "symbol", "composite", "road", } },
     { "tunnel-oneway-arrow-white-navigation", { "symbol", "composite", "road", } },
 #endif
@@ -87,6 +87,7 @@ static const std::unordered_map<std::string, Source> layerIds = {
     { "road-path", { "line", "composite", "road", } },
     { "road-steps", { "line", "composite", "road", } },
     { "road-pedestrian", { "line", "composite", "road", } },
+
     { "turning-feature-outline-navigation", { "circle", "composite", "road", } },
     
     { "road-minor-case-navigation", { "line", "composite", "road", } },
@@ -106,16 +107,10 @@ static const std::unordered_map<std::string, Source> layerIds = {
     { "road-motorway-trunk-navigation", { "line", "composite", "road", } },
 #endif
     
-#ifdef SYMBOL
+#ifdef TRAFFIC_SIGN
     { "level-crossing-navigation", { "symbol", "composite", "road", } },
-#endif
-    
-#ifdef SYMBOL_ARROW
     { "road-oneway-arrow-blue-navigation", { "symbol", "composite", "road", } },
     { "road-oneway-arrow-white-navigation", { "symbol", "composite", "road", } },
-#endif
-    
-#ifdef SYMBOL
     { "turning-feature-navigation", { "circle", "composite", "road", } },
     { "crosswalks", { "symbol", "composite", "structure", } }, // 斑马线
 #endif
@@ -148,7 +143,7 @@ static const std::unordered_map<std::string, Source> layerIds = {
     { "bridge-motorway-trunk-2-navigation", { "line", "composite", "road", } },
 #endif
     
-#ifdef SYMBOL_ARROW
+#ifdef TRAFFIC_SIGN
     { "bridge-oneway-arrow-blue-navigation", { "symbol", "composite", "road", } },
     { "bridge-oneway-arrow-white-navigation", { "symbol", "composite", "road", } },
 #endif
@@ -209,13 +204,9 @@ static const std::unordered_map<std::string, Source> layerIds = {
     
 };
 
-bool accepted(const std::string& id) {
-    return layerIds.find(id) != layerIds.end();
 }
 
-}
-
-namespace street {
+namespace fluorite {
 
 static const std::unordered_map<std::string, Source> layerIds = {
 
@@ -229,17 +220,21 @@ static const std::unordered_map<std::string, Source> layerIds = {
     { "landuse", { "fill", "composite", "landuse", } },
     { "hillshade", { "fill", "composite", "hillshade", } },
     { "pitch-outline", { "line", "composite", "landuse", } },
+#endif
 
 //    { "waterway-shadow", { "error", "null", "null", } },
 //    { "water-shadow", { "error", "null", "null", } },
     
+#ifdef LINE
     { "waterway", { "line", "composite", "waterway", } },
+#endif
+
+#ifdef FILL
     { "water", { "fill", "composite", "water", } },
     { "water-depth", { "fill", "composite", "depth", } },
     
     { "land-structure-polygon", { "fill", "composite", "structure", } },
     { "land-structure-line", { "line", "composite", "structure", } },
-    
 #endif
     
 //    { "aeroway-polygon", { "fill", "composite", "aeroway", } },
@@ -263,10 +258,13 @@ static const std::unordered_map<std::string, Source> layerIds = {
     { "tunnel-secondary-tertiary-navigation", { "line", "composite", "road", } },
     { "tunnel-primary-navigation", { "line", "composite", "road", } },
     { "tunnel-motorway-trunk-navigation", { "line", "composite", "road", } },
+#endif
+
+#ifdef TRAFFIC_SIGN
     { "tunnel-oneway-arrow-blue-navigation", { "symbol", "composite", "road", } },
     { "tunnel-oneway-arrow-white-navigation", { "symbol", "composite", "road", } },
 #endif
-    
+
 #ifdef FILL
     { "road-pedestrian-polygon-fill", { "fill", "composite", "road", } },
     { "road-pedestrian-polygon-pattern", { "fill", "composite", "road", } },
@@ -280,7 +278,9 @@ static const std::unordered_map<std::string, Source> layerIds = {
     { "road-steps", { "line", "composite", "road", } },
     { "road-pedestrian", { "line", "composite", "road", } },
     { "golf-hole-line", { "line", "composite", "road", } },
+    
     { "turning-feature-outline-navigation", { "circle", "composite", "road", } },
+    
     { "road-minor-case-navigation", { "line", "composite", "road", } },
     { "road-street-case-navigation", { "line", "composite", "road", } },
     { "road-secondary-tertiary-case-navigation", { "line", "composite", "road", } },
@@ -296,18 +296,22 @@ static const std::unordered_map<std::string, Source> layerIds = {
     { "road-primary-navigation", { "line", "composite", "road", } },
     { "road-motorway-trunk-case-low-navigation", { "line", "composite", "road", } },
     { "road-motorway-trunk-navigation", { "line", "composite", "road", } },
+#endif
+
+#ifdef TRAFFIC_SIGN
     { "level-crossing-navigation", { "symbol", "composite", "road", } },
     { "road-oneway-arrow-blue-navigation", { "symbol", "composite", "road", } },
     { "road-oneway-arrow-white-navigation", { "symbol", "composite", "road", } },
     { "turning-feature-navigation", { "circle", "composite", "road", } },
     { "crosswalks", { "symbol", "composite", "structure", } },
+#endif
+
+#ifdef LINE
     { "ferry", { "line", "composite", "road", } },
     { "ferry-auto", { "line", "composite", "road", } },
     { "road-rail", { "line", "composite", "road", } },
     { "road-rail-tracks", { "line", "composite", "road", } },
-#endif
-    
-#ifdef LINE
+
     { "bridge-path-bg", { "line", "composite", "road", } },
     { "bridge-steps-bg", { "line", "composite", "road", } },
     { "bridge-pedestrian-case", { "line", "composite", "road", } },
@@ -332,15 +336,24 @@ static const std::unordered_map<std::string, Source> layerIds = {
     { "bridge-motorway-trunk-2-case-navigation", { "line", "composite", "road", } },
     { "bridge-major-link-2-navigation", { "line", "composite", "road", } },
     { "bridge-motorway-trunk-2-navigation", { "line", "composite", "road", } },
+#endif
+    
+#ifdef TRAFFIC_SIGN
     { "bridge-oneway-arrow-blue-navigation", { "symbol", "composite", "road", } },
     { "bridge-oneway-arrow-white-navigation", { "symbol", "composite", "road", } },
-    { "bridge-rail", { "line", "composite", "road", } },
-    { "bridge-rail-tracks", { "line", "composite", "road", } },
 #endif
     
 #ifdef LINE
+    { "bridge-rail", { "line", "composite", "road", } },
+    { "bridge-rail-tracks", { "line", "composite", "road", } },
     { "aerialway", { "line", "composite", "road", } },
+#endif
+    
+#ifdef EXTRUSION
     { "building-extrusion", { "fill-extrusion", "composite", "building", } },
+#endif
+    
+#ifdef LINE
     { "admin-1-boundary-bg", { "line", "composite", "admin", } },
     { "admin-0-boundary-bg", { "line", "composite", "admin", } },
     { "admin-1-boundary", { "line", "composite", "admin", } },
@@ -377,60 +390,57 @@ static const std::unordered_map<std::string, Source> layerIds = {
 
 };
 
-bool accepted(const std::string& id) {
-    return layerIds.find(id) != layerIds.end();
 }
 
+const auto& layerIds() {
+    return mono::layerIds;
+    return fluorite::layerIds;
 }
 
 bool filter(const std::string& id) {
-//    return true;
-    
-    if (mono::accepted(id)) {
-//    if (street::accepted(id)) {
-        return true;
-    } else {
-        return false;
-    }
+    return layerIds().find(id) != layerIds().end();
 }
 
 static std::unordered_map<std::string, float> layerHeights = {
-    { "bridge-path", 2.0 },
-    { "bridge-steps", 2.0 },
-    { "bridge-pedestrian", 2.0 },
+    { "bridge-path", 1.0 },
+    { "bridge-steps", 1.0 },
+    { "bridge-pedestrian", 1.0 },
 
-    { "bridge-minor-case-navigation", 3.0 },
-    { "bridge-minor-navigation", 3.0 },
+    { "bridge-minor-case-navigation", 1.5 },
+    { "bridge-minor-navigation", 1.5 },
 
-    { "bridge-secondary-tertiary-case-navigation", 3.0 },
-    { "bridge-secondary-tertiary-navigation", 3.0 },
+    { "bridge-secondary-tertiary-case-navigation", 1.5 },
+    { "bridge-secondary-tertiary-navigation", 1.5 },
 
-    { "bridge-street-case-navigation", 3.5 },
-    { "bridge-street-navigation", 3.5 },
+    { "bridge-street-case-navigation", 1.75 },
+    { "bridge-street-navigation", 1.75 },
 
-    { "bridge-primary-case-navigation", 3.5 },
-    { "bridge-primary-navigation", 3.5 },
+    { "bridge-primary-case-navigation", 1.75 },
+    { "bridge-primary-navigation", 1.75 },
 
-    { "bridge-major-link-case-navigation", 4.0 },
-    { "bridge-major-link-navigation", 4.0 },
+    { "bridge-major-link-case-navigation", 2.0 },
+    { "bridge-major-link-navigation", 2.0 },
 
-    { "bridge-motorway-trunk-case-navigation", 4.5 },
-    { "bridge-motorway-trunk-navigation", 4.5 },
+    { "bridge-motorway-trunk-case-navigation", 2.25 },
+    { "bridge-motorway-trunk-navigation", 2.25 },
 
-    { "bridge-major-link-2-case-navigation", 4.5 },
-    { "bridge-major-link-2-navigation", 4.5 },
+    { "bridge-major-link-2-case-navigation", 2.25 },
+    { "bridge-major-link-2-navigation", 2.25 },
 
-    { "bridge-motorway-trunk-2-case-navigation", 5.0 },
-    { "bridge-motorway-trunk-2-navigation", 5.0 },
+    { "bridge-motorway-trunk-2-case-navigation", 2.5 },
+    { "bridge-motorway-trunk-2-navigation", 2.5 },
 
-    { "bridge-rail-bg-white", 5.5 },
-    { "bridge-rail", 5.5 },
+    { "bridge-rail-bg-white", 2.75 },
+    { "bridge-rail", 2.75 },
 };
 
 float getHeight(const std::string& layerId) {
-    return 0;
-//    auto it = layerHeights.find(layerId);
-//    return it == layerHeights.end() ? 0 : it->second;
+    if (layerId.find("road") >= 0) return 2.;
+    
+    auto it = layerHeights.find(layerId);
+    if (it != layerHeights.end()) return it->second + 2.;
+    
+    return 0.;
 }
 
 }

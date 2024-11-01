@@ -187,10 +187,10 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
             return RenderFillExtrusionLayer::renderDeferredGeoBuffer(parameters);
         };
         
-        nav::renderer::deferred::render(parameters.state.getZoom(),
-                                        parameters.state.getViewToClipMatrix(),
-                                        shadowRenderDelegate,
-                                        geoRenderDelegate);
+        nav::renderer::render(parameters.state.getZoom(),
+                              parameters.state.getViewToClipMatrix(),
+                              shadowRenderDelegate,
+                              geoRenderDelegate);
     }
     
     // - ANNOTATION PASS --------------------------------------------------------------------------

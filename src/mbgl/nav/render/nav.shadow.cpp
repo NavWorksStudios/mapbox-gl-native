@@ -11,7 +11,7 @@
 #include "mbgl/nav/render/shaders.h"
 #include "mbgl/nav/render/programs/nav.program.hpp"
 
-#include <mbgl/programs/nav_fill_extrusion_ssao_program.hpp>
+#include <mbgl/programs/nav/deferred/ssao_fill_extrusion_program.hpp>
 
 
 static auto convertVec3 = [] (mbgl::vec3 v) {

@@ -89,26 +89,26 @@ struct FillExtrusionProgram {
             }
     
             // Ambient Lighting
-            const float ambient = .5;
+            const float ambient = .2;
     
             // Diffuse Lighting
             vec3 norm = normalize(normal);
             vec3 lightDir = normalize(vec3(gl_Position) - u_lightpos);
-            float diffuse = max(0., dot(norm, lightDir)) * .5;
+            float diffuse = max(0., dot(norm, lightDir)) * .6;
     
             // Specular Lighting
-            const float indensity = .3; // 强度
+            const float indensity = .2; // 强度
             const float shininess = .1; // 反射率
             vec3 verPos = (u_model_matrix * pos).xyz;
             vec3 viewDir = normalize(u_camera_pos - verPos);
             vec3 reflectDir = reflect(lightDir, norm); // 反射向量
             float specular = indensity * pow(max(0., dot(viewDir, reflectDir)), shininess); // power(max(0,dot(N,H)),shininess)
 
-            const vec3 basecolor = vec3(.97, .97, .9);
+            const vec3 basecolor = vec3(.97, .97, .92);
             const vec3 specularcolor = vec3(.9, .94, .94);
     
             v_color = color * vec4(u_lightcolor * basecolor * (ambient + diffuse) + specularcolor * (specular), 1.) * u_opacity;
-            v_color.a *= .95;
+            v_color.a *= .5;
         }
         
     )"; }
