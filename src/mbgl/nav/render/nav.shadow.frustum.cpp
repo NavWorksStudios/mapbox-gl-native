@@ -10,7 +10,7 @@
 #include <mbgl/util/mat4.hpp>
 #include <mbgl/util/bounding_volumes.hpp>
 
-#include <limits>
+#include <array>
 
 
 namespace nav {
@@ -55,19 +55,89 @@ mbgl::vec3 getIntersect(const Plane& plane, const Linesegment& line) {
     return intersect;
 }
 
+
+void print(const mbgl::vec3* projection) {
+    printf("DynamicView : (%8.2lf, %8.2lf, %8.2lf) (%8.2lf, %8.2lf, %8.2lf) (%8.2lf, %8.2lf, %8.2lf) (%8.2lf, %8.2lf, %8.2lf) \n",
+           projection[0][0], projection[0][1], projection[0][2],
+           projection[1][0], projection[1][1], projection[1][2],
+           projection[2][0], projection[2][1], projection[2][2],
+           projection[3][0], projection[3][1], projection[3][2]);
+};
+
+void print(const char* name, const frustum::ortho::AABB& aabb) {
+    nav::log::i("sunlight", "%s min(%8.2lf, %8.2lf, %8.2lf) max(%8.2lf, %8.2lf, %8.2lf)", name,
+                aabb.min[0], aabb.min[1], aabb.min[2],
+                aabb.max[0], aabb.max[1], aabb.max[2]);
+}
+
 namespace frustum {
 
 namespace ortho {
 
 void AABB::invalidate() {
-    const double MAX = std::numeric_limits<double>::max();
-    min = {  MAX, MAX, MAX, };
-    max = { -MAX, -MAX, -MAX, };
+    min = { NAN, };
+    max = { NAN, };
 }
 
-template <int MIN>
-float height(float baseZ, float zoom) {
-    return baseZ * pow(2, fmax(0, zoom - MIN));
+bool AABB::valid() const {
+    if (std::isnan(min[0]) ||
+        std::isnan(min[1]) ||
+        std::isnan(min[2]) ||
+        std::isnan(max[0]) ||
+        std::isnan(max[1]) ||
+        std::isnan(max[2])) return false;
+
+    return
+    min[0] <= max[0] &&
+    min[1] <= max[1] &&
+    min[2] <= max[2];
+}
+
+void AABB::include(double x, double y, double z) {
+    min[0] = std::isnan(min[0]) ? x : fmin(min[0], x);
+    min[1] = std::isnan(min[1]) ? y : fmin(min[1], y);
+    min[2] = std::isnan(min[2]) ? z : fmin(min[2], z);
+
+    max[0] = std::isnan(max[0]) ? x : fmax(max[0], x);
+    max[1] = std::isnan(max[1]) ? y : fmax(max[1], y);
+    max[2] = std::isnan(max[2]) ? z : fmax(max[2], z);
+};
+
+AABB AABB::intersect(const AABB& aabb) const {
+    AABB intersection;
+
+    intersection.min = {
+        fmax(min[0], aabb.min[0]),
+        fmax(min[1], aabb.min[1]),
+        fmax(min[2], aabb.min[2]),
+    };
+    
+    intersection.max = {
+        fmin(max[0], aabb.max[0]),
+        fmin(max[1], aabb.max[1]),
+        fmin(max[2], aabb.max[2]),
+    };
+    
+    return intersection;
+}
+
+
+namespace height {
+
+enum Format {
+    H8192 = 3000,
+    H512 = int(H8192 * mbgl::util::tileSize / mbgl::util::EXTENT),
+};
+
+template <Format H> float get(float zoom) {
+#if 0
+    const int MIN_Z = 15;
+    return H * pow(2, fmax(0, fmin(zoom, 17.) - MIN_Z));
+#else
+    return H;
+#endif
+}
+
 }
 
 void Frumstum::update(const mbgl::TransformState& state, const std::vector<mbgl::OverscaledTileID>& tileIDs) {
@@ -75,89 +145,72 @@ void Frumstum::update(const mbgl::TransformState& state, const std::vector<mbgl:
     
     const auto& lightViewMatrix = state.getSunlightWorldToViewMatrix();
     
-    const float H_Z15_8192 = 5000.;
-    const float H_Z15_512 = mbgl::util::tileSize * H_Z15_8192 / mbgl::util::EXTENT;
-    
     // 可见楼块tile在光照空间的AABB
-    AABB tileAABB;
+    tileAABB.invalidate();
     {
         // 计算最小外接
         for (const auto& tile : tileIDs) {
             // model pos
-            const double h = height<15>(H_Z15_8192, tile.canonical.z);
+            const double h = height::get<height::H8192>(tile.canonical.z);
             const mbgl::vec4 envelope[8] = {
                 { 0, 0, 0, 1 },
                 { 0, mbgl::util::EXTENT, 0, 1 },
                 { mbgl::util::EXTENT, 0, 0, 1 },
                 { mbgl::util::EXTENT, mbgl::util::EXTENT, 0, 1 },
 
-                { 0, 0, H_Z15_8192, 1 },
-                { 0, mbgl::util::EXTENT, H_Z15_8192, 1 },
-                { mbgl::util::EXTENT, 0, H_Z15_8192, 1 },
-                { mbgl::util::EXTENT, mbgl::util::EXTENT, H_Z15_8192, 1 },
+                { 0, 0, h, 1 },
+                { 0, mbgl::util::EXTENT, h, 1 },
+                { mbgl::util::EXTENT, 0, h, 1 },
+                { mbgl::util::EXTENT, mbgl::util::EXTENT, h, 1 },
             };
             
+            // model to world
             mbgl::mat4 modelmatrix;
             state.matrixFor(modelmatrix, tile.toUnwrapped());
 
             for (int i=0; i<8; i++) {
-                mbgl::vec4 pos = envelope[i];
-                mbgl::matrix::transformMat4(pos, pos, modelmatrix); // to world space
-                mbgl::matrix::transformMat4(pos, pos, lightViewMatrix); // to light view space
-                
-                const double x = pos[0];
-                const double y = pos[1];
-                const double z = -pos[2];
-                
-                auto& min = tileAABB.min;
-                min[0] = fmin(min[0], x);
-                min[1] = fmin(min[1], y);
-                min[2] = fmin(min[2], z);
-                
-                auto& max = tileAABB.max;
-                max[0] = fmax(max[0], x);
-                max[1] = fmax(max[1], y);
-                max[2] = fmax(max[2], z);
+                mbgl::vec4 v = envelope[i];
+                mbgl::matrix::transformMat4(v, v, modelmatrix); // to world space
+                mbgl::matrix::transformMat4(v, v, lightViewMatrix); // to light view space
+                tileAABB.include(v[0], v[1], -v[2]);
             }
         }
-        
-        nav::log::i("sunlight", "tile min(%8.2lf, %8.2lf, %8.2lf) max(%8.2lf, %8.2lf, %8.2lf) %d",
-                    tileAABB.min[0], tileAABB.min[1], tileAABB.min[2],
-                    tileAABB.max[0], tileAABB.max[1], tileAABB.max[2],
-                    tileIDs.size());
+
+        print("tile", tileAABB);
     }
     
     // 可见地面在光照空间的AABB
-    AABB groundAABB;
+    groundAABB.invalidate();
     {
         // 构造主相机视锥体
         const auto worldSize = mbgl::Projection::worldSize(state.getScale()) / mbgl::util::tileSize;
         const auto flippedY = state.getViewportMode() == mbgl::ViewportMode::FlippedY;
         const auto frustum = mbgl::util::Frustum::fromInvProjMatrix(state.getInvProjectionMatrix(), worldSize, state.getZoom(), flippedY);
 
-//            camera
-//              A                   //             far
-//            near                  //  [0] ================== [1]
-//            /  |                  //      \                /
-//           /   |                  //     0 \______________/ 1
-//          /    |                  //        \            /
-//         /     |                  //         \__________/
-//     ___/======|_______           //      [2]            [3]
-//  top  /       |  bottom          //             near
-//          far
-
         // 计算主相机视锥体与地面交点
-        const auto& frustumPos = frustum.getPoints();
+        enum { near_tl = 0, near_tr = 1, near_br = 2, near_bl = 3,
+               far_tl = 4, far_tr = 5, far_br = 6, far_bl = 7, };
+        const auto& points = frustum.getPoints();
         const Plane ground = { { 0, 0, 1 }, 0 };
-        const double h = height<15>(H_Z15_512, state.getZoom());
+        
+        //            camera
+        //              A                                far
+        //            near                 tl [0] ================== [1] tr
+        //            /  |                        \                /
+        //           /   |                       0 \______________/ 1
+        //          /    |                          \            /
+        //         /     |                           \__________/
+        //     ___/======|_______              bl [3]            [2] br
+        //  top  /       |  bottom                       near
+        //          far
         
         mbgl::vec3 projection[4] = {
-            getIntersect(ground, { frustumPos[0], frustumPos[4] }),
-            getIntersect(ground, { frustumPos[1], frustumPos[5] }),
-            getIntersect(ground, { frustumPos[2], frustumPos[6] }),
-            getIntersect(ground, { frustumPos[3], frustumPos[7] }),
+            getIntersect(ground, { points[near_tl], points[far_tl] }), // [0]
+            getIntersect(ground, { points[near_tr], points[far_tr] }), // [1]
+            getIntersect(ground, { points[near_br], points[far_br] }), // [2]
+            getIntersect(ground, { points[near_bl], points[far_bl] }), // [3]
         };
-        
+
         // 动态视野 (pitch, zoom)
         {
             // zoom-15 z(0)
@@ -171,69 +224,46 @@ void Frumstum::update(const mbgl::TransformState& state, const std::vector<mbgl:
             const double z = fmax(0., fmin(1., (state.getZoom() - 15.) / 4.)); // (0, 1) 15-20
             const double p = state.getPitch() / (3.141592653589793 * 70. / 180.); // (0, 1) 俯视, 平视
             const double r = 1. - (.1 + .1 * z) * p;
-            printf("DynamicView : zoom(%lf) pitch(%lf) | z(%lf) p(%lf) r(%lf)\n", state.getZoom(), state.getPitch(), z, p, r);
+            printf("I <sunlight> zoom(%lf) pitch(%lf) | z(%lf) p(%lf) r(%lf)\n", state.getZoom(), state.getPitch(), z, p, r);
 
-            auto& p0 = projection[0];
-            auto& p2 = projection[2];
-            p0[0] = p2[0] + (p0[0] - p2[0]) * r; // x
-            p0[1] = p2[1] + (p0[1] - p2[1]) * r; // y
-
-            auto& p1 = projection[1];
-            auto& p3 = projection[3];
-            p1[0] = p3[0] + (p1[0] - p3[0]) * r; // x
-            p1[1] = p3[1] + (p1[1] - p3[1]) * r; // y
+            static auto shrink = [] (mbgl::vec3& near, mbgl::vec3& far, float shrink) {
+                far[0] = near[0] + (far[0] - near[0]) * shrink; // x
+                far[1] = near[1] + (far[1] - near[1]) * shrink; // y
+            };
+            
+            enum { tl = 0, tr = 1, br = 2, bl = 3, };
+            shrink(projection[bl], projection[tl], r);
+            shrink(projection[br], projection[tr], r);
         }
 
         // 计算最小外接
+        const double h = height::get<height::H512>(state.getZoom());
         for (int i=0; i<4; i++) {
             const auto& p = projection[i];
-            mbgl::vec4 vertex[2] = {
-                { p[0], p[1], 0, 1 }, // vec4底
-                { p[0], p[1], H_Z15_512, 1 }, // vec4顶
+            mbgl::vec4 envelope[2] = {
+                { p[0], p[1], 0, 1 },
+                { p[0], p[1], h, 1 },
             };
             
             for (int i=0; i<2; i++) {
-                auto& v = vertex[i];
+                auto& v = envelope[i];
                 mbgl::matrix::transformMat4(v, v, lightViewMatrix); // to light view space
-                const double x = v[0];
-                const double y = v[1];
-                const double z = -v[2];
-                
-                auto& min = groundAABB.min;
-                min[0] = fmin(min[0], x);
-                min[1] = fmin(min[1], y);
-                min[2] = fmin(min[2], z);
-                
-                auto& max = groundAABB.max;
-                max[0] = fmax(max[0], x);
-                max[1] = fmax(max[1], y);
-                max[2] = fmax(max[2], z);
+                groundAABB.include(v[0], v[1], -v[2]);
             }
         }
-        
-        nav::log::i("sunlight", "proj min(%8.2lf, %8.2lf, %8.2lf) max(%8.2lf, %8.2lf, %8.2lf)",
-                    groundAABB.min[0], groundAABB.min[1], groundAABB.min[2],
-                    groundAABB.max[0], groundAABB.max[1], groundAABB.max[2]);
+
+        print("proj", groundAABB);
     }
     
     // 求tileAABB和groundAABB交集，得frustumAABB
     {
-        frustumAABB.min = {
-            fmax(tileAABB.min[0], groundAABB.min[0]),
-            fmax(tileAABB.min[1], groundAABB.min[1]),
-            fmax(tileAABB.min[2], groundAABB.min[2]),
-        };
-        
-        frustumAABB.max = {
-            fmin(tileAABB.max[0], groundAABB.max[0]),
-            fmin(tileAABB.max[1], groundAABB.max[1]),
-            fmin(tileAABB.max[2], groundAABB.max[2]),
-        };
-        
-        nav::log::i("sunlight", "frus min(%8.2lf, %8.2lf, %8.2lf) max(%8.2lf, %8.2lf, %8.2lf)",
-                    frustumAABB.min[0], frustumAABB.min[1], frustumAABB.min[2],
-                    frustumAABB.max[0], frustumAABB.max[1], frustumAABB.min[2]);
+        frustumAABB = tileAABB.intersect(groundAABB);
+        print("frus", frustumAABB);
     }
+    
+    assert(tileAABB.valid());
+    assert(groundAABB.valid());
+    assert(frustumAABB.valid());
     
 }
 

@@ -295,7 +295,7 @@ void TransformState::updateSunlightState() const {
     }
 
     const double worldSize = Projection::worldSize(scale);
-    double cameraToCenterDistance = getCameraToCenterDistance() * .01;
+    double cameraToCenterDistance = getCameraToCenterDistance();
 
     // x & y tracks the center of the map in pixels. However as rendering is done in pixel coordinates the rendering
     // origo is actually in the middle of the map (0.5 * worldSize). x&y positions have to be negated because it defines

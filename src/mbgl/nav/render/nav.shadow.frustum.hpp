@@ -23,8 +23,11 @@ namespace ortho {
  它是一个长方体，其边与坐标轴平行，这使得它在计算和存储上相对简单。
  */
 struct AABB {
-    mbgl::vec3 min = { 0 }, max = { 0 };
+    mbgl::vec3 min = { NAN }, max = { NAN };
     void invalidate();
+    bool valid() const;
+    void include(double x, double y, double z);
+    AABB intersect(const AABB& aabb) const;
 };
 
 struct Frumstum {
