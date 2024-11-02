@@ -295,7 +295,7 @@ void TransformState::updateSunlightState() const {
     }
 
     const double worldSize = Projection::worldSize(scale);
-    double cameraToCenterDistance = getSunlightToCenterDistance();
+    double cameraToCenterDistance = getCameraToCenterDistance();
 
     // x & y tracks the center of the map in pixels. However as rendering is done in pixel coordinates the rendering
     // origo is actually in the middle of the map (0.5 * worldSize). x&y positions have to be negated because it defines
@@ -304,30 +304,22 @@ void TransformState::updateSunlightState() const {
     const double dx = 0.5 * worldSize - x;
     const double dy = 0.5 * worldSize - y;
 
-    const vec3 lightNDC = {0.287499934, 1.497964621, 0.995929181};
-    const vec3 centerNDC = {dx / worldSize, dy / worldSize, 0.0};
+    // NDC - Normalized Device Coordinates
+    const vec3 lightPos = {0.287499934, 1.497964621, 0.995929181};
+    const vec3 centerPos = {dx / worldSize, dy / worldSize, 0.0};
     
     // Set camera orientation and move it to a proper distance from the map
-    _sunlightToCenterDir = vec3Sub(centerNDC, lightNDC);
-    const auto& orientation = util::Camera::orientationFromFrame(_sunlightToCenterDir, vec3{{0.0, 0.0, 1.0}});
+    _sunlightToCenterDir = vec3Sub(centerPos, lightPos);
+    const auto orientation = util::Camera::orientationFromFrame(_sunlightToCenterDir, vec3{{0.0, 0.0, 1.0}});
     sunlight.setOrientation(orientation.value());
 
     const vec3 forward = sunlight.forward();
-    const vec3 orbitPosition = {{-forward[0] * cameraToCenterDistance,
+    const vec3 orbitPosition = { -forward[0] * cameraToCenterDistance,
                                  -forward[1] * cameraToCenterDistance,
-                                 -forward[2] * cameraToCenterDistance}};
+                                 -forward[2] * cameraToCenterDistance };
 
-    vec3 lightPosition = {{dx + orbitPosition[0], dy + orbitPosition[1], orbitPosition[2]}};
-    _sunlightPosition = lightPosition;
-
-    lightPosition[0] /= worldSize;
-    lightPosition[1] /= worldSize;
-    lightPosition[2] /= worldSize;
-
-    sunlight.setPosition(lightPosition);
-    
-//    sunlight.setPosition(lightPos);
-
+    const vec3 position = { dx + orbitPosition[0], dy + orbitPosition[1], orbitPosition[2] };
+    sunlight.setPosition(vec3Scale(position, 1./worldSize));
 }
 
 void TransformState::updateStateFromCamera() {
@@ -715,10 +707,6 @@ void TransformState::setPitch(double val) {
     }
 }
 
-// #*# 0.5参数待调整
-float TransformState::getSunlightToCenterDistance() const {
-    return 0.5 * size.height / std::tan(fov / 2.0);
-}
 double TransformState::getXSkew() const {
     return xSkew;
 }

@@ -186,7 +186,6 @@ public:
     float getCameraToCenterDistance() const;
     double getPitch() const;
     void setPitch(double);
-    float getSunlightToCenterDistance() const;
 
     double getXSkew() const;
     void setXSkew(double);
@@ -323,7 +322,6 @@ private:
     mutable mat4 _sunlightProjectionMatrix;     // vp matrix
     mutable mat4 _sunlightWorldToViewMatrix;    // v matrix
     mutable mat4 _sunlightViewToClipMatrix;     // p matrix
-    mutable vec3 _sunlightPosition;
     mutable vec3 _sunlightToCenterDir;
     
 public:
