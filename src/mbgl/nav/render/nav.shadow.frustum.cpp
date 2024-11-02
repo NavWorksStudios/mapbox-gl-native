@@ -213,18 +213,28 @@ void Frumstum::update(const mbgl::TransformState& state, const std::vector<mbgl:
 
         // 动态视野 (pitch, zoom)
         {
-            // zoom-15 z(0)
-            // 俯视 p(0) -> 视野100%
-            // 平视 p(1) -> 视野20%
-            
-            // zoom-20 z(1)
-            // 俯视 p(0) -> 视野100%
-            // 平视 p(1) -> 视野10%
+            const double zf = fmax(0., fmin(1., (state.getZoom() - 15.) / 4.)); // (0, 1) 15-20
+            const double pf = fmin(state.getPitch() / M_PI * 180. / 70., 1.); // (0, 1) 俯视, 平视
 
-            const double z = fmax(0., fmin(1., (state.getZoom() - 15.) / 4.)); // (0, 1) 15-20
-            const double p = fmin(state.getPitch() / (M_PI * 70. / 180.), 1.); // (0, 1) 俯视, 平视
-            const double r = 1. - (.8 + .1 * z) * p;
-            printf("I <sunlight> zoom(%lf) pitch(%lf) | z(%lf) p(%lf) r(%lf)\n", state.getZoom(), state.getPitch(), z, p, r);
+            //       俯视                                       平视
+            //  z\p |.0 |.1 |.2 |.3 |.4 |.5 |.6 |.7 |.8 |.9 |1. |
+            // .0   |   |   |   |   | 1.|   |   |   |   |   |.4 |
+            //                         \                        |
+            //                          \                       |
+            //                           \                      |
+            //                   left     \                     | right
+            //                             \                    |
+            //                              \                   |
+            //                               \                  |
+            // .1   |   |   |   |   |   |   |1. |   |   |   |.05|
+            // 近
+
+            const double p[2] = { .4 + .2 * zf, 1. };
+            const double r[2] = { 1., .4 - .35 * zf };
+            
+            const double result = r[0] + fmax(pf - p[0], 0.) / (p[1] - p[0]) * (r[1] - r[0]);
+
+            printf("I <sunlight> zoom(%lf) pitch(%lf) | z(%lf) p(%lf) r(%lf)\n", state.getZoom(), state.getPitch(), zf, pf, result);
 
             static auto shrink = [] (mbgl::vec3& near, mbgl::vec3& far, float shrink) {
                 far[0] = near[0] + (far[0] - near[0]) * shrink; // x
@@ -232,8 +242,8 @@ void Frumstum::update(const mbgl::TransformState& state, const std::vector<mbgl:
             };
             
             enum { tl = 0, tr = 1, br = 2, bl = 3, };
-            shrink(projection[bl], projection[tl], r);
-            shrink(projection[br], projection[tr], r);
+            shrink(projection[bl], projection[tl], result);
+            shrink(projection[br], projection[tr], result);
         }
 
         // 计算最小外接
