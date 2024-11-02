@@ -95,6 +95,7 @@ void RenderFillLayer::render(PaintParameters& parameters) {
         const auto& color = nav::palette::getColorBase();
         FillProgram::LayoutUniformValues layoutUniformValues = {
             uniforms::matrix::Value(),
+            uniforms::model_matrix::Value(),
             uniforms::world::Value( parameters.backend.getDefaultRenderable().getSize() ),
             uniforms::spotlight::Value( nav::runtime::spotlight::value() ),
             uniforms::render_time::Value( nav::runtime::rendertime::value() ),
@@ -104,6 +105,8 @@ void RenderFillLayer::render(PaintParameters& parameters) {
             uniforms::water_data_z_scale::Value(),
             uniforms::clip_region::Value( nav::display::clip_region() ),
             uniforms::focus_region::Value( nav::display::focus_region() ),
+            uniforms::texsize::Value( Size(2, 2) ),
+            uniforms::textype::Value( 0. ),
         };
         
         size_t renderIndex = -1;
@@ -130,6 +133,7 @@ void RenderFillLayer::render(PaintParameters& parameters) {
             
             const auto& matrix = tile.translatedMatrix(evaluated.get<FillTranslate>(), evaluated.get<FillTranslateAnchor>(), parameters.state);
             layoutUniformValues.template get<uniforms::matrix>() = matrix;
+            layoutUniformValues.template get<uniforms::model_matrix>() = tile.modelMatrix;
             layoutUniformValues.template get<uniforms::water_data_z_scale>() = pow(2.,16.-tile.id.canonical.z); // data_z [13,16]
 
             const auto draw = [&] (auto& programInstance,
@@ -169,6 +173,17 @@ void RenderFillLayer::render(PaintParameters& parameters) {
 
             const auto fillRenderPass = opaque ? RenderPass::Opaque : RenderPass::Translucent;
 
+            std::string imageId = "fill_blank22";
+            if(enableWaterEffect) {
+                imageId = "fill_water";
+                layoutUniformValues.template get<uniforms::texsize>() = Size(2976, 1632);
+                layoutUniformValues.template get<uniforms::textype>() = 1.0;
+            }
+            if(enableGrassEffect) {
+                imageId = "fill_grass";
+                layoutUniformValues.template get<uniforms::texsize>() = Size(1200, 1200);
+                layoutUniformValues.template get<uniforms::textype>() = 2.0;
+            }
             if (bucket.triangleIndexBuffer && parameters.pass == fillRenderPass) {
                 const auto depthMaskType = parameters.pass == RenderPass::Opaque ? gfx::DepthMaskType::ReadWrite : gfx::DepthMaskType::ReadOnly;
                 draw(parameters.programs.getFillLayerPrograms().fill,
@@ -177,8 +192,8 @@ void RenderFillLayer::render(PaintParameters& parameters) {
                     *bucket.triangleIndexBuffer,
                     bucket.triangleSegments,
                     FillProgram::TextureBindings{
-                        // #*# 添加草地或水面贴图
-//                        textures::image::Value{ tile.getIconAtlasTexture().getResource(), gfx::TextureFilterType::Linear },
+                        // 添加水面或草地贴图
+                        textures::image::Value{ nav::runtime::texture::get(imageId), gfx::TextureFilterType::Linear },
                     }
                 );
             }
@@ -189,7 +204,8 @@ void RenderFillLayer::render(PaintParameters& parameters) {
                      parameters.depthModeForSublayer(unevaluated.get<FillOutlineColor>().isUndefined() ? 2 : 0, gfx::DepthMaskType::ReadOnly),
                      *bucket.lineIndexBuffer,
                      bucket.lineSegments,
-                     FillOutlineProgram::TextureBindings{});
+                     FillOutlineProgram::TextureBindings{}
+                );
             }
         }
     } else {

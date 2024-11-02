@@ -250,7 +250,7 @@ GLFWView::GLFWView(bool fullscreen_, bool benchmark_, const mbgl::ResourceOption
     printf("================================================================================\n");
     printf("\n");
           
-    nav::runtime::texture::load(mbglPuckAssetsPath);
+//    nav::runtime::texture::load(mbglFillAssetsPath);
 }
 
 GLFWView::~GLFWView() {
@@ -1414,12 +1414,7 @@ void GLFWView::toggleLocationIndicatorLayer(bool visibility) {
 }
 
 void GLFWView::addImagesForCustomFillStyle() {
-    
-    map->getStyle().addImage(std::make_unique<mbgl::style::Image>("fill_water",
-                                                                  mbgl::decodeImage(mbgl::util::read_file(mbglFillAssetsPath + "water.jpg")), 1.0));
-    
-    map->getStyle().addImage(std::make_unique<mbgl::style::Image>("fill_grass",
-                                                                  mbgl::decodeImage(mbgl::util::read_file(mbglFillAssetsPath + "grass.jpg")), 1.0));
+    nav::runtime::texture::load(mbglFillAssetsPath);
 }
 
 using Nanoseconds = std::chrono::nanoseconds;
