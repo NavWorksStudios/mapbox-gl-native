@@ -125,7 +125,7 @@ AABB AABB::intersect(const AABB& aabb) const {
 namespace height {
 
 enum Format {
-    H8192 = 3000,
+    H8192 = 5000,
     H512 = int(H8192 * mbgl::util::tileSize / mbgl::util::EXTENT),
 };
 
@@ -139,6 +139,32 @@ template <Format H> float get(float zoom) {
 }
 
 }
+
+namespace area {
+
+struct Point {
+    double x, y;
+};
+
+// 计算两个向量的叉积
+double crossProduct(const Point& a, const Point& b) {
+    return a.x * b.y - a.y * b.x;
+}
+
+// 计算三角形面积
+double triangleArea(const Point& a, const Point& b, const Point& c) {
+    Point ab = {b.x - a.x, b.y - a.y};
+    Point ac = {c.x - a.x, c.y - a.y};
+    return std::abs(crossProduct(ab, ac)) / 2.0;
+}
+
+// 计算四边形面积
+double quadrilateralArea(const Point& a, const Point& b, const Point& c, const Point& d) {
+    return triangleArea(a, b, c) + triangleArea(a, c, d);
+}
+
+}
+
 
 void Frumstum::update(const mbgl::TransformState& state, const std::vector<mbgl::OverscaledTileID>& tileIDs) {
     if (tileIDs.size() == 0) return;
@@ -218,32 +244,44 @@ void Frumstum::update(const mbgl::TransformState& state, const std::vector<mbgl:
 
             //       俯视                                       平视
             //  z\p |.0 |.1 |.2 |.3 |.4 |.5 |.6 |.7 |.8 |.9 |1. |
-            // .0   |   |   |   |   | 1.|   |   |   |   |   |.4 |
-            //                         \                        |
-            //                          \                       |
-            //                           \                      |
-            //                   left     \                     | right
-            //                             \                    |
-            //                              \                   |
-            //                               \                  |
-            // .1   |   |   |   |   |   |   |1. |   |   |   |.05|
+            // .0   |   |   |   |   |   |   |1. |   |   |   |.4 |
+            //                                                  |
+            //                                                  |
+            //                                                  |
+            //                   left                           | right
+            //                                                  |
+            //                                                  |
+            //                                                  |
+            // .1   |   |   |.5 |   |   |   |   |   |   |   |.05|
             // 近
 
-            const double p[2] = { .4 + .2 * zf, 1. };
-            const double r[2] = { 1., .4 - .35 * zf };
-            
+            const double p[2] = { .6 - .4 * zf, 1. };
+            const double r[2] = { 1. - .5 * zf, .4 - .35 * zf };
             const double result = r[0] + fmax(pf - p[0], 0.) / (p[1] - p[0]) * (r[1] - r[0]);
-
-            printf("I <sunlight> zoom(%lf) pitch(%lf) | z(%lf) p(%lf) r(%lf)\n", state.getZoom(), state.getPitch(), zf, pf, result);
-
+            
             static auto shrink = [] (mbgl::vec3& near, mbgl::vec3& far, float shrink) {
                 far[0] = near[0] + (far[0] - near[0]) * shrink; // x
                 far[1] = near[1] + (far[1] - near[1]) * shrink; // y
             };
             
+            double area0 =
+            area::quadrilateralArea({ projection[0][0],projection[0][1] },
+                                    { projection[1][0],projection[1][1] },
+                                    { projection[2][0],projection[2][1] },
+                                    { projection[3][0],projection[3][1] });
+            
             enum { tl = 0, tr = 1, br = 2, bl = 3, };
             shrink(projection[bl], projection[tl], result);
             shrink(projection[br], projection[tr], result);
+            
+            
+            double area1 =
+            area::quadrilateralArea({ projection[0][0],projection[0][1] },
+                                    { projection[1][0],projection[1][1] },
+                                    { projection[2][0],projection[2][1] },
+                                    { projection[3][0],projection[3][1] });
+            
+            printf("I <sunlight> zoom(%lf) pitch(%lf) | z(%lf) p(%lf) r(%lf) | area(%lf,%lf)\n", state.getZoom(), state.getPitch(), zf, pf, result, area0, area1);
         }
 
         // 计算最小外接
