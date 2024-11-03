@@ -18,6 +18,7 @@
 #include "mbgl/nav/render/programs/nav.program.ssao.hpp"
 
 #include <random>
+#include <array>
 
 
 namespace nav {

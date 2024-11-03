@@ -34,6 +34,8 @@ private:
     
     bool enableShaderPalette = false;
     bool enableWaterEffect = false;
+    bool enableGrassEffect = false;
+    
 };
 
 } // namespace mbgl

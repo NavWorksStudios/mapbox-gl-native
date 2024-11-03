@@ -22,15 +22,21 @@ using FillLayoutAttributes = PositionOnlyLayoutAttributes;
 
 using FillUniforms = TypeList<
     uniforms::matrix,
+    uniforms::model_matrix,
     uniforms::world,
-    uniforms::spotlight,
-    uniforms::render_time,
-    uniforms::palette_color,
-    uniforms::palette_lightness,
-    uniforms::water_wave,
-    uniforms::water_data_z_scale,
-    uniforms::clip_region,
-    uniforms::focus_region>;
+    // 五彩地面及水波纹参数
+    uniforms::spotlight,                // 五彩地面开启标示
+    uniforms::render_time,              // 渲染周期时间
+    uniforms::palette_color,            // 调色板基色
+    uniforms::palette_lightness,        // 调色板参数
+    uniforms::water_wave,               // 水波纹参数
+    uniforms::water_data_z_scale,       // 水波纹参数
+    uniforms::clip_region,              // 视口远端切割范围
+    uniforms::focus_region,             // 探照灯范围
+    // 水面贴图、地面贴图参数
+    uniforms::texsize,                  // 贴图尺寸
+    uniforms::textype                   // 贴图类别: 0.-空白，1.-水面，2.-草地1，3.-草地2
+>;
 
 using FillPatternUniforms = TypeList<
     uniforms::matrix,
@@ -46,7 +52,7 @@ class FillProgram : public Program<
     gfx::PrimitiveType::Triangle,
     FillLayoutAttributes,
     FillUniforms,
-    TypeList<>,
+    TypeList<textures::image>,
     style::FillPaintProperties>
 {
 public:

@@ -76,14 +76,19 @@ vec2 get_pattern_pos(const vec2 pixel_coord_upper,const vec2 pixel_coord_lower,c
 R"(
 
 uniform mat4 u_matrix;
+uniform mat4 u_model_matrix;
 uniform lowp float u_base;
 uniform lowp vec4 u_palette_color;
 uniform lowp float u_palette_lightness;
-
+uniform float u_textype;
+uniform vec2 u_texsize;
+uniform sampler2D u_image;
+        
 attribute vec2 a_pos;
 
 varying lowp vec3 v_pos;
 varying lowp vec2 v_texture_pos;
+varying vec2 v_texture_uv;
 
 #ifndef HAS_UNIFORM_u_color
     uniform lowp float u_color_t;
@@ -156,7 +161,10 @@ void main() {
     gl_Position=u_matrix*vec4(a_pos,u_base,1.);
     v_pos=gl_Position.xyz;
     v_texture_pos=a_pos;
-
+    vec4 v_pos_world = u_model_matrix * vec4(a_pos,u_base,1.);
+    v_texture_uv.x = mod(v_pos_world.x, u_texsize[0]) / u_texsize[0];
+    v_texture_uv.y = mod(v_pos_world.y, u_texsize[1]) / u_texsize[1];
+    
 #ifndef HAS_UNIFORM_u_color
     // 灰阶色变换主题色
     if (u_palette_lightness>0.) {
@@ -197,9 +205,12 @@ uniform lowp float u_water_wave;
 uniform lowp float u_water_data_z_scale;
 uniform lowp float u_clip_region;
 uniform lowp float u_focus_region;
-
+uniform float u_textype;
+uniform sampler2D u_image;
+        
 varying lowp vec3 v_pos;
 varying lowp vec2 v_texture_pos;
+varying vec2 v_texture_uv;
 
 #ifndef HAS_UNIFORM_u_color
     varying highp vec4 color;
@@ -298,8 +309,12 @@ void main() {
 
     lowp float distance=pow(v_pos.x,2.)+pow(v_pos.z,2.);
 
+    if(u_textype > 0.5) {
+        gl_FragColor = texture2D(u_image, v_texture_uv);
+        // gl_FragColor = texture2D(u_image, vec2(0.5, 0.5));
+    }
+#if 0
     if (u_water_wave > 0.) { // 水面波光
-
         // point light
         const lowp vec3 cameraPos=vec3(0.,500.,0.);
         const lowp vec3 lightPos=vec3(0.,2000.,4000.);
@@ -324,7 +339,9 @@ void main() {
         gl_FragColor.rgb += (gridcolor + brighten) * radial_fadeout * .2;
         gl_FragColor*=opacity;
 
-    } else {
+    }
+#endif
+    else {
 
         if (u_spotlight > 0.) { // 五彩地面
 
