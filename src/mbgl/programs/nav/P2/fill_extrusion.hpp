@@ -89,7 +89,7 @@ struct FillExtrusionProgram {
             }
     
             // Ambient Lighting
-            const float ambient = .2;
+            const float ambient = .4;
     
             // Diffuse Lighting
             vec3 norm = normalize(normal);
@@ -97,7 +97,7 @@ struct FillExtrusionProgram {
             float diffuse = max(0., dot(norm, lightDir)) * .6;
     
             // Specular Lighting
-            const float indensity = .2; // 强度
+            const float indensity = .3; // 强度
             const float shininess = .1; // 反射率
             vec3 verPos = (u_model_matrix * pos).xyz;
             vec3 viewDir = normalize(u_camera_pos - verPos);
@@ -108,7 +108,7 @@ struct FillExtrusionProgram {
             const vec3 specularcolor = vec3(.9, .94, .94);
     
             v_color = color * vec4(u_lightcolor * basecolor * (ambient + diffuse) + specularcolor * (specular), 1.) * u_opacity;
-            v_color.a *= .5;
+            v_color.a *= .8;
         }
         
     )"; }

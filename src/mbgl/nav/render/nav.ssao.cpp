@@ -159,7 +159,7 @@ void render(int width, int height,
             }
         });
 
-        const float radius = .05;
+        const float radius = .1;
         const float bias = .008;
         for (int i=0; i<sample::kernel::SIZE; i++) {
             const float scale = pow(1.3, i);

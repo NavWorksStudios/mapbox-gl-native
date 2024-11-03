@@ -38,8 +38,8 @@ uniform vec3 u_smaple_kernels[SAMPLE_SIZE];
 uniform float u_sample_radius[SAMPLE_SIZE];
 uniform float u_depth_bias[SAMPLE_SIZE];
 
-const float MAGNITUDE = 1.3; // 强度
-const float CONTRAST = 1.3; // 对比度
+const float MAGNITUDE = 1.8; // 强度
+const float CONTRAST = 1.8; // 对比度
 
 const float NEAR_DEPTH = 0.;
 const float FAR_DEPTH = -350.;
@@ -55,6 +55,7 @@ void main() {
         // 动态采样数，近密远疏，可以大幅降低开销
         float depth_factor = clamp((FAR_DEPTH - kernelPos.z) / FAR_DEPTH, .2, 1.);
         int sample_count = int(float(SAMPLE_SIZE) * depth_factor);
+        depth_factor = pow(depth_factor, 2.);
 
         // get input for SSAO algorithm
         vec3 kernelNormal = texture2D(u_normal, TexCoords).xyz;
@@ -83,7 +84,7 @@ void main() {
             // range check & accumulate 将当前的采样深度值和存储的深度值进行比较，如果大一些的话，添加遮蔽因数的影响。
             // 用范围检查，来确保某一片段的深度值在采样半径内，这样才会对遮蔽因数做影响。添加bias可以帮助调整环境光遮蔽的效果，也可以解决波纹问题。
             float dz = z - samplePos.z;
-            if (dz > u_depth_bias[i]) {
+            if (dz > u_depth_bias[i] / depth_factor) {
                 occlusion += smoothstep(0.0, 1.0, u_sample_radius[i] / dz);
             }
         }
@@ -94,7 +95,7 @@ void main() {
 
     }
 
-    gl_FragColor.r = occlusion;
+    gl_FragColor.r = occlusion * .5;
 
 }
 
