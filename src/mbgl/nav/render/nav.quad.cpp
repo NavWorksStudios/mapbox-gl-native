@@ -95,7 +95,7 @@ void renderBlur(int width, int height, GLint buffer, std::function<void()> bindS
     
     glUseProgram(program);
     static programs::UniformLocation u2(program, "u_offset");
-    glUniform2f(u2, 1. / width, 1. / height);
+    glUniform2f(u2, 1.2 / width, 1.2 / height);
 
     doRender(program, width, height, buffer, bindScreen);
 }
