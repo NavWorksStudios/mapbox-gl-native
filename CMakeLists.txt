@@ -347,7 +347,6 @@ set(all_files
 
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/programs/nav.program.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/programs/nav.program.ssao.hpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/programs/nav.program.shadow.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/programs/nav.program.quad.hpp
 
     ${PROJECT_SOURCE_DIR}/src/mbgl/programs/nav/deferred/ssao_fill_extrusion.cpp
