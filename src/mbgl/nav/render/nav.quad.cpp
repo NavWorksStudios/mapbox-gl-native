@@ -61,7 +61,6 @@ GLint getProgram() {
 }
 
 void doRender(GLint program, int width, int height, GLint buffer, std::function<void()> bindScreen) {
-    
     if (bindScreen) bindScreen();
 
     glEnable(GL_BLEND);
@@ -77,26 +76,26 @@ void doRender(GLint program, int width, int height, GLint buffer, std::function<
     render(program);
     
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
 }
 
 void render(int width, int height, GLint buffer, std::function<void()> bindScreen) {
-    GLint program = getProgram<nav::programs::quad::standardFragmentShader>();
+    static GLint program = getProgram<nav::programs::quad::standardFragmentShader>();
     doRender(program, width, height, buffer, bindScreen);
 }
 
 void renderMono(int width, int height, GLint buffer, std::function<void()> bindScreen) {
-    GLint program = getProgram<nav::programs::quad::monoFragmentShader>();
+    static GLint program = getProgram<nav::programs::quad::monoFragmentShader>();
     doRender(program, width, height, buffer, bindScreen);
 }
 
 void renderBlur(int width, int height, GLint buffer, std::function<void()> bindScreen) {
-    GLint program = getProgram<nav::programs::quad::blurFragmentShader>();
+    static GLint program = getProgram<nav::programs::quad::blurFragmentShader>();
+    
+    const float blurRadius = 1.3;
     
     glUseProgram(program);
     static programs::UniformLocation u2(program, "u_offset");
-    glUniform2f(u2, 1.2 / width, 1.2 / height);
-
+    glUniform2f(u2, blurRadius / width, blurRadius / height);
     doRender(program, width, height, buffer, bindScreen);
 }
 
