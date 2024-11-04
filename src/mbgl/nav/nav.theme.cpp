@@ -17,14 +17,20 @@ static const auto normalize = [] (float value) {
     return fmin(fmax(value, 0.), 1.);
 };
 
+enum Update { Continuous, AsNeed };
+enum BuildReflection { Enabled, Disabled };
+
 struct Config {
     std::string name;
-    std::string mapbox_studio_url;
-    std::string style_url;
-    bool needsUpdate;
-    bool enableBuildReflection;
-    std::function<std::tuple<Hsla,bool>(const std::string&, Hsla)> getConfig;
-    std::function<bool(const nav::stringid&)> enableLayerMonoPalette;
+    std::string mapboxStudioUrl;
+    std::string styleUrl;
+    
+    Update needsUpdate;
+    BuildReflection enableBuildReflection;
+    
+    std::function<std::tuple<Hsla,bool>(const std::string&, Hsla)> layerColorConfig;
+    std::function<bool(const nav::stringid&)> layerMonoPaletteConfig;
+
     int shaderIndex;
 };
 
@@ -32,8 +38,10 @@ const Config COLORFUL = {
     "Crystal 水晶",
     "https://studio.mapbox.com/styles/navworks/clxx105i700yr01po4zbn2jc1/edit/#20.32/39.8591796/116.3684606/8/70",
     "mapbox://styles/navworks/clxx105i700yr01po4zbn2jc1",
-    true,
-    true,
+    
+    Update::Continuous,
+    BuildReflection::Enabled,
+    
     [] (const std::string& uri, Hsla color) -> std::tuple<Hsla,bool> {
         if (uri.find("water-depth") != std::string::npos) {
             color.s = 0;
@@ -64,6 +72,7 @@ const Config COLORFUL = {
         
         return std::make_tuple(color, stylible);
     },
+    
     [] (const nav::stringid& layer) {
         static std::unordered_map<std::string, bool> layerIds = {
             { "water-depth", true },
@@ -72,43 +81,29 @@ const Config COLORFUL = {
 
         return layerIds.find(layer) != layerIds.end();
     },
+
     1,
 };
 
-//const Config GOLDEN_BLACK = {
-//    "星汉",
-//    "https://studio.mapbox.com/styles/navworks/clzdv9emu00f301r27uym15w9/edit/#14.4/22.2936/114.15234/0/1",
-//    "mapbox://styles/navworks/clzdv9emu00f301r27uym15w9",
-//    false,
-//    false,
-//    [] (const std::string& uri, Hsla color) -> std::tuple<Hsla,bool> {
-//        if (uri.find("building-extrusion") != std: :string::npos) {
-//        }
-//        
-//        return std::make_tuple(color, false);
-//    },
-//    [] (const nav::stringid&) {
-//        return false;
-//    },
-//    2,
-//};
-
-const Config PLAIN_MODEL = {
-    "白模",
+const Config PURENESS = {
+    "Pureness 纯白",
     "https://studio.mapbox.com/styles/navworks/clzqn4giv00a801pi06quhgz7/edit/#7.03/31.635/120.897",
     "mapbox://styles/navworks/clzqn4giv00a801pi06quhgz7",
-//    "mapbox://styles/navworks/cm2fm0xc2011l01pi3pg7hgqa",
-    false,
-    false,
+    
+    Update::AsNeed,
+    BuildReflection::Disabled,
+    
     [] (const std::string& uri, Hsla color) -> std::tuple<Hsla,bool> {
         if (uri.find("building-extrusion") != std::string::npos) {
         }
         
         return std::make_tuple(color, false);
     },
+    
     [] (const nav::stringid&) {
         return false;
     },
+    
     2,
 };
 
@@ -116,46 +111,49 @@ const Config ROUTE_TEST = {
     "导航测试",
     "https://studio.mapbox.com/styles/navworks/clzqn4giv00a801pi06quhgz7/edit/#7.03/31.635/120.897",
     "mapbox://styles/navworks/clyxyqksj00ap01qnc17kbs8x",
-    false,
-    false,
+    
+    Update::AsNeed,
+    BuildReflection::Disabled,
+    
     [] (const std::string& uri, Hsla color) -> std::tuple<Hsla,bool> {
         if (uri.find("building-extrusion") != std::string::npos) {
         }
         
         return std::make_tuple(color, false);
     },
+    
     [] (const nav::stringid&) {
         return false;
     },
+    
     1,
 };
 
 //const Config& THEME = COLORFUL;
-//const Config& THEME = GOLDEN_BLACK;
-const Config& THEME = PLAIN_MODEL;
+const Config& THEME = PURENESS;
 //const Config& THEME = ROUTE_TEST;
 
 const std::string& style() {
-    return THEME.style_url;
+    return THEME.styleUrl;
 }
 
-bool needsUpdate() {
-    return THEME.needsUpdate;
+bool needsAutoUpdate() {
+    return THEME.needsUpdate == Update::Continuous;
 }
 
-bool enableBuildingReflection() {
-    return THEME.enableBuildReflection;
+bool isBuildingReflectionEnabled() {
+    return THEME.enableBuildReflection == BuildReflection::Enabled;
 }
 
-std::tuple<Hsla,bool> colorProperty(const std::string& uri, Hsla color) {
-    return THEME.getConfig(uri, color);
+std::tuple<Hsla,bool> getColorProperty(const std::string& uri, Hsla color) {
+    return THEME.layerColorConfig(uri, color);
 }
 
-bool enableLayerMonoPalette(const nav::stringid& layer) {
-    return THEME.enableLayerMonoPalette(layer);
+bool isLayerPaletteEnabled(const nav::stringid& layer) {
+    return THEME.layerMonoPaletteConfig(layer);
 }
 
-int shaderIndex() {
+int getShaderIndex() {
     return THEME.shaderIndex;
 }
 

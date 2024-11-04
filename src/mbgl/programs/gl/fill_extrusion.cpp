@@ -79,7 +79,7 @@ struct ShaderSource<FillExtrusionProgram> {
     )"; }
     
     static const char* navVertex(const char* ) {
-        switch (nav::theme::shaderIndex()) {
+        switch (nav::theme::getShaderIndex()) {
             case 1:
                 return nav::programs::p1::FillExtrusionProgram::navVertex(nullptr);
             case 2:
@@ -110,7 +110,7 @@ struct ShaderSource<FillExtrusionProgram> {
     )"; }
     
     static const char* navFragment(const char* ) {
-        switch (nav::theme::shaderIndex()) {
+        switch (nav::theme::getShaderIndex()) {
             case 1:
                 return nav::programs::p1::FillExtrusionProgram::navFragment(nullptr);
             case 2:

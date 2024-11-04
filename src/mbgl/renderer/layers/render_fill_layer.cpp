@@ -40,7 +40,7 @@ RenderFillLayer::RenderFillLayer(Immutable<style::FillLayer::Impl> _impl)
     bindToPalette(baseImpl->id, "fill-color", unevaluated.get<FillColor>().value);
     bindToPalette(baseImpl->id, "fill-outline-color", unevaluated.get<FillOutlineColor>().value);
 
-    enableShaderPalette = nav::palette::enableLayerMonoPalette(getID());
+    enableShaderPalette = nav::palette::isLayerPaletteEnabled(getID());
     enableWaterEffect = (getID() == "water");
     enableGrassEffect = (getID() == "national-park");
 }

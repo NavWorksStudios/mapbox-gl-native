@@ -14,7 +14,7 @@ uniform lowp float u_lightintensity;
 uniform lowp float u_vertical_gradient;
 uniform lowp float u_opacity;
 uniform lowp float u_spotlight;
-uniform bool u_is_reflection;
+uniform bool u_render_reflection;
 uniform lowp float u_clip_region;
 uniform lowp float u_focus_region;
 
@@ -80,13 +80,13 @@ void main() {
 
     // position
     float lowp z = (t > 0.) ? height : base;
-    if (u_is_reflection) z = -z;
+    if (u_render_reflection) z = -z;
     gl_Position = u_matrix * vec4(a_pos, z, 1.);
     v_pos = gl_Position.xyz;
 
     // clipping
     lowp float distance = pow(gl_Position.x, 2.) + pow(gl_Position.z, 2.);
-    if (u_is_reflection) distance *= 5.;
+    if (u_render_reflection) distance *= 5.;
     if (distance > u_clip_region) {
         gl_Position.w = -1.e100;
         return;
@@ -116,7 +116,7 @@ void main() {
 
     // 远近透明
     lowp float radial_fadeout=clamp((1.-distance/u_clip_region) * 2., 0., 1.);
-    v_color *= u_opacity * radial_fadeout * (u_is_reflection ? .2 : .9);
+    v_color *= u_opacity * radial_fadeout * (u_render_reflection ? .2 : .9);
 
     // ----------------------------- building detail -----------------------------
 

@@ -48,8 +48,8 @@ const mbgl::Color& getColorBase() {
     return themeBaseColor;
 }
 
-bool enableLayerMonoPalette(const std::string& layer) {
-    return theme::enableLayerMonoPalette(layer);
+bool isLayerPaletteEnabled(const std::string& layer) {
+    return theme::isLayerPaletteEnabled(layer);
 }
 
 class Stylizer {
@@ -120,7 +120,7 @@ void bind(const std::string& uri, const mbgl::Color& color, const void* binder, 
     nav::log::i("Palette", "bind uri %s (%d,%d,%d)", uri.c_str(), (int)(color.r*255), (int)(color.g*255), (int)(color.b*255));
     if (uri.find("mapbox") != std::string::npos) return;
 
-    const std::tuple<Hsla,bool>&& cfg = theme::colorProperty(uri, color);
+    const std::tuple<Hsla,bool>&& cfg = theme::getColorProperty(uri, color);
     ColorBinding binding(uri, Stylizer(std::get<0>(cfg), std::get<1>(cfg)), binder, callback);
     binding.notify(themeBaseColor);
     paletteBindings.emplace_back(binding);
@@ -138,7 +138,7 @@ void unbind(const void* binder) {
 }
 
 bool demo() {
-    if (!theme::needsUpdate()) return false;
+    if (!theme::needsAutoUpdate()) return false;
 
     static int counter = 0;
     if (counter++ > 30) {

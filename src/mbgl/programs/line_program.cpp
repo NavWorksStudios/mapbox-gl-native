@@ -7,6 +7,7 @@
 #include <mbgl/geometry/line_atlas.hpp>
 
 #include "mbgl/nav/nav.runtime.hpp"
+#include "mbgl/nav/render/nav.render.hpp"
 
 namespace mbgl {
 
@@ -49,7 +50,8 @@ LineProgram::layoutUniformValues(const style::LinePaintProperties::PossiblyEvalu
         uniforms::zoom::Value( state.getZoom() ),
         uniforms::spotlight::Value( nav::runtime::spotlight::value() ),
         uniforms::clip_region::Value( nav::display::clip_region() ),
-        uniforms::focus_region::Value( nav::display::focus_region() )
+        uniforms::focus_region::Value( nav::display::focus_region() ),
+        uniforms::render_depth::Value( nav::renderer::isRenderDepth() )
     );
 }
 
@@ -87,7 +89,8 @@ LineSDFProgram::layoutUniformValues(const style::LinePaintProperties::PossiblyEv
         uniforms::tex_y_a::Value( posA.y ),
         uniforms::tex_y_b::Value( posB.y ),
         uniforms::mix::Value( crossfade.t ),
-        uniforms::sdfgamma::Value( atlasWidth / (std::min(widthA, widthB) * 256.0f * pixelRatio) / 2.0f )
+        uniforms::sdfgamma::Value( atlasWidth / (std::min(widthA, widthB) * 256.0f * pixelRatio) / 2.0f ),
+        uniforms::render_depth::Value( nav::renderer::isRenderDepth() )
     );
 }
 
@@ -110,7 +113,8 @@ LinePatternProgram::LayoutUniformValues LinePatternProgram::layoutUniformValues(
         pixelRatio,
         uniforms::scale::Value ({ {pixelRatio, tileRatio, crossfade.fromScale, crossfade.toScale} }),
         uniforms::texsize::Value( atlasSize ),
-        uniforms::fade::Value( crossfade.t )
+        uniforms::fade::Value( crossfade.t ),
+        uniforms::render_depth::Value( nav::renderer::isRenderDepth() )
     );
 }
 
@@ -125,7 +129,8 @@ LineGradientProgram::LayoutUniformValues LineGradientProgram::layoutUniformValue
         tile,
         state,
         pixelsToGLUnits,
-        pixelRatio
+        pixelRatio,
+        uniforms::render_depth::Value( nav::renderer::isRenderDepth() )
     );
 }
 

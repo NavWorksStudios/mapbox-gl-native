@@ -38,7 +38,7 @@ float lightIntensity(const EvaluatedLight& light) {
 
 FillExtrusionProgram::LayoutUniformValues FillExtrusionProgram::layoutUniformValues(
     const mat4& matrix, const mat4& model_matrix, const TransformState& state,
-    float opacity, const EvaluatedLight& light, float verticalGradient, bool isReflection) {
+    float opacity, const EvaluatedLight& light, float verticalGradient, bool renderReflection) {
     return {
         uniforms::matrix::Value( matrix ),
         uniforms::model_matrix::Value( model_matrix ),
@@ -52,7 +52,7 @@ FillExtrusionProgram::LayoutUniformValues FillExtrusionProgram::layoutUniformVal
         uniforms::render_time::Value( nav::runtime::rendertime::value() ),
         uniforms::clip_region::Value( nav::display::clip_region() ),
         uniforms::focus_region::Value( nav::display::focus_region() ),
-        uniforms::is_reflection::Value( isReflection ),
+        uniforms::render_reflection::Value( renderReflection ),
     };
 }
 
@@ -67,7 +67,7 @@ FillExtrusionPatternProgram::layoutUniformValues(mat4 matrix,
                                            const float pixelRatio,
                                            const EvaluatedLight& light,
                                            const float verticalGradient,
-                                           const bool isReflection) {
+                                           const bool renderReflection) {
     const auto tileRatio = 1 / tileID.pixelsToTileUnits(1, state.getIntegerZoom());
     int32_t tileSizeAtNearestZoom = util::tileSize * state.zoomScale(state.getIntegerZoom() - tileID.canonical.z);
     int32_t pixelX = tileSizeAtNearestZoom * (tileID.canonical.x + tileID.wrap * state.zoomScale(tileID.canonical.z));
@@ -87,7 +87,7 @@ FillExtrusionPatternProgram::layoutUniformValues(mat4 matrix,
         uniforms::lightintensity::Value( lightIntensity(light) ),
         uniforms::vertical_gradient::Value( verticalGradient ),
         uniforms::spotlight::Value( nav::runtime::spotlight::value() ),
-        uniforms::is_reflection::Value( isReflection ),
+        uniforms::render_reflection::Value( renderReflection ),
         uniforms::render_time::Value( nav::runtime::rendertime::value() ),
         uniforms::clip_region::Value( nav::display::clip_region() ),
         uniforms::focus_region::Value( nav::display::focus_region() ),

@@ -16,6 +16,7 @@
 #include <mbgl/util/logging.hpp>
 
 #include "mbgl/nav/render/nav.render.hpp"
+#include "mbgl/nav/render/nav.geo.hpp"
 
 #include <mbgl/renderer/layers/render_fill_extrusion_layer.hpp>
 
@@ -180,11 +181,12 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
     // - NAV DEFERRED RENDERING PASS --------------------------------------------------------------------------------
     {
         auto shadowRenderDelegate = [&parameters] () {
-            return RenderFillExtrusionLayer::renderShadowDepth(parameters);
+            RenderFillExtrusionLayer::renderShadowDepth(parameters);
         };
         
         auto geoRenderDelegate = [&parameters] () {
-            return RenderFillExtrusionLayer::renderDeferredGeoBuffer(parameters);
+            const bool rendered = RenderFillExtrusionLayer::renderDeferredGeoBuffer(parameters);
+            if (rendered) nav::geo::assignmentProgram();
         };
         
         nav::renderer::render(parameters.state.getZoom(),

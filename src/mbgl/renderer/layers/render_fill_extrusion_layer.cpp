@@ -412,8 +412,8 @@ void RenderFillExtrusionLayer::render(PaintParameters& parameters) {
         checkRenderability(parameters, programInstance.activeBindingCount(allAttributeBindings));
         
         // draw reflection
-        if (nav::theme::enableBuildingReflection()) {
-            layoutUniformValues.template get<uniforms::is_reflection>() = true;
+        if (nav::theme::isBuildingReflectionEnabled()) {
+            layoutUniformValues.template get<uniforms::render_reflection>() = true;
             programInstance.draw(
                 parameters.context,
                 *parameters.renderPass,
@@ -432,7 +432,7 @@ void RenderFillExtrusionLayer::render(PaintParameters& parameters) {
         }
         
         // draw self
-        layoutUniformValues.template get<uniforms::is_reflection>() = false;
+        layoutUniformValues.template get<uniforms::render_reflection>() = false;
         programInstance.draw(
             parameters.context,
             *parameters.renderPass,
@@ -461,7 +461,7 @@ void RenderFillExtrusionLayer::render(PaintParameters& parameters) {
                 evaluated.get<FillExtrusionOpacity>(),
                 parameters.evaluatedLight,
                 evaluated.get<FillExtrusionVerticalGradient>(),
-                uniforms::is_reflection::Value()
+                uniforms::render_reflection::Value()
             );
             
             const std::string uniqueName = getID().get() + "/" + name;

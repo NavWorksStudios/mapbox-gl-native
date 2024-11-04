@@ -45,7 +45,7 @@ using FillExtrusionUniforms = TypeList<
     uniforms::render_time,
     uniforms::clip_region,
     uniforms::focus_region,
-    uniforms::is_reflection>;
+    uniforms::render_reflection>;
 
 using FillExtrusionPatternUniforms = TypeList<
     uniforms::matrix,
@@ -64,7 +64,7 @@ using FillExtrusionPatternUniforms = TypeList<
     uniforms::render_time,
     uniforms::clip_region,
     uniforms::focus_region,
-    uniforms::is_reflection>;
+    uniforms::render_reflection>;
 
 class FillExtrusionProgram : public Program<
     FillExtrusionProgram,
@@ -100,7 +100,7 @@ public:
 
     static LayoutUniformValues layoutUniformValues(
         const mat4&, const mat4&, const TransformState&,
-        float opacity, const EvaluatedLight&, float verticalGradient, bool renderingReflection);
+        float opacity, const EvaluatedLight&, float verticalGradient, bool renderReflection);
 };
 
 class FillExtrusionPatternProgram : public Program<
@@ -124,7 +124,7 @@ public:
                                                    float pixelRatio,
                                                    const EvaluatedLight&,
                                                    float verticalGradient,
-                                                   bool renderingReflection);
+                                                   bool renderReflection);
 };
 
 using FillExtrusionLayoutVertex = FillExtrusionProgram::LayoutVertex;

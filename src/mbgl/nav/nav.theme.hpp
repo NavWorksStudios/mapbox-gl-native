@@ -15,11 +15,11 @@ namespace nav {
 namespace theme {
 
 const std::string& style();
-bool needsUpdate();
-bool enableBuildingReflection();
-std::tuple<Hsla,bool> colorProperty(const std::string& uri, Hsla color);
-bool enableLayerMonoPalette(const nav::stringid& layer);
-int shaderIndex();
+bool needsAutoUpdate();
+bool isBuildingReflectionEnabled();
+std::tuple<Hsla,bool> getColorProperty(const std::string& uri, Hsla color);
+bool isLayerPaletteEnabled(const nav::stringid& layer);
+int getShaderIndex();
 
 }
 

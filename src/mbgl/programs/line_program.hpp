@@ -44,7 +44,8 @@ class LineProgram : public Program<
         uniforms::zoom,
         uniforms::spotlight,
         uniforms::clip_region,
-        uniforms::focus_region>,
+        uniforms::focus_region,
+        uniforms::render_depth>,
     TypeList<>,
     style::LinePaintProperties>
 {
@@ -118,7 +119,8 @@ class LinePatternProgram : public Program<
         uniforms::device_pixel_ratio,
         uniforms::scale,
         uniforms::texsize,
-        uniforms::fade>,
+        uniforms::fade,
+        uniforms::render_depth>,
     TypeList<
         textures::image>,
     style::LinePaintProperties>
@@ -149,7 +151,8 @@ class LineSDFProgram : public Program<
         uniforms::tex_y_a,
         uniforms::tex_y_b,
         uniforms::mix,
-        uniforms::sdfgamma>,
+        uniforms::sdfgamma,
+        uniforms::render_depth>,
     TypeList<
         textures::image>,
     style::LinePaintProperties>
@@ -177,7 +180,8 @@ class LineGradientProgram : public Program<
         uniforms::matrix,
         uniforms::ratio,
         uniforms::units_to_pixels,
-        uniforms::device_pixel_ratio>,
+        uniforms::device_pixel_ratio,
+        uniforms::render_depth>,
     TypeList<
         textures::image>,
     style::LinePaintProperties>
