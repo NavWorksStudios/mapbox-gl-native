@@ -20,15 +20,21 @@ std::array<float, 3> lightColor(const EvaluatedLight& light) {
 
 std::array<float, 3> lightPosition(const EvaluatedLight& light, const TransformState& state) {
     auto lightPos = light.get<LightPosition>().getCartesian();
+
+    const double worldSize = Projection::worldSize(state.getScale());
+    lightPos[0] *= worldSize;
+    lightPos[1] *= worldSize;
+    lightPos[2] *= worldSize;
+
     if (light.get<LightAnchor>() == LightAnchorType::Map) {
         return lightPos;
     } else {
         mat3 lightMat;
         matrix::identity(lightMat);
         matrix::rotate(lightMat, lightMat, -state.getBearing());
-        std::array<float, 3> pos;
-        matrix::transformMat3f(pos, lightPos, lightMat);
-        return pos;
+        std::array<float, 3> result;
+        matrix::transformMat3f(result, lightPos, lightMat);
+        return result;
     }
 }
 

@@ -42,9 +42,12 @@ public:
     }
 
 private:
-    float radial;
-    float azimuthal;
-    float polar;
+    // 球坐标
+    float radial;       // 径向距离，到目标位置的距离。
+    float azimuthal;    // 方位角，顺时针旋转到目标点在水平面上的投影与原点连线的角度。
+    float polar;        // 极角，是从正上方到目标点与原点连线的角度
+    
+    // 世界坐标
     float x;
     float y;
     float z;

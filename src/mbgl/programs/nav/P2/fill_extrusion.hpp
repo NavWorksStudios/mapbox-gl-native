@@ -76,31 +76,33 @@ struct FillExtrusionProgram {
             height = max(base, height);
             float lowp t = mod(normal.x, 2.0);
     
-            // position
+            // p position
             float lowp z = t > 0. ? height : base;
             vec4 pos = vec4(a_pos, z, 1.);
             gl_Position = u_matrix * pos;
     
             // distance clipping
-            float distance = pow(gl_Position.x, 2.) + pow(gl_Position.z, 2.);
-            if (distance > u_clip_region) {
-                gl_Position.x = gl_Position.y = gl_Position.z = -1.e100;
-                return;
-            }
+//            float distance = pow(gl_Position.x, 2.) + pow(gl_Position.z, 2.);
+//            if (distance > u_clip_region) {
+//                gl_Position.x = gl_Position.y = gl_Position.z = -1.e100;
+//                return;
+//            }
+    
+            // w position
+            pos = u_model_matrix * pos;
     
             // Ambient Lighting
             const float ambient = .4;
     
             // Diffuse Lighting
             vec3 norm = normalize(normal);
-            vec3 lightDir = normalize(vec3(gl_Position) - u_lightpos);
+            vec3 lightDir = normalize(u_lightpos - vec3(pos));
             float diffuse = max(0., dot(norm, lightDir)) * .6;
     
             // Specular Lighting
             const float indensity = .3; // 强度
             const float shininess = .1; // 反射率
-            vec3 verPos = (u_model_matrix * pos).xyz;
-            vec3 viewDir = normalize(u_camera_pos - verPos);
+            vec3 viewDir = normalize(u_camera_pos - vec3(pos));
             vec3 reflectDir = reflect(lightDir, norm); // 反射向量
             float specular = indensity * pow(max(0., dot(viewDir, reflectDir)), shininess); // power(max(0,dot(N,H)),shininess)
 
