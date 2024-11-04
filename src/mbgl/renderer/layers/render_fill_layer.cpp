@@ -195,7 +195,7 @@ void RenderFillLayer::render(PaintParameters& parameters) {
                         // 添加水面或草地贴图
                         textures::image::Value{ nav::runtime::texture::get(imageId),
                             gfx::TextureFilterType::Linear,
-                            gfx::TextureMipMapType::No,
+                            gfx::TextureMipMapType::Yes,
                             gfx::TextureWrapType::Repeat,
                             gfx::TextureWrapType::Repeat
                         },

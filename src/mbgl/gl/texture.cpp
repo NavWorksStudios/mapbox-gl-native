@@ -28,6 +28,9 @@ void bindTexture(gl::Context& context, const uint8_t unit, const gfx::TextureBin
                 binding.filter == gfx::TextureFilterType::Linear ? GL_LINEAR : GL_NEAREST));
             resource.filter = binding.filter;
             resource.mipmap = binding.mipmap;
+            if(binding.mipmap == gfx::TextureMipMapType::Yes) {
+                MBGL_CHECK_ERROR(glGenerateMipmap(GL_TEXTURE_2D));
+            }
         }
         if (binding.wrapX != resource.wrapX) {
 
