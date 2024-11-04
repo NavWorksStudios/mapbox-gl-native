@@ -1233,7 +1233,7 @@ void GLFWView::run() {
         }
     };
 
-    frameTick.start(mbgl::Duration::zero(), mbgl::Milliseconds(1000 / 10), callback);
+    frameTick.start(mbgl::Duration::zero(), mbgl::Milliseconds(1000 / 60), callback);
 
 #if defined(__APPLE__)
     while (window && !glfwWindowShouldClose(window)) {
