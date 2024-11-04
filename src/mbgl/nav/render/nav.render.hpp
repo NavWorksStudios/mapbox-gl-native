@@ -14,11 +14,19 @@ namespace nav {
 
 namespace renderer {
 
-void render(float zoom, mbgl::mat4 projMatrix,
-            std::function<bool()> shadowRenderDelegate,
-            std::function<bool()> geoRenderDelegate);
-
 void debugPrint();
+
+enum RenderProcedure : int32_t {
+    None = 0,
+    Depth = 1 << 0,
+    GBuffer = 1 << 1,
+};
+
+RenderProcedure procedure();
+
+void render(float zoom, mbgl::mat4 projMatrix,
+            std::function<void()> renderShadowDepthDelegate,
+            std::function<void()> renderGeoDelegate);
 
 }
 

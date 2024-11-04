@@ -58,16 +58,16 @@ FillExtrusionProgram::LayoutUniformValues FillExtrusionProgram::layoutUniformVal
 
 FillExtrusionPatternProgram::LayoutUniformValues
 FillExtrusionPatternProgram::layoutUniformValues(mat4 matrix,
-                                           Size atlasSize,
-                                           const CrossfadeParameters& crossfade,
-                                           const UnwrappedTileID& tileID,
-                                           const TransformState& state,
-                                           const float opacity,
-                                           const float heightFactor,
-                                           const float pixelRatio,
-                                           const EvaluatedLight& light,
-                                           const float verticalGradient,
-                                           const bool renderReflection) {
+                                                 Size atlasSize,
+                                                 const CrossfadeParameters& crossfade,
+                                                 const UnwrappedTileID& tileID,
+                                                 const TransformState& state,
+                                                 const float opacity,
+                                                 const float heightFactor,
+                                                 const float pixelRatio,
+                                                 const EvaluatedLight& light,
+                                                 const float verticalGradient,
+                                                 const bool renderReflection) {
     const auto tileRatio = 1 / tileID.pixelsToTileUnits(1, state.getIntegerZoom());
     int32_t tileSizeAtNearestZoom = util::tileSize * state.zoomScale(state.getIntegerZoom() - tileID.canonical.z);
     int32_t pixelX = tileSizeAtNearestZoom * (tileID.canonical.x + tileID.wrap * state.zoomScale(tileID.canonical.z));
@@ -93,5 +93,32 @@ FillExtrusionPatternProgram::layoutUniformValues(mat4 matrix,
         uniforms::focus_region::Value( nav::display::focus_region() ),
     };
 }
+
+FillExtrusionGeoProgram::LayoutUniformValues
+FillExtrusionGeoProgram::layoutUniformValues(const mat4& matrix,
+                                             const mat4& model_view_matrix,
+                                             const mat4& normal_matrix,
+                                             const mat4& light_matrix,
+                                             const vec3f& light_dir) {
+    return {
+        uniforms::matrix::Value( matrix ),
+        uniforms::model_view_matrix::Value( model_view_matrix ),
+        uniforms::normal_matrix::Value( normal_matrix ),
+        uniforms::light_matrix::Value( light_matrix ),
+        uniforms::light_dir::Value( light_dir ),
+    };
+}
+
+FillExtrusionShadowDepthProgram::LayoutUniformValues
+FillExtrusionShadowDepthProgram::layoutUniformValues(const mat4& matrix,
+                                                     const mat4& model_view_matrix,
+                                                     const mat4& normal_matrix) {
+    return {
+        uniforms::matrix::Value( matrix ),
+        uniforms::model_view_matrix::Value( model_view_matrix ),
+        uniforms::normal_matrix::Value( normal_matrix ),
+    };
+}
+
 
 } // namespace mbgl

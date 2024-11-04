@@ -32,8 +32,6 @@ public:
     HillshadeLayerPrograms& getHillshadeLayerPrograms() noexcept;
     FillLayerPrograms& getFillLayerPrograms() noexcept;
     FillExtrusionLayerPrograms& getFillExtrusionLayerPrograms() noexcept;
-    FillExtrusionSSAOLayerPrograms& getFillExtrusionSSAOLayerPrograms() noexcept;
-    FillExtrusionShadowLayerPrograms& getFillExtrusionShadowLayerPrograms() noexcept;
     LineLayerPrograms& getLineLayerPrograms() noexcept;
     SymbolLayerPrograms& getSymbolLayerPrograms() noexcept;
 

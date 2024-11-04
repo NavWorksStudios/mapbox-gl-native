@@ -18,10 +18,9 @@
 #include <mbgl/util/math.hpp>
 
 #include "mbgl/nav/nav.theme.hpp"
+#include "mbgl/nav/render/nav.render.hpp"
 #include "mbgl/nav/render/nav.shadow.hpp"
-
-#include <mbgl/programs/nav/deferred/ssao_fill_extrusion_program.hpp>
-#include <mbgl/programs/nav/deferred/shadow_fill_extrusion_program.hpp>
+#include "mbgl/nav/render/nav.geo.hpp"
 
 
 namespace mbgl {
@@ -50,20 +49,22 @@ RenderFillExtrusionLayer::~RenderFillExtrusionLayer() {
     renderFillExtrusionLayer = nullptr;
 }
 
-bool RenderFillExtrusionLayer::renderDeferredGeoBuffer(PaintParameters& parameters) {
-    return renderFillExtrusionLayer ? renderFillExtrusionLayer->doRenderDeferredGeoBuffer(parameters) : false;
+void RenderFillExtrusionLayer::renderGeoBuffer(PaintParameters& parameters) {
+    if (renderFillExtrusionLayer) renderFillExtrusionLayer->doRenderGeoBuffer(parameters);
 }
 
-bool RenderFillExtrusionLayer::doRenderDeferredGeoBuffer(PaintParameters& parameters) {
-    bool rendered = false;
-    
+void RenderFillExtrusionLayer::renderShadowDepthBuffer(PaintParameters& parameters) {
+    if (renderFillExtrusionLayer) renderFillExtrusionLayer->doRenderShadowDepthBuffer(parameters);
+}
+
+void RenderFillExtrusionLayer::doRenderGeoBuffer(PaintParameters& parameters) {
     if(!renderTiles)
-        return rendered;
+        return;
 
     const auto& evaluated = static_cast<const FillExtrusionLayerProperties&>(*evaluatedProperties).evaluated;
     const auto& crossfade = static_cast<const FillExtrusionLayerProperties&>(*evaluatedProperties).crossfade;
     if (evaluatedProperties->renderPasses == mbgl::underlying_type(RenderPass::None)) {
-        return rendered;
+        return;
     }
 
     const auto depthMode = parameters.depthModeFor3D();
@@ -116,13 +117,12 @@ bool RenderFillExtrusionLayer::doRenderDeferredGeoBuffer(PaintParameters& parame
             textureBindings,
             uniqueName);
         
-        rendered = true;
-
+        nav::geo::setCurrentProgram();
     };
 
     // Draw solid color extrusions
     const auto drawTiles = [&](const gfx::StencilMode& stencilMode_, const gfx::ColorMode& colorMode_, const std::string& name) {
-        auto layoutUniforms = FillExtrusionSSAOProgram::layoutUniformValues(
+        auto layoutUniforms = FillExtrusionGeoProgram::layoutUniformValues(
             uniforms::matrix::Value(),
             uniforms::model_view_matrix::Value(),
             uniforms::normal_matrix::Value(),
@@ -163,7 +163,7 @@ bool RenderFillExtrusionLayer::doRenderDeferredGeoBuffer(PaintParameters& parame
             const auto lightmvp = tile.translatedSunlightClipMatrix(translate, anchor, state);
             layoutUniforms.template get<uniforms::light_matrix>() = lightmvp;
             
-            draw(parameters.programs.getFillExtrusionSSAOLayerPrograms().fillExtrusion,
+            draw(parameters.programs.getFillExtrusionLayerPrograms().fillExtrusionGeo,
                  evaluated,
                  crossfade,
                  stencilMode_,
@@ -172,7 +172,7 @@ bool RenderFillExtrusionLayer::doRenderDeferredGeoBuffer(PaintParameters& parame
                  layoutUniforms,
                  {},
                  {},
-                 FillExtrusionSSAOProgram::TextureBindings{},
+                 FillExtrusionGeoProgram::TextureBindings{},
                  uniqueName
             );
         }
@@ -211,25 +211,18 @@ bool RenderFillExtrusionLayer::doRenderDeferredGeoBuffer(PaintParameters& parame
 
     drawTiles(gfx::StencilMode::disabled(), parameters.colorModeForRenderPass(), "color");
     
-    return rendered;
+    return;
 
 }
 
-bool RenderFillExtrusionLayer::renderShadowDepth(PaintParameters& parameters) {
-    // render extrusion with shadow depth shader
-    return renderFillExtrusionLayer ? renderFillExtrusionLayer->doRenderShadowDepth(parameters) : false;
-}
-
-bool RenderFillExtrusionLayer::doRenderShadowDepth(PaintParameters& parameters) {
-    bool rendered = false;
-    
+void RenderFillExtrusionLayer::doRenderShadowDepthBuffer(PaintParameters& parameters) {
     if(!renderTiles)
-        return rendered;
+        return;
 
     const auto& evaluated = static_cast<const FillExtrusionLayerProperties&>(*evaluatedProperties).evaluated;
     const auto& crossfade = static_cast<const FillExtrusionLayerProperties&>(*evaluatedProperties).crossfade;
     if (evaluatedProperties->renderPasses == mbgl::underlying_type(RenderPass::None)) {
-        return rendered;
+        return;
     }
 
     const auto depthMode = parameters.depthModeFor3D();
@@ -281,12 +274,10 @@ bool RenderFillExtrusionLayer::doRenderShadowDepth(PaintParameters& parameters) 
             allAttributeBindings,
             textureBindings,
             uniqueName);
-
-        rendered = true;
     };
     
     const auto drawTileShadows = [&](const gfx::StencilMode& stencilMode_, const gfx::ColorMode& colorMode_, const std::string& name) {
-        auto layoutUniforms = FillExtrusionShadowProgram::layoutUniformValues(
+        auto layoutUniforms = FillExtrusionShadowDepthProgram::layoutUniformValues(
             uniforms::matrix::Value(),
             uniforms::model_view_matrix::Value(),
             uniforms::normal_matrix::Value()
@@ -317,7 +308,7 @@ bool RenderFillExtrusionLayer::doRenderShadowDepth(PaintParameters& parameters) 
             auto lightmvp = tile.translatedSunlightClipMatrix(translate, anchor, state);
             layoutUniforms.template get<uniforms::matrix>() = lightmvp;
             
-            draw(parameters.programs.getFillExtrusionShadowLayerPrograms().fillExtrusion,
+            draw(parameters.programs.getFillExtrusionLayerPrograms().fillExtrusionShadowDepth,
                  evaluated,
                  crossfade,
                  stencilMode_,
@@ -326,7 +317,7 @@ bool RenderFillExtrusionLayer::doRenderShadowDepth(PaintParameters& parameters) 
                  layoutUniforms,
                  {},
                  {},
-                 FillExtrusionShadowProgram::TextureBindings{},
+                 FillExtrusionShadowDepthProgram::TextureBindings{},
                  uniqueName
             );
         }
@@ -334,7 +325,7 @@ bool RenderFillExtrusionLayer::doRenderShadowDepth(PaintParameters& parameters) 
     
     drawTileShadows(gfx::StencilMode::disabled(), parameters.colorModeForRenderPass(), "color");
     
-    return rendered;
+    return;
 }
 
 void RenderFillExtrusionLayer::transition(const TransitionParameters& parameters) {
@@ -432,23 +423,24 @@ void RenderFillExtrusionLayer::render(PaintParameters& parameters) {
         }
         
         // draw self
-        layoutUniformValues.template get<uniforms::render_reflection>() = false;
-        programInstance.draw(
-            parameters.context,
-            *parameters.renderPass,
-            gfx::Triangles(),
-            depthMode,
-            stencilMode,
-            colorMode,
-            gfx::CullFaceMode::backCCW(),
-            *tileBucket.indexBuffer,
-            tileBucket.triangleSegments,
-            layoutUniformValues,
-            paintUniformValues,
-            allAttributeBindings,
-            textureBindings,
-            uniqueName);
-
+        {
+            layoutUniformValues.template get<uniforms::render_reflection>() = false;
+            programInstance.draw(
+                parameters.context,
+                *parameters.renderPass,
+                gfx::Triangles(),
+                depthMode,
+                stencilMode,
+                colorMode,
+                gfx::CullFaceMode::backCCW(),
+                *tileBucket.indexBuffer,
+                tileBucket.triangleSegments,
+                layoutUniformValues,
+                paintUniformValues,
+                allAttributeBindings,
+                textureBindings,
+                uniqueName);
+        }
     };
 
     if (unevaluated.get<FillExtrusionPattern>().isUndefined()) {

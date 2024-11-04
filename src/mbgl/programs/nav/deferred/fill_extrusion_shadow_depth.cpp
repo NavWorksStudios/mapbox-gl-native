@@ -1,6 +1,6 @@
 // NOTE: DO NOT CHANGE THIS FILE. IT IS AUTOMATICALLY GENERATED.
 // clang-format off
-#include <mbgl/programs/nav/deferred/shadow_fill_extrusion_program.hpp>
+#include <mbgl/programs/fill_extrusion_program.hpp>
 #include <mbgl/programs/gl/preludes.hpp>
 #include <mbgl/programs/gl/shader_source.hpp>
 #include <mbgl/gl/program.hpp>
@@ -17,7 +17,7 @@ template <typename>
 struct ShaderSource;
 
 template <>
-struct ShaderSource<FillExtrusionShadowProgram> {
+struct ShaderSource<FillExtrusionShadowDepthProgram> {
     static constexpr const char* name = "fill_extrusion_shadow";
     static constexpr const uint8_t hash[8] = {0x9d, 0x76, 0x7f, 0xaa, 0x86, 0x57, 0x56, 0x96};
     static constexpr const auto vertexOffset = 21491;
@@ -111,8 +111,8 @@ struct ShaderSource<FillExtrusionShadowProgram> {
     
 };
 
-constexpr const char* ShaderSource<FillExtrusionShadowProgram>::name;
-constexpr const uint8_t ShaderSource<FillExtrusionShadowProgram>::hash[8];
+constexpr const char* ShaderSource<FillExtrusionShadowDepthProgram>::name;
+constexpr const uint8_t ShaderSource<FillExtrusionShadowDepthProgram>::hash[8];
 
 } // namespace gl
 } // namespace programs
@@ -120,9 +120,9 @@ constexpr const uint8_t ShaderSource<FillExtrusionShadowProgram>::hash[8];
 namespace gfx {
 
 template <>
-std::unique_ptr<gfx::Program<FillExtrusionShadowProgram>>
+std::unique_ptr<gfx::Program<FillExtrusionShadowDepthProgram>>
 Backend::Create<gfx::Backend::Type::OpenGL>(const ProgramParameters& programParameters) {
-    return std::make_unique<gl::Program<FillExtrusionShadowProgram>>(programParameters);
+    return std::make_unique<gl::Program<FillExtrusionShadowDepthProgram>>(programParameters);
 }
 
 } // namespace gfx

@@ -119,6 +119,12 @@ ActiveUniforms activeUniforms(ProgramID id) {
 }
 
 template <>
+bool verifyUniform<int32_t>(const ActiveUniform& uniform) {
+    assert(uniform.size == 1 && uniform.type == UniformDataType::Int);
+    return true;
+}
+
+template <>
 bool verifyUniform<float>(const ActiveUniform& uniform) {
     assert(uniform.size == 1 && uniform.type == UniformDataType::Float);
     return true;

@@ -50,8 +50,7 @@ LineProgram::layoutUniformValues(const style::LinePaintProperties::PossiblyEvalu
         uniforms::zoom::Value( state.getZoom() ),
         uniforms::spotlight::Value( nav::runtime::spotlight::value() ),
         uniforms::clip_region::Value( nav::display::clip_region() ),
-        uniforms::focus_region::Value( nav::display::focus_region() ),
-        uniforms::render_depth::Value( nav::renderer::isRenderDepth() )
+        uniforms::focus_region::Value( nav::display::focus_region() )
     );
 }
 
@@ -89,8 +88,7 @@ LineSDFProgram::layoutUniformValues(const style::LinePaintProperties::PossiblyEv
         uniforms::tex_y_a::Value( posA.y ),
         uniforms::tex_y_b::Value( posB.y ),
         uniforms::mix::Value( crossfade.t ),
-        uniforms::sdfgamma::Value( atlasWidth / (std::min(widthA, widthB) * 256.0f * pixelRatio) / 2.0f ),
-        uniforms::render_depth::Value( nav::renderer::isRenderDepth() )
+        uniforms::sdfgamma::Value( atlasWidth / (std::min(widthA, widthB) * 256.0f * pixelRatio) / 2.0f )
     );
 }
 
@@ -113,8 +111,7 @@ LinePatternProgram::LayoutUniformValues LinePatternProgram::layoutUniformValues(
         pixelRatio,
         uniforms::scale::Value ({ {pixelRatio, tileRatio, crossfade.fromScale, crossfade.toScale} }),
         uniforms::texsize::Value( atlasSize ),
-        uniforms::fade::Value( crossfade.t ),
-        uniforms::render_depth::Value( nav::renderer::isRenderDepth() )
+        uniforms::fade::Value( crossfade.t )
     );
 }
 
@@ -129,8 +126,7 @@ LineGradientProgram::LayoutUniformValues LineGradientProgram::layoutUniformValue
         tile,
         state,
         pixelsToGLUnits,
-        pixelRatio,
-        uniforms::render_depth::Value( nav::renderer::isRenderDepth() )
+        pixelRatio
     );
 }
 

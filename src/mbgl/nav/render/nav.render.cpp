@@ -71,9 +71,15 @@ void debugPrint() {
     _debugRadar = !_debugRadar;
 }
 
+RenderProcedure _renderProcedure = RenderProcedure::None;
+
+RenderProcedure procedure() {
+    return _renderProcedure;
+}
+
 void render(float zoom, mbgl::mat4 projMatrix,
-            std::function<bool()> shadowRenderDelegate,
-            std::function<bool()> geoRenderDelegate) {
+            std::function<void()> renderShadowDepthDelegate,
+            std::function<void()> renderGeoDelegate) {
     
     if (zoom < 15.) return;
     
@@ -95,16 +101,22 @@ void render(float zoom, mbgl::mat4 projMatrix,
         const int w = width();
         const int h = height();
         glViewport(0, 0, w, h);
-
-        const auto renderBuffer = getRenderBuffer(w, h);
         
-        const auto shadowDepth = nav::shadow::render(w, h, shadowRenderDelegate);
+        // 1
+        _renderProcedure = RenderProcedure::Depth;
+        const auto shadowDepth = nav::shadow::render(w, h, renderShadowDepthDelegate);
         nav::shadow::setDepthBuffer(shadowDepth);
         
-        const auto gbuffer = nav::geo::renderGeoAndShadow(w, h, renderBuffer, shadowDepth, geoRenderDelegate);
+        // 2
+        _renderProcedure = RenderProcedure::GBuffer;
+        const auto renderBuffer = getRenderBuffer(w, h);
+        const auto gbuffer = nav::geo::renderGeoAndShadow(w, h, renderBuffer, shadowDepth, renderGeoDelegate);
         
+        // 3
+        _renderProcedure = RenderProcedure::None;
         nav::ssao::render(w, h, renderBuffer, gbuffer, zoom, convertMatrix4(projMatrix));
         
+        // 4
         nav::quad::renderBlur(w, h, renderBuffer, bindScreen);
         
         // debug radar

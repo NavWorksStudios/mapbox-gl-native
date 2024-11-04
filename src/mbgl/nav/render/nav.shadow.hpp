@@ -18,7 +18,7 @@ const int width = 4096 * 1.;
 const int height = 4096 * 1.;
 
 GLuint render(int width, int height,
-              std::function<bool()> renderCallback,
+              std::function<void()> renderDelegate,
               std::function<void()> bindScreen = nullptr);
 
 void setDepthBuffer(GLuint buffer);

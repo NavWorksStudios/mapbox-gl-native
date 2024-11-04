@@ -348,13 +348,10 @@ set(all_files
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/programs/nav.program.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/programs/nav.program.ssao.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/programs/nav.program.quad.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/programs/nav.program.ground.hpp
 
-    ${PROJECT_SOURCE_DIR}/src/mbgl/programs/nav/deferred/ssao_fill_extrusion.cpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/programs/nav/deferred/ssao_fill_extrusion_program.cpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/programs/nav/deferred/ssao_fill_extrusion_program.hpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/programs/nav/deferred/shadow_fill_extrusion.cpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/programs/nav/deferred/shadow_fill_extrusion_program.cpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/programs/nav/deferred/shadow_fill_extrusion_program.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/programs/nav/deferred/fill_extrusion_geo.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/programs/nav/deferred/fill_extrusion_shadow_depth.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/programs/nav/P1/fill_extrusion.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/programs/nav/P2/fill_extrusion.hpp
 

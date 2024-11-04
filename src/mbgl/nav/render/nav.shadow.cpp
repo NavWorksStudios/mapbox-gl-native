@@ -9,9 +9,10 @@
 #include "mbgl/nav/render/mat4.h"
 
 #include "mbgl/nav/render/shaders.h"
-#include "mbgl/nav/render/programs/nav.program.hpp"
+#include "mbgl/nav/render/programs/nav.program.ground.hpp"
 
-#include <mbgl/programs/nav/deferred/ssao_fill_extrusion_program.hpp>
+#include <mbgl/programs/fill_extrusion_program.hpp>
+
 
 
 static auto convertVec3 = [] (mbgl::vec3 v) {
@@ -60,7 +61,7 @@ void initResource(int width, int height) {
     }
 }
 
-GLuint render(int width, int height, std::function<bool()> renderCallback, std::function<void()> bindScreen) {
+GLuint render(int width, int height, std::function<void()> renderDelegate, std::function<void()> bindScreen) {
     initResource(shadow::width, shadow::height);
     
     if (bindScreen) {
@@ -82,7 +83,7 @@ GLuint render(int width, int height, std::function<bool()> renderCallback, std::
         glEnable(GL_CULL_FACE);
         glCullFace(GL_FRONT);
         
-        renderCallback();
+        renderDelegate();
         
         glCullFace(GL_BACK);
         enableCullface ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
@@ -119,8 +120,8 @@ GLuint program() {
     static GLint pass = 0;
     if (!pass) {
         pass =
-        createProgram(compileShader(GL_VERTEX_SHADER, mbgl::floorVertexShader()),
-                      compileShader(GL_FRAGMENT_SHADER, mbgl::floorFragmentShader()));
+        createProgram(compileShader(GL_VERTEX_SHADER, nav::programs::ground::vertexShader()),
+                      compileShader(GL_FRAGMENT_SHADER, nav::programs::ground::fragmentShader()));
     }
     
     return pass;

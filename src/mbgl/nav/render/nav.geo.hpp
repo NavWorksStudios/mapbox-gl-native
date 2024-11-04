@@ -12,9 +12,11 @@
 namespace nav {
 namespace geo {
 
+void setCurrentProgram();
+
 using GBuffer = std::array<GLuint, 3>;
 GBuffer renderGeoAndShadow(int width, int height, GLuint shadow, GLuint shadowDepth,
-                           std::function<bool()> renderCallback,
+                           std::function<void()> renderDelegate,
                            std::function<void()> bindScreen=nullptr);
 
 }

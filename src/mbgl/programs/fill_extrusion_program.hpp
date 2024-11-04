@@ -66,6 +66,20 @@ using FillExtrusionPatternUniforms = TypeList<
     uniforms::focus_region,
     uniforms::render_reflection>;
 
+using FillExtrusionGeoUniforms = TypeList<
+    uniforms::matrix,
+    uniforms::model_view_matrix,
+    uniforms::normal_matrix,
+    uniforms::light_matrix,
+    uniforms::light_dir>;
+
+using FillExtrusionShadowDepthUniforms = TypeList<
+    uniforms::matrix,
+    uniforms::model_view_matrix,
+    uniforms::normal_matrix>;
+
+
+
 class FillExtrusionProgram : public Program<
     FillExtrusionProgram,
     gfx::PrimitiveType::Triangle,
@@ -127,18 +141,56 @@ public:
                                                    bool renderReflection);
 };
 
+class FillExtrusionGeoProgram : public Program<
+    FillExtrusionGeoProgram,
+    gfx::PrimitiveType::Triangle,
+    FillExtrusionLayoutAttributes,
+    FillExtrusionGeoUniforms,
+    TypeList<>,
+    style::FillExtrusionPaintProperties>
+{
+public:
+    using Program::Program;
+
+    static LayoutUniformValues layoutUniformValues(const mat4& matrix,
+                                                   const mat4& model_view_matrix,
+                                                   const mat4& normal_matrix,
+                                                   const mat4& light_matrix,
+                                                   const vec3f& light_dir);
+};
+
+class FillExtrusionShadowDepthProgram : public Program<
+    FillExtrusionShadowDepthProgram,
+    gfx::PrimitiveType::Triangle,
+    FillExtrusionLayoutAttributes,
+    FillExtrusionShadowDepthUniforms,
+    TypeList<>,
+    style::FillExtrusionPaintProperties>
+{
+public:
+    using Program::Program;
+
+    static LayoutUniformValues layoutUniformValues(const mat4& matrix,
+                                                   const mat4& model_view_matrix,
+                                                   const mat4& normal_matrix);
+};
+
+
 using FillExtrusionLayoutVertex = FillExtrusionProgram::LayoutVertex;
 using FillExtrusionAttributes = FillExtrusionProgram::AttributeList;
-
 
 class FillExtrusionLayerPrograms final : public LayerTypePrograms {
 public:
     FillExtrusionLayerPrograms(gfx::Context& context, const ProgramParameters& programParameters)
         : fillExtrusion(context, programParameters),
-          fillExtrusionPattern(context, programParameters) {
+          fillExtrusionPattern(context, programParameters),
+          fillExtrusionGeo(context, programParameters),
+          fillExtrusionShadowDepth(context, programParameters) {
     }
     FillExtrusionProgram fillExtrusion;
     FillExtrusionPatternProgram fillExtrusionPattern;
+    FillExtrusionGeoProgram fillExtrusionGeo;
+    FillExtrusionShadowDepthProgram fillExtrusionShadowDepth;
 };
 
 } // namespace mbgl

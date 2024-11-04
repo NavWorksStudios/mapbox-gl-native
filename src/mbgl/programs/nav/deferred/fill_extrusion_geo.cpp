@@ -1,6 +1,6 @@
 // NOTE: DO NOT CHANGE THIS FILE. IT IS AUTOMATICALLY GENERATED.
 // clang-format off
-#include <mbgl/programs/nav/deferred/ssao_fill_extrusion_program.hpp>
+#include <mbgl/programs/fill_extrusion_program.hpp>
 #include <mbgl/programs/gl/preludes.hpp>
 #include <mbgl/programs/gl/shader_source.hpp>
 #include <mbgl/gl/program.hpp>
@@ -17,7 +17,7 @@ template <typename>
 struct ShaderSource;
 
 template <>
-struct ShaderSource<FillExtrusionSSAOProgram> {
+struct ShaderSource<FillExtrusionGeoProgram> {
     static constexpr const char* name = "fill_extrusion_ssao";
     static constexpr const uint8_t hash[8] = {0x9d, 0x76, 0x7f, 0xaa, 0x86, 0x57, 0x56, 0x96};
     static constexpr const auto vertexOffset = 21491;
@@ -206,8 +206,8 @@ struct ShaderSource<FillExtrusionSSAOProgram> {
     
 };
 
-constexpr const char* ShaderSource<FillExtrusionSSAOProgram>::name;
-constexpr const uint8_t ShaderSource<FillExtrusionSSAOProgram>::hash[8];
+constexpr const char* ShaderSource<FillExtrusionGeoProgram>::name;
+constexpr const uint8_t ShaderSource<FillExtrusionGeoProgram>::hash[8];
 
 } // namespace gl
 } // namespace programs
@@ -215,51 +215,16 @@ constexpr const uint8_t ShaderSource<FillExtrusionSSAOProgram>::hash[8];
 namespace gfx {
 
 template <>
-std::unique_ptr<gfx::Program<FillExtrusionSSAOProgram>>
+std::unique_ptr<gfx::Program<FillExtrusionGeoProgram>>
 Backend::Create<gfx::Backend::Type::OpenGL>(const ProgramParameters& programParameters) {
-    return std::make_unique<gl::Program<FillExtrusionSSAOProgram>>(programParameters);
+    return std::make_unique<gl::Program<FillExtrusionGeoProgram>>(programParameters);
 }
 
 } // namespace gfx
 
-
-const char* floorVertexShader() { return R"(
-
-attribute vec2 a_pos;
-attribute vec4 a_normal_ed;
-
-uniform mat4 u_matrix;
-uniform mat4 u_model_view_matrix;
-uniform mat4 u_normal_matrix;
-uniform mat4 u_light_matrix;
-
-varying vec3 v_fragPos;
-varying vec3 v_normal;
-varying vec3 v_ao_normal;
-varying vec4 v_lightSpacePos;
-
-void main()
-{
-    vec4 pos = vec4(a_pos, 0., 1.);
-
-    // ssao
-    v_fragPos = vec3(u_model_view_matrix * pos) / 32.;
-
-    v_normal = vec3(-a_normal_ed.x, -a_normal_ed.y, a_normal_ed.z);
-    v_ao_normal = vec3(u_normal_matrix * vec4(v_normal, a_normal_ed.w));
-
-    // shadow
-    v_lightSpacePos = u_light_matrix * pos;
-
-    gl_Position = u_matrix * pos;
+const char* nav_programs_ground_fragmentShader() {
+    return programs::gl::ShaderSource<FillExtrusionGeoProgram>::navFragment(0);
 }
-
-)"; }
-
-const char* floorFragmentShader() {
-    return programs::gl::ShaderSource<FillExtrusionSSAOProgram>::navFragment(0);
-}
-
 
 } // namespace mbgl
 

@@ -25,8 +25,8 @@ struct Config {
     std::string mapboxStudioUrl;
     std::string styleUrl;
     
-    Update needsUpdate;
-    BuildReflection enableBuildReflection;
+    Update update;
+    BuildReflection buildReflection;
     
     std::function<std::tuple<Hsla,bool>(const std::string&, Hsla)> layerColorConfig;
     std::function<bool(const nav::stringid&)> layerMonoPaletteConfig;
@@ -138,11 +138,11 @@ const std::string& style() {
 }
 
 bool needsAutoUpdate() {
-    return THEME.needsUpdate == Update::Continuous;
+    return THEME.update == Update::Continuous;
 }
 
 bool isBuildingReflectionEnabled() {
-    return THEME.enableBuildReflection == BuildReflection::Enabled;
+    return THEME.buildReflection == BuildReflection::Enabled;
 }
 
 std::tuple<Hsla,bool> getColorProperty(const std::string& uri, Hsla color) {

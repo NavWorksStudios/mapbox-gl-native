@@ -19,6 +19,7 @@
 #include "mbgl/nav/render/nav.geo.hpp"
 
 #include <mbgl/renderer/layers/render_fill_extrusion_layer.hpp>
+#include <mbgl/renderer/layers/render_line_layer.hpp>
 
 
 namespace mbgl {
@@ -180,19 +181,20 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
     
     // - NAV DEFERRED RENDERING PASS --------------------------------------------------------------------------------
     {
-        auto shadowRenderDelegate = [&parameters] () {
-            RenderFillExtrusionLayer::renderShadowDepth(parameters);
+        auto renderShadowDepthDelegate = [&parameters] () {
+            RenderFillExtrusionLayer::renderShadowDepthBuffer(parameters);
+            RenderLineLayer::renderShadowDepthBuffer(parameters);
         };
         
-        auto geoRenderDelegate = [&parameters] () {
-            const bool rendered = RenderFillExtrusionLayer::renderDeferredGeoBuffer(parameters);
-            if (rendered) nav::geo::assignmentProgram();
+        auto renderGeoDelegate = [&parameters] () {
+            RenderFillExtrusionLayer::renderGeoBuffer(parameters);
+            RenderLineLayer::renderGeoBuffer(parameters);
         };
         
         nav::renderer::render(parameters.state.getZoom(),
                               parameters.state.getViewToClipMatrix(),
-                              shadowRenderDelegate,
-                              geoRenderDelegate);
+                              renderShadowDepthDelegate,
+                              renderGeoDelegate);
     }
     
     // - ANNOTATION PASS --------------------------------------------------------------------------

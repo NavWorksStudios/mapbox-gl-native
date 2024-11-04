@@ -81,8 +81,16 @@ void bindFbo(GLuint shadow) {
 
 }
 
+static GLint delegateProgram = 0;
+
+void setCurrentProgram() {
+    if (!delegateProgram) {
+        glGetIntegerv(GL_CURRENT_PROGRAM, &delegateProgram);
+    }
+}
+
 GBuffer renderGeoAndShadow(int width, int height, GLuint shadow, GLuint shadowDepth,
-                           std::function<bool()> renderCallback, std::function<void()> bindScreen) {
+                           std::function<void()> renderDelegate, std::function<void()> bindScreen) {
     initResource(width, height);
 
     if (bindScreen) {
@@ -95,22 +103,19 @@ GBuffer renderGeoAndShadow(int width, int height, GLuint shadow, GLuint shadowDe
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // 清空所有颜色附件
     
     glDisable(GL_BLEND);
-    
-    static GLint program = 0;
-    if (program) {
+
+    if (delegateProgram) {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, shadowDepth);
-        static programs::UniformLocation u0(program, "u_shadow_map");
+        static programs::UniformLocation u0(delegateProgram, "u_shadow_map");
         glUniform1i(u0, 0);
 
-        static programs::UniformLocation u1(program, "u_shadow_offset");
+        static programs::UniformLocation u1(delegateProgram, "u_shadow_offset");
         glUniform2f(u1, .5 / nav::shadow::width, .5 / nav::shadow::height);
     }
     
-    if (renderCallback()) {
-        glGetIntegerv(GL_CURRENT_PROGRAM, &program);
-    }
-    
+    renderDelegate();
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     
     return { position, normal, albedo };

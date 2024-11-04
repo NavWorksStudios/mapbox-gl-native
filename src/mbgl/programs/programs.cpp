@@ -10,9 +10,6 @@
 #include <mbgl/programs/raster_program.hpp>
 #include <mbgl/programs/symbol_program.hpp>
 
-#include <mbgl/programs/nav/deferred/ssao_fill_extrusion_program.hpp>
-#include <mbgl/programs/nav/deferred/shadow_fill_extrusion_program.hpp>
-
 namespace mbgl {
 
 Programs::Programs(gfx::Context& context_, const ProgramParameters& programParameters_)
@@ -63,20 +60,6 @@ FillExtrusionLayerPrograms& Programs::getFillExtrusionLayerPrograms() noexcept {
         fillExtrusionPrograms = std::make_unique<FillExtrusionLayerPrograms>(context, programParameters);
     }
     return static_cast<FillExtrusionLayerPrograms&>(*fillExtrusionPrograms);   
-}
-
-FillExtrusionSSAOLayerPrograms& Programs::getFillExtrusionSSAOLayerPrograms() noexcept {
-    if (!fillExtrusionSSAOPrograms) {
-        fillExtrusionSSAOPrograms = std::make_unique<FillExtrusionSSAOLayerPrograms>(context, programParameters);
-    }
-    return static_cast<FillExtrusionSSAOLayerPrograms&>(*fillExtrusionSSAOPrograms);
-}
-
-FillExtrusionShadowLayerPrograms& Programs::getFillExtrusionShadowLayerPrograms() noexcept {
-    if (!fillExtrusionShadowPrograms) {
-        fillExtrusionShadowPrograms = std::make_unique<FillExtrusionShadowLayerPrograms>(context, programParameters);
-    }
-    return static_cast<FillExtrusionShadowLayerPrograms&>(*fillExtrusionShadowPrograms);
 }
 
 CircleLayerPrograms& Programs::getCircleLayerPrograms() noexcept {
