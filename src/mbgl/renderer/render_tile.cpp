@@ -128,6 +128,7 @@ void RenderTile::prepare(const SourcePrepareParameters& parameters) {
     const auto& transform = parameters.transform;
 
     transform.state.matrixFor(modelMatrix, id);
+    transform.state.matrixForWorldAbsoluteCoordinate(modelMatrixAb, id);
     
     viewMatrix = transform.state.getWorldToViewMatrix();
     matrix::multiply(modelViewMatrix, viewMatrix, modelMatrix);

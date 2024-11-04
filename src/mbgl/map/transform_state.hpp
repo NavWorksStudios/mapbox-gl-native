@@ -113,6 +113,7 @@ public:
     void setProperties(const TransformStateProperties& properties);
     
     void matrixFor(mat4&, const UnwrappedTileID&) const;                                    // model matrix : model to world space
+    void matrixForWorldAbsoluteCoordinate(mat4& matrix, const UnwrappedTileID& tileID) const;
     
     // camera
     void getProjMatrix(mat4& matrix, uint16_t nearZ=1, bool aligned=false) const;           // v&p matrix : world to view to clip space

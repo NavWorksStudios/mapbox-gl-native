@@ -94,6 +94,21 @@ void TransformState::matrixFor(mat4& matrix, const UnwrappedTileID& tileID) cons
     matrix::scale(matrix, matrix, ss, ss, 1);
 }
 
+void TransformState::matrixForWorldAbsoluteCoordinate(mat4& matrix, const UnwrappedTileID& tileID) const {
+    const uint64_t tileScale = 1ull << tileID.canonical.z;
+    const double world = Projection::worldSize(8192);
+    const double s = world / tileScale;
+
+    matrix::identity(matrix);
+    
+    const double x = tileID.canonical.x + tileID.wrap * tileScale;
+    const double y = tileID.canonical.y;
+    matrix::translate(matrix, matrix, x * s, y * s, 0);
+    
+    const double ss = s / util::EXTENT;
+    matrix::scale(matrix, matrix, ss, ss, 1);
+}
+
 // world to camera to clip
 void TransformState::getProjMatrix(mat4& projMatrix, uint16_t nearZ, bool aligned) const {
     if (size.isEmpty()) {
