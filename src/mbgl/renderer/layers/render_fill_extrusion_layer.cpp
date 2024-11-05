@@ -18,6 +18,7 @@
 #include <mbgl/util/math.hpp>
 
 #include "mbgl/nav/nav.theme.hpp"
+#include "mbgl/nav/nav.runtime.hpp"
 #include "mbgl/nav/render/nav.render.hpp"
 #include "mbgl/nav/render/nav.shadow.hpp"
 #include "mbgl/nav/render/nav.geo.hpp"
@@ -127,7 +128,7 @@ void RenderFillExtrusionLayer::doRenderGeoBuffer(PaintParameters& parameters) {
             uniforms::model_view_matrix::Value(),
             uniforms::normal_matrix::Value(),
             uniforms::light_matrix::Value(),
-            uniforms::light_dir::Value( parameters.state.getSunlightToCenterDir() )
+            uniforms::light_dir::Value( nav::runtime::sunlight::direction() )
         );
         
         const std::string uniqueName = getID().get() + "/" + name;

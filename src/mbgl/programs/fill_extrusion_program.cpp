@@ -18,15 +18,10 @@ std::array<float, 3> lightColor(const EvaluatedLight& light) {
     return {{ color.r, color.g, color.b }};
 }
 
-std::array<float, 3> lightPosition(const EvaluatedLight& light, const TransformState& state) {
+std::array<float, 3> lightDirection(const EvaluatedLight& light, const TransformState& state) {
     auto lightPos = light.get<LightPosition>().getCartesian();
-
-    const double worldSize = Projection::worldSize(state.getScale());
-    lightPos[0] *= worldSize;
-    lightPos[1] *= worldSize;
-    lightPos[2] *= worldSize;
-
     if (light.get<LightAnchor>() == LightAnchorType::Map) {
+        nav::runtime::sunlight::setDirection(lightPos);
         return lightPos;
     } else {
         mat3 lightMat;
@@ -34,6 +29,7 @@ std::array<float, 3> lightPosition(const EvaluatedLight& light, const TransformS
         matrix::rotate(lightMat, lightMat, -state.getBearing());
         std::array<float, 3> result;
         matrix::transformMat3f(result, lightPos, lightMat);
+        nav::runtime::sunlight::setDirection(result);
         return result;
     }
 }
@@ -51,7 +47,7 @@ FillExtrusionProgram::LayoutUniformValues FillExtrusionProgram::layoutUniformVal
         uniforms::opacity::Value( opacity ),
         uniforms::camera_pos::Value( state.getCameraPosition() ),
         uniforms::lightcolor::Value( lightColor(light) ),
-        uniforms::lightpos::Value( lightPosition(light, state) ),
+        uniforms::lightpos::Value( lightDirection(light, state) ),
         uniforms::lightintensity::Value( lightIntensity(light) ),
         uniforms::vertical_gradient::Value( verticalGradient ),
         uniforms::spotlight::Value( nav::runtime::spotlight::value() ),
@@ -89,7 +85,7 @@ FillExtrusionPatternProgram::layoutUniformValues(mat4 matrix,
         uniforms::pixel_coord_lower::Value( std::array<float, 2>{{ float(pixelX & 0xFFFF), float(pixelY & 0xFFFF) }} ),
         uniforms::height_factor::Value( heightFactor ),
         uniforms::lightcolor::Value( lightColor(light) ),
-        uniforms::lightpos::Value( lightPosition(light, state) ),
+        uniforms::lightpos::Value( lightDirection(light, state) ),
         uniforms::lightintensity::Value( lightIntensity(light) ),
         uniforms::vertical_gradient::Value( verticalGradient ),
         uniforms::spotlight::Value( nav::runtime::spotlight::value() ),

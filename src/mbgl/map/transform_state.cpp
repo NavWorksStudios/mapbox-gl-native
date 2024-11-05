@@ -9,6 +9,7 @@
 #include <mbgl/util/tile_coordinate.hpp>
 
 #include "mbgl/nav/render/nav.shadow.frustum.hpp"
+#include "mbgl/nav/nav.runtime.hpp"
 
 
 namespace mbgl {
@@ -94,9 +95,9 @@ void TransformState::matrixFor(mat4& matrix, const UnwrappedTileID& tileID) cons
     matrix::scale(matrix, matrix, ss, ss, 1);
 }
 
-void TransformState::matrixForWorldAbsoluteCoordinate(mat4& matrix, const UnwrappedTileID& tileID) const {
+void TransformState::matrixForP20(mat4& matrix, const UnwrappedTileID& tileID) const {
     const uint64_t tileScale = 1ull << tileID.canonical.z;
-    const double world = Projection::worldSize(8192);
+    const double world = Projection::worldSize(zoomScale(20.));
     const double s = world / tileScale;
 
     matrix::identity(matrix);
@@ -319,13 +320,10 @@ void TransformState::updateSunlightState() const {
     const double dx = 0.5 * worldSize - x;
     const double dy = 0.5 * worldSize - y;
 
-    // NDC - Normalized Device Coordinates
-    const vec3 lightPos = {0.287499934, 1.497964621, 0.995929181};
-    const vec3 centerPos = {dx / worldSize, dy / worldSize, 0.0};
-    
-    // Set camera orientation and move it to a proper distance from the map
-    _sunlightToCenterDir = vec3Sub(centerPos, lightPos);
-    const auto orientation = util::Camera::orientationFromFrame(_sunlightToCenterDir, vec3{{0.0, 0.0, 1.0}});
+    // Set camera orientation and move in the opposite direction of the sunlight.
+    const auto& dir = nav::runtime::sunlight::direction();
+    const auto orientation = util::Camera::orientationFromFrame({dir[0], dir[1], -dir[2]}, {0.0, 0.0, 1.0});
+    assert(orientation.has_value());
     sunlight.setOrientation(orientation.value());
 
     const vec3 forward = sunlight.forward();

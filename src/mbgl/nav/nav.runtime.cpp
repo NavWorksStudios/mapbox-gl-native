@@ -82,6 +82,20 @@ struct ToggleValue {
 };
 
 
+namespace sunlight {
+
+std::array<float,3> _dir = { 1, 1, 1 };
+
+const std::array<float,3>& direction() {
+    return _dir;
+}
+
+void setDirection(const std::array<float,3>& dir) {
+    _dir = dir;
+}
+
+}
+
 namespace spotlight {
 
 ToggleValue toggle(0.1, 0.015);

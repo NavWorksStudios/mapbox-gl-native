@@ -113,7 +113,7 @@ public:
     void setProperties(const TransformStateProperties& properties);
     
     void matrixFor(mat4&, const UnwrappedTileID&) const;                                    // model matrix : model to world space
-    void matrixForWorldAbsoluteCoordinate(mat4& matrix, const UnwrappedTileID& tileID) const;
+    void matrixForP20(mat4& matrix, const UnwrappedTileID& tileID) const;
     
     // camera
     void getProjMatrix(mat4& matrix, uint16_t nearZ=1, bool aligned=false) const;           // v&p matrix : world to view to clip space
@@ -323,17 +323,11 @@ private:
     mutable mat4 _sunlightProjectionMatrix;     // vp matrix
     mutable mat4 _sunlightWorldToViewMatrix;    // v matrix
     mutable mat4 _sunlightViewToClipMatrix;     // p matrix
-    mutable vec3 _sunlightToCenterDir;
     
 public:
     vec3f getCameraPosition() const {
         const auto& pos = _cameraPosition;
         return { float(pos[0]), float(pos[1]), float(pos[2]) };
-    }
-    
-    vec3f getSunlightToCenterDir() const {
-        const auto& dir = _sunlightToCenterDir;
-        return { float(dir[0]), float(dir[1]), float(dir[2]) };
     }
 
 };

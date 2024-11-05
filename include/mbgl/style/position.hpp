@@ -23,8 +23,10 @@ public:
         return !(lhs == rhs);
     }
 
+    // 太阳光照方向
     std::array<float, 3> getCartesian() const { return {{x, y, z}}; };
 
+    // 太阳方位角和极角
     std::array<float, 3> getSpherical() const { return {{radial, azimuthal, polar}}; };
 
     void set(std::array<float, 3>& position_) {
@@ -47,7 +49,7 @@ private:
     float azimuthal;    // 方位角，顺时针旋转到目标点在水平面上的投影与原点连线的角度。
     float polar;        // 极角，是从正上方到目标点与原点连线的角度
     
-    // 世界坐标
+    // 方向
     float x;
     float y;
     float z;

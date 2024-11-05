@@ -133,7 +133,7 @@ void RenderFillLayer::render(PaintParameters& parameters) {
             
             const auto& matrix = tile.translatedMatrix(evaluated.get<FillTranslate>(), evaluated.get<FillTranslateAnchor>(), parameters.state);
             layoutUniformValues.template get<uniforms::matrix>() = matrix;
-            layoutUniformValues.template get<uniforms::model_matrix>() = tile.modelMatrixAb;
+            layoutUniformValues.template get<uniforms::model_matrix>() = tile.modelMatrixP20;
             layoutUniformValues.template get<uniforms::water_data_z_scale>() = pow(2.,16.-tile.id.canonical.z); // data_z [13,16]
 
             const auto draw = [&] (auto& programInstance,

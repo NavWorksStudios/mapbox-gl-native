@@ -18,6 +18,11 @@ namespace rendertime {
 double value();
 }
 
+namespace sunlight {
+const std::array<float,3>& direction();
+void setDirection(const std::array<float,3>& dir);
+}
+
 namespace spotlight {
 float value();
 }

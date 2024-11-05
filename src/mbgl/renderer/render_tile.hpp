@@ -38,7 +38,7 @@ public:
     UnwrappedTileID id;
 
     mat4 modelMatrix;
-    mat4 modelMatrixAb;
+    mat4 modelMatrixP20;
     mat4 viewMatrix;
     mat4 modelViewMatrix;
     mat4 sunlightViewMatrix;
