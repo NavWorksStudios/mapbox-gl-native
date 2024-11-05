@@ -30,14 +30,36 @@ inline const LineLayer::Impl& impl_cast(const Immutable<style::Layer::Impl>& imp
 
 } // namespace
 
+static RenderLineLayer* renderLineLayer = nullptr;
+
 RenderLineLayer::RenderLineLayer(Immutable<style::LineLayer::Impl> _impl)
     : RenderLayer(makeMutable<LineLayerProperties>(std::move(_impl))),
       unevaluated(impl_cast(baseImpl).paint.untransitioned()),
       colorRamp({256, 1}) {
+    renderLineLayer = this;
     bindToPalette(baseImpl->id, "line-color", unevaluated.get<LineColor>().value);
 }
 
-RenderLineLayer::~RenderLineLayer() = default;
+RenderLineLayer::~RenderLineLayer() {
+    renderLineLayer = nullptr;
+}
+
+void RenderLineLayer::renderShadowDepthBuffer(PaintParameters& parameters) {
+    if (renderLineLayer) {
+        renderLineLayer->render(parameters);
+    }
+}
+
+void RenderLineLayer::renderGeoBuffer(PaintParameters& parameters) {
+    if (renderLineLayer) {
+        renderLineLayer->doRenderGeoBuffer(parameters);
+        renderLineLayer->render(parameters);
+    }
+}
+
+void RenderLineLayer::doRenderGeoBuffer(PaintParameters& parameters) {
+    
+}
 
 void RenderLineLayer::transition(const TransitionParameters& parameters) {
     unevaluated = impl_cast(baseImpl).paint.transitioned(parameters, std::move(unevaluated));
@@ -158,7 +180,6 @@ void RenderLineLayer::render(PaintParameters& parameters) {
                                  getID());
         };
 
-        
         if (!evaluated.get<LineDasharray>().from.empty()) {
             const LinePatternCap cap =
                 bucket.layout.get<LineCap>() == LineCapType::Round ? LinePatternCap::Round : LinePatternCap::Square;
@@ -220,7 +241,6 @@ void RenderLineLayer::render(PaintParameters& parameters) {
                     textures::image::Value{ colorRampTexture->getResource(), gfx::TextureFilterType::Linear },
                 });
         } else {
-            // #*#*# route line 会调用此处逻辑
             draw(parameters.programs.getLineLayerPrograms().line,
                  LineProgram::layoutUniformValues(
                      evaluated,
