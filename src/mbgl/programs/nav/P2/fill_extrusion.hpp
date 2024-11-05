@@ -103,11 +103,12 @@ struct FillExtrusionProgram {
             vec3 viewDir = normalize(u_camera_pos - fragPos);
             vec3 reflectDir = reflect(-lightDir, norm); // 反射向量
             float specular = pow(max(0., dot(viewDir, reflectDir)), shininess) * .4;
-
+    
+//            v_color = color * vec4(u_lightcolor * (ambient + diffuse + specularcolor), 1.) * u_opacity;
+    
             const vec3 basecolor = vec3(.97, .97, .92);
             const vec3 specularcolor = vec3(.9, .94, .94);
-    
-            v_color = color * vec4(u_lightcolor * basecolor * (ambient + diffuse) + specularcolor * (specular), 1.) * u_opacity;
+            v_color = color * vec4(basecolor * (ambient + diffuse) + specularcolor * (specular), 1.) * u_opacity;
             v_color.a *= .8;
         }
         
