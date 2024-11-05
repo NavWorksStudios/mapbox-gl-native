@@ -84,14 +84,15 @@ struct ToggleValue {
 
 namespace sunlight {
 
-std::array<float,3> _dir = { 1, 1, 1 };
+std::array<float,3> _pos = { 1, 1, 1 };
 
-const std::array<float,3>& direction() {
-    return _dir;
+const std::array<float,3>& pos() {
+    return _pos;
 }
 
-void setDirection(const std::array<float,3>& dir) {
-    _dir = dir;
+void setPos(const std::array<float,3>& pos) {
+    // 太阳坐标系和世界坐标系xy值反向
+    _pos = { -pos[0], -pos[1], pos[2] };
 }
 
 }

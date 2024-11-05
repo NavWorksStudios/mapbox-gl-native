@@ -27,14 +27,13 @@ public:
 struct LightAnchor : LightProperty<LightAnchorType> {
     static LightAnchorType defaultValue() {
         return LightAnchorType::Map;
-//        return LightAnchorType::Viewport;
     }
 };
 
 struct LightPosition : LightProperty<Position> {
     static Position defaultValue() {
-        std::array<float, 3> default_ = { { 1.15, 210, 30 } };
-        return Position{ { default_ } };
+        std::array<float, 3> default_ = { 1.15, 180, 30 };
+        return { default_ };
     }
 };
 

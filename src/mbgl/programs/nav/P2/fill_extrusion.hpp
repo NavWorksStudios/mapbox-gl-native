@@ -76,7 +76,7 @@ struct FillExtrusionProgram {
             height = max(base, height);
             float lowp t = mod(normal.x, 2.0);
     
-            // p position
+            // position
             float lowp z = t > 0. ? height : base;
             vec4 pos = vec4(a_pos, z, 1.);
             gl_Position = u_matrix * pos;
@@ -88,23 +88,21 @@ struct FillExtrusionProgram {
 //                return;
 //            }
     
-            // w position
-            pos = u_model_matrix * pos;
-    
+            vec3 fragPos = vec3(u_model_matrix * pos);
+
             // Ambient Lighting
-            const float ambient = .4;
+            const float ambient = 0.6;
     
             // Diffuse Lighting
             vec3 norm = normalize(normal);
-            vec3 lightDir = normalize(u_lightpos - vec3(pos));
-            float diffuse = max(0., dot(norm, lightDir)) * .6;
+            vec3 lightDir = normalize(u_lightpos);
+            float diffuse = max(dot(norm, lightDir), 0.) * 0.6;
     
             // Specular Lighting
-            const float indensity = .3; // 强度
-            const float shininess = .1; // 反射率
-            vec3 viewDir = normalize(u_camera_pos - vec3(pos));
-            vec3 reflectDir = reflect(lightDir, norm); // 反射向量
-            float specular = indensity * pow(max(0., dot(viewDir, reflectDir)), shininess); // power(max(0,dot(N,H)),shininess)
+            const float shininess = 1.; // 反射率
+            vec3 viewDir = normalize(u_camera_pos - fragPos);
+            vec3 reflectDir = reflect(-lightDir, norm); // 反射向量
+            float specular = pow(max(0., dot(viewDir, reflectDir)), shininess) * .4;
 
             const vec3 basecolor = vec3(.97, .97, .92);
             const vec3 specularcolor = vec3(.9, .94, .94);

@@ -19,8 +19,8 @@ double value();
 }
 
 namespace sunlight {
-const std::array<float,3>& direction();
-void setDirection(const std::array<float,3>& dir);
+const std::array<float,3>& pos();
+void setPos(const std::array<float,3>& dir);
 }
 
 namespace spotlight {

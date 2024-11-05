@@ -21,7 +21,7 @@ std::array<float, 3> lightColor(const EvaluatedLight& light) {
 std::array<float, 3> lightDirection(const EvaluatedLight& light, const TransformState& state) {
     auto lightPos = light.get<LightPosition>().getCartesian();
     if (light.get<LightAnchor>() == LightAnchorType::Map) {
-        nav::runtime::sunlight::setDirection(lightPos);
+        nav::runtime::sunlight::setPos(lightPos);
         return lightPos;
     } else {
         mat3 lightMat;
@@ -29,7 +29,7 @@ std::array<float, 3> lightDirection(const EvaluatedLight& light, const Transform
         matrix::rotate(lightMat, lightMat, -state.getBearing());
         std::array<float, 3> result;
         matrix::transformMat3f(result, lightPos, lightMat);
-        nav::runtime::sunlight::setDirection(result);
+        nav::runtime::sunlight::setPos(result);
         return result;
     }
 }

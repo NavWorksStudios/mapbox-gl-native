@@ -289,19 +289,14 @@ void TransformState::updateCameraState() const {
     vec4 orientation = camera.setOrientation(getPitch(), getBearing());
 
     const vec3 forward = camera.forward();
-    const vec3 orbitPosition = {{-forward[0] * cameraToCenterDistance,
+    const vec3 orbitPosition = { -forward[0] * cameraToCenterDistance,
                                  -forward[1] * cameraToCenterDistance,
-                                 -forward[2] * cameraToCenterDistance}};
+                                 -forward[2] * cameraToCenterDistance };
 
-    vec3 cameraPosition = {{dx + orbitPosition[0], dy + orbitPosition[1], orbitPosition[2]}};
-    _cameraPosition = cameraPosition;
-
-    cameraPosition[0] /= worldSize;
-    cameraPosition[1] /= worldSize;
-    cameraPosition[2] /= worldSize;
-
-    camera.setPosition(cameraPosition);
-
+    const vec3 position = { dx + orbitPosition[0], dy + orbitPosition[1], orbitPosition[2] };
+    camera.setPosition(vec3Scale(position, 1./worldSize));
+    
+    _cameraPosition = position;
 }
 
 // #*# 待完善
@@ -321,12 +316,12 @@ void TransformState::updateSunlightState() const {
     const double dy = 0.5 * worldSize - y;
 
     // Set camera orientation and move in the opposite direction of the sunlight.
-    const auto& dir = nav::runtime::sunlight::direction();
-    const auto orientation = util::Camera::orientationFromFrame({dir[0], dir[1], -dir[2]}, {0.0, 0.0, 1.0});
+    const auto& pos = nav::runtime::sunlight::pos();
+    const vec3 forward = vec3Sub({ 0., 0., 0.}, { pos[0], pos[1], pos[2] });
+    const auto orientation = util::Camera::orientationFromFrame(forward, {0., 0., 1.});
     assert(orientation.has_value());
     sunlight.setOrientation(orientation.value());
 
-    const vec3 forward = sunlight.forward();
     const vec3 orbitPosition = { -forward[0] * cameraToCenterDistance,
                                  -forward[1] * cameraToCenterDistance,
                                  -forward[2] * cameraToCenterDistance };

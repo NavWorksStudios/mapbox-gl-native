@@ -128,7 +128,7 @@ void RenderFillExtrusionLayer::doRenderGeoBuffer(PaintParameters& parameters) {
             uniforms::model_view_matrix::Value(),
             uniforms::normal_matrix::Value(),
             uniforms::light_matrix::Value(),
-            uniforms::light_dir::Value( nav::runtime::sunlight::direction() )
+            uniforms::light_dir::Value( nav::runtime::sunlight::pos() )
         );
         
         const std::string uniqueName = getID().get() + "/" + name;
