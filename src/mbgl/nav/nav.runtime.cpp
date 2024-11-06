@@ -91,7 +91,6 @@ const std::array<float,3>& pos() {
 }
 
 void setPos(const std::array<float,3>& pos) {
-    // 太阳坐标系和世界坐标系xy值反向
     _pos = { -pos[0], -pos[1], pos[2] };
 }
 

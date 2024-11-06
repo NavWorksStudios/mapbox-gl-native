@@ -20,7 +20,7 @@ double value();
 
 namespace sunlight {
 const std::array<float,3>& pos();
-void setPos(const std::array<float,3>& dir);
+void setPos(const std::array<float,3>& dir); // 太阳坐标系和世界坐标系xy值反向
 }
 
 namespace spotlight {
