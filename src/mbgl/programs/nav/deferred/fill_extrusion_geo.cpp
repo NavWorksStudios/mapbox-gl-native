@@ -62,10 +62,11 @@ struct ShaderSource<FillExtrusionGeoProgram> {
         uniform highp mat4 u_normal_matrix;
         uniform highp mat4 u_light_matrix;
     
-        varying vec3 v_fragPos;
-        varying vec3 v_normal;
-        varying vec3 v_ao_normal;
-        varying vec4 v_lightSpacePos;
+        varying vec3 v_aospace_normal;
+        varying vec3 v_aospace_pos;
+    
+        varying vec3 v_lightspace_normal;
+        varying vec4 v_lightspace_pos;
         
         uniform lowp float u_base_t;
         attribute highp vec2 a_base;
@@ -83,16 +84,18 @@ struct ShaderSource<FillExtrusionGeoProgram> {
             float lowp t = mod(a_normal_ed.x, 2.0);
             float highp z = t > 0. ? height : base;
             highp vec4 pos = vec4(a_pos, z, 1.0);
-
-            // ssao
-            v_fragPos = vec3(u_model_view_matrix * pos) / 32.;
-            v_normal = vec3(-a_normal_ed.x, -a_normal_ed.y, a_normal_ed.z);
-            v_ao_normal = vec3(u_normal_matrix * vec4(v_normal, a_normal_ed.w));
-    
-            // shadow
-            v_lightSpacePos = u_light_matrix * pos;
     
             gl_Position = u_matrix * pos;
+    
+            vec4 outward_normal = vec4(-a_normal_ed.x, -a_normal_ed.y, a_normal_ed.z, a_normal_ed.w);
+
+            // ssao
+            v_aospace_normal = vec3(u_normal_matrix * outward_normal);
+            v_aospace_pos = vec3(u_model_view_matrix * pos) / 32.;
+    
+            // shadow
+            v_lightspace_normal = vec3(outward_normal);
+            v_lightspace_pos = u_light_matrix * pos;
         }
         
     )"; }
@@ -123,10 +126,11 @@ struct ShaderSource<FillExtrusionGeoProgram> {
         uniform vec2 u_shadow_offset;
         uniform vec3 u_light_dir;
 
-        varying vec3 v_fragPos;
-        varying vec3 v_normal;
-        varying vec3 v_ao_normal;
-        varying vec4 v_lightSpacePos;
+        varying vec3 v_aospace_normal;
+        varying vec3 v_aospace_pos;
+
+        varying vec3 v_lightspace_normal;
+        varying vec4 v_lightspace_pos;
     
         float ShadowCalculation(vec4 fragPosLightSpace) {
             // perform perspective divide
@@ -146,10 +150,10 @@ struct ShaderSource<FillExtrusionGeoProgram> {
             // bias小，容忍度高，阴影多。bias大，容忍度低，阴影少。
             // bias尽可能小，以产生更完整的阴影。 但是太小会产生不该有的阴影。
 
-            // 所有面都可能被遮挡，都需要计算阴影
-            vec3 normal = normalize(v_normal);
+            // 空间夹角
+            vec3 normal = normalize(v_lightspace_normal);
             vec3 lightDir = normalize(u_light_dir);
-            float diff = 1. - dot(normal, lightDir); // (0, 1, 2) (背向, 平行, 面向)
+            float diff = 1. + dot(normal, lightDir); // 1. + (-1., 0., 1.) (背向, 平行, 面向)
 
             // 系数调整方法：
             // 先将threshold置0，调整transform到最大值，使阴影刚好完全(越小越全)。再调整threshold收边
@@ -181,8 +185,11 @@ struct ShaderSource<FillExtrusionGeoProgram> {
             }
 
             // 消除平行于光线的面的阴影闪动。越平行于光线越淡。
-            if (normal.z < 0.00001) { // 刨除地面
-                shadow *= pow(1. - diff, 2.);
+            if (shadow > 0. && normal.z < 0.001) { // 刨除地面
+                lightDir.z = 0.; // 换到平面
+                lightDir = normalize(lightDir);
+                float diff2D = dot(normal, lightDir); // 平面夹角
+                shadow *= abs(diff2D);
             }
     
             return shadow;
@@ -190,16 +197,16 @@ struct ShaderSource<FillExtrusionGeoProgram> {
 
         void main() {
             // store the fragment position vector in the first gbuffer texture
-            gl_FragData[0].xyz = v_fragPos;
+            gl_FragData[0].xyz = v_aospace_pos;
 
             // also store the per-fragment normals into the gbuffer
-            gl_FragData[1].xyz = normalize(v_ao_normal);
+            gl_FragData[1].xyz = normalize(v_aospace_normal);
 
             // and the diffuse per-fragment color
             gl_FragData[2].rgb = vec3(0.95);
     
             // shadow
-            gl_FragData[3].r = ShadowCalculation(v_lightSpacePos) * .8;
+            gl_FragData[3].r = ShadowCalculation(v_lightspace_pos) * .8;
         }
             
     )"; }
