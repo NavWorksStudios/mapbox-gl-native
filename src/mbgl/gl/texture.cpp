@@ -30,6 +30,7 @@ void bindTexture(gl::Context& context, const uint8_t unit, const gfx::TextureBin
             resource.mipmap = binding.mipmap;
             if(binding.mipmap == gfx::TextureMipMapType::Yes) {
                 MBGL_CHECK_ERROR(glGenerateMipmap(GL_TEXTURE_2D));
+                MBGL_CHECK_ERROR(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR));
             }
         }
         if (binding.wrapX != resource.wrapX) {
