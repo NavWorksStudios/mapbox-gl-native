@@ -95,7 +95,7 @@ void main() {
 
     }
 
-    gl_FragColor.r = occlusion * .6;
+    gl_FragColor.r = occlusion * .7;
 }
 
 )"; }
