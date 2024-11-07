@@ -82,33 +82,36 @@ struct FillExtrusionProgram {
             gl_Position = u_matrix * pos;
     
             // distance clipping
-//            float distance = pow(gl_Position.x, 2.) + pow(gl_Position.z, 2.);
-//            if (distance > u_clip_region) {
-//                gl_Position.x = gl_Position.y = gl_Position.z = -1.e100;
-//                return;
-//            }
+            float distance = pow(gl_Position.x, 2.) + pow(gl_Position.z, 2.);
+            if (distance > u_clip_region) {
+                gl_Position.x = gl_Position.y = gl_Position.z = -1.e100;
+                return;
+            }
     
             vec3 fragPos = vec3(u_model_matrix * pos);
+    
+            const float Material_ambient = .5; // 环境光
+            const float Material_diffuse = .5; // 漫反射
+            const float Material_specular = 3.; // 镜面反射
+            const float Material_shininess = 1.; // 反射率
 
             // Ambient Lighting
-            const float ambient = 0.6;
+            const float ambient = Material_ambient;
     
             // Diffuse Lighting
-            vec3 norm = normalize(normal);
+            vec3 norm = normalize(vec3(-normal.x, -normal.y, normal.z));
             vec3 lightDir = normalize(u_lightpos);
-            float diffuse = max(dot(norm, lightDir), 0.) * 0.6;
+            float diffuse = max(dot(norm, lightDir), 0.) * Material_diffuse;
     
             // Specular Lighting
-            const float shininess = 1.; // 反射率
             vec3 viewDir = normalize(u_camera_pos - fragPos);
-            vec3 reflectDir = reflect(-lightDir, norm); // 反射向量
-            float specular = pow(max(0., dot(viewDir, reflectDir)), shininess) * .4;
+            vec3 reflectDir = reflect(-lightDir, norm);
+            float specular = pow(max(dot(viewDir, reflectDir), 0.), Material_shininess) * Material_specular;
+
+            vec3 baselight = vec3(.92, .9, .88) * (ambient + diffuse) * (1. - specular);
+            vec3 specularlight = vec3(.98, .88, .78) * specular;
     
-//            v_color = color * vec4(u_lightcolor * (ambient + diffuse + specularcolor), 1.) * u_opacity;
-    
-            const vec3 basecolor = vec3(.97, .97, .92);
-            const vec3 specularcolor = vec3(.9, .94, .94);
-            v_color = color * vec4(basecolor * (ambient + diffuse) + specularcolor * (specular), 1.) * u_opacity;
+            v_color = vec4(baselight + specularlight, 1.) * u_opacity;
             v_color.a *= .8;
         }
         

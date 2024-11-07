@@ -206,7 +206,7 @@ struct ShaderSource<FillExtrusionGeoProgram> {
             gl_FragData[2].rgb = vec3(0.95);
     
             // shadow
-            gl_FragData[3].r = ShadowCalculation(v_lightspace_pos) * .8;
+            gl_FragData[3].r = ShadowCalculation(v_lightspace_pos) * .6;
         }
             
     )"; }
