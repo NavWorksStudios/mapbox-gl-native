@@ -188,6 +188,13 @@ void load(const std::string& path) {
     imageMap["fill_blank22"].image = mbgl::decodeImage(mbgl::util::read_file(path + "blank22.png"));
     imageMap["fill_water"].image = mbgl::decodeImage(mbgl::util::read_file(path + "water.jpg"));
     imageMap["fill_grass"].image = mbgl::decodeImage(mbgl::util::read_file(path + "grass.jpg"));
+    
+    imageMap["fill_water_t1"].image = mbgl::decodeImage(mbgl::util::read_file(path + "water_t1.jpg"));
+    imageMap["fill_water_normal_t1"].image = mbgl::decodeImage(mbgl::util::read_file(path + "water_normal_t1.jpg"));
+    imageMap["fill_water_reflection_t1"].image = mbgl::decodeImage(mbgl::util::read_file(path + "water_reflection_t1.jpg"));
+    
+    imageMap["fill_crystal_ball"].image = mbgl::decodeImage(mbgl::util::read_file(path + "crystal_ball.png"));
+    imageMap["fill_crystal_normal"].image = mbgl::decodeImage(mbgl::util::read_file(path + "crystal_normal.jpg"));
 }
 
 void release() {
