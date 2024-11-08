@@ -82,6 +82,28 @@ bool RenderFillLayer::hasCrossfade() const {
     return getCrossfade<FillLayerProperties>(evaluatedProperties).t != 1;
 }
 
+namespace light {
+    std::array<float, 3> lightColor(const EvaluatedLight& light) {
+        const auto color = light.get<LightColor>();
+        return {{ color.r, color.g, color.b }};
+    }
+    std::array<float, 3> lightDirection(const EvaluatedLight& light, const TransformState& state) {
+        auto lightPos = light.get<LightPosition>().getCartesian();
+        if (light.get<LightAnchor>() == LightAnchorType::Map) {
+            nav::runtime::sunlight::setPos(lightPos);
+            return lightPos;
+        } else {
+            mat3 lightMat;
+            matrix::identity(lightMat);
+            matrix::rotate(lightMat, lightMat, -state.getBearing());
+            std::array<float, 3> result;
+            matrix::transformMat3f(result, lightPos, lightMat);
+            nav::runtime::sunlight::setPos(result);
+            return result;
+        }
+    }
+}
+
 void RenderFillLayer::render(PaintParameters& parameters) {
     assert(renderTiles);
     
@@ -107,6 +129,9 @@ void RenderFillLayer::render(PaintParameters& parameters) {
             uniforms::focus_region::Value( nav::display::focus_region() ),
             uniforms::texsize::Value( Size(2, 2) ),
             uniforms::textype::Value( 0. ),
+            uniforms::camera_pos::Value(parameters.state.getCameraPosition()),
+            uniforms::lightpos::Value(light::lightColor(parameters.evaluatedLight)),
+            uniforms::lightcolor::Value(light::lightDirection(parameters.evaluatedLight, parameters.state)),
         };
         
         size_t renderIndex = -1;
@@ -174,7 +199,8 @@ void RenderFillLayer::render(PaintParameters& parameters) {
             const auto fillRenderPass = opaque ? RenderPass::Opaque : RenderPass::Translucent;
 
             std::string imageId = "fill_blank22";
-            std::string imageId_ball = "fill_blank22";
+            std::string imageId_normal = "fill_blank22";
+            std::string imageId_reflection = "fill_blank22";
 //            if(enableWaterEffect) {
 //                imageId = "fill_water";
 //                layoutUniformValues.template get<uniforms::texsize>() = Size(2976, 1632);
@@ -182,6 +208,8 @@ void RenderFillLayer::render(PaintParameters& parameters) {
 //            }
             if(enableWaterEffect) {
                 imageId = "fill_water_t1";
+                imageId_normal = "fill_water_normal_t1";
+                imageId_reflection = "fill_water_reflection_t1";
                 layoutUniformValues.template get<uniforms::texsize>() = Size(8192, 8192);
                 layoutUniformValues.template get<uniforms::textype>() = 1.0;
             }
@@ -198,8 +226,20 @@ void RenderFillLayer::render(PaintParameters& parameters) {
                     *bucket.triangleIndexBuffer,
                     bucket.triangleSegments,
                     FillProgram::TextureBindings{
-                        // 添加水面或草地贴图
+                        // 添加水面或草地贴图(diffuse、normal、reflection)
                         textures::image::Value{ nav::runtime::texture::get(imageId),
+                            gfx::TextureFilterType::Linear,
+                            gfx::TextureMipMapType::Yes,
+                            gfx::TextureWrapType::Repeat,
+                            gfx::TextureWrapType::Repeat
+                        },
+                        textures::image0::Value{ nav::runtime::texture::get(imageId_normal),
+                            gfx::TextureFilterType::Linear,
+                            gfx::TextureMipMapType::Yes,
+                            gfx::TextureWrapType::Repeat,
+                            gfx::TextureWrapType::Repeat
+                        },
+                        textures::image1::Value{ nav::runtime::texture::get(imageId_reflection),
                             gfx::TextureFilterType::Linear,
                             gfx::TextureMipMapType::Yes,
                             gfx::TextureWrapType::Repeat,
