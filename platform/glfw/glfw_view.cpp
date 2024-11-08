@@ -355,7 +355,7 @@ void GLFWView::onKey(int key, int action, int mods) {
         } break;
         case GLFW_KEY_P:
             pauseResumeCallback();
-            nav::renderer::debugPrint();
+            nav::render::switchDebugWindow();
             invalidate();
             break;
         case GLFW_KEY_C:

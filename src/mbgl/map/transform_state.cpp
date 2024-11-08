@@ -240,7 +240,7 @@ void TransformState::getSunlightProjMatrix(mat4& projMatrix, uint16_t nearZ, boo
     {
         const ScreenCoordinate offset = getCenterOffset();
 
-        const auto& frustum = nav::shadow::frustum::ortho::sunlight().getFrustum();
+        const auto& frustum = nav::render::shadow::frustum::ortho::sunlight().getFrustum();
         _sunlightViewToClipMatrix = sunlight.getCameraToClipOrtho(frustum.min[0], frustum.max[0],
                                                                   frustum.min[1], frustum.max[1],
                                                                   frustum.min[2], frustum.max[2]);

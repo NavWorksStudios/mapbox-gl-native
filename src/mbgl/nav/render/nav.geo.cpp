@@ -15,6 +15,7 @@
 
 
 namespace nav {
+namespace render {
 
 GLuint genTexture(GLint internalformat, GLsizei width, GLsizei height, GLenum format, GLenum type);
 
@@ -35,23 +36,23 @@ void initResource(int width, int height) {
     if (w != width || h != height) {
         w = width;
         h = height;
-
+        
         if (!fbo) glGenFramebuffers(1, &fbo);
-
+        
         // position color buffer
         glDeleteTextures(1, &position);
         position = genTexture(GL_RGB16F, width, height, GL_RGB, GL_FLOAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
+        
         // normal color buffer
         glDeleteTextures(1, &normal);
         normal = genTexture(GL_RGB16F, width, height, GL_RGB, GL_FLOAT);
-
+        
         // color + specular color buffer
         glDeleteTextures(1, &albedo);
         albedo = genTexture(GL_RGB16F, width, height, GL_RGB, GL_FLOAT);
-
+        
         // create and attach depth buffer (renderbuffer)
         glDeleteRenderbuffers(1, &rboDepth);
         glGenRenderbuffers(1, &rboDepth);
@@ -62,10 +63,10 @@ void initResource(int width, int height) {
 
 void bindFbo(GLuint shadow) {
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-
+    
     if (geo::shadow != shadow) {
         geo::shadow = shadow;
-
+        
         // color attachment
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, position, 0);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normal, 0);
@@ -78,7 +79,7 @@ void bindFbo(GLuint shadow) {
         // depth attachment
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
     }
-
+    
 }
 
 static GLint delegateProgram = 0;
@@ -89,39 +90,44 @@ void setCurrentProgram() {
     }
 }
 
-GBuffer renderGeoAndShadow(int width, int height, GLuint shadow, GLuint shadowDepth,
-                           std::function<void()> renderDelegate, std::function<void()> bindScreen) {
+GBuffer renderGeoAndShadow(uint32_t width, uint32_t height,
+                           GLuint shadow, GLuint shadowDepth,
+                           std::function<void()> renderDelegate) {
     initResource(width, height);
-
-    if (bindScreen) {
-        bindScreen();
-    } else {
-        geo::bindFbo(shadow);
-    }
-
-    glClearColor(0, 0, 0, 0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // 清空所有颜色附件
     
-    glDisable(GL_BLEND);
+    geo::bindFbo(shadow);
+    glViewport(0, 0, width, height);
 
     if (delegateProgram) {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, shadowDepth);
         static programs::UniformLocation u0(delegateProgram, "u_shadow_map");
         glUniform1i(u0, 0);
-
+        
         static programs::UniformLocation u1(delegateProgram, "u_shadow_offset");
-        glUniform2f(u1, .5 / nav::shadow::width, .5 / nav::shadow::height);
+        glUniform2f(u1, .5 / shadow::width, .5 / shadow::height);
     }
     
-    renderDelegate();
+    GLfloat clearColor[4];
+    glGetFloatv(GL_COLOR_CLEAR_VALUE, clearColor);
+    glClearColor(0, 0, 0, 0);
+    
+    GLboolean blendEnabled;
+    glGetBooleanv(GL_BLEND, &blendEnabled);
+    glDisable(GL_BLEND);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // 清空所有颜色附件
+        renderDelegate();
+    }
+    
+    blendEnabled ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
+    glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
     
     return { position, normal, albedo };
 }
 
 }
-
+}
 }
 

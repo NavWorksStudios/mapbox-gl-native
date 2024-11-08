@@ -22,6 +22,7 @@
 
 
 namespace nav {
+namespace render {
 
 namespace sample {
 
@@ -75,7 +76,7 @@ void generate() {
         noise.normalize();
         data[i] = noise;
     }
-
+    
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, SIZE, SIZE, 0, GL_RGB, GL_FLOAT, &data[0]);
@@ -104,7 +105,7 @@ GLuint program() {
         createProgram(compileShader(GL_VERTEX_SHADER, nav::programs::ssao::vertexShader()),
                       compileShader(GL_FRAGMENT_SHADER, nav::programs::ssao::fragmentShader()));
     }
-
+    
     return pass;
 }
 
@@ -120,34 +121,32 @@ void initResource(int width, int height) {
 
 void bindFbo(GLuint buffer) {
     glBindFramebuffer(GL_FRAMEBUFFER, ssao::fbo);
-
+    
     if (ssao::buffer != buffer) {
         ssao::buffer = buffer;
-
+        
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssao::buffer, 0);
         glDrawBuffer(GL_COLOR_ATTACHMENT0);
     }
-
+    
 }
 
-void render(int width, int height,
-            GLuint renderBuffer, const std::array<GLuint, 3>& gbuffer,
-            float zoom, const Mat4& projMatrix, std::function<void()> bindScreen) {
+void render(uint32_t width, uint32_t height, GLuint renderBuffer,
+            const std::array<GLuint, 3>& gbuffer,
+            float zoom, const Mat4& projMatrix) {
     initResource(width, height);
     
-    if (bindScreen) bindScreen();
-    else bindFbo(renderBuffer);
-
+    bindFbo(renderBuffer);
+    glViewport(0, 0, width, height);
+    
     const GLint program = ssao::program();
     glUseProgram(program);
-
-    glEnable(GL_BLEND);
     
     {
         static GLint u_smaple_kernels[sample::kernel::SIZE];
         static GLint u_sample_radius[sample::kernel::SIZE];
         static GLint u_depth_bias[sample::kernel::SIZE];
-
+        
         static std::once_flag flag;
         std::call_once(flag, [program] () {
             for (unsigned int i = 0; i < sample::kernel::SIZE; ++i) {
@@ -158,7 +157,7 @@ void render(int width, int height,
                 u_depth_bias[i] = programs::UniformLocation(program, ("u_depth_bias" + num).c_str());
             }
         });
-
+        
         const float radius = .05;
         const float bias = .005;
         for (int i=0; i<sample::kernel::SIZE; i++) {
@@ -168,7 +167,7 @@ void render(int width, int height,
             glUniform1f(u_sample_radius[i], radius * scale);
             glUniform1f(u_depth_bias[i], bias * scale);
         }
-
+        
         static programs::UniformLocation u0(program, "u_projection");
         glUniformMatrix4fv(u0, 1, GL_FALSE, reinterpret_cast<const float*>(&projMatrix));
         
@@ -176,7 +175,7 @@ void render(int width, int height,
         glUniform2f(u1, (float) width / sample::noise::SIZE, (float) height / sample::noise::SIZE);
         
     }
-
+    
     {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, gbuffer[0]);
@@ -198,14 +197,14 @@ void render(int width, int height,
         static programs::UniformLocation u3(program, "u_noise");
         glUniform1i(u3, 3);
     }
+
+    glEnable(GL_BLEND);
     
-    nav::quad::render(program);
-    
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    quad::render(program);
+
 }
 
 }
 
-
-
+}
 }

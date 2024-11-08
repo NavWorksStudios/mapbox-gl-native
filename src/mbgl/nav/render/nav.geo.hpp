@@ -10,14 +10,16 @@
 #include <gl_headers.hpp>
 
 namespace nav {
+namespace render {
 namespace geo {
 
 void setCurrentProgram();
 
 using GBuffer = std::array<GLuint, 3>;
-GBuffer renderGeoAndShadow(int width, int height, GLuint shadow, GLuint shadowDepth,
-                           std::function<void()> renderDelegate,
-                           std::function<void()> bindScreen=nullptr);
+GBuffer renderGeoAndShadow(uint32_t width, uint32_t height,
+                           GLuint shadow, GLuint shadowDepth,
+                           std::function<void()> renderDelegate);
 
+}
 }
 }

@@ -183,18 +183,15 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
     {
         auto renderShadowDepthDelegate = [&parameters] () {
             RenderFillExtrusionLayer::renderShadowDepthBuffer(parameters);
-            RenderLineLayer::renderShadowDepthBuffer(parameters);
+//            RenderLineLayer::renderShadowDepthBuffer(parameters);
         };
         
         auto renderGeoDelegate = [&parameters] () {
             RenderFillExtrusionLayer::renderGeoBuffer(parameters);
-            RenderLineLayer::renderGeoBuffer(parameters);
+//            RenderLineLayer::renderGeoBuffer(parameters);
         };
-        
-        nav::renderer::render(parameters.state.getZoom(),
-                              parameters.state.getViewToClipMatrix(),
-                              renderShadowDepthDelegate,
-                              renderGeoDelegate);
+
+        nav::render::renderDeferred(parameters, renderShadowDepthDelegate, renderGeoDelegate);
     }
     
     // - ANNOTATION PASS --------------------------------------------------------------------------

@@ -14,8 +14,15 @@
 #include "mbgl/nav/render/nav.ssao.hpp"
 #include "mbgl/nav/render/nav.quad.hpp"
 
+#include <mbgl/gl/value.hpp>
+
+using namespace mbgl::gl::value;
+using namespace mbgl::gfx;
+
 
 namespace nav {
+
+namespace render {
 
 static auto convertMatrix4 = [] (mbgl::mat4 matrix) {
     Mat4 m;
@@ -35,27 +42,39 @@ GLuint genTexture(GLint internalformat, GLsizei width, GLsizei height, GLenum fo
     return texture;
 }
 
-
-namespace renderer {
-
+namespace dimension {
 const float BUFFER_RATIO = 1.;
-
-int width() {
-    return nav::display::pixels::width() * BUFFER_RATIO;
+int width() { return nav::display::pixels::width() * BUFFER_RATIO; }
+int height() { return nav::display::pixels::height() * BUFFER_RATIO; }
 }
 
-int height() {
-    return nav::display::pixels::height() * BUFFER_RATIO;
+bool _showDebugWindow = true;
+
+void switchDebugWindow() {
+    _showDebugWindow = !_showDebugWindow;
 }
 
-GLuint getRenderBuffer(int width, int height) {
-    static GLuint buffer = 0;
+namespace procedure {
+Value _value = Value::None;
 
+void set(Value v) {
+    _value = v;
+}
+
+Value value() {
+    return _value;
+}
+}
+
+namespace renderbuffer {
+static GLuint buffer = 0;
+
+GLuint get(int width, int height) {
     static int w = 0, h = 0;
     if (w != width || h != height) {
         w = width;
         h = height;
-
+        
         glDeleteTextures(1, &buffer);
         buffer = genTexture(GL_RED, width, height, GL_RED, GL_FLOAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -64,89 +83,106 @@ GLuint getRenderBuffer(int width, int height) {
     
     return buffer;
 }
-
-bool _debugRadar = true;
-
-void debugPrint() {
-    _debugRadar = !_debugRadar;
 }
 
-RenderProcedure _renderProcedure = RenderProcedure::None;
-
-RenderProcedure procedure() {
-    return _renderProcedure;
-}
-
-void render(float zoom, mbgl::mat4 projMatrix,
-            std::function<void()> renderShadowDepthDelegate,
-            std::function<void()> renderGeoDelegate) {
+struct GLConfigAutoRestore {
+    template <typename T> struct Value {
+        T::Type v = T::Default;
+        Value() { v = T::Get(); }
+        ~Value() { restore(); }
+        void restore() { T::Set(v); }
+        operator typename T::Type () { return v; }
+        operator const typename T::Type () const { return v; }
+    };
     
+    Value<ClearDepth> clearDepth;
+    Value<ClearColor> clearColor;
+    Value<ClearStencil> clearStencil;
+    Value<StencilMask> stencilMask;
+    Value<DepthMask> depthMask;
+    Value<ColorMask> colorMask;
+    Value<StencilFunc> stencilFunc;
+    Value<StencilTest> stencilTest;
+    Value<StencilOp> stencilOp;
+    Value<DepthRange> depthRange;
+    Value<DepthTest> depthTest;
+    Value<DepthFunc> depthFunc;
+    Value<Blend> blend;
+    Value<BlendEquation> blendEquation;
+    Value<BlendFunc> blendFunc;
+    Value<BlendColor> blendColor;
+    Value<Program> program;
+    Value<Viewport> viewPort;
+    Value<ScissorTest> scissorTest;
+    Value<BindFramebuffer> bindFramebuffer;
+    Value<CullFace> cullFace;
+    Value<CullFaceSide> cullFaceSide;
+    Value<CullFaceWinding> cullFaceWinding;
+};
+
+void renderDeferred(const mbgl::PaintParameters& parameters,
+                    std::function<void()> renderShadowDepthDelegate,
+                    std::function<void()> renderGeoDelegate) {
+    const float zoom = parameters.state.getZoom();
     if (zoom < 15.) return;
     
-    GLfloat clearColor[4];
-    glGetFloatv(GL_COLOR_CLEAR_VALUE, clearColor);
+    GLConfigAutoRestore config;
+
+    static auto resetDrawMode = [] () {
+        DepthTest::Set(true);
+        DepthMask::Set(DepthMaskType::ReadWrite);
+        DepthFunc::Set(DepthFunctionType::LessEqual);
+        
+        StencilTest::Set(false);
+        
+        CullFace::Set(true);
+        CullFaceSide::Set(CullFaceSideType::Back);
+        
+        Blend::Set(true);
+        BlendFunc::Set({ColorBlendFactorType::One, ColorBlendFactorType::OneMinusSrcAlpha});
+    };
     
-    GLboolean blendEnabled;
-    glGetBooleanv(GL_BLEND, &blendEnabled);
+    const int w = dimension::width();
+    const int h = dimension::height();
     
-    {
-        GLint viewport[4];
-        glGetIntegerv(GL_VIEWPORT, viewport);
-        auto bindScreen = [viewport] () {
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
-            glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
-            
-        };
+    // 1
+    resetDrawMode();
+    procedure::set(procedure::Depth);
+    const auto shadowDepth = shadow::render(w, h, renderShadowDepthDelegate);
+    shadow::setDepthBuffer(shadowDepth);
+
+    // 2
+    resetDrawMode();
+    procedure::set(procedure::GBuffer);
+    const auto renderBuffer = renderbuffer::get(w, h);
+    const auto gbuffer = geo::renderGeoAndShadow(w, h, renderBuffer, shadowDepth, renderGeoDelegate);
+    
+    // 3
+    resetDrawMode();
+    procedure::set(procedure::AO);
+    const auto& projMatrix = convertMatrix4(parameters.state.getViewToClipMatrix());
+    ssao::render(w, h, renderBuffer, gbuffer, zoom, projMatrix);
+    
+    // 4
+    resetDrawMode();
+    procedure::set(procedure::None);
+    config.bindFramebuffer.restore();
+    config.viewPort.restore();
+    quad::renderBlur(renderBuffer, w, h);
+
+    if (_showDebugWindow) {
+        int x = 20;
+        const mbgl::Size size = { uint32_t(w / 6.), uint32_t(h / 6.) };
+
+        Viewport::Set({x, 20, size});
+        quad::renderMono(shadowDepth);
         
-        const int w = width();
-        const int h = height();
-        glViewport(0, 0, w, h);
+        Viewport::Set({x += size.width + 20, 20, size});
+        quad::renderStandard(gbuffer[1]);
         
-        // 1
-        _renderProcedure = RenderProcedure::Depth;
-        const auto shadowDepth = nav::shadow::render(w, h, renderShadowDepthDelegate);
-        nav::shadow::setDepthBuffer(shadowDepth);
-        
-        // 2
-        _renderProcedure = RenderProcedure::GBuffer;
-        const auto renderBuffer = getRenderBuffer(w, h);
-        const auto gbuffer = nav::geo::renderGeoAndShadow(w, h, renderBuffer, shadowDepth, renderGeoDelegate);
-        
-        // 3
-        _renderProcedure = RenderProcedure::None;
-        nav::ssao::render(w, h, renderBuffer, gbuffer, zoom, convertMatrix4(projMatrix));
-        
-        // 4
-        nav::quad::renderBlur(w, h, renderBuffer, bindScreen);
-        
-        // debug radar
-        if (_debugRadar) {
-            int x = 20, y = 20;
-            int width = w / 8., height = h / 8.;
-            
-            auto fboBinder = [&] () {
-                glBindFramebuffer(GL_FRAMEBUFFER, 0);
-                glViewport(x, y, width, height);
-            };
-            
-            nav::shadow::frustum::ortho::sunlight().render(fboBinder);
-            nav::quad::renderMono(w, h, shadowDepth, fboBinder);
-            
-            x += width + 20;
-            nav::quad::render(w, h, gbuffer[1], fboBinder);
-            
-            x += width + 20;
-            nav::quad::renderMono(w, h, renderBuffer, fboBinder);
-            
-            glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
-        }
-        
+        Viewport::Set({x += size.width + 20, 20, size});
+        quad::renderMono(renderBuffer);
     }
-    
-    glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
-    blendEnabled ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
-    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA); // mapbox config
-    
 }
 
 } // renderer

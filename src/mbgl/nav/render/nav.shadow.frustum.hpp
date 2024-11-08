@@ -11,11 +11,10 @@
 #include <mbgl/util/vectors.hpp>
 
 namespace nav {
-
+namespace render {
 namespace shadow {
 
 namespace frustum {
-
 namespace ortho {
 
 /* AABB（Axis-Aligned Bounding Box）
@@ -32,8 +31,7 @@ struct AABB {
 
 struct Frumstum {
     void update(const mbgl::TransformState& state, const std::vector<mbgl::OverscaledTileID>& tileIDs);
-    void render(std::function<void()> bindScreen);
-
+    
     inline const AABB& getTile() const { return tileAABB; }
     inline const AABB& getGround() const { return groundAABB; }
     inline const AABB& getFrustum() const { return frustumAABB; }
@@ -46,10 +44,9 @@ private:
 Frumstum& sunlight();
 
 }   // ortho
-
 }   // frustum
 
 }   // shadow
-
+}   // render
 }   // nav
 

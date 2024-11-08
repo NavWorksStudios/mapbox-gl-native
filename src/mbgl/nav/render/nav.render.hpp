@@ -8,27 +8,27 @@
 #pragma once
 
 #include <functional>
-#include <mbgl/util/mat4.hpp>
+#include <mbgl/renderer/paint_parameters.hpp>
 
 namespace nav {
+namespace render {
 
-namespace renderer {
+void switchDebugWindow();
 
-void debugPrint();
-
-enum RenderProcedure : int32_t {
+namespace procedure {
+enum Value : int32_t {
     None = 0,
     Depth = 1 << 0,
     GBuffer = 1 << 1,
+    AO = 1 << 2,
 };
-
-RenderProcedure procedure();
-
-void render(float zoom, mbgl::mat4 projMatrix,
-            std::function<void()> renderShadowDepthDelegate,
-            std::function<void()> renderGeoDelegate);
-
+Value value();
 }
 
+void renderDeferred(const mbgl::PaintParameters& parameters,
+                    std::function<void()> renderShadowDepthDelegate,
+                    std::function<void()> renderGeoDelegate);
+
+}
 }
 
