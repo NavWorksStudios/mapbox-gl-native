@@ -108,7 +108,7 @@ struct FillExtrusionProgram {
             vec3 reflectDir = reflect(-lightDir, norm);
             float specular = pow(max(dot(viewDir, reflectDir), 0.), Material_shininess) * Material_specular;
 
-            vec3 baselight = vec3(.78, .8, .8) * (ambient + diffuse) * (1. - specular);
+            vec3 baselight = vec3(.78, .8, .8) * (ambient + diffuse) * max(1. - specular, 0.);
             vec3 specularlight = vec3(.98, .88, .78) * specular;
     
             v_color = vec4(baselight + specularlight, 1.) * u_opacity;

@@ -144,7 +144,7 @@ public:
     State<value::BindFramebuffer> bindFramebuffer;
     State<value::Viewport> viewport;
     State<value::ScissorTest> scissorTest;
-    std::array<State<value::BindTexture>, 2> texture;
+    std::array<State<value::BindTexture>, 5> texture;
     State<value::Program> program;
     State<value::BindVertexBuffer> vertexBuffer;
 

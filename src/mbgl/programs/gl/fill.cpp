@@ -91,7 +91,7 @@ attribute vec2 a_pos;
 varying lowp vec3 v_pos;
 varying lowp vec2 v_texture_pos;
 //varying highp vec2 v_texture_uv;
-varying highp vec4 v_pos_world;
+varying highp vec4 v_world_pixel_coord;
 
 #ifndef HAS_UNIFORM_u_color
     uniform lowp float u_color_t;
@@ -164,7 +164,7 @@ void main() {
     gl_Position=u_matrix*vec4(a_pos,u_base,1.);
     v_pos=gl_Position.xyz;
     v_texture_pos=a_pos;
-    v_pos_world = u_model_matrix * vec4(a_pos,u_base,1.);
+    v_world_pixel_coord = u_model_matrix * vec4(a_pos,u_base,1.) / 8192. * 512.;
     
 #ifndef HAS_UNIFORM_u_color
     // 灰阶色变换主题色
@@ -219,7 +219,7 @@ uniform sampler2D u_image1; // 纹理图-reflection
 varying lowp vec3 v_pos;
 varying lowp vec2 v_texture_pos;
 //varying vec2 v_texture_uv;
-varying highp vec4 v_pos_world;
+varying highp vec4 v_world_pixel_coord;
 
 #ifndef HAS_UNIFORM_u_color
     varying highp vec4 color;
@@ -322,38 +322,30 @@ void main() {
     vec3 tex_reflection;
     if(u_textype > 0.5) {
         // texture uv
-        vec2 highp v_texture_uv;
-        v_texture_uv.x = mod(v_pos_world.x, u_texsize[0]) / u_texsize[0];
-        v_texture_uv.y = 1.0 - (mod(v_pos_world.y, u_texsize[1]) / u_texsize[1]);
+        vec2 uv = vec2(
+            mod(v_world_pixel_coord.x, u_texsize[0]) / u_texsize[0],
+            mod(v_world_pixel_coord.y, u_texsize[1]) / u_texsize[1]
+        );
         
-        tex_diffuse = texture2D(u_image, v_texture_uv).rgb;
-        tex_normal = texture2D(u_image0, v_texture_uv).rgb;
-        tex_reflection = texture2D(u_image1, v_texture_uv).rgb;
+        // normal
+        tex_normal = texture2D(u_image0, uv).rgb;
+        vec3 nor = normalize(tex_normal * 2.0 - 1.0);
+
+        // diffuse reflection
+        tex_diffuse = texture2D(u_image, uv).rgb;
+        vec3 lightDir = normalize(u_lightpos);
+        float diffuseFactor = max(dot(nor, lightDir), 0.0);
         
-        // 环境光颜色
-        vec3 baseColor = vec3(0.25, 0.3, 0.35);
-        // 计算normal
-        vec3 finalNormal = normalize((tex_normal * 2.0 - 1.0));
-        
-        // 计算光照方向
-        vec3 lightDir = normalize(u_lightpos - v_pos.xyz);
-        // 计算漫反射系数
-        float diffuseFactor = max(dot(finalNormal, lightDir), 0.0); // 漫反射系数
-        // 计算漫反射颜色
-        vec3 finalDiffuseColor = tex_diffuse * diffuseFactor;
-        
-        // 计算相机方向
-        vec3 viewDir = normalize(u_camera_pos - v_pos.xyz);
-        // 计算镜面反射系数
-        vec3 reflectDir = reflect(-lightDir, finalNormal);
-        float reflectionFactor = max(dot(viewDir, reflectDir), 0.0);
-        // 计算镜面反射颜色
-        vec3 finalReflectionColor = tex_reflection * reflectionFactor;
-        
-        // 最终颜色
-        gl_FragColor = vec4(baseColor + finalDiffuseColor * 1.5 + finalReflectionColor * 2., 1.0);
-//        gl_FragColor = vec4(finalDiffuseColor, 1.0);
-//        gl_FragColor = vec4(finalReflectionColor, 1.0);
+        // specular reflection
+        tex_reflection = texture2D(u_image1, uv).rgb;
+        vec3 viewDir = normalize(u_camera_pos - v_pos);
+        vec3 reflectDir = reflect(-lightDir, nor);
+        float specularFactor = pow(max(dot(viewDir, reflectDir), 0.0), 4.);
+
+        // color
+        vec3 diffuse = tex_diffuse * diffuseFactor;
+        vec3 specular = tex_reflection * specularFactor;
+        gl_FragColor = vec4(diffuse + specular, 1.0);
     }
 #if 0
     if (u_water_wave > 0.) { // 水面波光

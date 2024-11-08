@@ -198,26 +198,24 @@ void RenderFillLayer::render(PaintParameters& parameters) {
 
             const auto fillRenderPass = opaque ? RenderPass::Opaque : RenderPass::Translucent;
 
-            std::string imageId = "fill_blank22";
-            std::string imageId_normal = "fill_blank22";
-            std::string imageId_reflection = "fill_blank22";
-//            if(enableWaterEffect) {
-//                imageId = "fill_water";
-//                layoutUniformValues.template get<uniforms::texsize>() = Size(2976, 1632);
-//                layoutUniformValues.template get<uniforms::textype>() = 1.0;
-//            }
+            std::string imageId = "fill_blank";
+            std::string imageId_normal = "fill_blank";
+            std::string imageId_reflection = "fill_blank";
+            
             if(enableWaterEffect) {
                 imageId = "fill_water_t1";
                 imageId_normal = "fill_water_normal_t1";
                 imageId_reflection = "fill_water_reflection_t1";
-                layoutUniformValues.template get<uniforms::texsize>() = Size(8192, 8192);
+                layoutUniformValues.template get<uniforms::texsize>() = Size(1024, 1024);
                 layoutUniformValues.template get<uniforms::textype>() = 1.0;
             }
+            
             if(enableGrassEffect) {
                 imageId = "fill_grass";
                 layoutUniformValues.template get<uniforms::texsize>() = Size(1200, 1200);
                 layoutUniformValues.template get<uniforms::textype>() = 2.0;
             }
+            
             if (bucket.triangleIndexBuffer && parameters.pass == fillRenderPass) {
                 const auto depthMaskType = parameters.pass == RenderPass::Opaque ? gfx::DepthMaskType::ReadWrite : gfx::DepthMaskType::ReadOnly;
                 draw(parameters.programs.getFillLayerPrograms().fill,

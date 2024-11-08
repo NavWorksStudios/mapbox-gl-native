@@ -185,7 +185,7 @@ struct ImageData {
 std::map<std::string, ImageData> imageMap;
 
 void load(const std::string& path) {
-    imageMap["fill_blank22"].image = mbgl::decodeImage(mbgl::util::read_file(path + "blank22.png"));
+    imageMap["fill_blank"].image = mbgl::decodeImage(mbgl::util::read_file(path + "blank.png"));
     imageMap["fill_grass"].image = mbgl::decodeImage(mbgl::util::read_file(path + "grass.jpg"));
     
     imageMap["fill_water_t1"].image = mbgl::decodeImage(mbgl::util::read_file(path + "water_t1.jpg"));
