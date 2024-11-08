@@ -89,6 +89,7 @@ uniform sampler2D u_image1;
 attribute vec2 a_pos;
 
 varying lowp vec3 v_pos;
+varying lowp vec3 v_worldpos;
 varying lowp vec2 v_texture_pos;
 //varying highp vec2 v_texture_uv;
 varying highp vec4 v_world_pixel_coord;
@@ -165,7 +166,7 @@ void main() {
     v_pos=gl_Position.xyz;
     v_texture_pos=a_pos;
     v_world_pixel_coord = u_model_matrix * vec4(a_pos,u_base,1.) / 8192. * 512.;
-    
+    v_worldpos = (u_model_matrix * vec4(a_pos,u_base,1.)).rgb;
 #ifndef HAS_UNIFORM_u_color
     // 灰阶色变换主题色
     if (u_palette_lightness>0.) {
@@ -217,6 +218,7 @@ uniform sampler2D u_image0; // 纹理图-normal
 uniform sampler2D u_image1; // 纹理图-reflection
         
 varying lowp vec3 v_pos;
+varying lowp vec3 v_worldpos;
 varying lowp vec2 v_texture_pos;
 //varying vec2 v_texture_uv;
 varying highp vec4 v_world_pixel_coord;
@@ -338,7 +340,7 @@ void main() {
         
         // specular reflection
         tex_reflection = texture2D(u_image1, uv).rgb;
-        vec3 viewDir = normalize(u_camera_pos - v_pos);
+        vec3 viewDir = normalize(v_worldpos - u_camera_pos);
         vec3 reflectDir = reflect(-lightDir, nor);
         float specularFactor = pow(max(dot(viewDir, reflectDir), 0.0), 4.);
 
