@@ -87,7 +87,7 @@ GLuint get(int width, int height) {
 
 struct GLConfigAutoRestore {
     template <typename T> struct Value {
-        T::Type v = T::Default;
+        typename T::Type v = T::Default;
         Value() { v = T::Get(); }
         ~Value() { restore(); }
         void restore() { T::Set(v); }

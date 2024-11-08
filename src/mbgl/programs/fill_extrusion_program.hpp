@@ -21,8 +21,6 @@ class TransformState;
 template <class> class Faded;
 
 namespace uniforms {
-MBGL_DEFINE_UNIFORM_VECTOR(float, 3, lightpos);
-MBGL_DEFINE_UNIFORM_VECTOR(float, 3, lightcolor);
 MBGL_DEFINE_UNIFORM_SCALAR(float,    lightintensity);
 MBGL_DEFINE_UNIFORM_SCALAR(float,    vertical_gradient);
 MBGL_DEFINE_UNIFORM_SCALAR(float,    height_factor);

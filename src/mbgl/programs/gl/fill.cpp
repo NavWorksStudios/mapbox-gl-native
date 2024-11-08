@@ -83,6 +83,8 @@ uniform lowp float u_palette_lightness;
 uniform float u_textype;
 uniform vec2 u_texsize;
 uniform sampler2D u_image;
+uniform sampler2D u_image0;
+uniform sampler2D u_image1;
         
 attribute vec2 a_pos;
 
@@ -204,9 +206,15 @@ uniform lowp float u_water_wave;
 uniform lowp float u_water_data_z_scale;
 uniform lowp float u_clip_region;
 uniform lowp float u_focus_region;
-uniform float u_textype;
-uniform vec2 u_texsize;
-uniform sampler2D u_image;
+    
+uniform float u_textype;    // 纹理类型
+uniform vec2 u_texsize;     // 纹理图尺寸:宽高
+uniform vec3 u_camera_pos;  // 主相机位置
+uniform vec3 u_lightcolor;  // 平行光色
+uniform vec3 u_lightpos;    // 平行光位置
+uniform sampler2D u_image;  // 纹理图-diffuse
+uniform sampler2D u_image0; // 纹理图-normal
+uniform sampler2D u_image1; // 纹理图-reflection
         
 varying lowp vec3 v_pos;
 varying lowp vec2 v_texture_pos;
@@ -309,12 +317,43 @@ void main() {
 #endif
 
     lowp float distance=pow(v_pos.x,2.)+pow(v_pos.z,2.);
-
+    vec3 tex_diffuse;
+    vec3 tex_normal;
+    vec3 tex_reflection;
     if(u_textype > 0.5) {
+        // texture uv
         vec2 highp v_texture_uv;
         v_texture_uv.x = mod(v_pos_world.x, u_texsize[0]) / u_texsize[0];
-        v_texture_uv.y = mod(v_pos_world.y, u_texsize[1]) / u_texsize[1];
-        gl_FragColor = texture2D(u_image, v_texture_uv);
+        v_texture_uv.y = 1.0 - (mod(v_pos_world.y, u_texsize[1]) / u_texsize[1]);
+        
+        tex_diffuse = texture2D(u_image, v_texture_uv).rgb;
+        tex_normal = texture2D(u_image0, v_texture_uv).rgb;
+        tex_reflection = texture2D(u_image1, v_texture_uv).rgb;
+        
+        // 环境光颜色
+        vec3 baseColor = vec3(0.25, 0.3, 0.35);
+        // 计算normal
+        vec3 finalNormal = normalize((tex_normal * 2.0 - 1.0));
+        
+        // 计算光照方向
+        vec3 lightDir = normalize(u_lightpos - v_pos.xyz);
+        // 计算漫反射系数
+        float diffuseFactor = max(dot(finalNormal, lightDir), 0.0); // 漫反射系数
+        // 计算漫反射颜色
+        vec3 finalDiffuseColor = tex_diffuse * diffuseFactor;
+        
+        // 计算相机方向
+        vec3 viewDir = normalize(u_camera_pos - v_pos.xyz);
+        // 计算镜面反射系数
+        vec3 reflectDir = reflect(-lightDir, finalNormal);
+        float reflectionFactor = max(dot(viewDir, reflectDir), 0.0);
+        // 计算镜面反射颜色
+        vec3 finalReflectionColor = tex_reflection * reflectionFactor;
+        
+        // 最终颜色
+        gl_FragColor = vec4(baseColor + finalDiffuseColor * 1.5 + finalReflectionColor * 2., 1.0);
+//        gl_FragColor = vec4(finalDiffuseColor, 1.0);
+//        gl_FragColor = vec4(finalReflectionColor, 1.0);
     }
 #if 0
     if (u_water_wave > 0.) { // 水面波光
