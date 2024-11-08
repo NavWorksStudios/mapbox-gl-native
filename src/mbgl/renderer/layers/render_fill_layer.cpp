@@ -175,11 +175,7 @@ void RenderFillLayer::render(PaintParameters& parameters) {
 
             std::string imageId = "fill_blank22";
             std::string imageId_ball = "fill_blank22";
-//            if(enableWaterEffect) {
-//                imageId = "fill_water";
-//                layoutUniformValues.template get<uniforms::texsize>() = Size(2976, 1632);
-//                layoutUniformValues.template get<uniforms::textype>() = 1.0;
-//            }
+
             if(enableWaterEffect) {
                 imageId = "fill_water_t1";
                 layoutUniformValues.template get<uniforms::texsize>() = Size(8192, 8192);
