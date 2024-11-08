@@ -211,7 +211,7 @@ void TilePyramid::update(const std::vector<Immutable<style::LayerProperties>>& l
                                  [] (Tile& tile) { tile.renderMode |= Tile::RenderMode::Detailed; },
                                  detailedTiles, Range<uint8_t>(15,16), maxParentTileOverscaleFactor);
     
-    nav::shadow::frustum::ortho::sunlight().update(parameters.transformState, detailedTiles);
+    nav::render::shadow::frustum::ortho::sunlight().update(parameters.transformState, detailedTiles);
     
     // 预加载瓦片 create, retain, mark to be rendered
     if (!panTiles.empty()) {

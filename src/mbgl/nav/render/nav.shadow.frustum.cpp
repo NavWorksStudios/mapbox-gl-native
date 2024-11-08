@@ -15,6 +15,8 @@
 
 namespace nav {
 
+namespace render {
+
 namespace shadow {
 
 struct Plane {
@@ -86,7 +88,7 @@ bool AABB::valid() const {
         std::isnan(max[0]) ||
         std::isnan(max[1]) ||
         std::isnan(max[2])) return false;
-
+    
     return
     min[0] <= max[0] &&
     min[1] <= max[1] &&
@@ -97,7 +99,7 @@ void AABB::include(double x, double y, double z) {
     min[0] = std::isnan(min[0]) ? x : fmin(min[0], x);
     min[1] = std::isnan(min[1]) ? y : fmin(min[1], y);
     min[2] = std::isnan(min[2]) ? z : fmin(min[2], z);
-
+    
     max[0] = std::isnan(max[0]) ? x : fmax(max[0], x);
     max[1] = std::isnan(max[1]) ? y : fmax(max[1], y);
     max[2] = std::isnan(max[2]) ? z : fmax(max[2], z);
@@ -105,7 +107,7 @@ void AABB::include(double x, double y, double z) {
 
 AABB AABB::intersect(const AABB& aabb) const {
     AABB intersection;
-
+    
     intersection.min = {
         fmax(min[0], aabb.min[0]),
         fmax(min[1], aabb.min[1]),
@@ -183,7 +185,7 @@ void Frumstum::update(const mbgl::TransformState& state, const std::vector<mbgl:
                 { 0, mbgl::util::EXTENT, 0, 1 },
                 { mbgl::util::EXTENT, 0, 0, 1 },
                 { mbgl::util::EXTENT, mbgl::util::EXTENT, 0, 1 },
-
+                
                 { 0, 0, h, 1 },
                 { 0, mbgl::util::EXTENT, h, 1 },
                 { mbgl::util::EXTENT, 0, h, 1 },
@@ -193,7 +195,7 @@ void Frumstum::update(const mbgl::TransformState& state, const std::vector<mbgl:
             // model to world
             mbgl::mat4 modelmatrix;
             state.matrixFor(modelmatrix, tile.toUnwrapped());
-
+            
             for (int i=0; i<8; i++) {
                 mbgl::vec4 v = envelope[i];
                 mbgl::matrix::transformMat4(v, v, modelmatrix); // to world space
@@ -201,7 +203,7 @@ void Frumstum::update(const mbgl::TransformState& state, const std::vector<mbgl:
                 tileAABB.include(v[0], v[1], -v[2]);
             }
         }
-
+        
         print("tile", tileAABB);
     }
     
@@ -212,10 +214,10 @@ void Frumstum::update(const mbgl::TransformState& state, const std::vector<mbgl:
         const auto worldSize = mbgl::Projection::worldSize(state.getScale()) / mbgl::util::tileSize;
         const auto flippedY = state.getViewportMode() == mbgl::ViewportMode::FlippedY;
         const auto frustum = mbgl::util::Frustum::fromInvProjMatrix(state.getInvProjectionMatrix(), worldSize, state.getZoom(), flippedY);
-
+        
         // 计算主相机视锥体与地面交点
         enum { near_tl = 0, near_tr = 1, near_br = 2, near_bl = 3,
-               far_tl = 4, far_tr = 5, far_br = 6, far_bl = 7, };
+            far_tl = 4, far_tr = 5, far_br = 6, far_bl = 7, };
         const auto& points = frustum.getPoints();
         const Plane ground = { { 0, 0, 1 }, 0 };
         
@@ -236,12 +238,12 @@ void Frumstum::update(const mbgl::TransformState& state, const std::vector<mbgl:
             getIntersect(ground, { points[near_br], points[far_br] }), // [2]
             getIntersect(ground, { points[near_bl], points[far_bl] }), // [3]
         };
-
+        
         // 动态视野 (pitch, zoom)
         {
             const double zf = fmax(0., fmin(1., (state.getZoom() - 15.) / 4.)); // (0, 1) 15-20
             const double pf = fmin(state.getPitch() / M_PI * 180. / 70., 1.); // (0, 1) 俯视, 平视
-
+            
             //       俯视                                       平视
             //  z\p |.0 |.1 |.2 |.3 |.4 |.5 |.6 |.7 |.8 |.9 |1. |
             // .0   |   |   |   |   |   |   |1. |   |   |   |.4 |
@@ -254,7 +256,7 @@ void Frumstum::update(const mbgl::TransformState& state, const std::vector<mbgl:
             //                                                  |
             // .1   |   |   |.5 |   |   |   |   |   |   |   |.05|
             // 近
-
+            
             const double p[2] = { .6 - .4 * zf, 1. };
             const double r[2] = { 1. - .5 * zf, .4 - .35 * zf };
             const double result = r[0] + fmax(pf - p[0], 0.) / (p[1] - p[0]) * (r[1] - r[0]);
@@ -283,7 +285,7 @@ void Frumstum::update(const mbgl::TransformState& state, const std::vector<mbgl:
             
             printf("I <sunlight> zoom(%lf) pitch(%lf) | z(%lf) p(%lf) r(%lf) | area(%lf,%lf)\n", state.getZoom(), state.getPitch(), zf, pf, result, area0, area1);
         }
-
+        
         // 计算最小外接
         const double h = height::get<height::H512>(state.getZoom());
         for (int i=0; i<4; i++) {
@@ -299,7 +301,7 @@ void Frumstum::update(const mbgl::TransformState& state, const std::vector<mbgl:
                 groundAABB.include(v[0], v[1], -v[2]);
             }
         }
-
+        
         print("proj", groundAABB);
     }
     
@@ -315,10 +317,6 @@ void Frumstum::update(const mbgl::TransformState& state, const std::vector<mbgl:
     
 }
 
-void Frumstum::render(std::function<void()> bindScreen) {
-    
-}
-
 Frumstum& sunlight() {
     static Frumstum frustum;
     return frustum;
@@ -329,6 +327,8 @@ Frumstum& sunlight() {
 }   // end frustum
 
 }   // end shadow
+
+}   // end render
 
 }   // end nav
 

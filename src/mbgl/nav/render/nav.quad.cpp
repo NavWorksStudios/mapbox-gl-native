@@ -12,6 +12,7 @@
 #include "mbgl/nav/render/programs/nav.program.quad.hpp"
 
 namespace nav {
+namespace render {
 namespace quad {
 
 void render(GLint program) {
@@ -60,12 +61,7 @@ GLint getProgram() {
     return program;
 }
 
-void doRender(GLint program, int width, int height, GLint buffer, std::function<void()> bindScreen) {
-    if (bindScreen) bindScreen();
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
+void doRender(GLint program, GLint buffer) {
     glUseProgram(program);
     
     glActiveTexture(GL_TEXTURE0);
@@ -73,22 +69,27 @@ void doRender(GLint program, int width, int height, GLint buffer, std::function<
     static programs::UniformLocation u0(program, "u_buffer");
     glUniform1i(u0, 0);
 
+    GLint srcBlendFactor, dstBlendFactor;
+    glGetIntegerv(GL_BLEND_SRC, &srcBlendFactor);
+    glGetIntegerv(GL_BLEND_DST, &dstBlendFactor);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     render(program);
     
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBlendFunc(srcBlendFactor, dstBlendFactor);
 }
 
-void render(int width, int height, GLint buffer, std::function<void()> bindScreen) {
+void renderStandard(GLint buffer) {
     static GLint program = getProgram<nav::programs::quad::standardFragmentShader>();
-    doRender(program, width, height, buffer, bindScreen);
+    doRender(program, buffer);
 }
 
-void renderMono(int width, int height, GLint buffer, std::function<void()> bindScreen) {
+void renderMono(GLint buffer) {
     static GLint program = getProgram<nav::programs::quad::monoFragmentShader>();
-    doRender(program, width, height, buffer, bindScreen);
+    doRender(program, buffer);
 }
 
-void renderBlur(int width, int height, GLint buffer, std::function<void()> bindScreen) {
+void renderBlur(GLint buffer, uint32_t width, uint32_t height) {
     static GLint program = getProgram<nav::programs::quad::blurFragmentShader>();
     
     const float blurRadius = 1.3;
@@ -96,8 +97,10 @@ void renderBlur(int width, int height, GLint buffer, std::function<void()> bindS
     glUseProgram(program);
     static programs::UniformLocation u2(program, "u_offset");
     glUniform2f(u2, blurRadius / width, blurRadius / height);
-    doRender(program, width, height, buffer, bindScreen);
+    
+    doRender(program, buffer);
 }
 
+}
 }
 }

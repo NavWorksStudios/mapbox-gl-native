@@ -8,14 +8,17 @@
 #pragma once
 
 #include <gl_headers.hpp>
-#include <functional>
 
 namespace nav {
+namespace render {
 namespace quad {
+
 void render(GLint program);
-void render(int width, int height, GLint buffer, std::function<void()> bindScreen);
-void renderMono(int width, int height, GLint buffer, std::function<void()> bindScreen);
-void renderBlur(int width, int height, GLint buffer, std::function<void()> bindScreen);
+void renderStandard(GLint buffer);
+void renderMono(GLint buffer);
+void renderBlur(GLint buffer, uint32_t width, uint32_t height);
+
+}
 }
 }
 

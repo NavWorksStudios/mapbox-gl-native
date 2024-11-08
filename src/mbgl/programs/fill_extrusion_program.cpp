@@ -18,10 +18,9 @@ std::array<float, 3> lightColor(const EvaluatedLight& light) {
     return {{ color.r, color.g, color.b }};
 }
 
-std::array<float, 3> lightDirection(const EvaluatedLight& light, const TransformState& state) {
+std::array<float, 3> lightPos(const EvaluatedLight& light, const TransformState& state) {
     auto lightPos = light.get<LightPosition>().getCartesian();
     if (light.get<LightAnchor>() == LightAnchorType::Map) {
-        nav::runtime::sunlight::setPos(lightPos);
         return lightPos;
     } else {
         mat3 lightMat;
@@ -29,7 +28,6 @@ std::array<float, 3> lightDirection(const EvaluatedLight& light, const Transform
         matrix::rotate(lightMat, lightMat, -state.getBearing());
         std::array<float, 3> result;
         matrix::transformMat3f(result, lightPos, lightMat);
-        nav::runtime::sunlight::setPos(result);
         return result;
     }
 }
@@ -41,13 +39,15 @@ float lightIntensity(const EvaluatedLight& light) {
 FillExtrusionProgram::LayoutUniformValues FillExtrusionProgram::layoutUniformValues(
     const mat4& matrix, const mat4& model_matrix, const TransformState& state,
     float opacity, const EvaluatedLight& light, float verticalGradient, bool renderReflection) {
+    nav::runtime::sunlight::setPos(lightPos(light, state));
+    
     return {
         uniforms::matrix::Value( matrix ),
         uniforms::model_matrix::Value( model_matrix ),
         uniforms::opacity::Value( opacity ),
         uniforms::camera_pos::Value( state.getCameraPosition() ),
         uniforms::lightcolor::Value( lightColor(light) ),
-        uniforms::lightpos::Value( lightDirection(light, state) ),
+        uniforms::lightpos::Value( nav::runtime::sunlight::pos() ),
         uniforms::lightintensity::Value( lightIntensity(light) ),
         uniforms::vertical_gradient::Value( verticalGradient ),
         uniforms::spotlight::Value( nav::runtime::spotlight::value() ),
@@ -74,6 +74,8 @@ FillExtrusionPatternProgram::layoutUniformValues(mat4 matrix,
     int32_t tileSizeAtNearestZoom = util::tileSize * state.zoomScale(state.getIntegerZoom() - tileID.canonical.z);
     int32_t pixelX = tileSizeAtNearestZoom * (tileID.canonical.x + tileID.wrap * state.zoomScale(tileID.canonical.z));
     int32_t pixelY = tileSizeAtNearestZoom * tileID.canonical.y;
+    
+    nav::runtime::sunlight::setPos(lightPos(light, state));
 
     return {
         uniforms::matrix::Value( matrix ),
@@ -85,7 +87,7 @@ FillExtrusionPatternProgram::layoutUniformValues(mat4 matrix,
         uniforms::pixel_coord_lower::Value( std::array<float, 2>{{ float(pixelX & 0xFFFF), float(pixelY & 0xFFFF) }} ),
         uniforms::height_factor::Value( heightFactor ),
         uniforms::lightcolor::Value( lightColor(light) ),
-        uniforms::lightpos::Value( lightDirection(light, state) ),
+        uniforms::lightpos::Value( nav::runtime::sunlight::pos() ),
         uniforms::lightintensity::Value( lightIntensity(light) ),
         uniforms::vertical_gradient::Value( verticalGradient ),
         uniforms::spotlight::Value( nav::runtime::spotlight::value() ),

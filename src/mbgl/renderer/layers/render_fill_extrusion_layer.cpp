@@ -118,7 +118,7 @@ void RenderFillExtrusionLayer::doRenderGeoBuffer(PaintParameters& parameters) {
             textureBindings,
             uniqueName);
         
-        nav::geo::setCurrentProgram();
+        nav::render::geo::setCurrentProgram();
     };
 
     // Draw solid color extrusions
@@ -204,7 +204,7 @@ void RenderFillExtrusionLayer::doRenderGeoBuffer(PaintParameters& parameters) {
             matrix::invert(normalMatrix, tile.modelViewMatrix);
             matrix::transpose(normalMatrix);
 
-            nav::shadow::renderGround(matrix, tile.modelViewMatrix, normalMatrix, sunlight_matrix);
+            nav::render::shadow::renderGround(matrix, tile.modelViewMatrix, normalMatrix, sunlight_matrix);
         }
     };
 

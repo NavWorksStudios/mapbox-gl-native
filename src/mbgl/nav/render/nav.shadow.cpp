@@ -27,7 +27,7 @@ static auto convertMatrix4 = [] (mbgl::mat4 matrix) {
 
 
 namespace nav {
-
+namespace render {
 namespace shadow {
 
 GLuint fbo = 0;
@@ -40,7 +40,7 @@ void initResource(int width, int height) {
         h = height;
         
         if (!fbo) glGenFramebuffers(1, &fbo);
-
+        
         // shadow depth buffer
         glDeleteTextures(1, &buffer);
         glGenTextures(1, &buffer);
@@ -61,42 +61,32 @@ void initResource(int width, int height) {
     }
 }
 
-GLuint render(int width, int height, std::function<void()> renderDelegate, std::function<void()> bindScreen) {
+GLuint render(uint32_t width, uint32_t height, std::function<void()> renderDelegate) {
     initResource(shadow::width, shadow::height);
     
-    if (bindScreen) {
-        bindScreen();
-    } else {
-        glViewport(0, 0, shadow::width, shadow::height);
-        glBindFramebuffer(GL_FRAMEBUFFER, shadow::fbo);
-        
-        GLboolean depthMaskValue;
-        glGetBooleanv(GL_DEPTH_WRITEMASK, &depthMaskValue);
-        glDepthMask(GL_TRUE);
-        glClear(GL_DEPTH_BUFFER_BIT);
-        depthMaskValue ? glDepthMask(GL_TRUE) : glDepthMask(GL_FALSE);
-    }
+    glBindFramebuffer(GL_FRAMEBUFFER, shadow::fbo);
+    glViewport(0, 0, shadow::width, shadow::height);
+    
+    GLboolean depthMaskValue;
+    glGetBooleanv(GL_DEPTH_WRITEMASK, &depthMaskValue);
+    glDepthMask(GL_TRUE);
+
+    GLboolean enableCullface;
+    glGetBooleanv(GL_CULL_FACE, &enableCullface);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_FRONT);
     
     {
-        GLboolean enableCullface;
-        glGetBooleanv(GL_CULL_FACE, &enableCullface);
-        glEnable(GL_CULL_FACE);
-        glCullFace(GL_FRONT);
-        
+        glClear(GL_DEPTH_BUFFER_BIT);
         renderDelegate();
-        
-        glCullFace(GL_BACK);
-        enableCullface ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
     }
-    
-    if (!bindScreen) glViewport(0, 0, width, height);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    glCullFace(GL_BACK);
+    enableCullface ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
+    depthMaskValue ? glDepthMask(GL_TRUE) : glDepthMask(GL_FALSE);
 
     return buffer;
 }
-
-
-
 
 namespace ground {
 
@@ -162,12 +152,8 @@ void setDepthBuffer(GLuint buffer) {
 }
 
 void renderGround(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::mat4& normal, const mbgl::mat4& lightmvp) {
-    GLboolean cullfaceEnabled;
-    glGetBooleanv(GL_CULL_FACE, &cullfaceEnabled);
-    
     const GLint program = ground::program();
     glUseProgram(program);
-    glDisable(GL_CULL_FACE); // for render ground
     
     {
         static programs::UniformLocation u0(program, "u_matrix");
@@ -192,6 +178,10 @@ void renderGround(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::mat4&
         glUniform1i(u4, 0);
     }
     
+    GLboolean cullfaceEnabled;
+    glGetBooleanv(GL_CULL_FACE, &cullfaceEnabled);
+    glDisable(GL_CULL_FACE);
+
     glBindVertexArray(ground::vao(program));
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
@@ -200,7 +190,7 @@ void renderGround(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::mat4&
 }
 
 }   // end shadow
-
+}   // end render
 }   // end nav
 
 
