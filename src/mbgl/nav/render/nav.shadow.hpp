@@ -14,8 +14,8 @@ namespace nav {
 namespace render {
 namespace shadow {
 
-const int width = 4096 * 1.;
-const int height = 4096 * 1.;
+const int width = 4096 * .5;
+const int height = 4096 * .5;
 
 GLuint render(uint32_t width, uint32_t height, std::function<void()> renderDelegate);
 void setDepthBuffer(GLuint buffer);

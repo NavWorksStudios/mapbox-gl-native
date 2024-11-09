@@ -43,7 +43,7 @@ GLuint genTexture(GLint internalformat, GLsizei width, GLsizei height, GLenum fo
 }
 
 namespace dimension {
-const float BUFFER_RATIO = 1.;
+const float BUFFER_RATIO = .7;
 int width() { return nav::display::pixels::width() * BUFFER_RATIO; }
 int height() { return nav::display::pixels::height() * BUFFER_RATIO; }
 }
