@@ -145,7 +145,6 @@ void renderDeferred(const mbgl::PaintParameters& parameters,
     resetDrawMode();
     procedure::set(procedure::Depth);
     const auto shadowDepth = shadow::render(w, h, renderShadowDepthDelegate);
-    shadow::setDepthBuffer(shadowDepth);
 
     // 2
     resetDrawMode();

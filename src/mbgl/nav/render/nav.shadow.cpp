@@ -144,15 +144,7 @@ GLuint vao(GLuint program) {
     return vao;
 }
 
-} // ground
-
-GLint shadowDepth = 0;
-
-void setDepthBuffer(GLuint buffer) {
-    shadowDepth = buffer;
-}
-
-void renderGround(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::mat4& normal, const mbgl::mat4& lightmvp) {
+void render(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::mat4& normal, const mbgl::mat4& lightmvp) {
     GLint delegateProgram;
     glGetIntegerv(GL_CURRENT_PROGRAM, &delegateProgram);
 
@@ -181,7 +173,7 @@ void renderGround(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::mat4&
         glUniformMatrix4fv(u3, 1, GL_FALSE, reinterpret_cast<const float*>(&LIGHTMVP));
         
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, shadowDepth);
+        glBindTexture(GL_TEXTURE_2D, buffer);
         static programs::UniformLocation u4(program, "u_shadow_map");
         glUniform1i(u4, 0);
         
@@ -192,6 +184,8 @@ void renderGround(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::mat4&
     cullfaceEnabled ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
     glUseProgram(delegateProgram);
 }
+
+}   // ground
 
 }   // end shadow
 }   // end render

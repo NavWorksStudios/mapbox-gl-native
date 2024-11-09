@@ -14,12 +14,13 @@ namespace nav {
 namespace render {
 namespace shadow {
 
-const int width = 4096 * .5;
-const int height = 4096 * .5;
-
+const int width = 4096 * .3;
+const int height = 4096 * .3;
 GLuint render(uint32_t width, uint32_t height, std::function<void()> renderDelegate);
-void setDepthBuffer(GLuint buffer);
-void renderGround(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::mat4& normal, const mbgl::mat4& lightmvp);
+
+namespace ground {
+void render(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::mat4& normal, const mbgl::mat4& lightmvp);
+}
 
 }   // shadow
 }   // render

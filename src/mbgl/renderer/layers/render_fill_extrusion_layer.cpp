@@ -230,7 +230,7 @@ void RenderFillExtrusionLayer::renderDeferred(PaintParameters& parameters) {
                 nav::render::geo::setCurrentProgram();
                 
                 const auto sunlight_matrix = tile.translatedSunlightClipMatrix(translate, anchor, state);
-                nav::render::shadow::renderGround(matrix, tile.modelViewMatrix, normalMatrix, sunlight_matrix);
+                nav::render::shadow::ground::render(matrix, tile.modelViewMatrix, normalMatrix, sunlight_matrix);
             }
         };
 
