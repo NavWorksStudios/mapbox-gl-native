@@ -130,4 +130,36 @@ LineGradientProgram::LayoutUniformValues LineGradientProgram::layoutUniformValue
     );
 }
 
+LineShadowProgram::LayoutUniformValues
+LineShadowProgram::layoutUniformValues(const mat4& matrix,
+                                       const RenderTile& tile,
+                                       const TransformState& state,
+                                       float pixelRatio) {
+    return {
+        matrix,
+        uniforms::ratio::Value( 1.0f / tile.id.pixelsToTileUnits(1.0, state.getZoom()) ),
+        uniforms::device_pixel_ratio::Value( pixelRatio )
+    };
+}
+
+LineGeoProgram::LayoutUniformValues
+LineGeoProgram::layoutUniformValues(const mat4& matrix,
+                                    const RenderTile& tile,
+                                    const TransformState& state,
+                                    float pixelRatio,
+                                    const mat4& model_view_matrix,
+                                    const mat4& normal_matrix,
+                                    const mat4& light_matrix,
+                                    const vec3f& light_dir) {
+    return {
+        matrix,
+        uniforms::ratio::Value( 1.0f / tile.id.pixelsToTileUnits(1.0, state.getZoom()) ),
+        uniforms::device_pixel_ratio::Value( pixelRatio ),
+        uniforms::model_view_matrix::Value( model_view_matrix ),
+        uniforms::normal_matrix::Value( normal_matrix ),
+        uniforms::light_matrix::Value( light_matrix ),
+        uniforms::light_dir::Value( light_dir )
+    };
+};
+
 } // namespace mbgl

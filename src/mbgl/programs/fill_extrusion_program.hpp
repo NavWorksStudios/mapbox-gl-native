@@ -64,18 +64,17 @@ using FillExtrusionPatternUniforms = TypeList<
     uniforms::focus_region,
     uniforms::render_reflection>;
 
+using FillExtrusionShadowUniforms = TypeList<
+    uniforms::matrix,
+    uniforms::model_view_matrix,
+    uniforms::normal_matrix>;
+
 using FillExtrusionGeoUniforms = TypeList<
     uniforms::matrix,
     uniforms::model_view_matrix,
     uniforms::normal_matrix,
     uniforms::light_matrix,
     uniforms::light_dir>;
-
-using FillExtrusionShadowDepthUniforms = TypeList<
-    uniforms::matrix,
-    uniforms::model_view_matrix,
-    uniforms::normal_matrix>;
-
 
 
 class FillExtrusionProgram : public Program<
@@ -139,11 +138,11 @@ public:
                                                    bool renderReflection);
 };
 
-class FillExtrusionShadowDepthProgram : public Program<
-    FillExtrusionShadowDepthProgram,
+class FillExtrusionShadowProgram : public Program<
+    FillExtrusionShadowProgram,
     gfx::PrimitiveType::Triangle,
     FillExtrusionLayoutAttributes,
-    FillExtrusionShadowDepthUniforms,
+    FillExtrusionShadowUniforms,
     TypeList<>,
     style::FillExtrusionPaintProperties>
 {
@@ -182,11 +181,11 @@ public:
         : fillExtrusion(context, programParameters),
           fillExtrusionPattern(context, programParameters),
           fillExtrusionGeo(context, programParameters),
-          fillExtrusionShadowDepth(context, programParameters) {
+          fillExtrusionShadow(context, programParameters) {
     }
     FillExtrusionProgram fillExtrusion;
     FillExtrusionPatternProgram fillExtrusionPattern;
-    FillExtrusionShadowDepthProgram fillExtrusionShadowDepth;
+    FillExtrusionShadowProgram fillExtrusionShadow;
     FillExtrusionGeoProgram fillExtrusionGeo;
 };
 

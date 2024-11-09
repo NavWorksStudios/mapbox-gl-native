@@ -17,6 +17,8 @@
 #include <mbgl/util/intersection_tests.hpp>
 #include <mbgl/util/math.hpp>
 
+#include "mbgl/nav/nav.runtime.hpp"
+
 namespace mbgl {
 
 using namespace style;
@@ -30,35 +32,124 @@ inline const LineLayer::Impl& impl_cast(const Immutable<style::Layer::Impl>& imp
 
 } // namespace
 
-static RenderLineLayer* renderLineLayer = nullptr;
-
 RenderLineLayer::RenderLineLayer(Immutable<style::LineLayer::Impl> _impl)
     : RenderLayer(makeMutable<LineLayerProperties>(std::move(_impl))),
       unevaluated(impl_cast(baseImpl).paint.untransitioned()),
       colorRamp({256, 1}) {
-    renderLineLayer = this;
     bindToPalette(baseImpl->id, "line-color", unevaluated.get<LineColor>().value);
 }
 
-RenderLineLayer::~RenderLineLayer() {
-    renderLineLayer = nullptr;
-}
+RenderLineLayer::~RenderLineLayer() = default;
 
-void RenderLineLayer::renderShadowDepthBuffer(PaintParameters& parameters) {
-    if (renderLineLayer) {
-        renderLineLayer->render(parameters);
-    }
+void RenderLineLayer::renderShadowBuffer(PaintParameters& parameters) {
+//    renderDeferred(parameters, 0);
 }
 
 void RenderLineLayer::renderGeoBuffer(PaintParameters& parameters) {
-    if (renderLineLayer) {
-        renderLineLayer->doRenderGeoBuffer(parameters);
-        renderLineLayer->render(parameters);
-    }
+//    renderDeferred(parameters, 1);
 }
 
-void RenderLineLayer::doRenderGeoBuffer(PaintParameters& parameters) {
+void RenderLineLayer::renderDeferred(PaintParameters& parameters, int mode) {
+    assert(renderTiles);
+    if (parameters.pass == RenderPass::Opaque) {
+        return;
+    }
     
+    bool refreshPaintUniforms = true;
+    using Properties = style::LinePaintProperties::DataDrivenProperties;
+    mbgl::PaintPropertyBinders<Properties>::UniformValues paintUniformValues;
+
+    parameters.renderTileClippingMasks(renderTiles);
+
+    size_t renderIndex = -1;
+    for (const RenderTile& tile : *renderTiles) {
+        renderIndex++;
+        
+        if (!tile.isRenderable(Tile::RenderMode::Standard)) {
+            continue;
+        }
+        
+        const LayerRenderData* renderData = getRenderDataForPass(renderIndex, parameters.pass);
+        if (!renderData) {
+            continue;
+        }
+        
+        const auto& evaluated = getEvaluated<LineLayerProperties>(renderData->layerProperties);
+        const auto& crossfade = getCrossfade<LineLayerProperties>(renderData->layerProperties);
+        
+        auto& bucket = static_cast<LineBucket&>(*renderData->bucket);
+        const auto& paintPropertyBinders = bucket.paintBinders ? *bucket.paintBinders : bucket.getPaintPropertyBinders().at(getID());
+        
+        if (refreshPaintUniforms) {
+            paintPropertyBinders.fillUniformValues(paintUniformValues, parameters.state.getZoom(), evaluated);
+            refreshPaintUniforms = false;
+        }
+        
+        const auto draw = [&](auto& programInstance,
+                              const auto&& layoutUniformValues,
+                              const optional<ImagePosition>& patternPositionA,
+                              const optional<ImagePosition>& patternPositionB, auto&& textureBindings) {
+            paintPropertyBinders.setPatternParameters(patternPositionA, patternPositionB, crossfade);
+            
+            const auto&& allAttributeBindings =
+            programInstance.computeAllAttributeBindings(*bucket.vertexBuffer, paintPropertyBinders, evaluated);
+            
+            checkRenderability(parameters, programInstance.activeBindingCount(allAttributeBindings));
+            
+            programInstance.draw(parameters.context,
+                                 *parameters.renderPass,
+                                 gfx::Triangles(),
+                                 parameters.depthModeForSublayer(0, gfx::DepthMaskType::ReadOnly),
+                                 parameters.stencilModeForClipping(renderIndex),
+                                 parameters.colorModeForRenderPass(),
+                                 gfx::CullFaceMode::disabled(),
+                                 *bucket.indexBuffer,
+                                 bucket.segments,
+                                 layoutUniformValues,
+                                 paintUniformValues,
+                                 allAttributeBindings,
+                                 std::forward<decltype(textureBindings)>(textureBindings),
+                                 getID());
+        };
+
+        const auto& translate = evaluated.get<LineTranslate>();
+        const auto& anchor = evaluated.get<LineTranslateAnchor>();
+        const auto& state = parameters.state;
+        auto lightmvp = tile.translatedSunlightClipMatrix(translate, anchor, state);
+
+        if (mode == 0) {
+            draw(parameters.programs.getLineLayerPrograms().lineShadow,
+                 LineShadowProgram::layoutUniformValues(
+                     lightmvp,
+                     tile,
+                     parameters.state,
+                     parameters.pixelRatio),
+                 {},
+                 {},
+                 LineProgram::TextureBindings{});
+        } else if (mode == 1) {
+            const auto matrix = tile.translatedClipMatrix(translate, anchor, state);
+
+            mat4 normalMatrix;
+            matrix::invert(normalMatrix, tile.modelViewMatrix);
+            matrix::transpose(normalMatrix);
+            
+            draw(parameters.programs.getLineLayerPrograms().lineGeo,
+                 LineGeoProgram::layoutUniformValues(
+                     matrix,
+                     tile,
+                     parameters.state,
+                     parameters.pixelRatio,
+                     tile.modelViewMatrix,
+                     normalMatrix,
+                     lightmvp,
+                     nav::runtime::sunlight::pos()),
+                 {},
+                 {},
+                 LineProgram::TextureBindings{});
+        }
+    }
+
 }
 
 void RenderLineLayer::transition(const TransitionParameters& parameters) {
@@ -179,7 +270,7 @@ void RenderLineLayer::render(PaintParameters& parameters) {
                                  std::forward<decltype(textureBindings)>(textureBindings),
                                  getID());
         };
-
+        
         if (!evaluated.get<LineDasharray>().from.empty()) {
             const LinePatternCap cap =
                 bucket.layout.get<LineCap>() == LineCapType::Round ? LinePatternCap::Round : LinePatternCap::Square;

@@ -15,12 +15,10 @@ public:
     explicit RenderLineLayer(Immutable<style::LineLayer::Impl>);
     ~RenderLineLayer() override;
 
-public:
-    static void renderShadowDepthBuffer(PaintParameters& parameters);
-    static void renderGeoBuffer(PaintParameters& parameters);
-
 private:
-    void doRenderGeoBuffer(PaintParameters& parameters);
+    void renderShadowBuffer(PaintParameters& parameters) override;
+    void renderGeoBuffer(PaintParameters& parameters) override;
+    void renderDeferred(PaintParameters& parameters, int mode);
     
 private:
     void transition(const TransitionParameters&) override;

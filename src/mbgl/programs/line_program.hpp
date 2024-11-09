@@ -192,6 +192,54 @@ public:
                                                    float pixelRatio);
 };
 
+class LineShadowProgram : public Program<
+    LineShadowProgram,
+    gfx::PrimitiveType::Triangle,
+    LineLayoutAttributes,
+    TypeList<
+        uniforms::matrix,
+        uniforms::ratio,
+        uniforms::device_pixel_ratio>,
+    TypeList<>,
+    style::LinePaintProperties>
+{
+public:
+    using Program::Program;
+
+    static LayoutUniformValues layoutUniformValues(const mat4& matrix,
+                                                   const RenderTile& tile,
+                                                   const TransformState& state,
+                                                   float pixelRatio);
+};
+
+class LineGeoProgram : public Program<
+LineGeoProgram,
+    gfx::PrimitiveType::Triangle,
+    LineLayoutAttributes,
+    TypeList<
+        uniforms::matrix,
+        uniforms::ratio,
+        uniforms::device_pixel_ratio,
+        uniforms::model_view_matrix,
+        uniforms::normal_matrix,
+        uniforms::light_matrix,
+        uniforms::light_dir>,
+    TypeList<>,
+    style::LinePaintProperties>
+{
+public:
+    using Program::Program;
+
+    static LayoutUniformValues layoutUniformValues(const mat4& matrix,
+                                                   const RenderTile& tile,
+                                                   const TransformState& state,
+                                                   float pixelRatio,
+                                                   const mat4& model_view_matrix,
+                                                   const mat4& normal_matrix,
+                                                   const mat4& light_matrix,
+                                                   const vec3f& light_dir);
+};
+
 using LineLayoutVertex = LineProgram::LayoutVertex;
 using LineAttributes = LineProgram::AttributeList;
 
@@ -201,11 +249,15 @@ public:
         : line(context, programParameters),
           lineGradient(context, programParameters),
           lineSDF(context, programParameters),
-          linePattern(context, programParameters) {}
+          linePattern(context, programParameters),
+          lineShadow(context, programParameters),
+          lineGeo(context, programParameters) {}
     LineProgram line;
     LineGradientProgram lineGradient;
     LineSDFProgram lineSDF;
     LinePatternProgram linePattern;
+    LineShadowProgram lineShadow;
+    LineGeoProgram lineGeo;
 };
 
 } // namespace mbgl

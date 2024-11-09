@@ -181,14 +181,26 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
     
     // - NAV DEFERRED RENDERING PASS --------------------------------------------------------------------------------
     {
-        auto renderShadowDepthDelegate = [&parameters] () {
-            RenderFillExtrusionLayer::renderShadowDepthBuffer(parameters);
-//            RenderLineLayer::renderShadowDepthBuffer(parameters);
+        auto renderShadowDepthDelegate = [&] () {
+            int32_t i = static_cast<int32_t>(layerRenderItems.size()) - 1;
+            for (auto it = layerRenderItems.begin(); it != layerRenderItems.end() && i >= 0; ++it, --i) {
+                parameters.currentLayer = i;
+                const RenderItem& renderItem = it->get();
+                if (renderItem.hasRenderPass(parameters.pass)) {
+                    renderItem.renderShadowBuffer(parameters);
+                }
+            }
         };
         
-        auto renderGeoDelegate = [&parameters] () {
-            RenderFillExtrusionLayer::renderGeoBuffer(parameters);
-//            RenderLineLayer::renderGeoBuffer(parameters);
+        auto renderGeoDelegate = [&] () {
+            int32_t i = static_cast<int32_t>(layerRenderItems.size()) - 1;
+            for (auto it = layerRenderItems.begin(); it != layerRenderItems.end() && i >= 0; ++it, --i) {
+                parameters.currentLayer = i;
+                const RenderItem& renderItem = it->get();
+                if (renderItem.hasRenderPass(parameters.pass)) {
+                    renderItem.renderGeoBuffer(parameters);
+                }
+            }
         };
 
         nav::render::renderDeferred(parameters, renderShadowDepthDelegate, renderGeoDelegate);

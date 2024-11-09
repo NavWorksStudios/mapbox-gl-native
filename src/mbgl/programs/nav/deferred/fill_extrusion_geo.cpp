@@ -18,15 +18,10 @@ struct ShaderSource;
 
 template <>
 struct ShaderSource<FillExtrusionGeoProgram> {
-    static constexpr const char* name = "fill_extrusion_ssao";
-    static constexpr const uint8_t hash[8] = {0x9d, 0x76, 0x7f, 0xaa, 0x86, 0x57, 0x56, 0x96};
+    static constexpr const char* name = "fill_extrusion_geo";
+    static constexpr const uint8_t hash[8] = {0x9d, 0x76, 0x7f, 0xaa, 0x86, 0x57, 0x56, 0x97};
     static constexpr const auto vertexOffset = 21491;
     static constexpr const auto fragmentOffset = 23422;
-    
-//    static const char* navVertex(const char* shaderSource, size_t preludeOffset) { return shaderSource + preludeOffset; }
-//    static const char* navVertex(const char* shaderSource) { return shaderSource + vertexOffset; }
-//    static const char* navFragment(const char* shaderSource, size_t preludeOffset) { return shaderSource + preludeOffset; }
-//    static const char* navFragment(const char* shaderSource) { return shaderSource + fragmentOffset; }
     
     static const char* navVertex(const char* , size_t ) { return R"(
         
@@ -54,13 +49,13 @@ struct ShaderSource<FillExtrusionGeoProgram> {
     
     static const char* navVertex(const char* ) { return R"(
         
-        attribute highp vec2 a_pos;
-        attribute highp vec4 a_normal_ed;
+        attribute vec2 a_pos;
+        attribute vec4 a_normal_ed;
         
-        uniform highp mat4 u_matrix;
-        uniform highp mat4 u_model_view_matrix;
-        uniform highp mat4 u_normal_matrix;
-        uniform highp mat4 u_light_matrix;
+        uniform mat4 u_matrix;
+        uniform mat4 u_model_view_matrix;
+        uniform mat4 u_normal_matrix;
+        uniform mat4 u_light_matrix;
     
         varying vec3 v_aospace_normal;
         varying vec3 v_aospace_pos;
@@ -69,10 +64,10 @@ struct ShaderSource<FillExtrusionGeoProgram> {
         varying vec4 v_lightspace_pos;
         
         uniform lowp float u_base_t;
-        attribute highp vec2 a_base;
+        attribute vec2 a_base;
 
         uniform lowp float u_height_t;
-        attribute highp vec2 a_height;
+        attribute vec2 a_height;
 
         void main() {
             float base = unpack_mix_vec2(a_base,u_base_t);
@@ -229,8 +224,8 @@ Backend::Create<gfx::Backend::Type::OpenGL>(const ProgramParameters& programPara
 
 } // namespace gfx
 
-const char* nav_programs_ground_fragmentShader() {
-    return programs::gl::ShaderSource<FillExtrusionGeoProgram>::navFragment(0);
+const char* nav_programs_geo_fragmentShader() {
+    return programs::gl::ShaderSource<FillExtrusionGeoProgram>::navFragment(nullptr);
 }
 
 } // namespace mbgl

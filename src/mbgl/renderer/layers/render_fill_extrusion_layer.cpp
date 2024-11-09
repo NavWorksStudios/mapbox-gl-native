@@ -37,28 +37,23 @@ inline const FillExtrusionLayer::Impl& impl_cast(const Immutable<style::Layer::I
 
 } // namespace
 
-static RenderFillExtrusionLayer* renderFillExtrusionLayer = nullptr;
-
 RenderFillExtrusionLayer::RenderFillExtrusionLayer(Immutable<style::FillExtrusionLayer::Impl> _impl)
     : RenderLayer(makeMutable<FillExtrusionLayerProperties>(std::move(_impl))),
       unevaluated(impl_cast(baseImpl).paint.untransitioned()) {
-    renderFillExtrusionLayer = this;
     bindToPalette(baseImpl->id, "fill-extrusion-color", unevaluated.get<FillExtrusionColor>().value);
 }
 
-RenderFillExtrusionLayer::~RenderFillExtrusionLayer() {
-    renderFillExtrusionLayer = nullptr;
+RenderFillExtrusionLayer::~RenderFillExtrusionLayer() = default;
+
+void RenderFillExtrusionLayer::renderShadowBuffer(PaintParameters& parameters) {
+    renderDeferred(parameters, 0);
 }
 
 void RenderFillExtrusionLayer::renderGeoBuffer(PaintParameters& parameters) {
-    if (renderFillExtrusionLayer) renderFillExtrusionLayer->renderDeferred(parameters);
+    renderDeferred(parameters, 1);
 }
 
-void RenderFillExtrusionLayer::renderShadowDepthBuffer(PaintParameters& parameters) {
-    if (renderFillExtrusionLayer) renderFillExtrusionLayer->renderDeferred(parameters);
-}
-
-void RenderFillExtrusionLayer::renderDeferred(PaintParameters& parameters) {
+void RenderFillExtrusionLayer::renderDeferred(PaintParameters& parameters, int mode) {
     if(!renderTiles)
         return;
 
@@ -119,10 +114,10 @@ void RenderFillExtrusionLayer::renderDeferred(PaintParameters& parameters) {
             uniqueName);
     };
     
-    if (nav::render::procedure::value() == nav::render::procedure::Depth) {
+    if (mode == 0) {
         
         const auto drawTile = [&](const gfx::StencilMode& stencilMode_, const gfx::ColorMode& colorMode_, const std::string& name) {
-            auto layoutUniforms = FillExtrusionShadowDepthProgram::layoutUniformValues(
+            auto layoutUniforms = FillExtrusionShadowProgram::layoutUniformValues(
                 uniforms::matrix::Value(),
                 uniforms::model_view_matrix::Value(),
                 uniforms::normal_matrix::Value()
@@ -152,7 +147,7 @@ void RenderFillExtrusionLayer::renderDeferred(PaintParameters& parameters) {
                 auto lightmvp = tile.translatedSunlightClipMatrix(translate, anchor, state);
                 layoutUniforms.template get<uniforms::matrix>() = lightmvp;
                 
-                draw(parameters.programs.getFillExtrusionLayerPrograms().fillExtrusionShadowDepth,
+                draw(parameters.programs.getFillExtrusionLayerPrograms().fillExtrusionShadow,
                      evaluated,
                      crossfade,
                      stencilMode_,
@@ -161,7 +156,7 @@ void RenderFillExtrusionLayer::renderDeferred(PaintParameters& parameters) {
                      layoutUniforms,
                      {},
                      {},
-                     FillExtrusionShadowDepthProgram::TextureBindings{},
+                     FillExtrusionShadowProgram::TextureBindings{},
                      uniqueName
                 );
             }
@@ -169,7 +164,7 @@ void RenderFillExtrusionLayer::renderDeferred(PaintParameters& parameters) {
         
         drawTile(gfx::StencilMode::disabled(), parameters.colorModeForRenderPass(), "color");
         
-    } else if (nav::render::procedure::value() == nav::render::procedure::Geo) {
+    } else if (mode == 1) {
         
         // Draw solid color extrusions
         const auto drawTiles = [&](const gfx::StencilMode& stencilMode_, const gfx::ColorMode& colorMode_, const std::string& name) {

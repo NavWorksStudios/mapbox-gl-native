@@ -56,7 +56,11 @@ private:
     void upload(gfx::UploadPass& pass) const override { layer.get().upload(pass); }
     void render(PaintParameters& parameters) const override { layer.get().render(parameters); }
     const std::string& getName() const override { return layer.get().getID(); }
-    bool isAnnotation() const { return layer.get().isAnnotation(); }
+    
+private:
+    bool isAnnotation() const override { return layer.get().isAnnotation(); }
+    void renderShadowBuffer(PaintParameters& parameters) const override { layer.get().renderShadowBuffer(parameters); }
+    void renderGeoBuffer(PaintParameters& parameters) const override { layer.get().renderGeoBuffer(parameters); }
 };
 
 class RenderTreeImpl final : public RenderTree {

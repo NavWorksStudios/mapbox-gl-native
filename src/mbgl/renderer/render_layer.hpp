@@ -124,7 +124,12 @@ public:
     // TODO: Only for background layers.
     virtual optional<Color> getSolidBackground() const;
     
+public:
     virtual bool isAnnotation() const { return false; }
+    
+    virtual void renderShadowBuffer(PaintParameters&) { }
+    
+    virtual void renderGeoBuffer(PaintParameters&) { }
 
 protected:
     // Checks whether the current hardware can render this layer. If it can't, we'll show a warning

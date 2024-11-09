@@ -98,8 +98,8 @@ FillExtrusionPatternProgram::layoutUniformValues(mat4 matrix,
     };
 }
 
-FillExtrusionShadowDepthProgram::LayoutUniformValues
-FillExtrusionShadowDepthProgram::layoutUniformValues(const mat4& matrix,
+FillExtrusionShadowProgram::LayoutUniformValues
+FillExtrusionShadowProgram::layoutUniformValues(const mat4& matrix,
                                                      const mat4& model_view_matrix,
                                                      const mat4& normal_matrix) {
     return {

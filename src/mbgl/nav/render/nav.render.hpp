@@ -15,17 +15,6 @@ namespace render {
 
 void switchDebugWindow();
 
-namespace procedure {
-enum Value : int32_t {
-    None = 0,
-    Depth = 1 << 0,
-    Geo = 1 << 1,
-    AO = 1 << 2,
-    Blur = 1 << 3,
-};
-Value value();
-}
-
 void renderDeferred(const mbgl::PaintParameters& parameters,
                     std::function<void()> renderShadowDepthDelegate,
                     std::function<void()> renderGeoDelegate);

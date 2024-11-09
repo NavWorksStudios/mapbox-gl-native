@@ -2,7 +2,7 @@
 #include "mbgl/nav/render/programs/nav.program.hpp"
 
 namespace mbgl {
-const char* nav_programs_ground_fragmentShader();
+const char* nav_programs_geo_fragmentShader();
 }
 
 namespace nav {
@@ -44,7 +44,7 @@ void main()
 )"; }
 
 const char* fragmentShader() {
-    return mbgl::nav_programs_ground_fragmentShader();
+    return mbgl::nav_programs_geo_fragmentShader();
 }
 
 } // namespace ssao

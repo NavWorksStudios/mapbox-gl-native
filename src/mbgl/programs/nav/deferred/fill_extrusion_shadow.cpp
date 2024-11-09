@@ -17,16 +17,11 @@ template <typename>
 struct ShaderSource;
 
 template <>
-struct ShaderSource<FillExtrusionShadowDepthProgram> {
+struct ShaderSource<FillExtrusionShadowProgram> {
     static constexpr const char* name = "fill_extrusion_shadow";
-    static constexpr const uint8_t hash[8] = {0x9d, 0x76, 0x7f, 0xaa, 0x86, 0x57, 0x56, 0x96};
+    static constexpr const uint8_t hash[8] = {0x9d, 0x76, 0x7f, 0xaa, 0x86, 0x57, 0x56, 0x98};
     static constexpr const auto vertexOffset = 21491;
     static constexpr const auto fragmentOffset = 23422;
-    
-//    static const char* navVertex(const char* shaderSource, size_t preludeOffset) { return shaderSource + preludeOffset; }
-//    static const char* navVertex(const char* shaderSource) { return shaderSource + vertexOffset; }
-//    static const char* navFragment(const char* shaderSource, size_t preludeOffset) { return shaderSource + preludeOffset; }
-//    static const char* navFragment(const char* shaderSource) { return shaderSource + fragmentOffset; }
     
     static const char* navVertex(const char* , size_t ) { return R"(
         
@@ -111,8 +106,8 @@ struct ShaderSource<FillExtrusionShadowDepthProgram> {
     
 };
 
-constexpr const char* ShaderSource<FillExtrusionShadowDepthProgram>::name;
-constexpr const uint8_t ShaderSource<FillExtrusionShadowDepthProgram>::hash[8];
+constexpr const char* ShaderSource<FillExtrusionShadowProgram>::name;
+constexpr const uint8_t ShaderSource<FillExtrusionShadowProgram>::hash[8];
 
 } // namespace gl
 } // namespace programs
@@ -120,9 +115,9 @@ constexpr const uint8_t ShaderSource<FillExtrusionShadowDepthProgram>::hash[8];
 namespace gfx {
 
 template <>
-std::unique_ptr<gfx::Program<FillExtrusionShadowDepthProgram>>
+std::unique_ptr<gfx::Program<FillExtrusionShadowProgram>>
 Backend::Create<gfx::Backend::Type::OpenGL>(const ProgramParameters& programParameters) {
-    return std::make_unique<gl::Program<FillExtrusionShadowDepthProgram>>(programParameters);
+    return std::make_unique<gl::Program<FillExtrusionShadowProgram>>(programParameters);
 }
 
 } // namespace gfx

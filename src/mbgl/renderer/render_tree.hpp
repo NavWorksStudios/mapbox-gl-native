@@ -23,8 +23,12 @@ public:
     virtual void upload(gfx::UploadPass&) const = 0;
     virtual void render(PaintParameters&) const = 0;
     virtual bool hasRenderPass(RenderPass) const = 0;
-    virtual const std::string& getName() const = 0; 
+    virtual const std::string& getName() const = 0;
+
+public:
     virtual bool isAnnotation() const { return false; }
+    virtual void renderShadowBuffer(PaintParameters&) const { }
+    virtual void renderGeoBuffer(PaintParameters&) const { }
 };
 
 using RenderItems = std::vector<std::reference_wrapper<const RenderItem>>;

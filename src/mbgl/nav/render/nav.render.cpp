@@ -83,18 +83,6 @@ void switchDebugWindow() {
     _showDebugWindow = !_showDebugWindow;
 }
 
-namespace procedure {
-Value _value = Value::None;
-
-void set(Value v) {
-    _value = v;
-}
-
-Value value() {
-    return _value;
-}
-}
-
 namespace renderbuffer {
 
 const float BUFFER_RATIO = 1.;
@@ -143,29 +131,23 @@ void renderDeferred(const mbgl::PaintParameters& parameters,
     
     // 1
     resetDrawMode();
-    procedure::set(procedure::Depth);
     const auto shadowDepth = shadow::render(w, h, renderShadowDepthDelegate);
 
     // 2
     resetDrawMode();
-    procedure::set(procedure::Geo);
     const auto gbuffer = geo::renderGeoAndShadow(w, h, renderBuffer, shadowDepth, renderGeoDelegate);
     
     // 3
     resetDrawMode();
-    procedure::set(procedure::AO);
     const auto& projMatrix = convertMatrix4(parameters.state.getViewToClipMatrix());
     ssao::render(w, h, renderBuffer, gbuffer, zoom, projMatrix);
     
     // 4
     resetDrawMode();
-    procedure::set(procedure::Blur);
     config.bindFramebuffer.restore();
     config.viewPort.restore();
     quad::renderBlur(renderBuffer, w, h);
     
-    // 5
-    procedure::set(procedure::None);
 
     if (_showDebugWindow) {
         int x = 20;
