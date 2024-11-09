@@ -186,7 +186,9 @@ std::map<std::string, ImageData> imageMap;
 
 void load(const std::string& path) {
     imageMap["fill_blank"].image = mbgl::decodeImage(mbgl::util::read_file(path + "blank.png"));
-    imageMap["fill_grass"].image = mbgl::decodeImage(mbgl::util::read_file(path + "grass.jpg"));
+    
+    imageMap["fill_grass_t1"].image = mbgl::decodeImage(mbgl::util::read_file(path + "grass_t1.png"));
+    imageMap["fill_grass_normal_t1"].image = mbgl::decodeImage(mbgl::util::read_file(path + "grass_normal_t1.png"));
     
     imageMap["fill_water_t1"].image = mbgl::decodeImage(mbgl::util::read_file(path + "water_t1.jpg"));
     imageMap["fill_water_normal_t1"].image = mbgl::decodeImage(mbgl::util::read_file(path + "water_normal_t1.jpg"));
