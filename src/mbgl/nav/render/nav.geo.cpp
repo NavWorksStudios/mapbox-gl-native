@@ -93,30 +93,32 @@ void setCurrentProgram() {
 GBuffer renderGeoAndShadow(uint32_t width, uint32_t height,
                            GLuint shadow, GLuint shadowDepth,
                            std::function<void()> renderDelegate) {
-    initResource(width, height);
-    
-    geo::bindFbo(shadow);
-    glViewport(0, 0, width, height);
-
-    if (delegateProgram) {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, shadowDepth);
-        static programs::UniformLocation u0(delegateProgram, "u_shadow_map");
-        glUniform1i(u0, 0);
-        
-        static programs::UniformLocation u1(delegateProgram, "u_shadow_offset");
-        glUniform2f(u1, .5 / shadow::width, .5 / shadow::height);
-    }
-    
     GLfloat clearColor[4];
     glGetFloatv(GL_COLOR_CLEAR_VALUE, clearColor);
-    glClearColor(0, 0, 0, 0);
     
     GLboolean blendEnabled;
     glGetBooleanv(GL_BLEND, &blendEnabled);
-    glDisable(GL_BLEND);
-
+    
     {
+        initResource(width, height);
+        
+        geo::bindFbo(shadow);
+        glViewport(0, 0, width, height);
+
+        if (delegateProgram) {
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, shadowDepth);
+            static programs::UniformLocation u0(delegateProgram, "u_shadow_map");
+            glUniform1i(u0, 0);
+            
+            static programs::UniformLocation u1(delegateProgram, "u_shadow_offset");
+            glUniform2f(u1, .5 / shadow::width, .5 / shadow::height);
+        }
+        
+
+        glClearColor(0, 0, 0, 0);
+        glDisable(GL_BLEND);
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // 清空所有颜色附件
         renderDelegate();
     }

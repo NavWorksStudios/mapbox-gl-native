@@ -119,7 +119,57 @@ void RenderFillExtrusionLayer::renderDeferred(PaintParameters& parameters) {
             uniqueName);
     };
     
-    if (nav::render::procedure::value() == nav::render::procedure::Geo) {
+    if (nav::render::procedure::value() == nav::render::procedure::Depth) {
+        
+        const auto drawTile = [&](const gfx::StencilMode& stencilMode_, const gfx::ColorMode& colorMode_, const std::string& name) {
+            auto layoutUniforms = FillExtrusionShadowDepthProgram::layoutUniformValues(
+                uniforms::matrix::Value(),
+                uniforms::model_view_matrix::Value(),
+                uniforms::normal_matrix::Value()
+            );
+            
+            const std::string uniqueName = getID().get() + "/" + name;
+
+            size_t renderIndex = -1;
+            for (const RenderTile& tile : *renderTiles) {
+                renderIndex++;
+                
+                if (!tile.isRenderable(Tile::RenderMode::Detailed)) {
+                    continue;
+                }
+                
+                const LayerRenderData* renderData = getRenderDataForPass(renderIndex, parameters.pass);
+                if (!renderData) {
+                    continue;
+                }
+
+                auto& bucket = static_cast<FillExtrusionBucket&>(*renderData->bucket);
+                
+                const auto& translate = evaluated.get<FillExtrusionTranslate>();
+                const auto& anchor = evaluated.get<FillExtrusionTranslateAnchor>();
+                const auto& state = parameters.state;
+                
+                auto lightmvp = tile.translatedSunlightClipMatrix(translate, anchor, state);
+                layoutUniforms.template get<uniforms::matrix>() = lightmvp;
+                
+                draw(parameters.programs.getFillExtrusionLayerPrograms().fillExtrusionShadowDepth,
+                     evaluated,
+                     crossfade,
+                     stencilMode_,
+                     colorMode_,
+                     bucket,
+                     layoutUniforms,
+                     {},
+                     {},
+                     FillExtrusionShadowDepthProgram::TextureBindings{},
+                     uniqueName
+                );
+            }
+        };
+        
+        drawTile(gfx::StencilMode::disabled(), parameters.colorModeForRenderPass(), "color");
+        
+    } else if (nav::render::procedure::value() == nav::render::procedure::Geo) {
         
         // Draw solid color extrusions
         const auto drawTiles = [&](const gfx::StencilMode& stencilMode_, const gfx::ColorMode& colorMode_, const std::string& name) {
@@ -178,94 +228,16 @@ void RenderFillExtrusionLayer::renderDeferred(PaintParameters& parameters) {
                 );
                 
                 nav::render::geo::setCurrentProgram();
-            }
-        };
-
-        const auto drawTileFloors = [&]() {
-            size_t renderIndex = -1;
-            for (const RenderTile& tile : *renderTiles) {
-                renderIndex++;
                 
-                if (!tile.isRenderable(Tile::RenderMode::Detailed)) {
-                    continue;
-                }
-                
-                const LayerRenderData* renderData = getRenderDataForPass(renderIndex, parameters.pass);
-                if (!renderData) {
-                    continue;
-                }
-                
-                const auto& translate = evaluated.get<FillExtrusionTranslate>();
-                const auto& anchor = evaluated.get<FillExtrusionTranslateAnchor>();
-                const auto& state = parameters.state;
-                
-                const auto matrix = tile.translatedClipMatrix(translate, anchor, state);
                 const auto sunlight_matrix = tile.translatedSunlightClipMatrix(translate, anchor, state);
-
-                mat4 normalMatrix;
-                matrix::invert(normalMatrix, tile.modelViewMatrix);
-                matrix::transpose(normalMatrix);
-
                 nav::render::shadow::renderGround(matrix, tile.modelViewMatrix, normalMatrix, sunlight_matrix);
             }
         };
 
-        drawTileFloors();
-
         drawTiles(gfx::StencilMode::disabled(), parameters.colorModeForRenderPass(), "color");
         
-    } else if (nav::render::procedure::value() == nav::render::procedure::Depth) {
-        
-        const auto drawTileShadows = [&](const gfx::StencilMode& stencilMode_, const gfx::ColorMode& colorMode_, const std::string& name) {
-            auto layoutUniforms = FillExtrusionShadowDepthProgram::layoutUniformValues(
-                uniforms::matrix::Value(),
-                uniforms::model_view_matrix::Value(),
-                uniforms::normal_matrix::Value()
-            );
-            
-            const std::string uniqueName = getID().get() + "/" + name;
-
-            size_t renderIndex = -1;
-            for (const RenderTile& tile : *renderTiles) {
-                renderIndex++;
-                
-                if (!tile.isRenderable(Tile::RenderMode::Detailed)) {
-                    continue;
-                }
-                
-                const LayerRenderData* renderData = getRenderDataForPass(renderIndex, parameters.pass);
-                if (!renderData) {
-                    continue;
-                }
-
-                auto& bucket = static_cast<FillExtrusionBucket&>(*renderData->bucket);
-                
-                const auto& translate = evaluated.get<FillExtrusionTranslate>();
-                const auto& anchor = evaluated.get<FillExtrusionTranslateAnchor>();
-                const auto& state = parameters.state;
-                
-                // #*# 使用灯光矩阵进行渲染
-                auto lightmvp = tile.translatedSunlightClipMatrix(translate, anchor, state);
-                layoutUniforms.template get<uniforms::matrix>() = lightmvp;
-                
-                draw(parameters.programs.getFillExtrusionLayerPrograms().fillExtrusionShadowDepth,
-                     evaluated,
-                     crossfade,
-                     stencilMode_,
-                     colorMode_,
-                     bucket,
-                     layoutUniforms,
-                     {},
-                     {},
-                     FillExtrusionShadowDepthProgram::TextureBindings{},
-                     uniqueName
-                );
-            }
-        };
-        
-        drawTileShadows(gfx::StencilMode::disabled(), parameters.colorModeForRenderPass(), "color");
-        
     }
+
 }
 
 

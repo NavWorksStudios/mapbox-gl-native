@@ -62,21 +62,22 @@ void initResource(int width, int height) {
 }
 
 GLuint render(uint32_t width, uint32_t height, std::function<void()> renderDelegate) {
-    initResource(shadow::width, shadow::height);
-    
-    glBindFramebuffer(GL_FRAMEBUFFER, shadow::fbo);
-    glViewport(0, 0, shadow::width, shadow::height);
-    
     GLboolean depthMaskValue;
     glGetBooleanv(GL_DEPTH_WRITEMASK, &depthMaskValue);
-    glDepthMask(GL_TRUE);
 
     GLboolean enableCullface;
     glGetBooleanv(GL_CULL_FACE, &enableCullface);
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_FRONT);
-    
+
     {
+        initResource(shadow::width, shadow::height);
+        
+        glBindFramebuffer(GL_FRAMEBUFFER, shadow::fbo);
+        glViewport(0, 0, shadow::width, shadow::height);
+        
+        glDepthMask(GL_TRUE);
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_FRONT);
+        
         glClear(GL_DEPTH_BUFFER_BIT);
         renderDelegate();
     }
@@ -152,10 +153,17 @@ void setDepthBuffer(GLuint buffer) {
 }
 
 void renderGround(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::mat4& normal, const mbgl::mat4& lightmvp) {
-    const GLint program = ground::program();
-    glUseProgram(program);
+    GLint delegateProgram;
+    glGetIntegerv(GL_CURRENT_PROGRAM, &delegateProgram);
+
+    GLboolean cullfaceEnabled;
+    glGetBooleanv(GL_CULL_FACE, &cullfaceEnabled);
+    glDisable(GL_CULL_FACE);
     
     {
+        const GLint program = ground::program();
+        glUseProgram(program);
+        
         static programs::UniformLocation u0(program, "u_matrix");
         const Mat4 MVP = convertMatrix4(mvp);
         glUniformMatrix4fv(u0, 1, GL_FALSE, reinterpret_cast<const float*>(&MVP));
@@ -176,17 +184,13 @@ void renderGround(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::mat4&
         glBindTexture(GL_TEXTURE_2D, shadowDepth);
         static programs::UniformLocation u4(program, "u_shadow_map");
         glUniform1i(u4, 0);
+        
+        glBindVertexArray(ground::vao(program));
+        glDrawArrays(GL_TRIANGLES, 0, 6);
     }
-    
-    GLboolean cullfaceEnabled;
-    glGetBooleanv(GL_CULL_FACE, &cullfaceEnabled);
-    glDisable(GL_CULL_FACE);
 
-    glBindVertexArray(ground::vao(program));
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-    glBindVertexArray(0);
-    
     cullfaceEnabled ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
+    glUseProgram(delegateProgram);
 }
 
 }   // end shadow

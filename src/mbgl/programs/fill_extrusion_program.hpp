@@ -139,6 +139,22 @@ public:
                                                    bool renderReflection);
 };
 
+class FillExtrusionShadowDepthProgram : public Program<
+    FillExtrusionShadowDepthProgram,
+    gfx::PrimitiveType::Triangle,
+    FillExtrusionLayoutAttributes,
+    FillExtrusionShadowDepthUniforms,
+    TypeList<>,
+    style::FillExtrusionPaintProperties>
+{
+public:
+    using Program::Program;
+
+    static LayoutUniformValues layoutUniformValues(const mat4& matrix,
+                                                   const mat4& model_view_matrix,
+                                                   const mat4& normal_matrix);
+};
+
 class FillExtrusionGeoProgram : public Program<
     FillExtrusionGeoProgram,
     gfx::PrimitiveType::Triangle,
@@ -157,23 +173,6 @@ public:
                                                    const vec3f& light_dir);
 };
 
-class FillExtrusionShadowDepthProgram : public Program<
-    FillExtrusionShadowDepthProgram,
-    gfx::PrimitiveType::Triangle,
-    FillExtrusionLayoutAttributes,
-    FillExtrusionShadowDepthUniforms,
-    TypeList<>,
-    style::FillExtrusionPaintProperties>
-{
-public:
-    using Program::Program;
-
-    static LayoutUniformValues layoutUniformValues(const mat4& matrix,
-                                                   const mat4& model_view_matrix,
-                                                   const mat4& normal_matrix);
-};
-
-
 using FillExtrusionLayoutVertex = FillExtrusionProgram::LayoutVertex;
 using FillExtrusionAttributes = FillExtrusionProgram::AttributeList;
 
@@ -187,8 +186,8 @@ public:
     }
     FillExtrusionProgram fillExtrusion;
     FillExtrusionPatternProgram fillExtrusionPattern;
-    FillExtrusionGeoProgram fillExtrusionGeo;
     FillExtrusionShadowDepthProgram fillExtrusionShadowDepth;
+    FillExtrusionGeoProgram fillExtrusionGeo;
 };
 
 } // namespace mbgl

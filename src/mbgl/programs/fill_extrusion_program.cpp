@@ -98,6 +98,17 @@ FillExtrusionPatternProgram::layoutUniformValues(mat4 matrix,
     };
 }
 
+FillExtrusionShadowDepthProgram::LayoutUniformValues
+FillExtrusionShadowDepthProgram::layoutUniformValues(const mat4& matrix,
+                                                     const mat4& model_view_matrix,
+                                                     const mat4& normal_matrix) {
+    return {
+        uniforms::matrix::Value( matrix ),
+        uniforms::model_view_matrix::Value( model_view_matrix ),
+        uniforms::normal_matrix::Value( normal_matrix ),
+    };
+}
+
 FillExtrusionGeoProgram::LayoutUniformValues
 FillExtrusionGeoProgram::layoutUniformValues(const mat4& matrix,
                                              const mat4& model_view_matrix,
@@ -112,17 +123,5 @@ FillExtrusionGeoProgram::layoutUniformValues(const mat4& matrix,
         uniforms::light_dir::Value( light_dir ),
     };
 }
-
-FillExtrusionShadowDepthProgram::LayoutUniformValues
-FillExtrusionShadowDepthProgram::layoutUniformValues(const mat4& matrix,
-                                                     const mat4& model_view_matrix,
-                                                     const mat4& normal_matrix) {
-    return {
-        uniforms::matrix::Value( matrix ),
-        uniforms::model_view_matrix::Value( model_view_matrix ),
-        uniforms::normal_matrix::Value( normal_matrix ),
-    };
-}
-
 
 } // namespace mbgl
