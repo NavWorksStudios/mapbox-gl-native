@@ -33,7 +33,7 @@ uniform sampler2D u_normal;
 uniform sampler2D u_albedo;
 uniform sampler2D u_noise;
 
-#define SAMPLE_SIZE 12
+#define SAMPLE_SIZE 8
 uniform vec3 u_smaple_kernels[SAMPLE_SIZE];
 uniform float u_sample_radius[SAMPLE_SIZE];
 uniform float u_depth_bias[SAMPLE_SIZE];
@@ -95,7 +95,7 @@ void main() {
 
     }
 
-    gl_FragColor.r = occlusion * .7;
+    gl_FragColor.r = occlusion;
 }
 
 )"; }

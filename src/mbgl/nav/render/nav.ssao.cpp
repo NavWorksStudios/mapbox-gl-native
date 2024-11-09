@@ -32,7 +32,7 @@ std::default_random_engine generator;
 
 namespace kernel {
 
-enum { SIZE = 12, };
+enum { SIZE = 8, };
 Vec3 random[SIZE];
 
 GLfloat lerp(GLfloat a, GLfloat b, GLfloat f) {
@@ -159,9 +159,9 @@ void render(uint32_t width, uint32_t height, GLuint renderBuffer,
         });
         
         const float radius = .05;
-        const float bias = .005;
+        const float bias = .003;
         for (int i=0; i<sample::kernel::SIZE; i++) {
-            const float scale = pow(1.5, i);
+            const float scale = pow(1.8, i);
             const Vec3 v = sample::kernel::random[i].scale(radius * scale);
             glUniform3f(u_smaple_kernels[i], v.x, v.y, v.z);
             glUniform1f(u_sample_radius[i], radius * scale);

@@ -42,49 +42,6 @@ GLuint genTexture(GLint internalformat, GLsizei width, GLsizei height, GLenum fo
     return texture;
 }
 
-namespace dimension {
-const float BUFFER_RATIO = .7;
-int width() { return nav::display::pixels::width() * BUFFER_RATIO; }
-int height() { return nav::display::pixels::height() * BUFFER_RATIO; }
-}
-
-bool _showDebugWindow = true;
-
-void switchDebugWindow() {
-    _showDebugWindow = !_showDebugWindow;
-}
-
-namespace procedure {
-Value _value = Value::None;
-
-void set(Value v) {
-    _value = v;
-}
-
-Value value() {
-    return _value;
-}
-}
-
-namespace renderbuffer {
-static GLuint buffer = 0;
-
-GLuint get(int width, int height) {
-    static int w = 0, h = 0;
-    if (w != width || h != height) {
-        w = width;
-        h = height;
-        
-        glDeleteTextures(1, &buffer);
-        buffer = genTexture(GL_RED, width, height, GL_RED, GL_FLOAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    }
-    
-    return buffer;
-}
-}
-
 struct GLConfigAutoRestore {
     template <typename T> struct Value {
         typename T::Type v = T::Default;
@@ -120,6 +77,44 @@ struct GLConfigAutoRestore {
     Value<CullFaceWinding> cullFaceWinding;
 };
 
+bool _showDebugWindow = true;
+
+void switchDebugWindow() {
+    _showDebugWindow = !_showDebugWindow;
+}
+
+namespace procedure {
+Value _value = Value::None;
+
+void set(Value v) {
+    _value = v;
+}
+
+Value value() {
+    return _value;
+}
+}
+
+namespace renderbuffer {
+
+const float BUFFER_RATIO = 1.;
+int width() { return nav::display::pixels::width() * BUFFER_RATIO; }
+int height() { return nav::display::pixels::height() * BUFFER_RATIO; }
+
+static GLuint buffer = 0;
+
+GLuint get() {
+    if (!buffer) {
+        glDeleteTextures(1, &buffer);
+        buffer = genTexture(GL_RED, width(), height(), GL_RED, GL_FLOAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    }
+    
+    return buffer;
+}
+}
+
 void renderDeferred(const mbgl::PaintParameters& parameters,
                     std::function<void()> renderShadowDepthDelegate,
                     std::function<void()> renderGeoDelegate) {
@@ -142,8 +137,9 @@ void renderDeferred(const mbgl::PaintParameters& parameters,
         BlendFunc::Set({ColorBlendFactorType::One, ColorBlendFactorType::OneMinusSrcAlpha});
     };
     
-    const int w = dimension::width();
-    const int h = dimension::height();
+    const int w = renderbuffer::width();
+    const int h = renderbuffer::height();
+    const auto renderBuffer = renderbuffer::get();
     
     // 1
     resetDrawMode();
@@ -153,8 +149,7 @@ void renderDeferred(const mbgl::PaintParameters& parameters,
 
     // 2
     resetDrawMode();
-    procedure::set(procedure::GBuffer);
-    const auto renderBuffer = renderbuffer::get(w, h);
+    procedure::set(procedure::Geo);
     const auto gbuffer = geo::renderGeoAndShadow(w, h, renderBuffer, shadowDepth, renderGeoDelegate);
     
     // 3
@@ -165,10 +160,13 @@ void renderDeferred(const mbgl::PaintParameters& parameters,
     
     // 4
     resetDrawMode();
-    procedure::set(procedure::None);
+    procedure::set(procedure::Blur);
     config.bindFramebuffer.restore();
     config.viewPort.restore();
     quad::renderBlur(renderBuffer, w, h);
+    
+    // 5
+    procedure::set(procedure::None);
 
     if (_showDebugWindow) {
         int x = 20;
