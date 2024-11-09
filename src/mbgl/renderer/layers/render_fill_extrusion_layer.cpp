@@ -51,14 +51,14 @@ RenderFillExtrusionLayer::~RenderFillExtrusionLayer() {
 }
 
 void RenderFillExtrusionLayer::renderGeoBuffer(PaintParameters& parameters) {
-    if (renderFillExtrusionLayer) renderFillExtrusionLayer->doRenderGeoBuffer(parameters);
+    if (renderFillExtrusionLayer) renderFillExtrusionLayer->renderDeferred(parameters);
 }
 
 void RenderFillExtrusionLayer::renderShadowDepthBuffer(PaintParameters& parameters) {
-    if (renderFillExtrusionLayer) renderFillExtrusionLayer->doRenderShadowDepthBuffer(parameters);
+    if (renderFillExtrusionLayer) renderFillExtrusionLayer->renderDeferred(parameters);
 }
 
-void RenderFillExtrusionLayer::doRenderGeoBuffer(PaintParameters& parameters) {
+void RenderFillExtrusionLayer::renderDeferred(PaintParameters& parameters) {
     if(!renderTiles)
         return;
 
@@ -117,217 +117,157 @@ void RenderFillExtrusionLayer::doRenderGeoBuffer(PaintParameters& parameters) {
             allAttributeBindings,
             textureBindings,
             uniqueName);
-        
-        nav::render::geo::setCurrentProgram();
     };
-
-    // Draw solid color extrusions
-    const auto drawTiles = [&](const gfx::StencilMode& stencilMode_, const gfx::ColorMode& colorMode_, const std::string& name) {
-        auto layoutUniforms = FillExtrusionGeoProgram::layoutUniformValues(
-            uniforms::matrix::Value(),
-            uniforms::model_view_matrix::Value(),
-            uniforms::normal_matrix::Value(),
-            uniforms::light_matrix::Value(),
-            uniforms::light_dir::Value( nav::runtime::sunlight::pos() )
-        );
-        
-        const std::string uniqueName = getID().get() + "/" + name;
-
-        size_t renderIndex = -1;
-        for (const RenderTile& tile : *renderTiles) {
-            renderIndex++;
-            
-            if (!tile.isRenderable(Tile::RenderMode::Detailed)) {
-                continue;
-            }
-            
-            const LayerRenderData* renderData = getRenderDataForPass(renderIndex, parameters.pass);
-            if (!renderData) {
-                continue;
-            }
-
-            auto& bucket = static_cast<FillExtrusionBucket&>(*renderData->bucket);
-            
-            const auto& translate = evaluated.get<FillExtrusionTranslate>();
-            const auto& anchor = evaluated.get<FillExtrusionTranslateAnchor>();
-            const auto& state = parameters.state;
-            
-            const auto matrix = tile.translatedClipMatrix(translate, anchor, state);
-            layoutUniforms.template get<uniforms::matrix>() = matrix;
-
-            layoutUniforms.template get<uniforms::model_view_matrix>() = tile.modelViewMatrix;
-            
-            auto& normalMatrix = layoutUniforms.template get<uniforms::normal_matrix>();
-            matrix::invert(normalMatrix, tile.modelViewMatrix);
-            matrix::transpose(normalMatrix);
-            
-            const auto lightmvp = tile.translatedSunlightClipMatrix(translate, anchor, state);
-            layoutUniforms.template get<uniforms::light_matrix>() = lightmvp;
-            
-            draw(parameters.programs.getFillExtrusionLayerPrograms().fillExtrusionGeo,
-                 evaluated,
-                 crossfade,
-                 stencilMode_,
-                 colorMode_,
-                 bucket,
-                 layoutUniforms,
-                 {},
-                 {},
-                 FillExtrusionGeoProgram::TextureBindings{},
-                 uniqueName
-            );
-        }
-    };
-
-    const auto drawTileFloors = [&]() {
-        size_t renderIndex = -1;
-        for (const RenderTile& tile : *renderTiles) {
-            renderIndex++;
-            
-            if (!tile.isRenderable(Tile::RenderMode::Detailed)) {
-                continue;
-            }
-            
-            const LayerRenderData* renderData = getRenderDataForPass(renderIndex, parameters.pass);
-            if (!renderData) {
-                continue;
-            }
-            
-            const auto& translate = evaluated.get<FillExtrusionTranslate>();
-            const auto& anchor = evaluated.get<FillExtrusionTranslateAnchor>();
-            const auto& state = parameters.state;
-            
-            const auto matrix = tile.translatedClipMatrix(translate, anchor, state);
-            const auto sunlight_matrix = tile.translatedSunlightClipMatrix(translate, anchor, state);
-
-            mat4 normalMatrix;
-            matrix::invert(normalMatrix, tile.modelViewMatrix);
-            matrix::transpose(normalMatrix);
-
-            nav::render::shadow::renderGround(matrix, tile.modelViewMatrix, normalMatrix, sunlight_matrix);
-        }
-    };
-
-    drawTileFloors();
-
-    drawTiles(gfx::StencilMode::disabled(), parameters.colorModeForRenderPass(), "color");
     
-    return;
+    if (nav::render::procedure::value() == nav::render::procedure::Geo) {
+        
+        // Draw solid color extrusions
+        const auto drawTiles = [&](const gfx::StencilMode& stencilMode_, const gfx::ColorMode& colorMode_, const std::string& name) {
+            auto layoutUniforms = FillExtrusionGeoProgram::layoutUniformValues(
+                uniforms::matrix::Value(),
+                uniforms::model_view_matrix::Value(),
+                uniforms::normal_matrix::Value(),
+                uniforms::light_matrix::Value(),
+                uniforms::light_dir::Value( nav::runtime::sunlight::pos() )
+            );
+            
+            const std::string uniqueName = getID().get() + "/" + name;
 
-}
+            size_t renderIndex = -1;
+            for (const RenderTile& tile : *renderTiles) {
+                renderIndex++;
+                
+                if (!tile.isRenderable(Tile::RenderMode::Detailed)) {
+                    continue;
+                }
+                
+                const LayerRenderData* renderData = getRenderDataForPass(renderIndex, parameters.pass);
+                if (!renderData) {
+                    continue;
+                }
 
-void RenderFillExtrusionLayer::doRenderShadowDepthBuffer(PaintParameters& parameters) {
-    if(!renderTiles)
-        return;
+                auto& bucket = static_cast<FillExtrusionBucket&>(*renderData->bucket);
+                
+                const auto& translate = evaluated.get<FillExtrusionTranslate>();
+                const auto& anchor = evaluated.get<FillExtrusionTranslateAnchor>();
+                const auto& state = parameters.state;
+                
+                const auto matrix = tile.translatedClipMatrix(translate, anchor, state);
+                layoutUniforms.template get<uniforms::matrix>() = matrix;
 
-    const auto& evaluated = static_cast<const FillExtrusionLayerProperties&>(*evaluatedProperties).evaluated;
-    const auto& crossfade = static_cast<const FillExtrusionLayerProperties&>(*evaluatedProperties).crossfade;
-    if (evaluatedProperties->renderPasses == mbgl::underlying_type(RenderPass::None)) {
-        return;
+                layoutUniforms.template get<uniforms::model_view_matrix>() = tile.modelViewMatrix;
+                
+                auto& normalMatrix = layoutUniforms.template get<uniforms::normal_matrix>();
+                matrix::invert(normalMatrix, tile.modelViewMatrix);
+                matrix::transpose(normalMatrix);
+                
+                const auto lightmvp = tile.translatedSunlightClipMatrix(translate, anchor, state);
+                layoutUniforms.template get<uniforms::light_matrix>() = lightmvp;
+                
+                draw(parameters.programs.getFillExtrusionLayerPrograms().fillExtrusionGeo,
+                     evaluated,
+                     crossfade,
+                     stencilMode_,
+                     colorMode_,
+                     bucket,
+                     layoutUniforms,
+                     {},
+                     {},
+                     FillExtrusionGeoProgram::TextureBindings{},
+                     uniqueName
+                );
+                
+                nav::render::geo::setCurrentProgram();
+            }
+        };
+
+        const auto drawTileFloors = [&]() {
+            size_t renderIndex = -1;
+            for (const RenderTile& tile : *renderTiles) {
+                renderIndex++;
+                
+                if (!tile.isRenderable(Tile::RenderMode::Detailed)) {
+                    continue;
+                }
+                
+                const LayerRenderData* renderData = getRenderDataForPass(renderIndex, parameters.pass);
+                if (!renderData) {
+                    continue;
+                }
+                
+                const auto& translate = evaluated.get<FillExtrusionTranslate>();
+                const auto& anchor = evaluated.get<FillExtrusionTranslateAnchor>();
+                const auto& state = parameters.state;
+                
+                const auto matrix = tile.translatedClipMatrix(translate, anchor, state);
+                const auto sunlight_matrix = tile.translatedSunlightClipMatrix(translate, anchor, state);
+
+                mat4 normalMatrix;
+                matrix::invert(normalMatrix, tile.modelViewMatrix);
+                matrix::transpose(normalMatrix);
+
+                nav::render::shadow::renderGround(matrix, tile.modelViewMatrix, normalMatrix, sunlight_matrix);
+            }
+        };
+
+        drawTileFloors();
+
+        drawTiles(gfx::StencilMode::disabled(), parameters.colorModeForRenderPass(), "color");
+        
+    } else if (nav::render::procedure::value() == nav::render::procedure::Depth) {
+        
+        const auto drawTileShadows = [&](const gfx::StencilMode& stencilMode_, const gfx::ColorMode& colorMode_, const std::string& name) {
+            auto layoutUniforms = FillExtrusionShadowDepthProgram::layoutUniformValues(
+                uniforms::matrix::Value(),
+                uniforms::model_view_matrix::Value(),
+                uniforms::normal_matrix::Value()
+            );
+            
+            const std::string uniqueName = getID().get() + "/" + name;
+
+            size_t renderIndex = -1;
+            for (const RenderTile& tile : *renderTiles) {
+                renderIndex++;
+                
+                if (!tile.isRenderable(Tile::RenderMode::Detailed)) {
+                    continue;
+                }
+                
+                const LayerRenderData* renderData = getRenderDataForPass(renderIndex, parameters.pass);
+                if (!renderData) {
+                    continue;
+                }
+
+                auto& bucket = static_cast<FillExtrusionBucket&>(*renderData->bucket);
+                
+                const auto& translate = evaluated.get<FillExtrusionTranslate>();
+                const auto& anchor = evaluated.get<FillExtrusionTranslateAnchor>();
+                const auto& state = parameters.state;
+                
+                // #*# 使用灯光矩阵进行渲染
+                auto lightmvp = tile.translatedSunlightClipMatrix(translate, anchor, state);
+                layoutUniforms.template get<uniforms::matrix>() = lightmvp;
+                
+                draw(parameters.programs.getFillExtrusionLayerPrograms().fillExtrusionShadowDepth,
+                     evaluated,
+                     crossfade,
+                     stencilMode_,
+                     colorMode_,
+                     bucket,
+                     layoutUniforms,
+                     {},
+                     {},
+                     FillExtrusionShadowDepthProgram::TextureBindings{},
+                     uniqueName
+                );
+            }
+        };
+        
+        drawTileShadows(gfx::StencilMode::disabled(), parameters.colorModeForRenderPass(), "color");
+        
     }
-
-    const auto depthMode = parameters.depthModeFor3D();
-    
-    bool refreshPaintUniforms = true;
-    using Properties = style::FillExtrusionPaintProperties::DataDrivenProperties;
-    mbgl::PaintPropertyBinders<Properties>::UniformValues paintUniformValues;
-    
-    const auto draw = [&](auto& programInstance,
-                          const auto& evaluated_,
-                          const auto& crossfade_,
-                          const gfx::StencilMode& stencilMode,
-                          const gfx::ColorMode& colorMode,
-                          const auto& tileBucket,
-                          auto& layoutUniformValues,
-                          const optional<ImagePosition>& patternPositionA,
-                          const optional<ImagePosition>& patternPositionB,
-                          const auto& textureBindings,
-                          const std::string& uniqueName) {
-        const auto& paintPropertyBinders = tileBucket.paintPropertyBinders.at(getID());
-        paintPropertyBinders.setPatternParameters(patternPositionA, patternPositionB, crossfade_);
-
-        if (refreshPaintUniforms) {
-            paintPropertyBinders.fillUniformValues(paintUniformValues, parameters.state.getZoom(), evaluated_);
-            refreshPaintUniforms = false;
-        }
-
-        const auto&& allAttributeBindings = programInstance.computeAllAttributeBindings(
-            *tileBucket.vertexBuffer,
-            paintPropertyBinders,
-            evaluated_
-        );
-        
-        checkRenderability(parameters, programInstance.activeBindingCount(allAttributeBindings));
-        
-        // draw self
-        programInstance.draw(
-            parameters.context,
-            *parameters.renderPass,
-            gfx::Triangles(),
-            depthMode,
-            stencilMode,
-            colorMode,
-            gfx::CullFaceMode::backCCW(),
-            *tileBucket.indexBuffer,
-            tileBucket.triangleSegments,
-            layoutUniformValues,
-            paintUniformValues,
-            allAttributeBindings,
-            textureBindings,
-            uniqueName);
-    };
-    
-    const auto drawTileShadows = [&](const gfx::StencilMode& stencilMode_, const gfx::ColorMode& colorMode_, const std::string& name) {
-        auto layoutUniforms = FillExtrusionShadowDepthProgram::layoutUniformValues(
-            uniforms::matrix::Value(),
-            uniforms::model_view_matrix::Value(),
-            uniforms::normal_matrix::Value()
-        );
-        
-        const std::string uniqueName = getID().get() + "/" + name;
-
-        size_t renderIndex = -1;
-        for (const RenderTile& tile : *renderTiles) {
-            renderIndex++;
-            
-            if (!tile.isRenderable(Tile::RenderMode::Detailed)) {
-                continue;
-            }
-            
-            const LayerRenderData* renderData = getRenderDataForPass(renderIndex, parameters.pass);
-            if (!renderData) {
-                continue;
-            }
-
-            auto& bucket = static_cast<FillExtrusionBucket&>(*renderData->bucket);
-            
-            const auto& translate = evaluated.get<FillExtrusionTranslate>();
-            const auto& anchor = evaluated.get<FillExtrusionTranslateAnchor>();
-            const auto& state = parameters.state;
-            
-            // #*# 使用灯光矩阵进行渲染
-            auto lightmvp = tile.translatedSunlightClipMatrix(translate, anchor, state);
-            layoutUniforms.template get<uniforms::matrix>() = lightmvp;
-            
-            draw(parameters.programs.getFillExtrusionLayerPrograms().fillExtrusionShadowDepth,
-                 evaluated,
-                 crossfade,
-                 stencilMode_,
-                 colorMode_,
-                 bucket,
-                 layoutUniforms,
-                 {},
-                 {},
-                 FillExtrusionShadowDepthProgram::TextureBindings{},
-                 uniqueName
-            );
-        }
-    };
-    
-    drawTileShadows(gfx::StencilMode::disabled(), parameters.colorModeForRenderPass(), "color");
-    
-    return;
 }
+
 
 void RenderFillExtrusionLayer::transition(const TransitionParameters& parameters) {
     unevaluated = impl_cast(baseImpl).paint.transitioned(parameters, std::move(unevaluated));

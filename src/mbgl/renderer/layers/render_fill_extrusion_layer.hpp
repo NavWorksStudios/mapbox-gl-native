@@ -17,8 +17,7 @@ public:
     static void renderShadowDepthBuffer(PaintParameters& parameters);
 
 private:
-    void doRenderGeoBuffer(PaintParameters& parameters);
-    void doRenderShadowDepthBuffer(PaintParameters& parameters);
+    void renderDeferred(PaintParameters& parameters);
 
 private:
     void transition(const TransitionParameters&) override;
