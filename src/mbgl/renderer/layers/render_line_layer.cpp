@@ -41,15 +41,7 @@ RenderLineLayer::RenderLineLayer(Immutable<style::LineLayer::Impl> _impl)
 
 RenderLineLayer::~RenderLineLayer() = default;
 
-void RenderLineLayer::renderShadowBuffer(PaintParameters& parameters) {
-//    renderDeferred(parameters, 0);
-}
-
-void RenderLineLayer::renderGeoBuffer(PaintParameters& parameters) {
-//    renderDeferred(parameters, 1);
-}
-
-void RenderLineLayer::renderDeferred(PaintParameters& parameters, int mode) {
+void RenderLineLayer::renderHaloBuffer(PaintParameters& parameters) {
     assert(renderTiles);
     if (parameters.pass == RenderPass::Opaque) {
         return;
@@ -115,39 +107,17 @@ void RenderLineLayer::renderDeferred(PaintParameters& parameters, int mode) {
         const auto& translate = evaluated.get<LineTranslate>();
         const auto& anchor = evaluated.get<LineTranslateAnchor>();
         const auto& state = parameters.state;
-        auto lightmvp = tile.translatedSunlightClipMatrix(translate, anchor, state);
+        const auto matrix = tile.translatedClipMatrix(translate, anchor, state);
 
-        if (mode == 0) {
-            draw(parameters.programs.getLineLayerPrograms().lineShadow,
-                 LineShadowProgram::layoutUniformValues(
-                     lightmvp,
-                     tile,
-                     parameters.state,
-                     parameters.pixelRatio),
-                 {},
-                 {},
-                 LineProgram::TextureBindings{});
-        } else if (mode == 1) {
-            const auto matrix = tile.translatedClipMatrix(translate, anchor, state);
-
-            mat4 normalMatrix;
-            matrix::invert(normalMatrix, tile.modelViewMatrix);
-            matrix::transpose(normalMatrix);
-            
-            draw(parameters.programs.getLineLayerPrograms().lineGeo,
-                 LineGeoProgram::layoutUniformValues(
-                     matrix,
-                     tile,
-                     parameters.state,
-                     parameters.pixelRatio,
-                     tile.modelViewMatrix,
-                     normalMatrix,
-                     lightmvp,
-                     nav::runtime::sunlight::pos()),
-                 {},
-                 {},
-                 LineProgram::TextureBindings{});
-        }
+        draw(parameters.programs.getLineLayerPrograms().lineHalo,
+             LineHaloProgram::layoutUniformValues(
+                 matrix,
+                 tile,
+                 parameters.state,
+                 parameters.pixelRatio),
+             {},
+             {},
+             LineProgram::TextureBindings{});
     }
 
 }

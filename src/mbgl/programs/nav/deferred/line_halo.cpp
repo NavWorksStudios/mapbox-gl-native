@@ -4,7 +4,6 @@
 #include <mbgl/programs/gl/preludes.hpp>
 #include <mbgl/programs/gl/shader_source.hpp>
 #include <mbgl/gl/program.hpp>
-#include <mbgl/programs/fill_extrusion_program.hpp>
 
 namespace mbgl {
 
@@ -17,8 +16,8 @@ template <typename>
 struct ShaderSource;
 
 template <>
-struct ShaderSource<LineGeoProgram> {
-    static constexpr const char* name = "line_geo";
+struct ShaderSource<LineHaloProgram> {
+    static constexpr const char* name = "line_halo";
     static constexpr const uint8_t hash[8] = {0x7f, 0x8e, 0xaa, 0x53, 0x75, 0x78, 0xac, 0x2e};
     static constexpr const auto vertexOffset = 30578;
     static constexpr const auto fragmentOffset = 33575;
@@ -79,9 +78,6 @@ struct ShaderSource<LineGeoProgram> {
         #define scale 0.015873016
     
         uniform mat4 u_matrix;
-        uniform mat4 u_model_view_matrix;
-        uniform mat4 u_normal_matrix;
-        uniform mat4 u_light_matrix;
         uniform lowp float u_ratio;
         uniform lowp float u_device_pixel_ratio;
     
@@ -89,11 +85,7 @@ struct ShaderSource<LineGeoProgram> {
         attribute vec4 a_data;
         attribute float a_height;
     
-        varying vec3 v_aospace_normal;
-        varying vec3 v_aospace_pos;
-    
-        varying vec3 v_lightspace_normal;
-        varying vec4 v_lightspace_pos;
+        varying vec3 v_color;
         
         #ifndef HAS_UNIFORM_u_color
             uniform lowp float u_color_t;
@@ -200,15 +192,8 @@ struct ShaderSource<LineGeoProgram> {
             vec4 projected_extrude=u_matrix*vec4(dist/u_ratio,0.0,0.0);
 
             gl_Position=u_matrix*position+projected_extrude;
-    
-            // ssao
-            v_aospace_normal = vec3(u_normal_matrix * vec4(0., 0., 1., 0.));
-            v_aospace_pos = vec3(u_model_view_matrix * position + projected_extrude) / 32.;
-    
-            // shadow
-            v_lightspace_normal = vec3(0., 0., 1.);
-            v_lightspace_pos = u_light_matrix * position + projected_extrude;
 
+            v_color = vec3(1., 0., 0.);
         }
 
     )"; }
@@ -233,14 +218,20 @@ struct ShaderSource<LineGeoProgram> {
 
     )"; }
 
-    static const char* navFragment(const char* ) {
-        return nav_programs_geo_fragmentShader();
-    }
+    static const char* navFragment(const char* ) { return R"(
+
+        varying vec3 v_color;
+
+        void main() {
+            gl_FragColor = vec4(v_color, 1.);
+        }
+            
+    )"; }
 
 };
 
-constexpr const char* ShaderSource<LineGeoProgram>::name;
-constexpr const uint8_t ShaderSource<LineGeoProgram>::hash[8];
+constexpr const char* ShaderSource<LineHaloProgram>::name;
+constexpr const uint8_t ShaderSource<LineHaloProgram>::hash[8];
 
 } // namespace gl
 } // namespace programs
@@ -248,9 +239,9 @@ constexpr const uint8_t ShaderSource<LineGeoProgram>::hash[8];
 namespace gfx {
 
 template <>
-std::unique_ptr<gfx::Program<LineGeoProgram>>
+std::unique_ptr<gfx::Program<LineHaloProgram>>
 Backend::Create<gfx::Backend::Type::OpenGL>(const ProgramParameters& programParameters) {
-    return std::make_unique<gl::Program<LineGeoProgram>>(programParameters);
+    return std::make_unique<gl::Program<LineHaloProgram>>(programParameters);
 }
 
 } // namespace gfx

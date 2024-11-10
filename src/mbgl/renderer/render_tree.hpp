@@ -27,8 +27,7 @@ public:
 
 public:
     virtual bool isAnnotation() const { return false; }
-    virtual void renderShadowBuffer(PaintParameters&) const { }
-    virtual void renderGeoBuffer(PaintParameters&) const { }
+    virtual void renderHaloBuffer(PaintParameters&) const { }
 };
 
 using RenderItems = std::vector<std::reference_wrapper<const RenderItem>>;

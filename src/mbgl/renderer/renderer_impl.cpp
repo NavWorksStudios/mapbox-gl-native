@@ -181,29 +181,26 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
     
     // - NAV DEFERRED RENDERING PASS --------------------------------------------------------------------------------
     {
-        auto renderShadowDepthDelegate = [&] () {
+        auto renderShadowDelegate = [&parameters] () {
+            RenderFillExtrusionLayer::renderShadowBuffer(parameters);
+        };
+        
+        auto renderHaloDelegate = [&] () {
             int32_t i = static_cast<int32_t>(layerRenderItems.size()) - 1;
             for (auto it = layerRenderItems.begin(); it != layerRenderItems.end() && i >= 0; ++it, --i) {
                 parameters.currentLayer = i;
                 const RenderItem& renderItem = it->get();
                 if (renderItem.hasRenderPass(parameters.pass)) {
-                    renderItem.renderShadowBuffer(parameters);
+                    renderItem.renderHaloBuffer(parameters);
                 }
             }
         };
         
-        auto renderGeoDelegate = [&] () {
-            int32_t i = static_cast<int32_t>(layerRenderItems.size()) - 1;
-            for (auto it = layerRenderItems.begin(); it != layerRenderItems.end() && i >= 0; ++it, --i) {
-                parameters.currentLayer = i;
-                const RenderItem& renderItem = it->get();
-                if (renderItem.hasRenderPass(parameters.pass)) {
-                    renderItem.renderGeoBuffer(parameters);
-                }
-            }
+        auto renderGeoDelegate = [&parameters] () {
+            RenderFillExtrusionLayer::renderGeoBuffer(parameters);
         };
 
-        nav::render::renderDeferred(parameters, renderShadowDepthDelegate, renderGeoDelegate);
+        nav::render::renderDeferred(parameters, renderShadowDelegate, renderHaloDelegate, renderGeoDelegate);
     }
     
     // - ANNOTATION PASS --------------------------------------------------------------------------

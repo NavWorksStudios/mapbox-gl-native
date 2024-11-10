@@ -37,20 +37,25 @@ inline const FillExtrusionLayer::Impl& impl_cast(const Immutable<style::Layer::I
 
 } // namespace
 
+static RenderFillExtrusionLayer* renderFillExtrusionLayer = nullptr;
+
 RenderFillExtrusionLayer::RenderFillExtrusionLayer(Immutable<style::FillExtrusionLayer::Impl> _impl)
     : RenderLayer(makeMutable<FillExtrusionLayerProperties>(std::move(_impl))),
       unevaluated(impl_cast(baseImpl).paint.untransitioned()) {
+    renderFillExtrusionLayer = this;
     bindToPalette(baseImpl->id, "fill-extrusion-color", unevaluated.get<FillExtrusionColor>().value);
 }
 
-RenderFillExtrusionLayer::~RenderFillExtrusionLayer() = default;
+RenderFillExtrusionLayer::~RenderFillExtrusionLayer() {
+    renderFillExtrusionLayer = nullptr;
+}
 
 void RenderFillExtrusionLayer::renderShadowBuffer(PaintParameters& parameters) {
-    renderDeferred(parameters, 0);
+    if (renderFillExtrusionLayer) renderFillExtrusionLayer->renderDeferred(parameters, 0);
 }
 
 void RenderFillExtrusionLayer::renderGeoBuffer(PaintParameters& parameters) {
-    renderDeferred(parameters, 1);
+    if (renderFillExtrusionLayer) renderFillExtrusionLayer->renderDeferred(parameters, 1);
 }
 
 void RenderFillExtrusionLayer::renderDeferred(PaintParameters& parameters, int mode) {

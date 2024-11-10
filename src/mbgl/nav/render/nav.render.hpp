@@ -16,7 +16,8 @@ namespace render {
 void switchDebugWindow();
 
 void renderDeferred(const mbgl::PaintParameters& parameters,
-                    std::function<void()> renderShadowDepthDelegate,
+                    std::function<void()> renderShadowDelegate,
+                    std::function<void()> renderHaloDelegate,
                     std::function<void()> renderGeoDelegate);
 
 }

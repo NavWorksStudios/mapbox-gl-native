@@ -109,9 +109,11 @@ struct FillExtrusionProgram {
             float specular = pow(max(dot(viewDir, reflectDir), 0.), Material_shininess) * Material_specular;
             specular = min(specular, 1.);
 
-            vec3 baselight = vec3(.92, .96, 1.) * (ambient + diffuse) * (1. - specular);
+            vec3 baselight = vec3(.92, .9, .88) * (ambient + diffuse) * (1. - specular);
+//            vec3 baselight = vec3(.92, .96, 1.) * (ambient + diffuse) * (1. - specular);
+
             vec3 specularlight = vec3(.98, .88, .78) * specular;
-    
+
             v_color = vec4(baselight + specularlight, 1.) * u_opacity;
             v_color.a *= .8;
         }
@@ -122,8 +124,8 @@ struct FillExtrusionProgram {
         varying vec4 v_color;
     
         void main() {
-            gl_FragColor = v_color;    
-    
+            gl_FragColor = v_color;
+
         #ifdef OVERDRAW_INSPECTOR
             gl_FragColor=vec4(1.0);
         #endif

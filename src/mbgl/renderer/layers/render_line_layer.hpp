@@ -16,9 +16,7 @@ public:
     ~RenderLineLayer() override;
 
 private:
-    void renderShadowBuffer(PaintParameters& parameters) override;
-    void renderGeoBuffer(PaintParameters& parameters) override;
-    void renderDeferred(PaintParameters& parameters, int mode);
+    void renderHaloBuffer(PaintParameters& parameters) override;
     
 private:
     void transition(const TransitionParameters&) override;

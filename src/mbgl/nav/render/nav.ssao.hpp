@@ -14,9 +14,8 @@ namespace nav {
 namespace render {
 namespace ssao {
 
-void render(uint32_t width, uint32_t height, GLuint renderBuffer,
-            const std::array<GLuint, 3>& gbuffer,
-            float zoom, const Mat4& projMatrix);
+void render(uint32_t width, uint32_t height, float zoom, const Mat4& projMatrix,
+            GLuint renderBuffer, GLuint haloBuffer, const std::array<GLuint, 3>& gbuffer);
 
 }
 }

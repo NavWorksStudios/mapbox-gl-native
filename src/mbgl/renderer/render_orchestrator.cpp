@@ -59,8 +59,7 @@ private:
     
 private:
     bool isAnnotation() const override { return layer.get().isAnnotation(); }
-    void renderShadowBuffer(PaintParameters& parameters) const override { layer.get().renderShadowBuffer(parameters); }
-    void renderGeoBuffer(PaintParameters& parameters) const override { layer.get().renderGeoBuffer(parameters); }
+    void renderHaloBuffer(PaintParameters& parameters) const override { layer.get().renderHaloBuffer(parameters); }
 };
 
 class RenderTreeImpl final : public RenderTree {

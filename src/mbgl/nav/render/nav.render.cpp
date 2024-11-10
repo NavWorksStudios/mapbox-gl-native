@@ -9,7 +9,7 @@
 #include "mbgl/nav/nav.style.hpp"
 #include "mbgl/nav/render/mat4.h"
 #include "mbgl/nav/render/nav.shadow.hpp"
-#include "mbgl/nav/render/nav.shadow.frustum.hpp"
+#include "mbgl/nav/render/nav.halo.hpp"
 #include "mbgl/nav/render/nav.geo.hpp"
 #include "mbgl/nav/render/nav.ssao.hpp"
 #include "mbgl/nav/render/nav.quad.hpp"
@@ -104,7 +104,8 @@ GLuint get() {
 }
 
 void renderDeferred(const mbgl::PaintParameters& parameters,
-                    std::function<void()> renderShadowDepthDelegate,
+                    std::function<void()> renderShadowDelegate,
+                    std::function<void()> renderHaloDelegate,
                     std::function<void()> renderGeoDelegate) {
     const float zoom = parameters.state.getZoom();
     if (zoom < 15.) return;
@@ -131,18 +132,22 @@ void renderDeferred(const mbgl::PaintParameters& parameters,
     
     // 1
     resetDrawMode();
-    const auto shadowDepth = shadow::render(w, h, renderShadowDepthDelegate);
-
+    const auto shadowBuffer = shadow::render(w, h, renderShadowDelegate);
+    
     // 2
     resetDrawMode();
-    const auto gbuffer = geo::renderGeoAndShadow(w, h, renderBuffer, shadowDepth, renderGeoDelegate);
-    
+    const auto haloBuffer = halo::render(w, h, renderHaloDelegate);
+
     // 3
     resetDrawMode();
-    const auto& projMatrix = convertMatrix4(parameters.state.getViewToClipMatrix());
-    ssao::render(w, h, renderBuffer, gbuffer, zoom, projMatrix);
+    const auto gbuffer = geo::renderGeoAndShadow(w, h, renderBuffer, shadowBuffer, renderGeoDelegate);
     
     // 4
+    resetDrawMode();
+    const auto& projMatrix = convertMatrix4(parameters.state.getViewToClipMatrix());
+    ssao::render(w, h, zoom, projMatrix, renderBuffer, haloBuffer, gbuffer);
+    
+    // 5
     resetDrawMode();
     config.bindFramebuffer.restore();
     config.viewPort.restore();
@@ -151,10 +156,13 @@ void renderDeferred(const mbgl::PaintParameters& parameters,
 
     if (_showDebugWindow) {
         int x = 20;
-        const mbgl::Size size = { uint32_t(w / 6.), uint32_t(h / 6.) };
+        const mbgl::Size size = { uint32_t(w / 8.), uint32_t(h / 8.) };
 
         Viewport::Set({x, 20, size});
-        quad::renderMono(shadowDepth);
+        quad::renderMono(shadowBuffer);
+        
+        Viewport::Set({x += size.width + 20, 20, size});
+        quad::renderStandard(haloBuffer);
         
         Viewport::Set({x += size.width + 20, 20, size});
         quad::renderStandard(gbuffer[1]);

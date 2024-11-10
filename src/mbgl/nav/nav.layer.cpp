@@ -436,6 +436,7 @@ static std::unordered_map<std::string, float> layerHeights = {
 
 float getHeight(const std::string& layerId) {
     if (layerId.find("road") >= 0) return 2.;
+    if (layerId.find("bridge") >= 0) return 6.;
     
     auto it = layerHeights.find(layerId);
     if (it != layerHeights.end()) return it->second + 2.;

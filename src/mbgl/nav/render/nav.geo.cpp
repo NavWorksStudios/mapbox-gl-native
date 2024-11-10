@@ -42,8 +42,6 @@ void initResource(int width, int height) {
         // position color buffer
         glDeleteTextures(1, &position);
         position = genTexture(GL_RGB16F, width, height, GL_RGB, GL_FLOAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         
         // normal color buffer
         glDeleteTextures(1, &normal);

@@ -127,9 +127,7 @@ public:
 public:
     virtual bool isAnnotation() const { return false; }
     
-    virtual void renderShadowBuffer(PaintParameters&) { }
-    
-    virtual void renderGeoBuffer(PaintParameters&) { }
+    virtual void renderHaloBuffer(PaintParameters&) { }
 
 protected:
     // Checks whether the current hardware can render this layer. If it can't, we'll show a warning

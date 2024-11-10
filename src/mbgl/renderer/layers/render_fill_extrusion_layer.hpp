@@ -12,9 +12,10 @@ public:
     explicit RenderFillExtrusionLayer(Immutable<style::FillExtrusionLayer::Impl>);
     ~RenderFillExtrusionLayer() override;
 
+public:
+    static void renderShadowBuffer(PaintParameters& parameters);
+    static void renderGeoBuffer(PaintParameters& parameters);
 private:
-    void renderShadowBuffer(PaintParameters& parameters) override;
-    void renderGeoBuffer(PaintParameters& parameters) override;
     void renderDeferred(PaintParameters& parameters, int mode);
 
 private:

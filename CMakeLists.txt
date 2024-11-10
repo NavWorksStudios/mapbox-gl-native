@@ -334,6 +334,8 @@ set(all_files
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/shaders.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.geo.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.geo.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.halo.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.halo.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.ssao.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.ssao.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.shadow.hpp
@@ -350,10 +352,9 @@ set(all_files
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/programs/nav.program.quad.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/programs/nav.program.ground.hpp
 
-    ${PROJECT_SOURCE_DIR}/src/mbgl/programs/nav/deferred/line_shadow.cpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/programs/nav/deferred/line_geo.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/programs/nav/deferred/fill_extrusion_shadow.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/programs/nav/deferred/fill_extrusion_geo.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/programs/nav/deferred/line_halo.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/programs/nav/P1/fill_extrusion.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/programs/nav/P2/fill_extrusion.hpp
 
