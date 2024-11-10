@@ -329,6 +329,9 @@ void main() {
             mod(v_world_pixel_coord.y, u_texsize[1]) / u_texsize[1]
         );
         
+        float diffuseFactor = 0.0;
+        float specularFactor = 0.0;
+        
         // normal
         tex_normal = texture2D(u_image0, uv).rgb;
         vec3 nor = normalize(tex_normal * 2.0 - 1.0);
@@ -336,13 +339,15 @@ void main() {
         // diffuse reflection
         tex_diffuse = texture2D(u_image, uv).rgb;
         vec3 lightDir = normalize(u_lightpos);
-        float diffuseFactor = max(dot(nor, lightDir), 0.0);
+        diffuseFactor = max(dot(nor, lightDir), 0.0);
         
-        // specular reflection
-        tex_reflection = texture2D(u_image1, uv).rgb;
-        vec3 viewDir = normalize(v_worldpos - u_camera_pos);
-        vec3 reflectDir = reflect(-lightDir, nor);
-        float specularFactor = pow(max(dot(viewDir, reflectDir), 0.0), 4.);
+        if(u_textype < 1.5) {
+            // specular reflection
+            tex_reflection = texture2D(u_image1, uv).rgb;
+            vec3 viewDir = normalize(v_worldpos - u_camera_pos);
+            vec3 reflectDir = reflect(-lightDir, nor);
+            specularFactor = pow(max(dot(viewDir, reflectDir), 0.0), 4.);
+        }
 
         // color
         vec3 diffuse = tex_diffuse * diffuseFactor;

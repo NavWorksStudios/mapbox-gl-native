@@ -35,7 +35,7 @@ using FillUniforms = TypeList<
     uniforms::focus_region,             // 探照灯范围
     // 水面贴图、地面贴图参数
     uniforms::texsize,                  // 贴图尺寸
-    uniforms::textype,                  // 贴图类别: 0.-空白，1.-水面，2.-草地1，3.-草地2
+    uniforms::textype,                  // 贴图类别: 0.-无材质贴图，1.-含有基础颜色、法线贴图、高光反射贴图，2.-含有基础颜色、法线贴图，无高光反射贴图
     uniforms::camera_pos,               // 相机位置
     uniforms::lightcolor,               // 平行光色
     uniforms::lightpos                  // 平行光位置
