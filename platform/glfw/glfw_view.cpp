@@ -1290,7 +1290,8 @@ void GLFWView::setShouldClose() {
 }
 
 void GLFWView::setWindowTitle(const std::string& title) {
-    if (window) glfwSetWindowTitle(window, (std::string { "Mapbox GL: " } + title).c_str());
+//    if (window) glfwSetWindowTitle(window, (std::string { "Mapbox GL: " } + title).c_str());
+    if (window) glfwSetWindowTitle(window, "Copyright©2024, Navworks Studio.");
 }
 
 void GLFWView::onDidFinishLoadingStyle() {
