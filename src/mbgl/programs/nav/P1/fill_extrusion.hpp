@@ -1,10 +1,7 @@
 
 namespace nav {
-namespace programs {
 namespace p1 {
 
-struct FillExtrusionProgram {
-    
 static const char* navVertex(const char* ) { return R"(
 
 uniform highp mat4 u_matrix;
@@ -189,10 +186,7 @@ void main() {
 }
 
 )"; }
-    
-};
 
-} // namespace gl
-} // namespace programs
+} // namespace p1
 } // nav
 

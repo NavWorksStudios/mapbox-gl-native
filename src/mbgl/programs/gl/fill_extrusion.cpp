@@ -6,8 +6,8 @@
 #include <mbgl/gl/program.hpp>
 
 #include "mbgl/nav/nav.theme.hpp"
-#include <mbgl/programs/nav/P1/fill_extrusion.hpp>
-#include <mbgl/programs/nav/P2/fill_extrusion.hpp>
+#include <mbgl/programs/nav/p1/fill_extrusion.hpp>
+#include <mbgl/programs/nav/p2/fill_extrusion.hpp>
 
 namespace mbgl {
 namespace programs {
@@ -81,9 +81,9 @@ struct ShaderSource<FillExtrusionProgram> {
     static const char* navVertex(const char* ) {
         switch (nav::theme::getShaderIndex()) {
             case 1:
-                return nav::programs::p1::FillExtrusionProgram::navVertex(nullptr);
+                return nav::p1::navVertex(nullptr);
             case 2:
-                return nav::programs::p2::FillExtrusionProgram::navVertex(nullptr);
+                return nav::p2::navVertex(nullptr);
             default:
                 return "";
         }
@@ -112,9 +112,9 @@ struct ShaderSource<FillExtrusionProgram> {
     static const char* navFragment(const char* ) {
         switch (nav::theme::getShaderIndex()) {
             case 1:
-                return nav::programs::p1::FillExtrusionProgram::navFragment(nullptr);
+                return nav::p1::navFragment(nullptr);
             case 2:
-                return nav::programs::p2::FillExtrusionProgram::navFragment(nullptr);
+                return nav::p2::navFragment(nullptr);
             default:
                 return "";
         }
