@@ -161,7 +161,7 @@ void renderDeferred(const mbgl::PaintParameters& parameters,
     // 6
     const auto logo = nav::runtime::texture::logo();
     const auto& size = std::get<1>(logo);
-    Viewport::Set({ 0, int(h - size.height), size });
+    Viewport::Set({ int(w - size.width), 0, size });
     quad::renderStandard(std::get<0>(logo));
 
     if (_showDebugWindow) {
