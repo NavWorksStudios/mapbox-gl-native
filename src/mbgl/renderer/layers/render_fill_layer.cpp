@@ -198,19 +198,20 @@ void RenderFillLayer::render(PaintParameters& parameters) {
 
             const auto fillRenderPass = opaque ? RenderPass::Opaque : RenderPass::Translucent;
 
-            std::string imageId = "dummy";
-            std::string imageId_normal = "dummy";
-            std::string imageId_reflection = "dummy";
+            std::string diffuse = "dummy";
+            std::string normal = "dummy";
+            std::string reflection = "dummy";
             
+            // 添加水面或草地贴图(diffuse、normal、reflection)
             if(enableWaterEffect) {
-                imageId = "water_t1";
-                imageId_normal = "water_normal_t1";
-                imageId_reflection = "water_reflection_t1";
+                diffuse = "water_t1";
+                normal = "water_normal_t1";
+                reflection = "water_reflection_t1";
                 layoutUniformValues.template get<uniforms::texsize>() = Size(1024, 1024);
                 layoutUniformValues.template get<uniforms::textype>() = 1.0;
             } else if(enableGrassEffect) {
-                imageId = "grass_t1";
-                imageId_normal = "grass_normal_t1";
+                diffuse = "grass_t1";
+                normal = "grass_normal_t1";
                 layoutUniformValues.template get<uniforms::texsize>() = Size(512, 512);
                 layoutUniformValues.template get<uniforms::textype>() = 2.0;
             }
@@ -222,25 +223,24 @@ void RenderFillLayer::render(PaintParameters& parameters) {
                     parameters.depthModeForSublayer(1, depthMaskType),
                     *bucket.triangleIndexBuffer,
                     bucket.triangleSegments,
-                    FillProgram::TextureBindings{
-                        // 添加水面或草地贴图(diffuse、normal、reflection)
+                    FillProgram::TextureBindings {
                         textures::image::Value {
-                            nav::runtime::texture::get(imageId),
-                            gfx::TextureFilterType::Linear,
+                            nav::runtime::texture::get(diffuse).getResource(),
+                            gfx::TextureFilterType::Nearest,
                             gfx::TextureMipMapType::Yes,
                             gfx::TextureWrapType::Repeat,
                             gfx::TextureWrapType::Repeat
                         },
                         textures::image0::Value {
-                            nav::runtime::texture::get(imageId_normal),
-                            gfx::TextureFilterType::Linear,
+                            nav::runtime::texture::get(normal).getResource(),
+                            gfx::TextureFilterType::Nearest,
                             gfx::TextureMipMapType::Yes,
                             gfx::TextureWrapType::Repeat,
                             gfx::TextureWrapType::Repeat
                         },
                         textures::image1::Value {
-                            nav::runtime::texture::get(imageId_reflection),
-                            gfx::TextureFilterType::Linear,
+                            nav::runtime::texture::get(reflection).getResource(),
+                            gfx::TextureFilterType::Nearest,
                             gfx::TextureMipMapType::Yes,
                             gfx::TextureWrapType::Repeat,
                             gfx::TextureWrapType::Repeat

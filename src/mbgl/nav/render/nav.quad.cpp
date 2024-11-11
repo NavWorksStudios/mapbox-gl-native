@@ -79,13 +79,23 @@ void doRender(GLint program, GLint buffer) {
     glBlendFunc(srcBlendFactor, dstBlendFactor);
 }
 
-void renderStandard(GLint buffer) {
+void renderStandard(GLint buffer, float opacity) {
     static GLint program = getProgram<nav::programs::quad::standardFragmentShader>();
+    
+    glUseProgram(program);
+    static programs::UniformLocation u0(program, "u_opacity");
+    glUniform1f(u0, opacity);
+    
     doRender(program, buffer);
 }
 
-void renderMono(GLint buffer) {
-    static GLint program = getProgram<nav::programs::quad::monoFragmentShader>();
+void renderRedChannel(GLint buffer, float opacity) {
+    static GLint program = getProgram<nav::programs::quad::redChannelFragmentShader>();
+    
+    glUseProgram(program);
+    static programs::UniformLocation u0(program, "u_opacity");
+    glUniform1f(u0, opacity);
+    
     doRender(program, buffer);
 }
 
@@ -95,8 +105,8 @@ void renderBlur(GLint buffer, uint32_t width, uint32_t height) {
     const float blurRadius = 1.3;
     
     glUseProgram(program);
-    static programs::UniformLocation u2(program, "u_offset");
-    glUniform2f(u2, blurRadius / width, blurRadius / height);
+    static programs::UniformLocation u0(program, "u_offset");
+    glUniform2f(u0, blurRadius / width, blurRadius / height);
     
     doRender(program, buffer);
 }
