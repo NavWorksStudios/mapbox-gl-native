@@ -187,14 +187,14 @@ std::map<std::string, ImageData> imageMap;
 void load(const std::string& path) {
     imageMap["logo"].image = mbgl::decodeImage(mbgl::util::read_file(path + "logo.png"));
     
-    imageMap["fill_blank"].image = mbgl::decodeImage(mbgl::util::read_file(path + "blank.png"));
+    imageMap["dummy"].image = mbgl::decodeImage(mbgl::util::read_file(path + "dummy.png"));
     
-    imageMap["fill_grass_t1"].image = mbgl::decodeImage(mbgl::util::read_file(path + "grass_t1.png"));
-    imageMap["fill_grass_normal_t1"].image = mbgl::decodeImage(mbgl::util::read_file(path + "grass_normal_t1.png"));
+    imageMap["grass_t1"].image = mbgl::decodeImage(mbgl::util::read_file(path + "grass_t1.png"));
+    imageMap["grass_normal_t1"].image = mbgl::decodeImage(mbgl::util::read_file(path + "grass_normal_t1.png"));
     
-    imageMap["fill_water_t1"].image = mbgl::decodeImage(mbgl::util::read_file(path + "water_t1.jpg"));
-    imageMap["fill_water_normal_t1"].image = mbgl::decodeImage(mbgl::util::read_file(path + "water_normal_t1.jpg"));
-    imageMap["fill_water_reflection_t1"].image = mbgl::decodeImage(mbgl::util::read_file(path + "water_reflection_t1.jpg"));
+    imageMap["water_t1"].image = mbgl::decodeImage(mbgl::util::read_file(path + "water_t1.jpg"));
+    imageMap["water_normal_t1"].image = mbgl::decodeImage(mbgl::util::read_file(path + "water_normal_t1.jpg"));
+    imageMap["water_reflection_t1"].image = mbgl::decodeImage(mbgl::util::read_file(path + "water_reflection_t1.jpg"));
 }
 
 void release() {
