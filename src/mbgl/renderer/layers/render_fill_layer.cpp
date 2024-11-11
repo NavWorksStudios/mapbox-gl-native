@@ -213,7 +213,7 @@ void RenderFillLayer::render(PaintParameters& parameters) {
             if(enableGrassEffect) {
                 imageId = "fill_grass_t1";
                 imageId_normal = "fill_grass_normal_t1";
-                layoutUniformValues.template get<uniforms::texsize>() = Size(2048, 2048);
+                layoutUniformValues.template get<uniforms::texsize>() = Size(512, 512);
                 layoutUniformValues.template get<uniforms::textype>() = 2.0;
             }
             

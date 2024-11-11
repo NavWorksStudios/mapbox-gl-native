@@ -53,7 +53,7 @@ void main() {
     if (kernelPos.z > FAR_DEPTH && albedo.r > 0.) {
 
         // 动态采样数，近密远疏，可以大幅降低开销
-        float depth_factor = clamp((FAR_DEPTH - kernelPos.z) / FAR_DEPTH, .2, 1.);
+        float depth_factor = clamp((FAR_DEPTH - kernelPos.z) / FAR_DEPTH, .3, 1.);
         int sample_count = int(float(SAMPLE_SIZE) * depth_factor);
         depth_factor = pow(depth_factor, 2.);
 
@@ -95,7 +95,7 @@ void main() {
 
     }
 
-    gl_FragColor.r = occlusion;
+    gl_FragColor.r = occlusion * .5;
 }
 
 )"; }
