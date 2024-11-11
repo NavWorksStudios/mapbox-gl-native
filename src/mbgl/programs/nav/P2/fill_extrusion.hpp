@@ -90,10 +90,10 @@ struct FillExtrusionProgram {
     
             vec3 fragPos = vec3(u_model_matrix * pos);
     
-            const float Material_ambient = .5; // 环境光
-            const float Material_diffuse = .5; // 漫反射
-            const float Material_specular = 3.; // 镜面反射
-            const float Material_shininess = .5; // 反射率
+            const float Material_ambient = .6; // 环境光
+            const float Material_diffuse = .2; // 漫反射
+            const float Material_specular = 2.; // 镜面反射
+            const float Material_shininess = 1.; // 镜面反射率
 
             // Ambient Lighting
             const float ambient = Material_ambient;
@@ -109,13 +109,11 @@ struct FillExtrusionProgram {
             float specular = pow(max(dot(viewDir, reflectDir), 0.), Material_shininess) * Material_specular;
             specular = min(specular, 1.);
 
-            vec3 baselight = vec3(.99, .96, .92) * (ambient + diffuse) * (1. - specular);
-//            vec3 baselight = vec3(.92, .96, 1.) * (ambient + diffuse) * (1. - specular);
-
-            vec3 specularlight = vec3(.98, .88, .78) * specular;
+            vec3 baselight = vec3(.97, .97, .94) * (ambient + diffuse) * (1. - specular);
+            vec3 specularlight = vec3(.92, .97, .97) * specular;
 
             v_color = vec4(baselight + specularlight, 1.) * u_opacity;
-            v_color.a *= .85;
+            v_color.a *= .8;
         }
         
     )"; }

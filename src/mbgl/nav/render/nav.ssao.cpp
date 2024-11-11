@@ -157,10 +157,10 @@ void render(uint32_t width, uint32_t height, float zoom, const Mat4& projMatrix,
             }
         });
         
-        const float radius = .4;
+        const float radius = .3;
         const float bias = .001;
         for (int i=0; i<sample::kernel::SIZE; i++) {
-            const float scale = pow(1.8, i);
+            const float scale = pow(1.6, i);
             const Vec3 v = sample::kernel::random[i].scale(radius * scale);
             glUniform3f(u_smaple_kernels[i], v.x, v.y, v.z);
             glUniform1f(u_sample_radius[i], radius * scale);

@@ -38,8 +38,8 @@ uniform vec3 u_smaple_kernels[SAMPLE_SIZE];
 uniform float u_sample_radius[SAMPLE_SIZE];
 uniform float u_depth_bias[SAMPLE_SIZE];
 
-const float MAGNITUDE = 2.; // 强度
-const float CONTRAST = 2.; // 对比度
+const float MAGNITUDE = 1.8; // 强度
+const float CONTRAST = 1.8; // 对比度
 
 const float NEAR_DEPTH = 0.;
 const float FAR_DEPTH = -400.;
@@ -95,7 +95,7 @@ void main() {
 
     }
 
-    gl_FragColor.r = occlusion * .5;
+    gl_FragColor.r = occlusion * .6;
 }
 
 )"; }
