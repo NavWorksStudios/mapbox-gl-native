@@ -52,7 +52,9 @@ namespace texture {
 void load(const std::string& path);
 void release();
 void upload(mbgl::gfx::UploadPass& uploadPass);
-mbgl::gfx::TextureResource& get(const std::string& name);
+mbgl::gfx::Texture& get(const std::string& name);
+
+std::tuple<int32_t, mbgl::Size> logo();
 }
 
 }

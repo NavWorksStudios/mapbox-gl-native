@@ -7,6 +7,7 @@
 
 #include "mbgl/nav/render/nav.render.hpp"
 #include "mbgl/nav/nav.style.hpp"
+#include "mbgl/nav/nav.runtime.hpp"
 #include "mbgl/nav/render/mat4.h"
 #include "mbgl/nav/render/nav.shadow.hpp"
 #include "mbgl/nav/render/nav.halo.hpp"
@@ -30,16 +31,20 @@ static auto convertMatrix4 = [] (mbgl::mat4 matrix) {
     return m;
 };
 
-GLuint genTexture(GLint internalformat, GLsizei width, GLsizei height, GLenum format, GLenum type) {
+GLuint genTexture(GLint internalformat, GLsizei width, GLsizei height, GLenum format, GLenum type, const GLvoid* pixels) {
     GLuint texture;
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, internalformat, width, height, 0, format, type, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, internalformat, width, height, 0, format, type, pixels);
     
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     
     return texture;
+}
+
+GLuint genTexture(GLint internalformat, GLsizei width, GLsizei height, GLenum format, GLenum type) {
+    return genTexture(internalformat, width, height, format, type, nullptr);
 }
 
 struct GLConfigAutoRestore {
@@ -153,22 +158,27 @@ void renderDeferred(const mbgl::PaintParameters& parameters,
     config.viewPort.restore();
     quad::renderBlur(renderBuffer, w, h);
     
+    // 6
+    const auto logo = nav::runtime::texture::logo();
+    const auto& size = std::get<1>(logo);
+    Viewport::Set({ 0, int(h - size.height), size });
+    quad::renderStandard(std::get<0>(logo));
 
     if (_showDebugWindow) {
         int x = 20;
         const mbgl::Size size = { uint32_t(w / 8.), uint32_t(h / 8.) };
 
         Viewport::Set({x, 20, size});
-        quad::renderMono(shadowBuffer);
+        quad::renderRedChannel(shadowBuffer, .8);
         
         Viewport::Set({x += size.width + 20, 20, size});
-        quad::renderStandard(haloBuffer);
+        quad::renderStandard(haloBuffer, .8);
         
         Viewport::Set({x += size.width + 20, 20, size});
-        quad::renderStandard(gbuffer[1]);
+        quad::renderStandard(gbuffer[1], .8);
         
         Viewport::Set({x += size.width + 20, 20, size});
-        quad::renderMono(renderBuffer);
+        quad::renderRedChannel(renderBuffer, .8);
     }
 }
 

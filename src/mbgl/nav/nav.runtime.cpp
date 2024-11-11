@@ -12,11 +12,14 @@
 #include <mbgl/util/io.hpp>
 
 #include <cmath>
-
-#include "mbgl/nav/nav.log.hpp"
+#include <OpenGL/gl.h>
 
 
 namespace nav {
+
+namespace render {
+GLuint genTexture(GLint internalformat, GLsizei width, GLsizei height, GLenum format, GLenum type, const GLvoid *pixels=nullptr);
+}
 
 namespace palette {
     bool update();
@@ -175,26 +178,32 @@ bool needsUpdate() {
     return isNeedUpdate;
 }
 
+
 namespace texture {
 
 struct ImageData {
-    mbgl::PremultipliedImage image;
-    mbgl::optional<mbgl::gfx::Texture> texture { mbgl::nullopt };
+    std::string path;
+    mbgl::optional<mbgl::gfx::Texture> texture;
 };
 
-std::map<std::string, ImageData> imageMap;
+std::string root;
+std::unordered_map<std::string, ImageData> imageMap;
+bool needUpload = true;
+
+int32_t logo_texture = 0;
+mbgl::Size logo_size;
 
 void load(const std::string& path) {
-    imageMap["logo"].image = mbgl::decodeImage(mbgl::util::read_file(path + "logo.png"));
+    root = path;
+
+    imageMap["dummy"].path = "dummy.png";
     
-    imageMap["dummy"].image = mbgl::decodeImage(mbgl::util::read_file(path + "dummy.png"));
+    imageMap["grass_t1"].path = "grass_t1.png";
+    imageMap["grass_normal_t1"].path = "grass_normal_t1.png";
     
-    imageMap["grass_t1"].image = mbgl::decodeImage(mbgl::util::read_file(path + "grass_t1.png"));
-    imageMap["grass_normal_t1"].image = mbgl::decodeImage(mbgl::util::read_file(path + "grass_normal_t1.png"));
-    
-    imageMap["water_t1"].image = mbgl::decodeImage(mbgl::util::read_file(path + "water_t1.jpg"));
-    imageMap["water_normal_t1"].image = mbgl::decodeImage(mbgl::util::read_file(path + "water_normal_t1.jpg"));
-    imageMap["water_reflection_t1"].image = mbgl::decodeImage(mbgl::util::read_file(path + "water_reflection_t1.jpg"));
+    imageMap["water_t1"].path = "water_t1.jpg";
+    imageMap["water_normal_t1"].path = "water_normal_t1.jpg";
+    imageMap["water_reflection_t1"].path = "water_reflection_t1.jpg";
 }
 
 void release() {
@@ -202,15 +211,33 @@ void release() {
 }
 
 void upload(mbgl::gfx::UploadPass& uploadPass) {
-    for (auto& i : imageMap) {
-        if (!i.second.texture) {
-            i.second.texture = uploadPass.createTexture(i.second.image);
+    if (needUpload) {
+        needUpload = !needUpload;
+        
+        for (auto& it : imageMap) {
+            auto path = root + it.second.path;
+            auto data = std::move(mbgl::util::read_file(path));
+            mbgl::PremultipliedImage image = mbgl::decodeImage(data);
+            it.second.texture = uploadPass.createTexture(image);
+        }
+        
+        {
+            auto path = root + "logo.png";
+            auto data = std::move(mbgl::util::read_file(path));
+            mbgl::PremultipliedImage image = mbgl::decodeImage(data);
+            logo_texture = render::genTexture(GL_RGBA, image.size.width, image.size.height,
+                                              GL_RGBA, GL_UNSIGNED_BYTE, (const GLvoid*) image.data.get());
+            logo_size = image.size;
         }
     }
 }
 
-mbgl::gfx::TextureResource& get(const std::string& name) {
-    return imageMap[name].texture->getResource();
+mbgl::gfx::Texture& get(const std::string& name) {
+    return *imageMap[name].texture;
+}
+
+std::tuple<int32_t, mbgl::Size> logo() {
+    return { logo_texture, logo_size };
 }
 
 }

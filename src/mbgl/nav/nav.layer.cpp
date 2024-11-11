@@ -401,7 +401,7 @@ bool filter(const std::string& id) {
     return layerIds().find(id) != layerIds().end();
 }
 
-static std::unordered_map<std::string, float> layerHeights = {
+std::unordered_map<std::string, float> layerHeights = {
     { "bridge-path", 1.0 },
     { "bridge-steps", 1.0 },
     { "bridge-pedestrian", 1.0 },
