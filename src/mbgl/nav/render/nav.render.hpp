@@ -20,6 +20,8 @@ void renderDeferred(const mbgl::PaintParameters& parameters,
                     std::function<void()> renderHaloDelegate,
                     std::function<void()> renderGeoDelegate);
 
+void renderLogo(const mbgl::PaintParameters& parameters);
+
 }
 }
 

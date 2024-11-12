@@ -317,6 +317,10 @@ void Frumstum::update(const mbgl::TransformState& state, const std::vector<mbgl:
     
 }
 
+void Frumstum::render() {
+    // render frustumAABB
+}
+
 Frumstum& sunlight() {
     static Frumstum frustum;
     return frustum;

@@ -10,6 +10,7 @@
 #include "mbgl/nav/nav.runtime.hpp"
 #include "mbgl/nav/render/mat4.h"
 #include "mbgl/nav/render/nav.shadow.hpp"
+#include "mbgl/nav/render/nav.shadow.frustum.hpp"
 #include "mbgl/nav/render/nav.halo.hpp"
 #include "mbgl/nav/render/nav.geo.hpp"
 #include "mbgl/nav/render/nav.ssao.hpp"
@@ -82,7 +83,7 @@ struct GLConfigAutoRestore {
     Value<CullFaceWinding> cullFaceWinding;
 };
 
-bool _showDebugWindow = true;
+bool _showDebugWindow = false;
 
 void switchDebugWindow() {
     _showDebugWindow = !_showDebugWindow;
@@ -158,17 +159,14 @@ void renderDeferred(const mbgl::PaintParameters& parameters,
     config.viewPort.restore();
     quad::renderBlur(renderBuffer, w, h);
     
-    // 6
-    const auto logo = nav::runtime::texture::logo();
-    const auto& size = std::get<1>(logo);
-    Viewport::Set({ int(w - size.width), 0, size });
-    quad::renderStandard(std::get<0>(logo));
+
 
     if (_showDebugWindow) {
         int x = 20;
         const mbgl::Size size = { uint32_t(w / 8.), uint32_t(h / 8.) };
 
         Viewport::Set({x, 20, size});
+        shadow::frustum::ortho::sunlight().render();
         quad::renderRedChannel(shadowBuffer, .8);
         
         Viewport::Set({x += size.width + 20, 20, size});
@@ -180,6 +178,17 @@ void renderDeferred(const mbgl::PaintParameters& parameters,
         Viewport::Set({x += size.width + 20, 20, size});
         quad::renderRedChannel(renderBuffer, .8);
     }
+}
+
+void renderLogo(const mbgl::PaintParameters& parameters) {
+    GLConfigAutoRestore config;
+    
+    const int w = renderbuffer::width();
+    const int h = renderbuffer::height();
+    const auto logo = nav::runtime::texture::logo();
+    const auto& size = std::get<1>(logo);
+    Viewport::Set({ int(w - size.width), 0, size });
+    quad::renderStandard(std::get<0>(logo));
 }
 
 } // renderer

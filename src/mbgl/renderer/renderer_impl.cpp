@@ -218,6 +218,8 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
             }
         }
     }
+    
+    nav::render::renderLogo(parameters);
 
     // - DEBUG PASS --------------------------------------------------------------------------------
     // Renders debug overlays.
