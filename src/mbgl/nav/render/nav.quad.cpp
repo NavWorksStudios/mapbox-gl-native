@@ -10,6 +10,7 @@
 #include "mbgl/nav/render/shaders.h"
 #include "mbgl/nav/render/nav.render.hpp"
 #include "mbgl/nav/render/programs/nav.program.quad.hpp"
+#include "mbgl/nav/render/nav.shadow.frustum.hpp"
 
 namespace nav {
 namespace render {

@@ -6,10 +6,14 @@
 
 #include "mbgl/nav/render/nav.shadow.frustum.hpp"
 #include "mbgl/nav/nav.log.hpp"
+#include "mbgl/nav/render/vec3.h"
+#include "mbgl/nav/render/mat4.h"
 
+#include "mbgl/nav/render/shaders.h"
 #include <mbgl/util/mat4.hpp>
-#include <mbgl/util/bounding_volumes.hpp>
+#include "mbgl/nav/render/programs/nav.program.frustum.hpp"
 
+#include <mbgl/util/bounding_volumes.hpp>
 #include <array>
 
 
@@ -329,6 +333,90 @@ Frumstum& sunlight() {
 }   // end ortho
 
 }   // end frustum
+
+namespace frustum {
+
+GLuint program() {
+    static GLint pass = 0;
+    if (!pass) {
+        pass =
+        createProgram(compileShader(GL_VERTEX_SHADER, nav::programs::frustum::vertexShader()),
+                      compileShader(GL_FRAGMENT_SHADER, nav::programs::frustum::fragmentShader()));
+    }
+    
+    return pass;
+}
+
+// 三维空间中的点结构体
+struct Point3D {
+    double x;
+    double y;
+    double z;
+};
+
+// 根据对角顶点计算另外两个顶点
+void calculateOtherVertices(const Point3D& minVertex, const Point3D& maxVertex, Point3D& vertex2, Point3D& vertex3) {
+    // 计算第二个顶点
+    vertex2.x = maxVertex.x;
+    vertex2.y = minVertex.y;
+    vertex2.z = minVertex.z;
+
+    // 计算第三个顶点
+    vertex3.x = minVertex.x;
+    vertex3.y = maxVertex.y;
+    vertex3.z = minVertex.z;
+}
+
+void render(const mbgl::mat4& matrix) {
+    static GLint program = frustum::program();
+    
+    glUseProgram(program);
+    static programs::UniformLocation u0(program, "u_matrix");
+    glUniformMatrix4fv(u0, 1, GL_FALSE, reinterpret_cast<const float*>(&matrix));
+    
+    const auto& frustum = nav::render::shadow::frustum::ortho::sunlight().getFrustum();
+    
+    Point3D p0 = {frustum.min[0], frustum.min[1], frustum.min[2]};  // 假设的最小坐标对角顶点
+    Point3D p1 = {frustum.max[0], frustum.max[1], frustum.max[2]};  // 假设的最大坐标对角顶点
+
+    Point3D p2;
+    Point3D p3;
+
+    calculateOtherVertices(p0, p1, p2, p3);
+    
+    // 需要根据frustum定义vertices
+    GLfloat vertices[18] = {
+        (float)p0.x, (float)p0.y, (float)p0.z,
+        (float)p2.x, (float)p2.y, (float)p2.z,
+        (float)p1.x, (float)p1.y, (float)p1.z,
+        
+        (float)p1.x, (float)p1.y, (float)p1.z,
+        (float)p2.x, (float)p2.y, (float)p2.z,
+        (float)p0.x, (float)p0.y, (float)p0.z
+    };
+    
+    GLuint vao = 0;
+    
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+    
+    static GLuint vbo;
+    glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, 18 * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
+    
+    static programs::AttribLocation a0(program, "a_pos");
+    glEnableVertexAttribArray(a0);
+    glVertexAttribPointer(a0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), reinterpret_cast<void*>(0));
+    
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    
+    glBindVertexArray(vao);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+}
+
+}   // frustum
 
 }   // end shadow
 

@@ -147,7 +147,7 @@ GLuint vao(GLuint program) {
 void render(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::mat4& normal, const mbgl::mat4& lightmvp) {
     GLint delegateProgram;
     glGetIntegerv(GL_CURRENT_PROGRAM, &delegateProgram);
-
+    
     GLboolean cullfaceEnabled;
     glGetBooleanv(GL_CULL_FACE, &cullfaceEnabled);
     glDisable(GL_CULL_FACE);
@@ -180,7 +180,7 @@ void render(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::mat4& norma
         glBindVertexArray(ground::vao(program));
         glDrawArrays(GL_TRIANGLES, 0, 6);
     }
-
+    
     cullfaceEnabled ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
     glUseProgram(delegateProgram);
 }

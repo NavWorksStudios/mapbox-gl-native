@@ -48,6 +48,10 @@ Frumstum& sunlight();
 }   // ortho
 }   // frustum
 
+namespace frustum {
+void render(const mbgl::mat4& matrix);
+}
+
 }   // shadow
 }   // render
 }   // nav

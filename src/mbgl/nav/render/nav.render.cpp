@@ -83,7 +83,7 @@ struct GLConfigAutoRestore {
     Value<CullFaceWinding> cullFaceWinding;
 };
 
-bool _showDebugWindow = false;
+bool _showDebugWindow = true;
 
 void switchDebugWindow() {
     _showDebugWindow = !_showDebugWindow;
@@ -159,14 +159,24 @@ void renderDeferred(const mbgl::PaintParameters& parameters,
     config.viewPort.restore();
     quad::renderBlur(renderBuffer, w, h);
     
-
+    // 6
+    const auto logo = nav::runtime::texture::logo();
+    const auto& size = std::get<1>(logo);
+    Viewport::Set({ int(w - size.width), 0, size });
+    quad::renderStandard(std::get<0>(logo));
 
     if (_showDebugWindow) {
         int x = 20;
         const mbgl::Size size = { uint32_t(w / 8.), uint32_t(h / 8.) };
-
+        
         Viewport::Set({x, 20, size});
-        shadow::frustum::ortho::sunlight().render();
+        // ###frustum为灯光相机坐标系mv坐标值
+        // ###渲染时需要使用的矩阵应该为p矩阵
+        mbgl::mat4 sunlightProjMatrix;
+        sunlightProjMatrix = parameters.state.getSunlightViewToClipMatrix();
+        // frustum[0]-x / frustum[2]-y / frustum[1]-z ?
+        shadow::frustum::render(sunlightProjMatrix);
+        
         quad::renderRedChannel(shadowBuffer, .8);
         
         Viewport::Set({x += size.width + 20, 20, size});
@@ -178,17 +188,6 @@ void renderDeferred(const mbgl::PaintParameters& parameters,
         Viewport::Set({x += size.width + 20, 20, size});
         quad::renderRedChannel(renderBuffer, .8);
     }
-}
-
-void renderLogo(const mbgl::PaintParameters& parameters) {
-    GLConfigAutoRestore config;
-    
-    const int w = renderbuffer::width();
-    const int h = renderbuffer::height();
-    const auto logo = nav::runtime::texture::logo();
-    const auto& size = std::get<1>(logo);
-    Viewport::Set({ int(w - size.width), 0, size });
-    quad::renderStandard(std::get<0>(logo));
 }
 
 } // renderer
