@@ -190,6 +190,17 @@ void renderDeferred(const mbgl::PaintParameters& parameters,
     }
 }
 
+void renderLogo(const mbgl::PaintParameters& parameters) {
+    GLConfigAutoRestore config;
+    
+    const int w = renderbuffer::width();
+    const int h = renderbuffer::height();
+    const auto logo = nav::runtime::texture::logo();
+    const auto& size = std::get<1>(logo);
+    Viewport::Set({ int(w - size.width), 0, size });
+    quad::renderStandard(std::get<0>(logo));
+}
+
 } // renderer
 
 } // nav
