@@ -9,8 +9,7 @@ namespace mbgl {
 
 //namespace route {
 
-RouteTile::RouteTile(const OverscaledTileID& overscaledTileID,
-                               const TileParameters& parameters)
+RouteTile::RouteTile(const OverscaledTileID& overscaledTileID, const TileParameters& parameters)
     : GeometryTile(overscaledTileID, RouteLineLayerManager::RouteSourceID, parameters),
       routeManager(parameters.routeManager) {
     auto guard = routeManager.lock();
@@ -34,22 +33,22 @@ void RouteTile::setRenderable(bool able) {
 
 class RouteTileFeatureData {
 public:
-    RouteTileFeatureData(const RoutePlanID id_,
-                              FeatureType type_,
-                              GeometryCollection&& geometries_,
-                              std::vector<std::vector<int16_t>>&& conditions_,
-                              std::unordered_map<std::string, std::string>&& properties_)
-        : id(id_),
-          type(type_),
-          geometries(std::move(geometries_)),
-          conditions(std::move(conditions_)),
-          properties(std::move(properties_)){
+    RouteTileFeatureData(RoutePlanID id,
+                         FeatureType type,
+                         GeometryCollection& geometries,
+                         std::map<CanonicalTileID, std::vector<uint32_t>>& conditions,
+                         std::unordered_map<std::string, std::string>& properties)
+        : id(id),
+          type(type),
+          geometries(std::move(geometries)),
+          conditions(std::move(conditions)),
+          properties(std::move(properties)) {
     }
 
     RoutePlanID id;
     FeatureType type;
     GeometryCollection geometries;
-    std::vector<std::vector<int16_t>> conditions;
+    std::map<CanonicalTileID, std::vector<uint32_t>> conditions;
     std::unordered_map<std::string, std::string> properties;
 };
 
@@ -79,19 +78,22 @@ const GeometryCollection& RouteTileFeature::getGeometries() const {
     return data->geometries;
 }
 
-const std::vector<std::vector<int16_t>>& RouteTileFeature::getConditions() const {
-    return data->conditions;
+const std::vector<uint32_t>& RouteTileFeature::getConditions(const CanonicalTileID& canonical) const {
+    static std::vector<uint32_t> dummy;
+    auto it = data->conditions.find(canonical);
+    return it == data->conditions.end() ? dummy : it->second;
 }
 
 class RouteTileLayerData {
 public:
-    explicit RouteTileLayerData(std::string name_) : name(std::move(name_)) {}
+    explicit RouteTileLayerData(std::string name) : name(std::move(name)) {}
 
     const std::string name;
-    std::vector<std::shared_ptr<const RouteTileFeatureData>> features;
+    std::vector<std::shared_ptr<RouteTileFeatureData>> features;
 };
 
-RouteTileLayer::RouteTileLayer(std::shared_ptr<RouteTileLayerData> layer_) : layer(std::move(layer_)) {
+RouteTileLayer::RouteTileLayer(std::shared_ptr<RouteTileLayerData> layer_) :
+layer(std::move(layer_)) {
 }
 
 std::size_t RouteTileLayer::featureCount() const {
@@ -106,14 +108,13 @@ std::string RouteTileLayer::getName() const {
     return layer->name;
 }
 
-void RouteTileLayer::addFeature(const RoutePlanID id,
-                                     FeatureType type,
-                                     GeometryCollection geometries,
-                                     std::vector<std::vector<int16_t>> conditions,
-                                     std::unordered_map<std::string, std::string> properties) {
-
-    layer->features.emplace_back(std::make_shared<RouteTileFeatureData>(
-        id, type, std::move(geometries), std::move(conditions), std::move(properties)));
+void RouteTileLayer::addFeature(RoutePlanID id,
+                                FeatureType type,
+                                GeometryCollection& geometries,
+                                std::map<CanonicalTileID, std::vector<uint32_t>>& conditions,
+                                std::unordered_map<std::string, std::string> properties) {
+    auto data = std::make_shared<RouteTileFeatureData>(id, type, geometries, conditions, properties);
+    layer->features.emplace_back(data);
 }
 
 std::unique_ptr<GeometryTileData> RouteTileData::clone() const {

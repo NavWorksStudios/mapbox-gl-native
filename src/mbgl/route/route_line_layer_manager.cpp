@@ -228,20 +228,29 @@ void RouteLineLayerManager::updateTileData(const CanonicalTileID& tileID, RouteT
     ToFeatureType toFeatureType;
     FeatureType featureType = FeatureType::LineString;
     GeometryCollection renderGeometry;
-//    std::vector<int16_t> conditions;
-    std::vector<std::vector<int16_t>> conditions;
+
+    std::map<CanonicalTileID, std::vector<uint32_t>> conditions;
+    auto& condition = conditions[tileID];
+
     for(auto& segment : plan_tile->second.segments) {
 #if 1   // #*# 不使用颜色切分路段
         int16_t index = 0;
+        auto last = segment.points[0];
+        uint32_t distance = 0;
         GeometryCoordinates points;
-        std::vector<int16_t> seg_conditions;
+        std::vector<uint32_t> seg_conditions;
         for (auto& point : segment.points) {
             points.push_back(Point<int16_t>{static_cast<int16_t>(point.x), static_cast<int16_t>(point.y)});
-            seg_conditions.push_back(segment.conditions[index]);
+            
+            distance += pow(pow(point.x - last.x, 2) + pow(point.y - last.y, 2), 0.5);
+            last = point;
+            
+            condition.emplace_back((distance << 4) | (index % 5));
+//            seg_conditions.push_back(segment.conditions[index]);
             index++;
         }
         renderGeometry.push_back(points);
-        conditions.push_back(seg_conditions);
+//        conditions.push_back(seg_conditions);
 #endif
         
 #if 0   // #*# 使用颜色切分路段
@@ -257,8 +266,8 @@ void RouteLineLayerManager::updateTileData(const CanonicalTileID& tileID, RouteT
 #endif
     }
     
-    // #*# id = 1，未来需要根据逻辑调增
-    layer->addFeature(1, featureType, renderGeometry, conditions);
+    static RoutePlanID testid = 1;
+    layer->addFeature(testid++, featureType, renderGeometry, conditions);
     
     return;
     

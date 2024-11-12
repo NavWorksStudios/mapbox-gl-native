@@ -13,8 +13,7 @@ varying lowp vec2 v_width2;
 varying lowp vec2 v_normal;
 varying lowp float v_gamma_scale;
 varying vec3 v_pos;
-varying mediump float v_condition;
-varying highp vec4 v_condi_color;
+varying vec4 v_color;
     
 #ifndef HAS_UNIFORM_u_color
 varying highp vec4 color;
@@ -49,7 +48,7 @@ void main() {
     lowp float opacity=u_opacity;
 #endif
     
-    color = v_condi_color;
+    color = v_color;
 
     // draw line
     lowp float dist=length(v_normal)*v_width2.s;

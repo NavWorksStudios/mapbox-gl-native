@@ -12,9 +12,8 @@ namespace nav {
 namespace layer {
 
 void print(const char* id, const char* sourceLayer, const char* sourceId, const char* type);
-
-bool filter(const std::string& id);
-
+bool isAvailable(const std::string& id);
+bool hasTrafficConditions(const std::string& id);
 float getHeight(const std::string& layerId);
 
 }

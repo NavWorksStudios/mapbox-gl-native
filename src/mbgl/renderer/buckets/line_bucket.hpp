@@ -31,14 +31,6 @@ public:
                     const PatternLayerMap&,
                     std::size_t,
                     const CanonicalTileID&) override;
-    
-    void addFeature(const GeometryTileFeature&,
-                    const GeometryCollection&,
-                    const std::vector<std::vector<int16_t>>&,
-                    const ImagePositions&,
-                    const PatternLayerMap&,
-                    std::size_t,
-                    const CanonicalTileID&) override;
 
     bool hasData() const override;
 
@@ -64,13 +56,7 @@ public:
     LineProgram::Binders* paintBinders = nullptr;
 
 private:
-    using IsTermination = std::array<bool, 2>;
-    
-    void addGeometry(const GeometryCoordinates&,
-                     const GeometryTileFeature&,
-                     const CanonicalTileID&,
-                     const IsTermination&,
-                     const std::vector<int16_t>& condition = {});
+    void addGeometry(const GeometryCoordinates&, const GeometryTileFeature&, const CanonicalTileID&);
 
     struct TriangleElement {
         TriangleElement(uint16_t a_, uint16_t b_, uint16_t c_) : a(a_), b(b_), c(c_) {}
@@ -87,13 +73,12 @@ private:
                           bool round,
                           std::size_t startVertex,
                           std::vector<LineBucket::TriangleElement>& triangleStore,
-                          optional<Distances> distances,
-                          int16_t condition);
+                          optional<Distances> distances);
 
     void addPieSliceVertex(const GeometryCoordinate& currentVertex, double distance,
             const Point<double>& extrude, bool lineTurnsLeft, std::size_t startVertex,
             std::vector<TriangleElement>& triangleStore,
-            optional<Distances> distances, int16_t condition);
+            optional<Distances> distances);
 
     std::ptrdiff_t e1;
     std::ptrdiff_t e2;
@@ -101,6 +86,15 @@ private:
 
     const float zoom;
     const uint32_t overscaling;
+    
+public:
+    void setRouteTrafficConditions(const std::vector<uint32_t>& conditions) override { _nav_trafffic_conditions = conditions; }
+    void setLayerBaseHeight(float height) override { _nav_layer_base_height = height; }
+    void enableTrafficCondition(bool enable) override { _nav_enable_traffic_condition = enable; }
+    
+    std::vector<uint32_t> _nav_trafffic_conditions;
+    float _nav_layer_base_height = 0;
+    bool _nav_enable_traffic_condition = false;
 };
 
 } // namespace mbgl

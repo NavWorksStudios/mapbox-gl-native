@@ -84,8 +84,9 @@ struct ShaderSource<LineHaloProgram> {
         attribute vec2 a_pos_normal;
         attribute vec4 a_data;
         attribute float a_height;
+        attribute lowp float a_condition;
     
-        varying vec3 v_color;
+        varying vec4 v_color;
         
         #ifndef HAS_UNIFORM_u_color
             uniform lowp float u_color_t;
@@ -193,7 +194,18 @@ struct ShaderSource<LineHaloProgram> {
 
             gl_Position=u_matrix*position+projected_extrude;
 
-            v_color = vec3(1., 0., 0.);
+            if (a_condition == 5.)
+    #ifndef HAS_UNIFORM_u_color
+                v_color = color;
+    #else
+                v_color = u_color;
+    #endif
+    
+            else if (a_condition < 1.) v_color = vec4(.315, .539, .424, 1.);
+            else if (a_condition < 2.) v_color = vec4(.354, .776, .463, 1.);
+            else if (a_condition < 3.) v_color = vec4(.872, .754, .255, 1.);
+            else if (a_condition < 4.) v_color = vec4(.872, .200, .255, 1.);
+            else if (a_condition < 5.) v_color = vec4(.583, .142, .098, 1.);
         }
 
     )"; }
@@ -220,10 +232,10 @@ struct ShaderSource<LineHaloProgram> {
 
     static const char* navFragment(const char* ) { return R"(
 
-        varying vec3 v_color;
+        varying vec4 v_color;
 
         void main() {
-            gl_FragColor = vec4(v_color, 1.);
+            gl_FragColor = v_color;
         }
             
     )"; }

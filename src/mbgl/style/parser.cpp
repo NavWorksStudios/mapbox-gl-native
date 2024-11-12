@@ -220,7 +220,7 @@ void Parser::parseLayers(const JSONValue& value) {
     }
 
     for (const auto& id : ids) {
-        if (!nav::layer::filter(id)) {
+        if (!nav::layer::isAvailable(id)) {
             continue;
         }
         

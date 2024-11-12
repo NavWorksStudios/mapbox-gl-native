@@ -206,7 +206,7 @@ static const std::unordered_map<std::string, Source> layerIds = {
 
 }
 
-namespace fluorite {
+namespace pureness {
 
 static const std::unordered_map<std::string, Source> layerIds = {
 
@@ -390,15 +390,55 @@ static const std::unordered_map<std::string, Source> layerIds = {
 
 };
 
+static const std::unordered_map<std::string, Source> trafficIds = {
+
+    { "tunnel-minor-navigation", { "line", "composite", "road", } },
+    { "tunnel-major-link-navigation", { "line", "composite", "road", } },
+    { "tunnel-street-navigation", { "line", "composite", "road", } },
+    { "tunnel-street-low-navigation", { "line", "composite", "road", } },
+    { "tunnel-secondary-tertiary-navigation", { "line", "composite", "road", } },
+    { "tunnel-primary-navigation", { "line", "composite", "road", } },
+    { "tunnel-motorway-trunk-navigation", { "line", "composite", "road", } },
+
+    { "road-minor-navigation", { "line", "composite", "road", } },
+    { "road-major-link-navigation", { "line", "composite", "road", } },
+    { "road-street-navigation", { "line", "composite", "road", } },
+    { "road-street-low-navigation", { "line", "composite", "road", } },
+    { "road-secondary-tertiary-navigation", { "line", "composite", "road", } },
+    { "road-primary-navigation", { "line", "composite", "road", } },
+    { "road-motorway-trunk-navigation", { "line", "composite", "road", } },
+
+    { "bridge-minor-navigation", { "line", "composite", "road", } },
+    { "bridge-major-link-navigation", { "line", "composite", "road", } },
+    { "bridge-street-navigation", { "line", "composite", "road", } },
+    { "bridge-street-low-navigation", { "line", "composite", "road", } },
+    { "bridge-secondary-tertiary-navigation", { "line", "composite", "road", } },
+    { "bridge-primary-navigation", { "line", "composite", "road", } },
+    { "bridge-motorway-trunk-navigation", { "line", "composite", "road", } },
+    { "bridge-major-link-2-navigation", { "line", "composite", "road", } },
+    { "bridge-motorway-trunk-2-navigation", { "line", "composite", "road", } },
+
+};
+
 }
 
 const auto& layerIds() {
     return mono::layerIds;
-    return fluorite::layerIds;
+    return pureness::layerIds;
 }
 
-bool filter(const std::string& id) {
+const auto& trafficIds() {
+    return pureness::trafficIds;
+}
+
+
+
+bool isAvailable(const std::string& id) {
     return layerIds().find(id) != layerIds().end();
+}
+
+bool hasTrafficConditions(const std::string& id) {
+    return trafficIds().find(id) != trafficIds().end();
 }
 
 std::unordered_map<std::string, float> layerHeights = {

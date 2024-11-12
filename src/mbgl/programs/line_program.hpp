@@ -66,6 +66,7 @@ public:
             }},
             {{
                 // add 128 to store a byte in an unsigned byte
+                // 加128将一个字节存储在无符号字节中
                 static_cast<uint8_t>(::round(extrudeScale * e.x) + 128),
                 static_cast<uint8_t>(::round(extrudeScale * e.y) + 128),
                 
@@ -74,11 +75,16 @@ public:
                 // room for the direction value). The upper 8 bits of `linesofar` are placed in
                 // the `w` component. `linesofar` is scaled down by `LINE_DISTANCE_SCALE` so that
                 // we can store longer distances while sacrificing precision.
+                // 将方向值（-1/0/1）编码到a_data的.z的前两bit。将其与linesofar的低6bit组合。（移动2bit以腾出方向值的存储空间）。
+                // linesofar的高8bit被放置在“w”分量。
+                // linesofar被LINE_DISTANCE_SCALE缩小，通过牺牲精度为代价存储更长的距离。
                 
                 // Encode the -1/0/1 direction value into .zw coordinates of a_data, which is normally covered
                 // by linesofar, so we need to merge them.
                 // The z component's first bit, as well as the sign bit is reserved for the direction,
                 // so we need to shift the linesofar.
+                // 将方向值（-1/0/1）编码为a_data的.zw坐标，该坐标正常会被linesofar覆盖，所以需要合并它们。
+                // z分量的第一bit，以及符号bit被保留用于方向，所以我们需要移位linesofar。
                 static_cast<uint8_t>(((dir == 0 ? 0 : (dir < 0 ? -1 : 1 )) + 1) | ((linesofar & 0x3F) << 2)),
                 static_cast<uint8_t>(linesofar >> 6)
             }},

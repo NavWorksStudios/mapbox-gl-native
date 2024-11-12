@@ -54,7 +54,10 @@ public:
     virtual const PropertyMap& getProperties() const;
     virtual FeatureIdentifier getID() const { return NullValue {}; }
     virtual const GeometryCollection& getGeometries() const;
-    virtual const std::vector<std::vector<int16_t>>& getConditions() const { return std::vector<std::vector<int16_t>>(); };
+    virtual const std::vector<uint32_t>& getConditions(const CanonicalTileID& canonical) const {
+        static std::vector<uint32_t> dummy;
+        return dummy;
+    };
 };
 
 class GeometryTileLayer {

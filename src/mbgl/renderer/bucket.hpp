@@ -43,14 +43,6 @@ public:
                             const PatternLayerMap&,
                             std::size_t,
                             const CanonicalTileID&){};
-    
-    virtual void addFeature(const GeometryTileFeature&,
-                            const GeometryCollection&,
-                            const std::vector<std::vector<int16_t>>&,
-                            const ImagePositions&,
-                            const PatternLayerMap&,
-                            std::size_t,
-                            const CanonicalTileID&){};
 
     virtual void update(const FeatureStates&, const GeometryTileLayer&, const nav::stringid&, const ImagePositions&) {}
 
@@ -81,7 +73,10 @@ public:
     virtual void updateVertices(
         const Placement&, bool /*updateOpacities*/, const TransformState&, const RenderTile&, std::set<uint32_t>&) {}
     
-    float layerHeight { 0 };
+public:
+    virtual void setRouteTrafficConditions(const std::vector<uint32_t>& conditions) { }
+    virtual void setLayerBaseHeight(float height) { }
+    virtual void enableTrafficCondition(bool enable) { }
 
 protected:
     Bucket() {
