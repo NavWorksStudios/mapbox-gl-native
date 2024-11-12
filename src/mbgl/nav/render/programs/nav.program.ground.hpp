@@ -47,6 +47,6 @@ const char* fragmentShader() {
     return mbgl::nav_programs_geo_fragmentShader();
 }
 
-} // namespace ssao
+} // namespace ground
 } // namespace programs
 } // nav

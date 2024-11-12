@@ -10,6 +10,7 @@
 #include "mbgl/nav/nav.runtime.hpp"
 #include "mbgl/nav/render/mat4.h"
 #include "mbgl/nav/render/nav.shadow.hpp"
+#include "mbgl/nav/render/nav.shadow.frustum.hpp"
 #include "mbgl/nav/render/nav.halo.hpp"
 #include "mbgl/nav/render/nav.geo.hpp"
 #include "mbgl/nav/render/nav.ssao.hpp"
@@ -167,8 +168,15 @@ void renderDeferred(const mbgl::PaintParameters& parameters,
     if (_showDebugWindow) {
         int x = 20;
         const mbgl::Size size = { uint32_t(w / 8.), uint32_t(h / 8.) };
-
+        
         Viewport::Set({x, 20, size});
+        // ###frustum为灯光相机坐标系mv坐标值
+        // ###渲染时需要使用的矩阵应该为p矩阵
+        mbgl::mat4 sunlightProjMatrix;
+        sunlightProjMatrix = parameters.state.getSunlightViewToClipMatrix();
+        // frustum[0]-x / frustum[2]-y / frustum[1]-z ?
+        shadow::frustum::render(sunlightProjMatrix);
+        
         quad::renderRedChannel(shadowBuffer, .8);
         
         Viewport::Set({x += size.width + 20, 20, size});
