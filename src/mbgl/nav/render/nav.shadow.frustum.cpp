@@ -343,6 +343,26 @@ GLuint program() {
     return pass;
 }
 
+// 三维空间中的点结构体
+struct Point3D {
+    double x;
+    double y;
+    double z;
+};
+
+// 根据对角顶点计算另外两个顶点
+void calculateOtherVertices(const Point3D& minVertex, const Point3D& maxVertex, Point3D& vertex2, Point3D& vertex3) {
+    // 计算第二个顶点
+    vertex2.x = maxVertex.x;
+    vertex2.y = minVertex.y;
+    vertex2.z = minVertex.z;
+
+    // 计算第三个顶点
+    vertex3.x = minVertex.x;
+    vertex3.y = maxVertex.y;
+    vertex3.z = minVertex.z;
+}
+
 void render(const mbgl::mat4& matrix) {
     static GLint program = frustum::program();
     
@@ -351,21 +371,24 @@ void render(const mbgl::mat4& matrix) {
     glUniformMatrix4fv(u0, 1, GL_FALSE, reinterpret_cast<const float*>(&matrix));
     
     const auto& frustum = nav::render::shadow::frustum::ortho::sunlight().getFrustum();
-//    frustum.min[0]
-//    frustum.min[1]
-//    frustum.min[2]
-//    frustum.max[0]
-//    frustum.max[1]
-//    frustum.max[2]
+    
+    Point3D p0 = {frustum.min[0], frustum.min[1], frustum.min[2]};  // 假设的最小坐标对角顶点
+    Point3D p1 = {frustum.max[0], frustum.max[1], frustum.max[2]};  // 假设的最大坐标对角顶点
+
+    Point3D p2;
+    Point3D p3;
+
+    calculateOtherVertices(p0, p1, p2, p3);
+    
     // 需要根据frustum定义vertices
     GLfloat vertices[18] = {
-        1.0, 1.0, 1.0,
-        1.0, 1.0, 1.0,
-        1.0, 1.0, 1.0,
+        (float)p0.x, (float)p0.y, (float)p0.z,
+        (float)p2.x, (float)p2.y, (float)p2.z,
+        (float)p1.x, (float)p1.y, (float)p1.z,
         
-        1.0, 1.0, 1.0,
-        1.0, 1.0, 1.0,
-        1.0, 1.0, 1.0
+        (float)p1.x, (float)p1.y, (float)p1.z,
+        (float)p2.x, (float)p2.y, (float)p2.z,
+        (float)p0.x, (float)p0.y, (float)p0.z
     };
     
     GLuint vao = 0;
