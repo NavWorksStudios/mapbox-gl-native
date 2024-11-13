@@ -30,7 +30,7 @@ using LineLayoutAttributes = TypeList<
     attributes::pos_normal,
     attributes::data<uint8_t, 4>,
     attributes::height,
-    attributes::condition>;
+    attributes::traffic_condition>;
 
 class LineProgram : public Program<
     LineProgram,

@@ -14,6 +14,7 @@ varying lowp vec2 v_normal;
 varying lowp float v_gamma_scale;
 varying vec3 v_pos;
 varying vec4 v_color;
+varying vec4 v_traffic_color;
     
 #ifndef HAS_UNIFORM_u_color
 varying highp vec4 color;
@@ -54,7 +55,9 @@ void main() {
     lowp float dist=length(v_normal)*v_width2.s;
     lowp float blur2=(blur+1.0/u_device_pixel_ratio)*v_gamma_scale;
     lowp float alpha=clamp(min(dist-(v_width2.t-blur2),v_width2.s-dist)/blur2,0.0,1.0);
-    gl_FragColor=color*(alpha*opacity);
+
+    float tc = min(pow(dist/v_width2.s*2., 5.), 1.);
+    gl_FragColor=color*(alpha*opacity)*tc + v_traffic_color*(1.2-tc);
 
 #ifdef OVERDRAW_INSPECTOR
     gl_FragColor=vec4(1.0);

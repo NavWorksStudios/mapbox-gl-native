@@ -522,7 +522,7 @@ void LineBucket::addCurrentVertex(const GeometryCoordinate& currentCoordinate,
     Point<double> extrude = normal;
     const double scaledDistance = lineDistances ? lineDistances->scaleToMaxLineDistance(distance) : distance;
     const float height = heightRatio * _nav_layer_base_height;
-    int16_t condition = _nav_enable_traffic_condition ? int(distance / 1000.) % 5 : 0;
+    int16_t condition = _nav_enable_traffic_condition ? int(distance / 2000.) % 5 : -1;
 
     if (endLeft)
         extrude = extrude - (util::perp(normal) * endLeft);
@@ -572,7 +572,7 @@ void LineBucket::addPieSliceVertex(const GeometryCoordinate& currentVertex,
         distance = lineDistances->scaleToMaxLineDistance(distance);
     }
 
-    int16_t condition = _nav_enable_traffic_condition ? int(distance / 1000.) % 5 : 0;
+    int16_t condition = _nav_enable_traffic_condition ? int(distance / 2000.) % 5 : -1;
     vertices.emplace_back(LineProgram::layoutVertex(currentVertex, 0, condition,
                                                     flippedExtrude, false, lineTurnsLeft, 0,
                                                     distance * LINE_DISTANCE_SCALE));

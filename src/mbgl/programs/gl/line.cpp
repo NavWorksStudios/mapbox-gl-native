@@ -91,7 +91,7 @@ struct ShaderSource<LineProgram> {
         attribute vec2 a_pos_normal;
         attribute vec4 a_data;
         attribute float a_height;
-        attribute lowp float a_condition;
+        attribute lowp float a_traffic_condition;
     
         varying vec2 v_normal;
         varying vec2 v_width2;
@@ -99,6 +99,7 @@ struct ShaderSource<LineProgram> {
         varying highp float v_linesofar;
         varying vec3 v_pos;
         varying vec4 v_color;
+        varying vec4 v_traffic_color;
         
         #ifndef HAS_UNIFORM_u_color
             uniform lowp float u_color_t;
@@ -213,19 +214,19 @@ struct ShaderSource<LineProgram> {
             v_width2=vec2(outset,inset);
             
             v_pos = gl_Position.xyz;
-    
-            if (a_condition == 5.)
+
     #ifndef HAS_UNIFORM_u_color
-                v_color = color;
+            v_color = color;
     #else
-                v_color = u_color;
+            v_color = u_color;
     #endif
-    
-            else if (a_condition < 1.) v_color = vec4(.315, .539, .424, 1.);
-            else if (a_condition < 2.) v_color = vec4(.354, .776, .463, 1.);
-            else if (a_condition < 3.) v_color = vec4(.872, .754, .255, 1.);
-            else if (a_condition < 4.) v_color = vec4(.872, .200, .255, 1.);
-            else if (a_condition < 5.) v_color = vec4(.583, .142, .098, 1.);
+
+            if (a_traffic_condition < 0.) v_traffic_color = vec4(0., 0., 0., 0.);
+            else if (a_traffic_condition < 1.) v_traffic_color = vec4(.315, .539, .424, 1.);
+            else if (a_traffic_condition < 2.) v_traffic_color = vec4(.354, .776, .463, 1.);
+            else if (a_traffic_condition < 3.) v_traffic_color = vec4(.872, .754, .255, 1.);
+            else if (a_traffic_condition < 4.) v_traffic_color = vec4(.872, .200, .255, 1.);
+            else if (a_traffic_condition < 5.) v_traffic_color = vec4(.583, .142, .098, 1.);
                 
         }
 
