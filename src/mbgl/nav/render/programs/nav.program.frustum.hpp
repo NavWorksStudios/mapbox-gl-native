@@ -11,24 +11,21 @@ namespace frustum {
 
 const char* vertexShader() { return R"(
 
-attribute vec3 a_pos;
 uniform mat4 u_matrix;
+attribute vec3 a_pos;
 
-void main()
-{
-    vec4 pos = vec4(a_pos, 1.);
-    gl_Position = u_matrix * pos;
-
-    // 防字段丢失，无实际意义
-    vec4 out_pos = u_matrix * pos;
+void main() {
+    gl_Position = u_matrix * vec4(a_pos, 1.);
 }
 
 )"; }
 
 const char* fragmentShader() { return R"(
 
+uniform vec4 u_color;
+
 void main() {
-    gl_FragColor = vec4(1.0, 0.0, 0.0, 0.5);
+    gl_FragColor = u_color;
 }
 
 )"; }

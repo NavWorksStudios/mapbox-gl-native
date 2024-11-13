@@ -160,33 +160,34 @@ void renderDeferred(const mbgl::PaintParameters& parameters,
     quad::renderBlur(renderBuffer, w, h);
     
     // 6
-    const auto logo = nav::runtime::texture::logo();
-    const auto& size = std::get<1>(logo);
-    Viewport::Set({ int(w - size.width), 0, size });
-    quad::renderStandard(std::get<0>(logo));
-
     if (_showDebugWindow) {
         int x = 20;
         const mbgl::Size size = { uint32_t(w / 8.), uint32_t(h / 8.) };
         
-        Viewport::Set({x, 20, size});
-        // ###frustum为灯光相机坐标系mv坐标值
-        // ###渲染时需要使用的矩阵应该为p矩阵
-        mbgl::mat4 sunlightProjMatrix;
-        sunlightProjMatrix = parameters.state.getSunlightViewToClipMatrix();
-        // frustum[0]-x / frustum[2]-y / frustum[1]-z ?
-        shadow::frustum::render(sunlightProjMatrix);
+        {
+            Viewport::Set({x, 20, size});
+            
+            mbgl::mat4 matrix;
+            parameters.state.getSunlightProjMatrix(matrix);
+            shadow::frustum::ortho::sunlight().renderGroundProjection(matrix);
+            
+            quad::renderRedChannel(shadowBuffer, .8);
+        }
         
-        quad::renderRedChannel(shadowBuffer, .8);
+        {
+            Viewport::Set({x += size.width + 20, 20, size});
+            quad::renderStandard(haloBuffer, .8);
+        }
         
-        Viewport::Set({x += size.width + 20, 20, size});
-        quad::renderStandard(haloBuffer, .8);
+        {
+            Viewport::Set({x += size.width + 20, 20, size});
+            quad::renderStandard(gbuffer[1], .8);
+        }
         
-        Viewport::Set({x += size.width + 20, 20, size});
-        quad::renderStandard(gbuffer[1], .8);
-        
-        Viewport::Set({x += size.width + 20, 20, size});
-        quad::renderRedChannel(renderBuffer, .8);
+        {
+            Viewport::Set({x += size.width + 20, 20, size});
+            quad::renderRedChannel(renderBuffer, .8);
+        }
     }
 }
 
@@ -196,9 +197,9 @@ void renderLogo(const mbgl::PaintParameters& parameters) {
     const int w = renderbuffer::width();
     const int h = renderbuffer::height();
     const auto logo = nav::runtime::texture::logo();
-    const auto& size = std::get<1>(logo);
+    const auto& size = std::get<0>(logo);
     Viewport::Set({ int(w - size.width), 0, size });
-    quad::renderStandard(std::get<0>(logo));
+    quad::renderStandard(std::get<1>(logo));
 }
 
 } // renderer

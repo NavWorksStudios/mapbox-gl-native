@@ -54,7 +54,7 @@ void release();
 void upload(mbgl::gfx::UploadPass& uploadPass);
 mbgl::gfx::Texture& get(const std::string& name);
 
-std::tuple<int32_t, mbgl::Size> logo();
+std::tuple<mbgl::Size,int32_t> logo();
 }
 
 }

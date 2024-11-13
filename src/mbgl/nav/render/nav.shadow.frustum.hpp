@@ -19,7 +19,7 @@ namespace ortho {
 
 /* AABB（Axis-Aligned Bounding Box）
  “轴平行包围盒”，是一种在三维空间中常用的几何包围体。
- 它是一个长方体，其边与坐标轴平行，这使得它在计算和存储上相对简单。
+ 长方体，其边与坐标轴平行，这使得它在计算和存储上相对简单。
  */
 struct AABB {
     mbgl::vec3 min = { NAN }, max = { NAN };
@@ -31,26 +31,23 @@ struct AABB {
 
 struct Frumstum {
     void update(const mbgl::TransformState& state, const std::vector<mbgl::OverscaledTileID>& tileIDs);
-    void render();
-    
-    inline const AABB& getTile() const { return tileAABB; }
-    inline const AABB& getGround() const { return groundAABB; }
+    void renderGroundProjection(const mbgl::mat4& lightViewProjmatrix);
     inline const AABB& getFrustum() const { return frustumAABB; }
     
 private:
     AABB tileAABB;
     AABB groundAABB;
     AABB frustumAABB;
+    
+public:
+    std::array<mbgl::vec3,4> worldSpaceGround;
+    std::array<mbgl::vec3,4> worldSpaceClipedGround;
 };
 
 Frumstum& sunlight();
 
 }   // ortho
 }   // frustum
-
-namespace frustum {
-void render(const mbgl::mat4& matrix);
-}
 
 }   // shadow
 }   // render

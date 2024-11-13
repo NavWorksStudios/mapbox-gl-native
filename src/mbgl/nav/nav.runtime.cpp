@@ -236,8 +236,8 @@ mbgl::gfx::Texture& get(const std::string& name) {
     return *imageMap[name].texture;
 }
 
-std::tuple<int32_t, mbgl::Size> logo() {
-    return { logo_texture, logo_size };
+std::tuple<mbgl::Size, int32_t> logo() {
+    return { logo_size, logo_texture };
 }
 
 }

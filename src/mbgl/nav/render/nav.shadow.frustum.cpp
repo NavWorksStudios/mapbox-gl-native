@@ -146,32 +146,6 @@ template <Format H> float get(float zoom) {
 
 }
 
-namespace area {
-
-struct Point {
-    double x, y;
-};
-
-// 计算两个向量的叉积
-double crossProduct(const Point& a, const Point& b) {
-    return a.x * b.y - a.y * b.x;
-}
-
-// 计算三角形面积
-double triangleArea(const Point& a, const Point& b, const Point& c) {
-    Point ab = {b.x - a.x, b.y - a.y};
-    Point ac = {c.x - a.x, c.y - a.y};
-    return std::abs(crossProduct(ab, ac)) / 2.0;
-}
-
-// 计算四边形面积
-double quadrilateralArea(const Point& a, const Point& b, const Point& c, const Point& d) {
-    return triangleArea(a, b, c) + triangleArea(a, c, d);
-}
-
-}
-
-
 void Frumstum::update(const mbgl::TransformState& state, const std::vector<mbgl::OverscaledTileID>& tileIDs) {
     if (tileIDs.size() == 0) return;
     
@@ -214,17 +188,6 @@ void Frumstum::update(const mbgl::TransformState& state, const std::vector<mbgl:
     // 可见地面在光照空间的AABB
     groundAABB.invalidate();
     {
-        // 构造主相机视锥体
-        const auto worldSize = mbgl::Projection::worldSize(state.getScale()) / mbgl::util::tileSize;
-        const auto flippedY = state.getViewportMode() == mbgl::ViewportMode::FlippedY;
-        const auto frustum = mbgl::util::Frustum::fromInvProjMatrix(state.getInvProjectionMatrix(), worldSize, state.getZoom(), flippedY);
-        
-        // 计算主相机视锥体与地面交点
-        enum { near_tl = 0, near_tr = 1, near_br = 2, near_bl = 3,
-            far_tl = 4, far_tr = 5, far_br = 6, far_bl = 7, };
-        const auto& points = frustum.getPoints();
-        const Plane ground = { { 0, 0, 1 }, 0 };
-        
         //            camera
         //              A                                far
         //            near                 tl [0] ================== [1] tr
@@ -236,15 +199,30 @@ void Frumstum::update(const mbgl::TransformState& state, const std::vector<mbgl:
         //  top  /       |  bottom                       near
         //          far
         
-        mbgl::vec3 projection[4] = {
+        enum {  near_tl = 0,     near_tr = 1,    near_br = 2,    near_bl = 3,
+                far_tl = 4,     far_tr = 5,     far_br = 6,     far_bl = 7, };
+        
+        // 构造主相机视锥体
+        const auto worldSize = mbgl::Projection::worldSize(state.getScale());
+        const auto flippedY = state.getViewportMode() == mbgl::ViewportMode::FlippedY;
+        const auto frustum = mbgl::util::Frustum::fromInvProjMatrix(state.getInvProjectionMatrix(), worldSize, state.getZoom(), flippedY);
+        auto points = frustum.getPoints();
+        for (auto& p : points) p = mbgl::vec3Scale(p, mbgl::util::tileSize);
+
+        // 计算主相机视锥体与地面交点
+        const Plane ground = { { 0, 0, 1 }, 0 };
+        std::array<mbgl::vec3, 4> projection = {
             getIntersect(ground, { points[near_tl], points[far_tl] }), // [0]
             getIntersect(ground, { points[near_tr], points[far_tr] }), // [1]
             getIntersect(ground, { points[near_br], points[far_br] }), // [2]
             getIntersect(ground, { points[near_bl], points[far_bl] }), // [3]
         };
         
+        auto pos = state.getCameraPosition();
+        worldSpaceGround = projection;
+        
         // 动态视野 (pitch, zoom)
-        {
+        if (1) {
             const double zf = fmax(0., fmin(1., (state.getZoom() - 15.) / 4.)); // (0, 1) 15-20
             const double pf = fmin(state.getPitch() / M_PI * 180. / 70., 1.); // (0, 1) 俯视, 平视
             
@@ -269,26 +247,15 @@ void Frumstum::update(const mbgl::TransformState& state, const std::vector<mbgl:
                 far[0] = near[0] + (far[0] - near[0]) * shrink; // x
                 far[1] = near[1] + (far[1] - near[1]) * shrink; // y
             };
-            
-            double area0 =
-            area::quadrilateralArea({ projection[0][0],projection[0][1] },
-                                    { projection[1][0],projection[1][1] },
-                                    { projection[2][0],projection[2][1] },
-                                    { projection[3][0],projection[3][1] });
-            
+
             enum { tl = 0, tr = 1, br = 2, bl = 3, };
             shrink(projection[bl], projection[tl], result);
             shrink(projection[br], projection[tr], result);
             
-            
-            double area1 =
-            area::quadrilateralArea({ projection[0][0],projection[0][1] },
-                                    { projection[1][0],projection[1][1] },
-                                    { projection[2][0],projection[2][1] },
-                                    { projection[3][0],projection[3][1] });
-            
-            printf("I <sunlight> zoom(%lf) pitch(%lf) | z(%lf) p(%lf) r(%lf) | area(%lf,%lf)\n", state.getZoom(), state.getPitch(), zf, pf, result, area0, area1);
+            printf("I <sunlight> zoom(%lf) pitch(%lf) | z(%lf) p(%lf) r(%lf)\n", state.getZoom(), state.getPitch(), zf, pf, result);
         }
+        
+        worldSpaceClipedGround = projection;
         
         // 计算最小外接
         const double h = height::get<height::H512>(state.getZoom());
@@ -321,21 +288,6 @@ void Frumstum::update(const mbgl::TransformState& state, const std::vector<mbgl:
     
 }
 
-void Frumstum::render() {
-    // render frustumAABB
-}
-
-Frumstum& sunlight() {
-    static Frumstum frustum;
-    return frustum;
-}
-
-}   // end ortho
-
-}   // end frustum
-
-namespace frustum {
-
 GLuint program() {
     static GLint pass = 0;
     if (!pass) {
@@ -347,76 +299,68 @@ GLuint program() {
     return pass;
 }
 
-// 三维空间中的点结构体
-struct Point3D {
-    double x;
-    double y;
-    double z;
-};
-
-// 根据对角顶点计算另外两个顶点
-void calculateOtherVertices(const Point3D& minVertex, const Point3D& maxVertex, Point3D& vertex2, Point3D& vertex3) {
-    // 计算第二个顶点
-    vertex2.x = maxVertex.x;
-    vertex2.y = minVertex.y;
-    vertex2.z = minVertex.z;
-
-    // 计算第三个顶点
-    vertex3.x = minVertex.x;
-    vertex3.y = maxVertex.y;
-    vertex3.z = minVertex.z;
-}
-
-void render(const mbgl::mat4& matrix) {
-    static GLint program = frustum::program();
-    
+void Frumstum::renderGroundProjection(const mbgl::mat4& lightViewProjMatrix) {
+    static GLint program = ortho::program();
     glUseProgram(program);
-    static programs::UniformLocation u0(program, "u_matrix");
-    glUniformMatrix4fv(u0, 1, GL_FALSE, reinterpret_cast<const float*>(&matrix));
     
-    const auto& frustum = nav::render::shadow::frustum::ortho::sunlight().getFrustum();
-    
-    Point3D p0 = {frustum.min[0], frustum.min[1], frustum.min[2]};  // 假设的最小坐标对角顶点
-    Point3D p1 = {frustum.max[0], frustum.max[1], frustum.max[2]};  // 假设的最大坐标对角顶点
-
-    Point3D p2;
-    Point3D p3;
-
-    calculateOtherVertices(p0, p1, p2, p3);
-    
-    // 需要根据frustum定义vertices
-    GLfloat vertices[18] = {
-        (float)p0.x, (float)p0.y, (float)p0.z,
-        (float)p2.x, (float)p2.y, (float)p2.z,
-        (float)p1.x, (float)p1.y, (float)p1.z,
+    auto draw = [&] (const std::array<mbgl::vec3,4>& points) {
+        GLfloat vertices[] = {
+            (float)points[0][0], (float)points[0][1], (float)points[0][2],
+            (float)points[3][0], (float)points[3][1], (float)points[3][2],
+            (float)points[1][0], (float)points[1][1], (float)points[1][2],
+            (float)points[2][0], (float)points[2][1], (float)points[2][2]
+        };
         
-        (float)p1.x, (float)p1.y, (float)p1.z,
-        (float)p2.x, (float)p2.y, (float)p2.z,
-        (float)p0.x, (float)p0.y, (float)p0.z
+        { // debug
+            mbgl::vec4 out[4];
+            mbgl::matrix::transformMat4(out[0], { points[0][0], points[0][1], points[0][2], 1. }, lightViewProjMatrix);
+            mbgl::matrix::transformMat4(out[1], { points[1][0], points[1][1], points[1][2], 1. }, lightViewProjMatrix);
+            mbgl::matrix::transformMat4(out[2], { points[2][0], points[2][1], points[2][2], 1. }, lightViewProjMatrix);
+            mbgl::matrix::transformMat4(out[3], { points[3][0], points[3][1], points[3][2], 1. }, lightViewProjMatrix);
+        }
+        
+        GLuint vao = 0;
+        glGenVertexArrays(1, &vao);
+        glBindVertexArray(vao);
+        
+        static GLuint vbo;
+        glGenBuffers(1, &vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
+        
+        static programs::AttribLocation a0(program, "a_pos");
+        glEnableVertexAttribArray(a0);
+        glVertexAttribPointer(a0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), reinterpret_cast<void*>(0));
+        
+        glDisable(GL_CULL_FACE);
+        
+        glBindVertexArray(vao);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        glBindVertexArray(0);
+        
+        glEnable(GL_CULL_FACE);
     };
     
-    GLuint vao = 0;
+    static programs::UniformLocation u0(program, "u_matrix");
+    glUniformMatrix4fv(u0, 1, GL_FALSE, reinterpret_cast<const float*>(&lightViewProjMatrix));
     
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
+    static programs::UniformLocation u1(program, "u_color");
+
+    glUniform4f(u1, 1, 0, 0, .6);
+    draw(worldSpaceGround);
     
-    static GLuint vbo;
-    glGenBuffers(1, &vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, 18 * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
-    
-    static programs::AttribLocation a0(program, "a_pos");
-    glEnableVertexAttribArray(a0);
-    glVertexAttribPointer(a0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), reinterpret_cast<void*>(0));
-    
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    
-    glBindVertexArray(vao);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glUniform4f(u1, 0, 0, 1, .6);
+    draw(worldSpaceClipedGround);
 }
 
-}   // frustum
+Frumstum& sunlight() {
+    static Frumstum frustum;
+    return frustum;
+}
+
+}   // end ortho
+
+}   // end frustum
 
 }   // end shadow
 
