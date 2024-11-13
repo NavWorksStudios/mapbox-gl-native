@@ -223,7 +223,7 @@ void TransformState::getProjMatrix(mat4& projMatrix, uint16_t nearZ, bool aligne
 }
 
 // world to sunlight to clip
-void TransformState::getSunlightProjMatrix(mat4& projMatrix, uint16_t nearZ, bool aligned) const {
+void TransformState::getSunlightProjMatrix(mat4& projMatrix) const {
     if (size.isEmpty()) {
         return;
     }

@@ -112,18 +112,18 @@ public:
 
     void setProperties(const TransformStateProperties& properties);
     
-    void matrixFor(mat4&, const UnwrappedTileID&) const;                                    // model matrix : model to world space
+    void matrixFor(mat4&, const UnwrappedTileID&) const;                                        // model matrix : model to world space
     void matrixForP20(mat4& matrix, const UnwrappedTileID& tileID) const;
     
     // camera
-    void getProjMatrix(mat4& matrix, uint16_t nearZ=1, bool aligned=false) const;           // v&p matrix : world to view to clip space
-    inline mat4& getWorldToViewMatrix() const { return _worldToViewMatrix; }                // view matrix : world to view space
-    inline mat4& getViewToClipMatrix() const { return _viewToClipMatrix; }                  // proj matrix : view to clip space
+    void getProjMatrix(mat4& matrix, uint16_t nearZ=1, bool aligned=false) const;               // v&p matrix : world to view to clip space
+    inline mat4& getWorldToViewMatrix() const { return _worldToViewMatrix; }                    // view matrix : world to view space
+    inline mat4& getViewToClipMatrix() const { return _viewToClipMatrix; }                      // proj matrix : view to clip space
     
     // sunlight
-    void getSunlightProjMatrix(mat4& matrix, uint16_t nearZ=1, bool aligned=false) const;      // v&p matrix : world to view to clip space
-    inline mat4& getSunlightWorldToViewMatrix() const { return _sunlightWorldToViewMatrix; }   // view matrix : world to view space
-    inline mat4& getSunlightViewToClipMatrix() const { return _sunlightViewToClipMatrix; }     // proj matrix : view to clip space
+    void getSunlightProjMatrix(mat4& matrix) const;                                             // v&p matrix : world to view to clip space
+    inline mat4& getSunlightWorldToViewMatrix() const { return _sunlightWorldToViewMatrix; }    // view matrix : world to view space
+    inline mat4& getSunlightViewToClipMatrix() const { return _sunlightViewToClipMatrix; }      // proj matrix : view to clip space
 
     // Dimensions
     Size getSize() const;
@@ -313,7 +313,7 @@ private:
     // camera matrix
     mutable mat4 projectionMatrix;              // vp matrix
     mutable mat4 invProjectionMatrix;
-    mutable mat4 coordMatrix;
+    mutable mat4 coordMatrix;                   // 512 scaled vp
     mutable mat4 invCoordMatrix;
     mutable mat4 _worldToViewMatrix;            // v matrix
     mutable mat4 _viewToClipMatrix;             // p matrix

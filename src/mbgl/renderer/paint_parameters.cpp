@@ -31,13 +31,13 @@ TransformParameters::TransformParameters(const TransformState& state_)
 
     // Also compute a projection matrix that aligns with the current pixel grid, taking into account
     // odd viewport sizes.
-    state.getSunlightProjMatrix(sunlightAlignedProjMatrix, 1, true);
+    state.getSunlightProjMatrix(sunlightAlignedProjMatrix);
 
     // Calculate a second projection matrix with the near plane moved further,
     // to a tenth of the far value, so as not to waste depth buffer precision on
     // very close empty space, for layer types (fill-extrusion) that use the
     // depth buffer to emulate real-world space.
-    state.getSunlightProjMatrix(sunlightNearClippedProjMatrix, 0.1 * state.getCameraToCenterDistance());
+    state.getSunlightProjMatrix(sunlightNearClippedProjMatrix);
 }
 
 PaintParameters::PaintParameters(gfx::Context& context_,
