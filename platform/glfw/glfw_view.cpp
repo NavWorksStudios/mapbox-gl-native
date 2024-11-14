@@ -1237,7 +1237,16 @@ void GLFWView::run() {
 
 #if defined(__APPLE__)
     while (window && !glfwWindowShouldClose(window)) {
-        runLoop.run();
+        try {
+            runLoop.run();
+        } catch (std::runtime_error& e) {
+            std::cerr << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+            std::cerr << "XXXXXXXXXXXXXXXXXXXXXXXXXXXX" << std::endl;
+            std::cerr << "runtime_error : " << e.what() << std::endl;
+            std::cerr << "XXXXXXXXXXXXXXXXXXXXXXXXXXXX" << std::endl;
+            std::cerr << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+            exit(0);
+        }
     }
 #else
     runLoop.run();
