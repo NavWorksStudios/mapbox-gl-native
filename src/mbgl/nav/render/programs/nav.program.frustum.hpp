@@ -16,6 +16,9 @@ attribute vec3 a_pos;
 
 void main() {
     gl_Position = u_matrix * vec4(a_pos, 1.);
+    vec3 pos = a_pos;
+    if(pos.z > 0.0) pos.z = 0.0;
+    gl_Position = vec4(pos, 1.);
 }
 
 )"; }
