@@ -32,9 +32,12 @@ private:
     // Paint properties
     style::FillPaintProperties::Unevaluated unevaluated;
     
-    bool enableShaderPalette = false;
-    bool enableWaterEffect = false;
-    bool enableGrassEffect = false;
+    bool enableShaderPalette, enableWaterEffect;
+    
+    struct Textures {
+        std::string diffuse, normal, reflection;
+        float type;
+    } textures;
     
 };
 

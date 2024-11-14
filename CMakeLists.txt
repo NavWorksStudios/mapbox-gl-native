@@ -356,7 +356,13 @@ set(all_files
     ${PROJECT_SOURCE_DIR}/src/mbgl/programs/nav/deferred/fill_extrusion_shadow.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/programs/nav/deferred/fill_extrusion_geo.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/programs/nav/deferred/line_halo.cpp
+
+    ${PROJECT_SOURCE_DIR}/src/mbgl/programs/nav/P1/line.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/programs/nav/P1/fill.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/programs/nav/P1/fill_extrusion.hpp
+
+    ${PROJECT_SOURCE_DIR}/src/mbgl/programs/nav/P2/line.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/programs/nav/P2/fill.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/programs/nav/P2/fill_extrusion.hpp
 
     ${PROJECT_SOURCE_DIR}/src/mbgl/actor/mailbox.cpp

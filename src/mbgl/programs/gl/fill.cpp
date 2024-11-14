@@ -5,6 +5,10 @@
 #include <mbgl/programs/gl/shader_source.hpp>
 #include <mbgl/gl/program.hpp>
 
+#include "mbgl/nav/nav.theme.hpp"
+#include <mbgl/programs/nav/p1/fill.hpp>
+#include <mbgl/programs/nav/p2/fill.hpp>
+
 namespace mbgl {
 namespace programs {
 namespace gl {
@@ -24,8 +28,7 @@ struct ShaderSource<FillProgram> {
 //    static const char* navFragment(const char* shaderSource, size_t preludeOffset) { return shaderSource + preludeOffset; }
 //    static const char* navFragment(const char* shaderSource) { return shaderSource + fragmentOffset; }
 
-    static const char* navVertex(const char* , size_t ) { return
-R"(
+static const char* navVertex(const char* , size_t ) { return R"(
 
 #ifdef GL_ES
 precision highp float;
@@ -71,9 +74,8 @@ vec2 get_pattern_pos(const vec2 pixel_coord_upper,const vec2 pixel_coord_lower,c
 }
 
 )"; }
-    
-    static const char* navVertex(const char* ) { return 
-R"(
+
+static const char* navVertex(const char* ) { return R"(
 
 uniform mat4 u_matrix;
 uniform mat4 u_model_matrix;
@@ -89,9 +91,8 @@ uniform sampler2D u_image1;
 attribute vec2 a_pos;
 
 varying lowp vec3 v_pos;
-varying lowp vec3 v_worldpos;
+varying lowp vec3 v_world_pos;
 varying lowp vec2 v_texture_pos;
-//varying highp vec2 v_texture_uv;
 varying highp vec4 v_world_pixel_coord;
 
 #ifndef HAS_UNIFORM_u_color
@@ -162,16 +163,19 @@ void main() {
     mediump float width=u_width;
 #endif
        
-    gl_Position=u_matrix*vec4(a_pos,u_base,1.);
-    v_pos=gl_Position.xyz;
-    v_texture_pos=a_pos;
+    gl_Position = u_matrix*vec4(a_pos,u_base,1.);
+
+    v_pos = gl_Position.xyz;
+    v_texture_pos = a_pos;
+
     v_world_pixel_coord = u_model_matrix * vec4(a_pos,u_base,1.) / 8192. * 512.;
-    v_worldpos = (u_model_matrix * vec4(a_pos,u_base,1.)).rgb;
+    v_world_pos = vec3(u_model_matrix * vec4(a_pos, u_base, 1.));
+
 #ifndef HAS_UNIFORM_u_color
     // 灰阶色变换主题色
-    if (u_palette_lightness>0.) {
-        lowp float lightness=color.r/u_palette_lightness;
-        color=vec4(u_palette_color.rgb*lightness,color.a);
+    if (u_palette_lightness > 0.) {
+        lowp float lightness=color.r / u_palette_lightness;
+        color = vec4(u_palette_color.rgb * lightness, color.a);
     }
 #endif
 
@@ -179,8 +183,7 @@ void main() {
 
 )"; }
     
-    static const char* navFragment(const char* , size_t ) { return 
-R"(
+static const char* navFragment(const char* , size_t ) { return R"(
 
 #ifdef GL_ES
 precision mediump float;
@@ -198,220 +201,17 @@ precision mediump float;
 
 )"; }
     
-    static const char* navFragment(const char* ) { return
-R"(
-
-uniform lowp float u_spotlight;
-uniform lowp float u_render_time;
-uniform lowp float u_water_wave;
-uniform lowp float u_water_data_z_scale;
-uniform lowp float u_clip_region;
-uniform lowp float u_focus_region;
-    
-uniform float u_textype;    // 纹理类型
-uniform vec2 u_texsize;     // 纹理图尺寸:宽高
-uniform vec3 u_camera_pos;  // 主相机位置
-uniform vec3 u_lightcolor;  // 平行光色
-uniform vec3 u_lightpos;    // 平行光位置
-uniform sampler2D u_image;  // 纹理图-diffuse
-uniform sampler2D u_image0; // 纹理图-normal
-uniform sampler2D u_image1; // 纹理图-reflection
-        
-varying lowp vec3 v_pos;
-varying lowp vec3 v_worldpos;
-varying lowp vec2 v_texture_pos;
-//varying vec2 v_texture_uv;
-varying highp vec4 v_world_pixel_coord;
-
-#ifndef HAS_UNIFORM_u_color
-    varying highp vec4 color;
-#else
-    uniform highp vec4 u_color;
-#endif
-
-#ifndef HAS_UNIFORM_u_opacity
-    varying lowp float opacity;
-#else
-    uniform lowp float u_opacity;
-#endif
-
-// -------------- color flow ---------------
-        
-float spot_light(vec2 uv, vec2 C, float r, float b) {
-    return clamp(.2 / clamp(length(uv-C)-r, 0., 1.), 0., b) * .2;
-}
-
-vec3 color_flow(lowp vec2 fragCoord, lowp vec2 resolution) {
-    lowp float time = u_render_time * .01;
-    lowp vec2 uv = (fragCoord*2. - resolution.xy) / resolution.y;
-    lowp vec3 rgb = cos(time * 31. + uv.xyx + vec3(1.0,2.0,4.0)) * .2;
-
-    lowp vec3 spots;
-    for(int i = 0; i < 10; i++){
-        lowp float n = float(i);
-        lowp float s = sin(n * time);
-
-        lowp float c = 2. * (n/14.-.5) * resolution.x / resolution.y;
-        lowp vec2 p = vec2(c + cos(n + time * 5.), sin(time * n / 11.));
-
-        lowp float r = abs(0.01 * s);
-        lowp float b = (s * 11. + 13.) / 2.;
-        
-        spots += spot_light(uv, p, r, b);
+static const char* navFragment(const char* ) {
+    switch (nav::theme::getShaderIndex()) {
+        case 1:
+            return nav::p1::navFragment(nullptr);
+        case 2:
+            return nav::p2::navFragment(nullptr);
+        default:
+            return "";
     }
-    
-    return rgb + spots;
 }
 
-// -------------- grid color ---------------
-
-//created by TRASHTRASH aka Joshua deLorimier
-
-#define iter 40.0
-#define scaleSpeed 3.0
-#define satSpeed 4.2
-
-// Dave Hoskins - https://www.shadertoy.com/view/4djSRW
-//noise
-float N2(vec2 p) {
-    vec3 p3  = fract(vec3(p.xyx) * vec3(443.897, 441.423, 437.195));
-    p3 += dot(p3, p3.yzx + 19.19);
-    return fract((p3.x + p3.y) * p3.z);
-}
-
-float grid_color( vec2 fragCoord, lowp vec2 resolution ) {
-    float iTime = u_render_time * .2;
-
-    //create coordinates
-    vec2 uv = (fragCoord - 0.5*resolution.xy)/resolution.y;
-    
-    //iterate to make grid
-    uv*=iter;
-
-    //give ID's for each square
-    vec2 gv=fract(uv);//-0.5; 去掉后间距变大
-    vec2 id=floor(uv);
-
-    //random values
-    float ran = N2(id);
-
-    //offset for each grid
-    vec2 d = abs(gv) - (abs(sin((iTime*scaleSpeed)*ran)*0.5)-0.05);
-
-    //draw the square
-    float rect = min(max(d.x, d.y),0.0) + length(max(d, 0.));
-    float r = step(0., rect);
-
-    //combine square and offset to the color var
-    return abs((1.-r) * sin((iTime*satSpeed)*ran));
-}
-
-// -------------- main ---------------
-
-void main() {
-
-#ifdef HAS_UNIFORM_u_color
-    highp vec4 color=u_color;
-#endif
-
-#ifdef HAS_UNIFORM_u_opacity
-    lowp float opacity=u_opacity;
-#endif
-
-    lowp float distance=pow(v_pos.x,2.)+pow(v_pos.z,2.);
-    vec3 tex_diffuse;
-    vec3 tex_normal;
-    vec3 tex_reflection;
-    if(u_textype > 0.5) {
-        // texture uv
-        vec2 uv = vec2(
-            mod(v_world_pixel_coord.x, u_texsize[0]) / u_texsize[0],
-            mod(v_world_pixel_coord.y, u_texsize[1]) / u_texsize[1]
-        );
-        
-        float diffuseFactor = 0.0;
-        float specularFactor = 0.0;
-        
-        // normal
-        tex_normal = texture2D(u_image0, uv).rgb;
-        vec3 nor = normalize(tex_normal * 2.0 - 1.0);
-
-        // diffuse reflection
-        tex_diffuse = texture2D(u_image, uv).rgb;
-        vec3 lightDir = normalize(u_lightpos);
-        diffuseFactor = max(dot(nor, lightDir), 0.0);
-        
-        if(u_textype < 1.5) {
-            // specular reflection
-            tex_reflection = texture2D(u_image1, uv).rgb;
-            vec3 viewDir = normalize(v_worldpos - u_camera_pos);
-            vec3 reflectDir = reflect(-lightDir, nor);
-            specularFactor = pow(max(dot(viewDir, reflectDir), 0.0), 4.);
-        }
-
-        // color
-        vec3 diffuse = tex_diffuse * diffuseFactor;
-        vec3 specular = tex_reflection * specularFactor;
-        gl_FragColor = vec4(diffuse + specular, 1.0);
-    }
-#if 0
-    if (u_water_wave > 0.) { // 水面波光
-        // point light
-        const lowp vec3 cameraPos=vec3(0.,500.,0.);
-        const lowp vec3 lightPos=vec3(0.,2000.,4000.);
-        const lowp float specular=1.5; // 镜面反射强度
-        const lowp float shininess=4.; // 反光度
-        lowp vec3 lightDir=normalize(v_pos.xyz-lightPos);
-        lowp vec3 viewDir=normalize(cameraPos-v_pos.xyz);
-        lowp vec3 reflectDir=reflect(lightDir,vec3(0.,1.,0.)); // reflect (genType I, genType N),返回反射向量
-        lowp float brighten=max(specular*pow(max(dot(viewDir,reflectDir),0.0),shininess), 0.); // power(max(0,dot(N,H)),shininess)
-
-        lowp float radial_fadeout=clamp(1.-distance/u_clip_region,0.,1.);
-        radial_fadeout=pow(radial_fadeout,3.) * u_water_wave;
-
-        const lowp vec2 texture_size = vec2(3000.);
-        lowp vec2 coord = vec2(
-            mod(v_texture_pos.x * u_water_data_z_scale, texture_size.x),
-            mod(v_texture_pos.y * u_water_data_z_scale, texture_size.y));
-        lowp float gridcolor = grid_color(coord, texture_size);
-        gridcolor = pow(gridcolor, 15.);
-
-        gl_FragColor=color;
-        gl_FragColor.rgb += (gridcolor + brighten) * radial_fadeout * .2;
-        gl_FragColor*=opacity;
-
-    }
-#endif
-    else {
-
-        if (u_spotlight > 0.) { // 五彩地面
-
-            lowp float distance=pow(v_pos.x,2.)+pow(v_pos.y,2.);
-            lowp float fadeout=clamp(1.-distance/(u_focus_region*.3),0.,u_spotlight);
-            fadeout=pow(fadeout,3.);
-
-            vec3 colorflow=color_flow(gl_FragCoord.xy,vec2(3000.));
-            gl_FragColor.rgb=mix(color.rgb,colorflow,fadeout)*opacity; // 距离屏幕中心点越近，越亮
-            gl_FragColor.a=color.a*opacity;
-
-        } else {
-
-            gl_FragColor=color*opacity;
-
-        }
-
-    }
-
-    lowp float radial_fadeout=min(distance/(u_clip_region*2.),1.)*.2;
-    gl_FragColor.rgb-=radial_fadeout;
-        
-#ifdef OVERDRAW_INSPECTOR
-    gl_FragColor=vec4(1.0);
-#endif
-
-}
-
-)"; }
 };
 
 constexpr const char* ShaderSource<FillProgram>::name;

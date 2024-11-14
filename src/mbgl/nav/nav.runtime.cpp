@@ -198,12 +198,15 @@ void load(const std::string& path) {
 
     imageMap["dummy"].path = "dummy.png";
     
-    imageMap["grass_t1"].path = "grass_t1.png";
-    imageMap["grass_normal_t1"].path = "grass_normal_t1.png";
+    imageMap["grass_1"].path = "grass_1.png";
+    imageMap["grass_normal_1"].path = "grass_normal_1.png";
     
-    imageMap["water_t1"].path = "water_t1.jpg";
-    imageMap["water_normal_t1"].path = "water_normal_t1.jpg";
-    imageMap["water_reflection_t1"].path = "water_reflection_t1.jpg";
+    imageMap["grass_2"].path = "grass_2.jpg";
+    imageMap["grass_normal_2"].path = "grass_normal_2.jpg";
+    
+    imageMap["water"].path = "water.jpg";
+    imageMap["water_normal"].path = "water_normal.jpg";
+    imageMap["water_reflection"].path = "water_reflection.jpg";
 }
 
 void release() {
@@ -233,7 +236,11 @@ void upload(mbgl::gfx::UploadPass& uploadPass) {
 }
 
 mbgl::gfx::Texture& get(const std::string& name) {
-    return *imageMap[name].texture;
+    if (name.length() > 0) {
+        return *imageMap[name].texture;
+    } else {
+        return *imageMap["dummy"].texture;
+    }
 }
 
 std::tuple<mbgl::Size, int32_t> logo() {

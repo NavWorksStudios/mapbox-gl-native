@@ -42,7 +42,17 @@ RenderFillLayer::RenderFillLayer(Immutable<style::FillLayer::Impl> _impl)
 
     enableShaderPalette = nav::palette::isLayerPaletteEnabled(getID());
     enableWaterEffect = (getID() == "water");
-    enableGrassEffect = (getID() == "national-park");
+
+    if (getID() == "water") {
+        textures = { "water", "water_normal", "water_reflection", 3 };
+    } else if (getID() == "landuse") {
+        textures = { "grass_1", "grass_normal_1", "", 2 };
+    } else if (getID() == "national-park") {
+        textures = { "grass_2", "grass_normal_2", "", 2 };
+    } else {
+        textures = { "", "", "", 0 };
+    }
+
 }
 
 RenderFillLayer::~RenderFillLayer() = default;
@@ -127,8 +137,8 @@ void RenderFillLayer::render(PaintParameters& parameters) {
             uniforms::water_data_z_scale::Value(),
             uniforms::clip_region::Value( nav::display::clip_region() ),
             uniforms::focus_region::Value( nav::display::focus_region() ),
-            uniforms::texsize::Value( Size(2, 2) ),
-            uniforms::textype::Value( 0. ),
+            uniforms::texsize::Value( nav::runtime::texture::get(textures.diffuse).size ),
+            uniforms::textype::Value( textures.type ),
             uniforms::camera_pos::Value(parameters.state.getCameraPosition()),
             uniforms::lightpos::Value(light::lightColor(parameters.evaluatedLight)),
             uniforms::lightcolor::Value(light::lightDirection(parameters.evaluatedLight, parameters.state)),
@@ -195,56 +205,29 @@ void RenderFillLayer::render(PaintParameters& parameters) {
             const bool opaque = (evaluated.get<FillColor>().constantOr(Color()).a >= 1.0f &&
                                  evaluated.get<FillOpacity>().constantOr(0) >= 1.0f &&
                                  parameters.currentLayer >= parameters.opaquePassCutoff);
+            
+            static auto textureBinding = [] (const std::string& name) -> gfx::TextureBinding {
+                return {
+                    nav::runtime::texture::get(name).getResource(),
+                    gfx::TextureFilterType::Nearest,
+                    gfx::TextureMipMapType::Yes,
+                    gfx::TextureWrapType::Repeat,
+                    gfx::TextureWrapType::Repeat
+                };
+            };
 
             const auto fillRenderPass = opaque ? RenderPass::Opaque : RenderPass::Translucent;
-
-            std::string diffuse = "dummy";
-            std::string normal = "dummy";
-            std::string reflection = "dummy";
-            
-            // 添加水面或草地贴图(diffuse、normal、reflection)
-            if(enableWaterEffect) {
-                diffuse = "water_t1";
-                normal = "water_normal_t1";
-                reflection = "water_reflection_t1";
-                layoutUniformValues.template get<uniforms::texsize>() = Size(1024, 1024);
-                layoutUniformValues.template get<uniforms::textype>() = 1.0;
-            } else if(enableGrassEffect) {
-                diffuse = "grass_t1";
-                normal = "grass_normal_t1";
-                layoutUniformValues.template get<uniforms::texsize>() = Size(512, 512);
-                layoutUniformValues.template get<uniforms::textype>() = 2.0;
-            }
-            
             if (bucket.triangleIndexBuffer && parameters.pass == fillRenderPass) {
                 const auto depthMaskType = parameters.pass == RenderPass::Opaque ? gfx::DepthMaskType::ReadWrite : gfx::DepthMaskType::ReadOnly;
                 draw(parameters.programs.getFillLayerPrograms().fill,
-                    gfx::Triangles(),
-                    parameters.depthModeForSublayer(1, depthMaskType),
-                    *bucket.triangleIndexBuffer,
-                    bucket.triangleSegments,
-                    FillProgram::TextureBindings {
-                        textures::image::Value {
-                            nav::runtime::texture::get(diffuse).getResource(),
-                            gfx::TextureFilterType::Nearest,
-                            gfx::TextureMipMapType::Yes,
-                            gfx::TextureWrapType::Repeat,
-                            gfx::TextureWrapType::Repeat
-                        },
-                        textures::image0::Value {
-                            nav::runtime::texture::get(normal).getResource(),
-                            gfx::TextureFilterType::Nearest,
-                            gfx::TextureMipMapType::Yes,
-                            gfx::TextureWrapType::Repeat,
-                            gfx::TextureWrapType::Repeat
-                        },
-                        textures::image1::Value {
-                            nav::runtime::texture::get(reflection).getResource(),
-                            gfx::TextureFilterType::Nearest,
-                            gfx::TextureMipMapType::Yes,
-                            gfx::TextureWrapType::Repeat,
-                            gfx::TextureWrapType::Repeat
-                        },
+                     gfx::Triangles(),
+                     parameters.depthModeForSublayer(1, depthMaskType),
+                     *bucket.triangleIndexBuffer,
+                     bucket.triangleSegments,
+                     FillProgram::TextureBindings {
+                        textures::image::Value { textureBinding(textures.diffuse) },
+                        textures::image0::Value { textureBinding(textures.normal) },
+                        textures::image1::Value { textureBinding(textures.reflection) }
                     }
                 );
             }
