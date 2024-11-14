@@ -230,10 +230,10 @@ void Frumstum::update(const mbgl::TransformState& state, const std::vector<mbgl:
             //       俯视                                       平视
             //  z\p |.0 |.1 |.2 |.3 |.4 |.5 |.6 |.7 |.8 |.9 |1. |
             // .0   |   |   |   |   |   |   |1. |   |   |   |.4 |
-            //                             /                    |
-            //                           /                      |
-            //                         /                        |
-            //                   left                           | right
+            //                              /                   |
+            //                            /                     |
+            //                          /                       |
+            //                  left  /                         | right
             //                      /                           |
             //                    /                             |
             //                  /                               |
