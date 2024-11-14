@@ -304,21 +304,20 @@ void Frumstum::renderGroundProjection(const mbgl::mat4& lightViewProjMatrix) {
     static GLint program = ortho::program();
     glUseProgram(program);
     
-    auto draw = [&] (const std::array<mbgl::vec3,4>& points) {
-        GLfloat vertices[] = {
-            (float)points[0][0], (float)points[0][1], (float)points[0][2],
-            (float)points[3][0], (float)points[3][1], (float)points[3][2],
-            (float)points[1][0], (float)points[1][1], (float)points[1][2],
-            (float)points[2][0], (float)points[2][1], (float)points[2][2]
-        };
+    auto draw = [&] (const std::array<mbgl::vec3, 4>& points) {
+        // debug
+        mbgl::vec4 out[4];
+        mbgl::matrix::transformMat4(out[0], { points[0][0], points[0][1], points[0][2], 1. }, lightViewProjMatrix);
+        mbgl::matrix::transformMat4(out[1], { points[1][0], points[1][1], points[1][2], 1. }, lightViewProjMatrix);
+        mbgl::matrix::transformMat4(out[2], { points[2][0], points[2][1], points[2][2], 1. }, lightViewProjMatrix);
+        mbgl::matrix::transformMat4(out[3], { points[3][0], points[3][1], points[3][2], 1. }, lightViewProjMatrix);
         
-        { // debug
-            mbgl::vec4 out[4];
-            mbgl::matrix::transformMat4(out[0], { points[0][0], points[0][1], points[0][2], 1. }, lightViewProjMatrix);
-            mbgl::matrix::transformMat4(out[1], { points[1][0], points[1][1], points[1][2], 1. }, lightViewProjMatrix);
-            mbgl::matrix::transformMat4(out[2], { points[2][0], points[2][1], points[2][2], 1. }, lightViewProjMatrix);
-            mbgl::matrix::transformMat4(out[3], { points[3][0], points[3][1], points[3][2], 1. }, lightViewProjMatrix);
-        }
+        GLfloat vertices[] = {
+            (float)(out[0][0]), (float)(out[0][1]), (float)(out[0][2]),
+            (float)(out[3][0]), (float)(out[3][1]), (float)(out[3][2]),
+            (float)(out[1][0]), (float)(out[1][1]), (float)(out[1][2]),
+            (float)(out[2][0]), (float)(out[2][1]), (float)(out[2][2])
+        };
         
         GLuint vao = 0;
         glGenVertexArrays(1, &vao);
@@ -348,7 +347,7 @@ void Frumstum::renderGroundProjection(const mbgl::mat4& lightViewProjMatrix) {
     static programs::UniformLocation u1(program, "u_color");
 
     glUniform4f(u1, 1, 0, 0, .6);
-    draw(worldSpaceGround);
+//    draw(worldSpaceGround);
     
     glUniform4f(u1, 0, 0, 1, .6);
     draw(worldSpaceClipedGround);
