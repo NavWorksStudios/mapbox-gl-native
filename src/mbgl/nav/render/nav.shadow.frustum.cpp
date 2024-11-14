@@ -226,16 +226,17 @@ void Frumstum::update(const mbgl::TransformState& state, const std::vector<mbgl:
             const double zf = fmax(0., fmin(1., (state.getZoom() - 15.) / 4.)); // (0, 1) 15-20
             const double pf = fmin(state.getPitch() / M_PI * 180. / 70., 1.); // (0, 1) 俯视, 平视
             
+            // 查表操作，可以调整zp曲线
             //       俯视                                       平视
             //  z\p |.0 |.1 |.2 |.3 |.4 |.5 |.6 |.7 |.8 |.9 |1. |
             // .0   |   |   |   |   |   |   |1. |   |   |   |.4 |
-            //                                                  |
-            //                                                  |
-            //                                                  |
+            //                             /                    |
+            //                           /                      |
+            //                         /                        |
             //                   left                           | right
-            //                                                  |
-            //                                                  |
-            //                                                  |
+            //                      /                           |
+            //                    /                             |
+            //                  /                               |
             // .1   |   |   |.5 |   |   |   |   |   |   |   |.05|
             // 近
             
