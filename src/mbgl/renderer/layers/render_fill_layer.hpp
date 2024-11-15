@@ -36,7 +36,7 @@ private:
     
     struct Textures {
         std::string diffuse, normal, reflection;
-        float type;
+        float type { 0. };
     } textures;
     
 };

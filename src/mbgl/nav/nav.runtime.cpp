@@ -198,15 +198,18 @@ void load(const std::string& path) {
 
     imageMap["dummy"].path = "dummy.png";
     
-    imageMap["grass_1"].path = "grass_1.png";
-    imageMap["grass_normal_1"].path = "grass_normal_1.png";
-    
-    imageMap["grass_2"].path = "grass_2.jpg";
-    imageMap["grass_normal_2"].path = "grass_normal_2.jpg";
-    
     imageMap["water"].path = "water.jpg";
-    imageMap["water_normal"].path = "water_normal.jpg";
-    imageMap["water_reflection"].path = "water_reflection.jpg";
+    imageMap["water.normal"].path = "water.normal.jpg";
+    imageMap["water.reflection"].path = "water.reflection.jpg";
+    
+    imageMap["grass.1"].path = "grass.1.png";
+    imageMap["grass.1.normal"].path = "grass.1.normal.png";
+    
+    imageMap["grass.2"].path = "grass.2.jpg";
+    imageMap["grass.2.normal"].path = "grass.2.normal.jpg";
+    
+    imageMap["grass.3"].path = "grass.3.jpg";
+    imageMap["grass.3.normal"].path = "grass.3.normal.jpg";
 }
 
 void release() {

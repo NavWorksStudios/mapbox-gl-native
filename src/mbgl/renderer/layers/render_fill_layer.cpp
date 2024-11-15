@@ -44,13 +44,11 @@ RenderFillLayer::RenderFillLayer(Immutable<style::FillLayer::Impl> _impl)
     enableWaterEffect = (getID() == "water");
 
     if (getID() == "water") {
-        textures = { "water", "water_normal", "water_reflection", 3 };
+        textures = { "water", "water.normal", "water.reflection", 1 };
     } else if (getID() == "landuse") {
-        textures = { "grass_1", "grass_normal_1", "", 2 };
+        textures = { "grass.3", "grass.3.normal", "", 2 };
     } else if (getID() == "national-park") {
-        textures = { "grass_2", "grass_normal_2", "", 2 };
-    } else {
-        textures = { "", "", "", 0 };
+        textures = { "grass.2", "grass.2.normal", "", 3 };
     }
 
 }
@@ -124,24 +122,32 @@ void RenderFillLayer::render(PaintParameters& parameters) {
     if (unevaluated.get<FillPattern>().isUndefined()) {
         parameters.renderTileClippingMasks(renderTiles);
         
+        light::lightDirection(parameters.evaluatedLight, parameters.state);
+        
         const auto& color = nav::palette::getColorBase();
+        const auto palette_lightness = enableShaderPalette ? (color.r + color.g + color.b) / 3. : 0.;
+        const auto water_wave = enableWaterEffect ? util::clamp((parameters.state.getZoom() - 13.) * .3, 0., 1.) : 0.;
+        const auto& size = nav::runtime::texture::get(textures.diffuse).size;
         FillProgram::LayoutUniformValues layoutUniformValues = {
             uniforms::matrix::Value(),
             uniforms::model_matrix::Value(),
             uniforms::world::Value( parameters.backend.getDefaultRenderable().getSize() ),
+            
             uniforms::spotlight::Value( nav::runtime::spotlight::value() ),
             uniforms::render_time::Value( nav::runtime::rendertime::value() ),
             uniforms::palette_color::Value( color ),
-            uniforms::palette_lightness::Value( enableShaderPalette ? (color.r+color.g+color.b)/3. : 0. ),
-            uniforms::water_wave::Value( enableWaterEffect ? util::clamp((parameters.state.getZoom()-13.)*.3,0.,1.) : 0. ),
+            uniforms::palette_lightness::Value( palette_lightness ),
+            uniforms::water_wave::Value( water_wave ),
             uniforms::water_data_z_scale::Value(),
             uniforms::clip_region::Value( nav::display::clip_region() ),
             uniforms::focus_region::Value( nav::display::focus_region() ),
-            uniforms::texsize::Value( nav::runtime::texture::get(textures.diffuse).size ),
+            
+            uniforms::model_matrix_p20::Value(),
+            uniforms::texsize::Value( size ),
             uniforms::textype::Value( textures.type ),
-            uniforms::camera_pos::Value(parameters.state.getCameraPosition()),
-            uniforms::lightpos::Value(light::lightColor(parameters.evaluatedLight)),
-            uniforms::lightcolor::Value(light::lightDirection(parameters.evaluatedLight, parameters.state)),
+            uniforms::camera_pos::Value( parameters.state.getCameraPosition() ),
+            uniforms::lightcolor::Value( light::lightColor(parameters.evaluatedLight) ),
+            uniforms::lightpos::Value( nav::runtime::sunlight::pos() ),
         };
         
         size_t renderIndex = -1;
@@ -168,8 +174,9 @@ void RenderFillLayer::render(PaintParameters& parameters) {
             
             const auto& matrix = tile.translatedMatrix(evaluated.get<FillTranslate>(), evaluated.get<FillTranslateAnchor>(), parameters.state);
             layoutUniformValues.template get<uniforms::matrix>() = matrix;
-            layoutUniformValues.template get<uniforms::model_matrix>() = tile.modelMatrixP20;
-            layoutUniformValues.template get<uniforms::water_data_z_scale>() = pow(2.,16.-tile.id.canonical.z); // data_z [13,16]
+            layoutUniformValues.template get<uniforms::model_matrix>() = tile.modelMatrix;
+            layoutUniformValues.template get<uniforms::model_matrix_p20>() = tile.modelMatrixP20;
+            layoutUniformValues.template get<uniforms::water_data_z_scale>() = pow(2., 16. - tile.id.canonical.z); // data_z [13,16]
 
             const auto draw = [&] (auto& programInstance,
                                    const auto& drawMode,
@@ -210,7 +217,7 @@ void RenderFillLayer::render(PaintParameters& parameters) {
                 return {
                     nav::runtime::texture::get(name).getResource(),
                     gfx::TextureFilterType::Nearest,
-                    gfx::TextureMipMapType::Yes,
+                    gfx::TextureMipMapType::No,
                     gfx::TextureWrapType::Repeat,
                     gfx::TextureWrapType::Repeat
                 };

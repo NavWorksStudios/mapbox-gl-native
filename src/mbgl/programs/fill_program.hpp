@@ -24,7 +24,8 @@ using FillUniforms = TypeList<
     uniforms::matrix,
     uniforms::model_matrix,
     uniforms::world,
-    // 五彩地面及水波纹参数
+
+    // P1 五彩地面及水波纹参数
     uniforms::spotlight,                // 五彩地面开启标示
     uniforms::render_time,              // 渲染周期时间
     uniforms::palette_color,            // 调色板基色
@@ -33,9 +34,11 @@ using FillUniforms = TypeList<
     uniforms::water_data_z_scale,       // 水波纹参数
     uniforms::clip_region,              // 视口远端切割范围
     uniforms::focus_region,             // 探照灯范围
-    // 水面贴图、地面贴图参数
+
+    // P2 水体草地贴图参数
+    uniforms::model_matrix_p20,         // P20坐标，确定贴图纹理坐标
     uniforms::texsize,                  // 贴图尺寸
-    uniforms::textype,                  // 贴图类别: 0.-无材质贴图，1.-含有基础颜色、法线贴图、高光反射贴图，2.-含有基础颜色、法线贴图，无高光反射贴图
+    uniforms::textype,                  // 贴图类别
     uniforms::camera_pos,               // 相机位置
     uniforms::lightcolor,               // 平行光色
     uniforms::lightpos                  // 平行光位置

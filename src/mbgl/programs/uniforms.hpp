@@ -11,6 +11,7 @@ namespace uniforms {
 
 MBGL_DEFINE_UNIFORM_MATRIX(double, 4, matrix);              // mvp
 MBGL_DEFINE_UNIFORM_MATRIX(double, 4, model_matrix);        // m
+MBGL_DEFINE_UNIFORM_MATRIX(double, 4, model_matrix_p20);    // m
 MBGL_DEFINE_UNIFORM_MATRIX(double, 4, model_view_matrix);   // mv
 MBGL_DEFINE_UNIFORM_MATRIX(double, 4, normal_matrix);       // mv normal
 MBGL_DEFINE_UNIFORM_MATRIX(double, 4, light_matrix);        // light mvp

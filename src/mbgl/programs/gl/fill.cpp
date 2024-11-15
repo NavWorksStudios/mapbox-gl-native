@@ -78,22 +78,22 @@ vec2 get_pattern_pos(const vec2 pixel_coord_upper,const vec2 pixel_coord_lower,c
 static const char* navVertex(const char* ) { return R"(
 
 uniform mat4 u_matrix;
-uniform mat4 u_model_matrix;
 uniform lowp float u_base;
+
 uniform lowp vec4 u_palette_color;
 uniform lowp float u_palette_lightness;
-uniform float u_textype;
+
 uniform vec2 u_texsize;
+uniform float u_textype;
+
 uniform sampler2D u_image;
 uniform sampler2D u_image0;
 uniform sampler2D u_image1;
         
 attribute vec2 a_pos;
 
-varying lowp vec3 v_pos;
-varying lowp vec3 v_world_pos;
-varying lowp vec2 v_texture_pos;
-varying highp vec4 v_world_pixel_coord;
+varying vec3 v_pos;
+varying vec4 v_model_pos;
 
 #ifndef HAS_UNIFORM_u_color
     uniform lowp float u_color_t;
@@ -162,19 +162,17 @@ void main() {
 #else
     mediump float width=u_width;
 #endif
-       
-    gl_Position = u_matrix*vec4(a_pos,u_base,1.);
+    
+    vec4 pos = vec4(a_pos, u_base, 1.);
+    gl_Position = u_matrix * pos;
 
     v_pos = gl_Position.xyz;
-    v_texture_pos = a_pos;
-
-    v_world_pixel_coord = u_model_matrix * vec4(a_pos,u_base,1.) / 8192. * 512.;
-    v_world_pos = vec3(u_model_matrix * vec4(a_pos, u_base, 1.));
+    v_model_pos = pos;
 
 #ifndef HAS_UNIFORM_u_color
     // 灰阶色变换主题色
     if (u_palette_lightness > 0.) {
-        lowp float lightness=color.r / u_palette_lightness;
+        lowp float lightness = color.r / u_palette_lightness;
         color = vec4(u_palette_color.rgb * lightness, color.a);
     }
 #endif

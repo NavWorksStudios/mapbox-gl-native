@@ -4,12 +4,8 @@ namespace p2 {
  
 static const char* navFragment(const char* ) { return R"(
 
-uniform lowp float u_spotlight;
-uniform lowp float u_render_time;
-uniform lowp float u_water_wave;
-uniform lowp float u_water_data_z_scale;
-uniform lowp float u_clip_region;
-uniform lowp float u_focus_region;
+uniform mat4 u_model_matrix;
+uniform mat4 u_model_matrix_p20;
     
 uniform float u_textype;    // 纹理类型
 uniform vec2 u_texsize;     // 纹理图尺寸:宽高
@@ -20,11 +16,8 @@ uniform vec3 u_lightpos;    // 平行光位置
 uniform sampler2D u_image;  // 纹理图-diffuse
 uniform sampler2D u_image0; // 纹理图-normal
 uniform sampler2D u_image1; // 纹理图-reflection
-        
-varying lowp vec3 v_pos;
-varying lowp vec3 v_world_pos;
-varying lowp vec2 v_texture_pos;
-varying highp vec4 v_world_pixel_coord;
+
+varying vec4 v_model_pos;
 
 #ifndef HAS_UNIFORM_u_color
     varying highp vec4 color;
@@ -50,32 +43,60 @@ void main() {
     lowp float opacity=u_opacity;
 #endif
 
-    if(u_textype > 0.) {
+    if (u_textype > 0.) {
+        vec3 world_pos = vec3(u_model_matrix * v_model_pos);
+        vec3 world_pos_p20 = vec3(u_model_matrix_p20 * v_model_pos);
+        vec2 uv = vec2(world_pos_p20.x / 2. / u_texsize[0], world_pos_p20.y / 2. / u_texsize[1]);
 
-        // texture uv
-        vec2 uv = vec2(
-            mod(v_world_pixel_coord.x, u_texsize[0]) / u_texsize[0],
-            mod(v_world_pixel_coord.y, u_texsize[1]) / u_texsize[1]
-        );
+        if (u_textype == 1.) { // 水
 
-        vec3 tex_color = texture2D(u_image, uv).rgb;
+            const float Material_ambient = .8; // 环境光
+            const float Material_diffuse = .2; // 漫反射
+            const float Material_specular = .1; // 镜面反射
+            const float Material_shininess = 5.; // 镜面反射率
 
-        // diffuse
-        vec3 norm = texture2D(u_image0, uv).rgb;
-        norm = normalize(norm * 2.0 - 1.0);
-        vec3 lightDir = normalize(u_lightpos);
-        tex_color = tex_color * max(dot(norm, lightDir), 0.0);
+            // Ambient Lighting
+            const float ambient = Material_ambient;
 
-        // specular
-        if(u_textype > 2.) {
-            vec3 specular = texture2D(u_image1, uv).rgb;
-            vec3 viewDir = normalize(v_world_pos - u_camera_pos);
+            // Diffuse Lighting
+            vec3 norm = texture2D(u_image0, uv).rgb;
+            norm = normalize(norm * 2.0 - 1.0); // z > 0.
+            vec3 lightDir = normalize(u_lightpos);
+            float diffuse = max(dot(norm, lightDir), 0.) * Material_diffuse;
+
+            // Specular Lighting
+            vec3 viewDir = normalize(u_camera_pos - world_pos);
             vec3 reflectDir = reflect(-lightDir, norm);
-            tex_color += specular * pow(max(dot(viewDir, reflectDir), 0.0), 2.);
+            float contast_dot = (max(dot(viewDir, reflectDir), 0.) - .5) * 2. + .5;
+            float specular = pow(contast_dot, Material_shininess) * Material_specular;
+            specular = clamp(specular, 0., 1.);
+
+            vec3 baselight = color.rgb * (ambient + diffuse) * (1. - specular);
+            vec3 specularlight = vec3(.92, .97, .97) * specular;
+
+            gl_FragColor = vec4(baselight + specularlight, 1.) * opacity;
+     
+        } else if (u_textype == 2.) { // 草
+
+            vec3 tex_color = texture2D(u_image, uv).rgb;
+
+            // Ambient Lighting
+            const float ambient = .5;
+
+            // Diffuse Lighting
+            vec3 norm = texture2D(u_image0, uv).rgb;
+            norm = normalize(norm * 2.0 - 1.0);
+            vec3 lightDir = normalize(u_lightpos);
+            float diffuse = max(dot(norm, lightDir), 0.0) * .5;
+
+            gl_FragColor = vec4(tex_color * (ambient + diffuse), 1.0) * opacity;
+
+        } else {
+
+            gl_FragColor = color * opacity;
+
         }
 
-        gl_FragColor = vec4(tex_color, 1.0) * opacity;
- 
     } else {
 
         gl_FragColor = color * opacity;
