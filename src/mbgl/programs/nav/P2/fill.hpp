@@ -3,12 +3,8 @@ namespace nav {
 namespace p2 {
  
 static const char* navFragment(const char* ) { return R"(
-
-uniform mat4 u_model_matrix;
-uniform mat4 u_model_matrix_p20;
     
 uniform float u_textype;    // 纹理类型
-uniform vec2 u_texsize;     // 纹理图尺寸:宽高
 uniform vec3 u_camera_pos;  // 主相机位置
 uniform vec3 u_lightcolor;  // 平行光色
 uniform vec3 u_lightpos;    // 平行光位置
@@ -17,12 +13,13 @@ uniform sampler2D u_image;  // 纹理图-diffuse
 uniform sampler2D u_image0; // 纹理图-normal
 uniform sampler2D u_image1; // 纹理图-reflection
 
-varying vec4 v_model_pos;
+varying vec3 v_world_pos;
+varying vec2 v_uv;
 
 #ifndef HAS_UNIFORM_u_color
-    varying highp vec4 color;
+    varying vec4 color;
 #else
-    uniform highp vec4 u_color;
+    uniform vec4 u_color;
 #endif
 
 #ifndef HAS_UNIFORM_u_opacity
@@ -36,7 +33,7 @@ varying vec4 v_model_pos;
 void main() {
 
 #ifdef HAS_UNIFORM_u_color
-    highp vec4 color=u_color;
+    vec4 color=u_color;
 #endif
 
 #ifdef HAS_UNIFORM_u_opacity
@@ -44,10 +41,6 @@ void main() {
 #endif
 
     if (u_textype > 0.) {
-        vec3 world_pos = vec3(u_model_matrix * v_model_pos);
-        vec3 world_pos_p20 = vec3(u_model_matrix_p20 * v_model_pos);
-        vec2 uv = vec2(world_pos_p20.x / 2. / u_texsize[0], world_pos_p20.y / 2. / u_texsize[1]);
-
         if (u_textype == 1.) { // 水
 
             const float Material_ambient = .8; // 环境光
@@ -59,13 +52,13 @@ void main() {
             const float ambient = Material_ambient;
 
             // Diffuse Lighting
-            vec3 norm = texture2D(u_image0, uv).rgb;
+            vec3 norm = texture2D(u_image0, v_uv).rgb;
             norm = normalize(norm * 2.0 - 1.0); // z > 0.
             vec3 lightDir = normalize(u_lightpos);
             float diffuse = max(dot(norm, lightDir), 0.) * Material_diffuse;
 
             // Specular Lighting
-            vec3 viewDir = normalize(u_camera_pos - world_pos);
+            vec3 viewDir = normalize(u_camera_pos - v_world_pos);
             vec3 reflectDir = reflect(-lightDir, norm);
             float contast_dot = (max(dot(viewDir, reflectDir), 0.) - .5) * 2. + .5;
             float specular = pow(contast_dot, Material_shininess) * Material_specular;
@@ -78,18 +71,21 @@ void main() {
      
         } else if (u_textype == 2.) { // 草
 
-            vec3 tex_color = texture2D(u_image, uv).rgb;
+            const float Material_ambient = .5; // 环境光
+            const float Material_diffuse = .5; // 漫反射
+
+            vec4 tex_color = texture2D(u_image, v_uv);
 
             // Ambient Lighting
-            const float ambient = .5;
+            const float ambient = Material_ambient;
 
             // Diffuse Lighting
-            vec3 norm = texture2D(u_image0, uv).rgb;
+            vec3 norm = texture2D(u_image0, v_uv).rgb;
             norm = normalize(norm * 2.0 - 1.0);
             vec3 lightDir = normalize(u_lightpos);
-            float diffuse = max(dot(norm, lightDir), 0.0) * .5;
+            float diffuse = max(dot(norm, lightDir), 0.0) * Material_diffuse;
 
-            gl_FragColor = vec4(tex_color * (ambient + diffuse), 1.0) * opacity;
+            gl_FragColor = vec4(tex_color.rgb * (ambient + diffuse), .5) * opacity;
 
         } else {
 

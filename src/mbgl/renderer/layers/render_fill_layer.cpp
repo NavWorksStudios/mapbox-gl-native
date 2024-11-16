@@ -44,11 +44,11 @@ RenderFillLayer::RenderFillLayer(Immutable<style::FillLayer::Impl> _impl)
     enableWaterEffect = (getID() == "water");
 
     if (getID() == "water") {
-        textures = { "water", "water.normal", "water.reflection", 1 };
+        textures = { "", "water.normal", "", 1 };
     } else if (getID() == "landuse") {
-        textures = { "grass.3", "grass.3.normal", "", 2 };
+        textures = { "grass.1", "grass.1.normal", "", 2 };
     } else if (getID() == "national-park") {
-        textures = { "grass.2", "grass.2.normal", "", 3 };
+        textures = { "grass.2", "grass.2.normal", "", 2 };
     }
 
 }
@@ -127,7 +127,7 @@ void RenderFillLayer::render(PaintParameters& parameters) {
         const auto& color = nav::palette::getColorBase();
         const auto palette_lightness = enableShaderPalette ? (color.r + color.g + color.b) / 3. : 0.;
         const auto water_wave = enableWaterEffect ? util::clamp((parameters.state.getZoom() - 13.) * .3, 0., 1.) : 0.;
-        const auto& size = nav::runtime::texture::get(textures.diffuse).size;
+        if (textures.type > 0) textures.size = nav::runtime::texture::get(textures.normal).size;
         FillProgram::LayoutUniformValues layoutUniformValues = {
             uniforms::matrix::Value(),
             uniforms::model_matrix::Value(),
@@ -143,7 +143,7 @@ void RenderFillLayer::render(PaintParameters& parameters) {
             uniforms::focus_region::Value( nav::display::focus_region() ),
             
             uniforms::model_matrix_p20::Value(),
-            uniforms::texsize::Value( size ),
+            uniforms::texsize::Value( textures.size ),
             uniforms::textype::Value( textures.type ),
             uniforms::camera_pos::Value( parameters.state.getCameraPosition() ),
             uniforms::lightcolor::Value( light::lightColor(parameters.evaluatedLight) ),

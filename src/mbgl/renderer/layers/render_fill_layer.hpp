@@ -37,6 +37,7 @@ private:
     struct Textures {
         std::string diffuse, normal, reflection;
         float type { 0. };
+        mbgl::Size size;
     } textures;
     
 };

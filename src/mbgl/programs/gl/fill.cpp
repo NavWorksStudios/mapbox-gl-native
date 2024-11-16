@@ -78,6 +78,8 @@ vec2 get_pattern_pos(const vec2 pixel_coord_upper,const vec2 pixel_coord_lower,c
 static const char* navVertex(const char* ) { return R"(
 
 uniform mat4 u_matrix;
+uniform mat4 u_model_matrix;
+uniform mat4 u_model_matrix_p20;
 uniform lowp float u_base;
 
 uniform lowp vec4 u_palette_color;
@@ -92,15 +94,15 @@ uniform sampler2D u_image1;
         
 attribute vec2 a_pos;
 
-varying vec3 v_pos;
-varying vec4 v_model_pos;
+varying vec3 v_world_pos;
+varying vec2 v_uv;
 
 #ifndef HAS_UNIFORM_u_color
     uniform lowp float u_color_t;
-    attribute highp vec4 a_color;
-    varying highp vec4 color;
+    attribute vec4 a_color;
+    varying vec4 color;
 #else
-    uniform highp vec4 u_color;
+    uniform vec4 u_color;
 #endif
 
 #ifndef HAS_UNIFORM_u_opacity
@@ -166,8 +168,12 @@ void main() {
     vec4 pos = vec4(a_pos, u_base, 1.);
     gl_Position = u_matrix * pos;
 
-    v_pos = gl_Position.xyz;
-    v_model_pos = pos;
+    v_world_pos = vec3(u_model_matrix * pos);
+
+    const float scaleFactor = 1. / 1.;
+    v_uv = vec2(u_model_matrix_p20 * pos);
+    v_uv = fract(v_uv / 102400.) * 102400.;
+    v_uv /= u_texsize * scaleFactor;
 
 #ifndef HAS_UNIFORM_u_color
     // 灰阶色变换主题色
