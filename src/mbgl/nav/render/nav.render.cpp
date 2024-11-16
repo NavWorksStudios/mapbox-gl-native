@@ -83,7 +83,7 @@ struct GLConfigAutoRestore {
     Value<CullFaceWinding> cullFaceWinding;
 };
 
-bool _showDebugWindow = true;
+bool _showDebugWindow = false;
 
 void switchDebugWindow() {
     _showDebugWindow = !_showDebugWindow;
