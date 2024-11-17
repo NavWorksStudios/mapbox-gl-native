@@ -98,13 +98,8 @@ GLuint fbo = 0;
 GLuint buffer = 0;
 
 GLuint program() {
-    static GLuint pass = 0;
-    if (!pass) {
-        pass =
-        createProgram(compileShader(GL_VERTEX_SHADER, nav::programs::ssao::vertexShader()),
-                      compileShader(GL_FRAGMENT_SHADER, nav::programs::ssao::fragmentShader()));
-    }
-    
+    static GLuint pass = createProgram(compileShader(GL_VERTEX_SHADER, nav::programs::ssao::vertexShader()),
+                                       compileShader(GL_FRAGMENT_SHADER, nav::programs::ssao::fragmentShader()));
     return pass;
 }
 

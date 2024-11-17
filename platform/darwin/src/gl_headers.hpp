@@ -13,6 +13,10 @@ inline void glGenVertexArrays(GLsizei n, GLuint *ids) {
     glGenVertexArraysAPPLE(n, ids);
 }
 
+inline void glDeleteVertexArrays(GLsizei n, const GLuint *ids) {
+    glDeleteVertexArraysAPPLE(n, ids);
+}
+
 inline void glBindVertexArray(GLuint id) {
     glBindVertexArrayAPPLE(id);
 }

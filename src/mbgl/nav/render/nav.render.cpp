@@ -83,7 +83,7 @@ struct GLConfigAutoRestore {
     Value<CullFaceWinding> cullFaceWinding;
 };
 
-bool _showDebugWindow = false;
+bool _showDebugWindow = true;
 
 void switchDebugWindow() {
     _showDebugWindow = !_showDebugWindow;
@@ -166,12 +166,11 @@ void renderDeferred(const mbgl::PaintParameters& parameters,
         
         {
             Viewport::Set({x, 20, size});
+            quad::renderRedChannel(shadowBuffer, .8);
             
             mbgl::mat4 matrix;
             parameters.state.getSunlightProjMatrix(matrix);
             shadow::frustum::ortho::sunlight().renderGroundProjection(matrix);
-            
-            quad::renderRedChannel(shadowBuffer, .8);
         }
         
         {

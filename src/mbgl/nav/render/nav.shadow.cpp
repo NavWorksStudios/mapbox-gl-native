@@ -108,13 +108,8 @@ const static GLfloat vertices[36] = {
     0.0f, 0.0f, 1.0f, 0.0f };
 
 GLuint program() {
-    static GLint pass = 0;
-    if (!pass) {
-        pass =
-        createProgram(compileShader(GL_VERTEX_SHADER, nav::programs::ground::vertexShader()),
-                      compileShader(GL_FRAGMENT_SHADER, nav::programs::ground::fragmentShader()));
-    }
-    
+    static GLint pass = createProgram(compileShader(GL_VERTEX_SHADER, nav::programs::ground::vertexShader()),
+                                      compileShader(GL_FRAGMENT_SHADER, nav::programs::ground::fragmentShader()));
     return pass;
 }
 
