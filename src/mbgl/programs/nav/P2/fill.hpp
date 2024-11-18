@@ -8,6 +8,7 @@ uniform float u_textype;    // 纹理类型
 uniform vec3 u_camera_pos;  // 主相机位置
 uniform vec3 u_lightcolor;  // 平行光色
 uniform vec3 u_lightpos;    // 平行光位置
+uniform float u_tex_viability;  // 贴图留存系数
 
 uniform sampler2D u_image;  // 纹理图-diffuse
 uniform sampler2D u_image0; // 纹理图-normal
@@ -93,12 +94,14 @@ void main() {
 
         }
 
+        gl_FragColor = (gl_FragColor * u_tex_viability + color * (1.0 - u_tex_viability)) * opacity;
+
     } else {
 
         gl_FragColor = color * opacity;
 
     }
-        
+    
 #ifdef OVERDRAW_INSPECTOR
     gl_FragColor=vec4(1.0);
 #endif

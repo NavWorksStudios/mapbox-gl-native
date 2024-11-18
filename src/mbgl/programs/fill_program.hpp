@@ -39,6 +39,7 @@ using FillUniforms = TypeList<
     uniforms::model_matrix_p20,         // P20坐标，确定贴图纹理坐标
     uniforms::texsize,                  // 贴图尺寸
     uniforms::textype,                  // 贴图类别
+    uniforms::tex_viability,            // 贴图留存系数
     uniforms::camera_pos,               // 相机位置
     uniforms::lightcolor,               // 平行光色
     uniforms::lightpos                  // 平行光位置
