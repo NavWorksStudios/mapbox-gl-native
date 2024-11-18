@@ -144,7 +144,7 @@ void RenderFillLayer::render(PaintParameters& parameters) {
             
             uniforms::model_matrix_p20::Value(),
             uniforms::texsize::Value( textures.size ),
-            uniforms::textype::Value( textures.type ),
+            uniforms::textype::Value( parameters.state.getZoom() < 15 ? 0 : textures.type ),
             uniforms::camera_pos::Value( parameters.state.getCameraPosition() ),
             uniforms::lightcolor::Value( light::lightColor(parameters.evaluatedLight) ),
             uniforms::lightpos::Value( nav::runtime::sunlight::pos() ),
