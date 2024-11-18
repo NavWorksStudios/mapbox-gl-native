@@ -31,7 +31,7 @@ struct AABB {
 
 struct Frumstum {
     void update(const mbgl::TransformState& state, const std::vector<mbgl::OverscaledTileID>& tileIDs);
-    void renderAreaProjection(const mbgl::mat4& lightProjMatrix);
+    void renderArea(const mbgl::mat4& lightProjMatrix);
     inline const AABB& getFrustum() const { return frustumAABB; }
     
 private:

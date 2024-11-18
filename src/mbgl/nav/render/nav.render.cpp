@@ -15,11 +15,7 @@
 #include "mbgl/nav/render/nav.geo.hpp"
 #include "mbgl/nav/render/nav.ssao.hpp"
 #include "mbgl/nav/render/nav.quad.hpp"
-
-#include <mbgl/gl/value.hpp>
-
-using namespace mbgl::gl::value;
-using namespace mbgl::gfx;
+#include "mbgl/nav/render/nav.glvalue.hpp"
 
 
 namespace nav {
@@ -48,41 +44,6 @@ GLuint genTexture(GLint internalformat, GLsizei width, GLsizei height, GLenum fo
     return genTexture(internalformat, width, height, format, type, nullptr);
 }
 
-struct GLConfigAutoRestore {
-    template <typename T> struct Value {
-        typename T::Type v = T::Default;
-        Value() { v = T::Get(); }
-        ~Value() { restore(); }
-        void restore() { T::Set(v); }
-        operator typename T::Type () { return v; }
-        operator const typename T::Type () const { return v; }
-    };
-    
-    Value<ClearDepth> clearDepth;
-    Value<ClearColor> clearColor;
-    Value<ClearStencil> clearStencil;
-    Value<StencilMask> stencilMask;
-    Value<DepthMask> depthMask;
-    Value<ColorMask> colorMask;
-    Value<StencilFunc> stencilFunc;
-    Value<StencilTest> stencilTest;
-    Value<StencilOp> stencilOp;
-    Value<DepthRange> depthRange;
-    Value<DepthTest> depthTest;
-    Value<DepthFunc> depthFunc;
-    Value<Blend> blend;
-    Value<BlendEquation> blendEquation;
-    Value<BlendFunc> blendFunc;
-    Value<BlendColor> blendColor;
-    Value<Program> program;
-    Value<Viewport> viewPort;
-    Value<ScissorTest> scissorTest;
-    Value<BindFramebuffer> bindFramebuffer;
-    Value<CullFace> cullFace;
-    Value<CullFaceSide> cullFaceSide;
-    Value<CullFaceWinding> cullFaceWinding;
-};
-
 bool _showDebugWindow = true;
 
 void switchDebugWindow() {
@@ -110,53 +71,35 @@ GLuint get() {
 }
 
 void renderDeferred(const mbgl::PaintParameters& parameters,
-                    std::function<void()> renderShadowDelegate,
-                    std::function<void()> renderHaloDelegate,
-                    std::function<void()> renderGeoDelegate) {
+                    std::function<void()> shadowRenderDelegate,
+                    std::function<void()> haloRenderDelegate,
+                    std::function<void()> geoRenderDelegate) {
     const float zoom = parameters.state.getZoom();
     if (zoom < 15.) return;
     
-    GLConfigAutoRestore config;
-
-    static auto resetDrawMode = [] () {
-        DepthTest::Set(true);
-        DepthMask::Set(DepthMaskType::ReadWrite);
-        DepthFunc::Set(DepthFunctionType::LessEqual);
-        
-        StencilTest::Set(false);
-        
-        CullFace::Set(true);
-        CullFaceSide::Set(CullFaceSideType::Back);
-        
-        Blend::Set(true);
-        BlendFunc::Set({ColorBlendFactorType::One, ColorBlendFactorType::OneMinusSrcAlpha});
-    };
+    gl::Value<Viewport> viewPort;
+    gl::Value<BindFramebuffer> bindFramebuffer;
     
     const int w = renderbuffer::width();
     const int h = renderbuffer::height();
     const auto renderBuffer = renderbuffer::get();
     
     // 1
-    resetDrawMode();
-    const auto shadowBuffer = shadow::render(w, h, renderShadowDelegate);
+    const auto shadowBuffer = shadow::render(w, h, shadowRenderDelegate);
     
     // 2
-    resetDrawMode();
-    const auto haloBuffer = halo::render(w, h, renderHaloDelegate);
+    const auto haloBuffer = halo::render(w, h, haloRenderDelegate);
 
     // 3
-    resetDrawMode();
-    const auto gbuffer = geo::renderGeoAndShadow(w, h, renderBuffer, shadowBuffer, renderGeoDelegate);
+    const auto gbuffer = geo::renderGeoAndShadow(w, h, renderBuffer, shadowBuffer, geoRenderDelegate);
     
     // 4
-    resetDrawMode();
     const auto& projMatrix = convertMatrix4(parameters.state.getViewToClipMatrix());
     ssao::render(w, h, zoom, projMatrix, renderBuffer, haloBuffer, gbuffer);
     
     // 5
-    resetDrawMode();
-    config.bindFramebuffer.restore();
-    config.viewPort.restore();
+    bindFramebuffer.restore();
+    viewPort.restore();
     quad::renderBlur(renderBuffer, w, h);
     
     // 6
@@ -168,7 +111,7 @@ void renderDeferred(const mbgl::PaintParameters& parameters,
             Viewport::Set({x, 20, size});
             
             const auto& projMatrix = parameters.state.getSunlightViewToClipMatrix();
-            shadow::frustum::ortho::sunlight().renderAreaProjection(projMatrix);
+            shadow::frustum::ortho::sunlight().renderArea(projMatrix);
             
             quad::renderRedChannel(shadowBuffer, .8);
         }
@@ -191,7 +134,7 @@ void renderDeferred(const mbgl::PaintParameters& parameters,
 }
 
 void renderLogo(const mbgl::PaintParameters& parameters) {
-    GLConfigAutoRestore config;
+    gl::Value<Viewport> viewPort;
     
     const int w = renderbuffer::width();
     const int h = renderbuffer::height();

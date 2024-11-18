@@ -17,24 +17,23 @@ namespace render {
 namespace quad {
 
 void render(GLint program) {
-    static GLuint quadVAO = 0;
-    if (!quadVAO) {
-        float quadVertices[] = {
+    static GLuint vao = 0;
+    if (!vao) {
+        const float vertices[] = {
             // positions            // texture Coords
             -1.0f,  1.0f, 0.0f,     0.0f, 1.0f,
             -1.0f, -1.0f, 0.0f,     0.0f, 0.0f,
             1.0f,  1.0f, 0.0f,     1.0f, 1.0f,
             1.0f, -1.0f, 0.0f,     1.0f, 0.0f,
         };
+
+        glGenVertexArrays(1, &vao);
+        glBindVertexArray(vao);
         
-        static GLuint quadVBO;
-        
-        // setup plane VAO
-        glGenVertexArrays(1, &quadVAO);
-        glGenBuffers(1, &quadVBO);
-        glBindVertexArray(quadVAO);
-        glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
+        static GLuint vbo;
+        glGenBuffers(1, &vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
         
         static programs::AttribLocation a0(program, "aPos");
         glEnableVertexAttribArray(a0);
@@ -45,7 +44,7 @@ void render(GLint program) {
         glVertexAttribPointer(a1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     }
     
-    glBindVertexArray(quadVAO);
+    glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);
 }

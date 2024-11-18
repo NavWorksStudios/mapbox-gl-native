@@ -181,11 +181,11 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
     
     // - NAV DEFERRED RENDERING PASS --------------------------------------------------------------------------------
     {
-        auto renderShadowDelegate = [&parameters] () {
+        auto shadowRenderDelegate = [&parameters] () {
             RenderFillExtrusionLayer::renderShadowBuffer(parameters);
         };
         
-        auto renderHaloDelegate = [&] () {
+        auto haloRenderDelegate = [&] () {
             int32_t i = static_cast<int32_t>(layerRenderItems.size()) - 1;
             for (auto it = layerRenderItems.begin(); it != layerRenderItems.end() && i >= 0; ++it, --i) {
                 parameters.currentLayer = i;
@@ -196,11 +196,11 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
             }
         };
         
-        auto renderGeoDelegate = [&parameters] () {
+        auto geoRenderDelegate = [&parameters] () {
             RenderFillExtrusionLayer::renderGeoBuffer(parameters);
         };
 
-        nav::render::renderDeferred(parameters, renderShadowDelegate, renderHaloDelegate, renderGeoDelegate);
+        nav::render::renderDeferred(parameters, shadowRenderDelegate, haloRenderDelegate, geoRenderDelegate);
     }
     
     // - ANNOTATION PASS --------------------------------------------------------------------------

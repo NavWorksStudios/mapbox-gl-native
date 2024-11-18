@@ -303,7 +303,7 @@ GLuint program() {
     return pass;
 }
 
-void Frumstum::renderAreaProjection(const mbgl::mat4& lightProjMatrix) {
+void Frumstum::renderArea(const mbgl::mat4& lightProjMatrix) {
     const GLint program = ortho::program();
     glUseProgram(program);
     

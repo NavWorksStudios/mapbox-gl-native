@@ -52,12 +52,14 @@ void main() {
     color = v_color;
 
     // draw line
-    lowp float dist=length(v_normal)*v_width2.s;
-    lowp float blur2=(blur+1.0/u_device_pixel_ratio)*v_gamma_scale;
-    lowp float alpha=clamp(min(dist-(v_width2.t-blur2),v_width2.s-dist)/blur2,0.0,1.0);
+    lowp float dist = length(v_normal) * v_width2.s;
+    lowp float blur2 = (blur + 1.0 / u_device_pixel_ratio) * v_gamma_scale;
+    lowp float alpha = clamp(min(dist - (v_width2.t - blur2), v_width2.s - dist) / blur2, 0.0, 1.0);
 
-    float tc = min(pow(dist/v_width2.s*2., 5.), 1.);
-    gl_FragColor=color*(alpha*opacity)*tc + v_traffic_color*(1.2-tc);
+    const float smooth = 2.; // 中心向边缘扩散平滑度
+    const float width = 2.; // 越大越细
+    float tc = min(pow(dist / v_width2.s * width, smooth), 1.); // 根据距离中心距离，计算颜色
+    gl_FragColor = color * (alpha * opacity) * tc + v_traffic_color * (1.2 - tc);
 
 #ifdef OVERDRAW_INSPECTOR
     gl_FragColor=vec4(1.0);

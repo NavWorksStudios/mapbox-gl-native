@@ -16,10 +16,10 @@
 #include "mbgl/nav/render/shaders.h"
 #include "mbgl/nav/render/nav.quad.hpp"
 #include "mbgl/nav/render/programs/nav.program.ssao.hpp"
+#include "mbgl/nav/render/nav.glvalue.hpp"
 
 #include <random>
 #include <array>
-#include <mutex>
 
 
 namespace nav {
@@ -115,85 +115,87 @@ void initResource(int width, int height) {
 
 void bindFbo(GLuint buffer) {
     glBindFramebuffer(GL_FRAMEBUFFER, ssao::fbo);
-    
     if (ssao::buffer != buffer) {
-        ssao::buffer = buffer;
-        
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssao::buffer, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssao::buffer = buffer, 0);
         glDrawBuffer(GL_COLOR_ATTACHMENT0);
     }
-    
 }
 
 void render(uint32_t width, uint32_t height, float zoom, const Mat4& projMatrix,
             GLuint renderBuffer, GLuint haloBuffer, const std::array<GLuint, 3>& gbuffer) {
     initResource(width, height);
     
-    bindFbo(renderBuffer);
-    glViewport(0, 0, width, height);
-    
-    const GLint program = ssao::program();
-    glUseProgram(program);
+    gl::Value<BindFramebuffer> bindFramebuffer;
+    gl::Value<Viewport> viewport;
+    gl::Value<Program> program;
+    gl::Value<Blend> blend;
     
     {
-        static GLint u_smaple_kernels[sample::kernel::SIZE];
-        static GLint u_sample_radius[sample::kernel::SIZE];
-        static GLint u_depth_bias[sample::kernel::SIZE];
+        bindFbo(renderBuffer);
+        Viewport::Set({0, 0, { width, height }});
+        Blend::Set(true);
         
-        static std::once_flag flag;
-        std::call_once(flag, [program] () {
-            for (unsigned int i = 0; i < sample::kernel::SIZE; ++i) {
-                std::string num = "[" + std::to_string(i) + "]";
-                
-                u_smaple_kernels[i] = programs::UniformLocation(program, ("u_smaple_kernels" + num).c_str());
-                u_sample_radius[i] = programs::UniformLocation(program, ("u_sample_radius" + num).c_str());
-                u_depth_bias[i] = programs::UniformLocation(program, ("u_depth_bias" + num).c_str());
+        const GLint program = ssao::program();
+        Program::Set(program);
+        
+        {
+            static GLint u_smaple_kernels[sample::kernel::SIZE];
+            static GLint u_sample_radius[sample::kernel::SIZE];
+            static GLint u_depth_bias[sample::kernel::SIZE];
+            
+            static std::once_flag flag;
+            std::call_once(flag, [program] () {
+                for (unsigned int i = 0; i < sample::kernel::SIZE; ++i) {
+                    std::string num = "[" + std::to_string(i) + "]";
+                    
+                    u_smaple_kernels[i] = programs::UniformLocation(program, ("u_smaple_kernels" + num).c_str());
+                    u_sample_radius[i] = programs::UniformLocation(program, ("u_sample_radius" + num).c_str());
+                    u_depth_bias[i] = programs::UniformLocation(program, ("u_depth_bias" + num).c_str());
+                }
+            });
+            
+            const float radius = .1;
+            const float bias = .0001;
+            for (int i=0; i<sample::kernel::SIZE; i++) {
+                const float scale = pow(2., i);
+                const Vec3 v = sample::kernel::random[i].scale(radius * scale);
+                glUniform3f(u_smaple_kernels[i], v.x, v.y, v.z);
+                glUniform1f(u_sample_radius[i], radius * scale);
+                glUniform1f(u_depth_bias[i], bias * scale);
             }
-        });
-        
-        const float radius = .1;
-        const float bias = .0001;
-        for (int i=0; i<sample::kernel::SIZE; i++) {
-            const float scale = pow(2., i);
-            const Vec3 v = sample::kernel::random[i].scale(radius * scale);
-            glUniform3f(u_smaple_kernels[i], v.x, v.y, v.z);
-            glUniform1f(u_sample_radius[i], radius * scale);
-            glUniform1f(u_depth_bias[i], bias * scale);
+            
+            static programs::UniformLocation u0(program, "u_projection");
+            glUniformMatrix4fv(u0, 1, GL_FALSE, reinterpret_cast<const float*>(&projMatrix));
+            
+            static programs::UniformLocation u1(program, "u_noise_uv_scale");
+            glUniform2f(u1, (float) width / sample::noise::SIZE, (float) height / sample::noise::SIZE);
+            
         }
         
-        static programs::UniformLocation u0(program, "u_projection");
-        glUniformMatrix4fv(u0, 1, GL_FALSE, reinterpret_cast<const float*>(&projMatrix));
-        
-        static programs::UniformLocation u1(program, "u_noise_uv_scale");
-        glUniform2f(u1, (float) width / sample::noise::SIZE, (float) height / sample::noise::SIZE);
-        
-    }
-    
-    {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, gbuffer[0]);
-        static programs::UniformLocation u0(program, "u_position");
-        glUniform1i(u0, 0);
-        
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, gbuffer[1]);
-        static programs::UniformLocation u1(program, "u_normal");
-        glUniform1i(u1, 1);
-        
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, gbuffer[2]);
-        static programs::UniformLocation u2(program, "u_albedo");
-        glUniform1i(u2, 2);
-        
-        glActiveTexture(GL_TEXTURE3);
-        glBindTexture(GL_TEXTURE_2D, sample::noise::texture);
-        static programs::UniformLocation u3(program, "u_noise");
-        glUniform1i(u3, 3);
-    }
+        {
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, gbuffer[0]);
+            static programs::UniformLocation u0(program, "u_position");
+            glUniform1i(u0, 0);
+            
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, gbuffer[1]);
+            static programs::UniformLocation u1(program, "u_normal");
+            glUniform1i(u1, 1);
+            
+            glActiveTexture(GL_TEXTURE2);
+            glBindTexture(GL_TEXTURE_2D, gbuffer[2]);
+            static programs::UniformLocation u2(program, "u_albedo");
+            glUniform1i(u2, 2);
+            
+            glActiveTexture(GL_TEXTURE3);
+            glBindTexture(GL_TEXTURE_2D, sample::noise::texture);
+            static programs::UniformLocation u3(program, "u_noise");
+            glUniform1i(u3, 3);
+        }
 
-    glEnable(GL_BLEND);
-    
-    quad::render(program);
+        quad::render(program);
+    }
 
 }
 

@@ -10,6 +10,7 @@
 #include "mbgl/nav/render/shaders.h"
 #include "mbgl/nav/render/nav.shadow.hpp"
 #include "mbgl/nav/render/programs/nav.program.ssao.hpp"
+#include "mbgl/nav/render/nav.glvalue.hpp"
 
 #include <random>
 
@@ -83,25 +84,28 @@ void bindFbo(GLuint shadow) {
 static GLint delegateProgram = 0;
 
 void setCurrentProgram() {
-    if (!delegateProgram) {
-        glGetIntegerv(GL_CURRENT_PROGRAM, &delegateProgram);
-    }
+    if (!delegateProgram) delegateProgram = Program::Get();
 }
 
 GBuffer renderGeoAndShadow(uint32_t width, uint32_t height,
                            GLuint shadow, GLuint shadowDepth,
                            std::function<void()> renderDelegate) {
-    GLfloat clearColor[4];
-    glGetFloatv(GL_COLOR_CLEAR_VALUE, clearColor);
-    
-    GLboolean blendEnabled;
-    glGetBooleanv(GL_BLEND, &blendEnabled);
+    initResource(width, height);
+
+    gl::Value<ClearColor> clearColor;
+    gl::Value<Blend> blend;
+    gl::Value<BindFramebuffer> bindFramebuffer;
+    gl::Value<Program> program;
+    gl::Value<Viewport> viewport;
+    gl::Value<DepthMask> depthMask;
     
     {
-        initResource(width, height);
-        
         geo::bindFbo(shadow);
-        glViewport(0, 0, width, height);
+
+        Viewport::Set({ 0, 0, { width, height } });
+        ClearColor::Set({ 0, 0, 0, 0 });
+        Blend::Set(false);
+        DepthMask::Set(DepthMaskType::ReadWrite);
 
         if (delegateProgram) {
             glActiveTexture(GL_TEXTURE0);
@@ -112,17 +116,10 @@ GBuffer renderGeoAndShadow(uint32_t width, uint32_t height,
             static programs::UniformLocation u1(delegateProgram, "u_shadow_offset");
             glUniform2f(u1, .5 / shadow::width, .5 / shadow::height);
         }
-        
-
-        glClearColor(0, 0, 0, 0);
-        glDisable(GL_BLEND);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // 清空所有颜色附件
         renderDelegate();
     }
-    
-    blendEnabled ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
-    glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
     
     return { position, normal, albedo };
 }

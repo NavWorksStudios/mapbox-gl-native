@@ -5,6 +5,7 @@
 //
 
 #include "mbgl/nav/render/nav.halo.hpp"
+#include "mbgl/nav/render/nav.glvalue.hpp"
 
 
 namespace nav {
@@ -45,14 +46,19 @@ void initResource(int width, int height) {
 }
 
 GLuint render(uint32_t width, uint32_t height, std::function<void()> renderDelegate) {
-    width *= .7;
-    height *= .7;
+    uint32_t w = width * .7;
+    uint32_t h = height * .7;
+    
+    initResource(w, h);
+    
+    gl::Value<BindFramebuffer> bindFramebuffer;
+    gl::Value<Viewport> viewport;
+    gl::Value<DepthMask> depthMask;
     
     {
-        initResource(width, height);
-        
-        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-        glViewport(0, 0, width, height);
+        BindFramebuffer::Set(fbo);
+        Viewport::Set({ 0, 0, { w, h } });
+        DepthMask::Set(DepthMaskType::ReadWrite);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         renderDelegate();

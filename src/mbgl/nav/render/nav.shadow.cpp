@@ -10,9 +10,7 @@
 
 #include "mbgl/nav/render/shaders.h"
 #include "mbgl/nav/render/programs/nav.program.ground.hpp"
-
-#include <mbgl/programs/fill_extrusion_program.hpp>
-
+#include "mbgl/nav/render/nav.glvalue.hpp"
 
 
 static auto convertVec3 = [] (mbgl::vec3 v) {
@@ -62,29 +60,24 @@ void initResource(int width, int height) {
 }
 
 GLuint render(uint32_t width, uint32_t height, std::function<void()> renderDelegate) {
-    GLboolean depthMaskValue;
-    glGetBooleanv(GL_DEPTH_WRITEMASK, &depthMaskValue);
-
-    GLboolean enableCullface;
-    glGetBooleanv(GL_CULL_FACE, &enableCullface);
+    initResource(shadow::width, shadow::height);
+    
+    gl::Value<CullFace> cullFace;
+    gl::Value<CullFaceSide> cullFaceSide;
+    gl::Value<DepthMask> depthMask;
+    gl::Value<Viewport> viewport;
+    gl::Value<BindFramebuffer> bindFramebuffer;
 
     {
-        initResource(shadow::width, shadow::height);
-        
-        glBindFramebuffer(GL_FRAMEBUFFER, shadow::fbo);
-        glViewport(0, 0, shadow::width, shadow::height);
-        
-        glDepthMask(GL_TRUE);
-        glEnable(GL_CULL_FACE);
-        glCullFace(GL_FRONT);
+        CullFace::Set(true);
+        CullFaceSide::Set(CullFaceSideType::Front);
+        DepthMask::Set(DepthMaskType::ReadWrite);
+        Viewport::Set({ 0, 0, { shadow::width, shadow::height } });
+        BindFramebuffer::Set(shadow::fbo);
         
         glClear(GL_DEPTH_BUFFER_BIT);
         renderDelegate();
     }
-
-    glCullFace(GL_BACK);
-    enableCullface ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
-    depthMaskValue ? glDepthMask(GL_TRUE) : glDepthMask(GL_FALSE);
 
     return buffer;
 }
@@ -140,16 +133,13 @@ GLuint vao(GLuint program) {
 }
 
 void render(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::mat4& normal, const mbgl::mat4& lightmvp) {
-    GLint delegateProgram;
-    glGetIntegerv(GL_CURRENT_PROGRAM, &delegateProgram);
-    
-    GLboolean cullfaceEnabled;
-    glGetBooleanv(GL_CULL_FACE, &cullfaceEnabled);
-    glDisable(GL_CULL_FACE);
+    Program::Type delegateProgram = Program::Get();
+    CullFace::Type cullFace = CullFace::Get();
     
     {
         const GLint program = ground::program();
-        glUseProgram(program);
+        Program::Set(program);
+        CullFace::Set(false);
         
         static programs::UniformLocation u0(program, "u_matrix");
         const Mat4 MVP = convertMatrix4(mvp);
@@ -176,8 +166,8 @@ void render(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::mat4& norma
         glDrawArrays(GL_TRIANGLES, 0, 6);
     }
     
-    cullfaceEnabled ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
-    glUseProgram(delegateProgram);
+    Program::Set(delegateProgram);
+    CullFace::Set(cullFace);
 }
 
 }   // ground
