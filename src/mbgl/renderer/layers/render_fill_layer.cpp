@@ -127,7 +127,8 @@ void RenderFillLayer::render(PaintParameters& parameters) {
         const auto& color = nav::palette::getColorBase();
         const auto palette_lightness = enableShaderPalette ? (color.r + color.g + color.b) / 3. : 0.;
         const auto water_wave = enableWaterEffect ? util::clamp((parameters.state.getZoom() - 13.) * .3, 0., 1.) : 0.;
-        float tex_viability = (parameters.state.getZoom() - 13) / (15 - 13); if(tex_viability > 1) tex_viability = 1;
+        float textype = parameters.state.getZoom() < 15 ? 0 : textures.type;
+        float tex_viability = (parameters.state.getZoom() - 15) / (15.5 - 15); if(tex_viability > 1) tex_viability = 1;
         if (textures.type > 0) textures.size = nav::runtime::texture::get(textures.normal).size;
         FillProgram::LayoutUniformValues layoutUniformValues = {
             uniforms::matrix::Value(),
@@ -145,7 +146,7 @@ void RenderFillLayer::render(PaintParameters& parameters) {
             
             uniforms::model_matrix_p20::Value(),
             uniforms::texsize::Value( textures.size ),
-            uniforms::textype::Value( parameters.state.getZoom() < 13 ? 0 : textures.type ),
+            uniforms::textype::Value( textype ),
             uniforms::tex_viability::Value( tex_viability ),
             uniforms::camera_pos::Value( parameters.state.getCameraPosition() ),
             uniforms::lightcolor::Value( light::lightColor(parameters.evaluatedLight) ),
