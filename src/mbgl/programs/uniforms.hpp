@@ -86,6 +86,8 @@ MBGL_DEFINE_UNIFORM_SCALAR(float, water_data_z_scale);
 MBGL_DEFINE_UNIFORM_SCALAR(float, textype);
 MBGL_DEFINE_UNIFORM_VECTOR(float, 3, lightpos);
 MBGL_DEFINE_UNIFORM_VECTOR(float, 3, lightcolor);
+MBGL_DEFINE_UNIFORM_SCALAR(float, tex_viability);
+
 
 } // namespace uniforms
 } // namespace mbgl
