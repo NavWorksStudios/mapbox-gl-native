@@ -25,23 +25,21 @@ struct AABB {
     mbgl::vec3 min = { NAN }, max = { NAN };
     void invalidate();
     bool valid() const;
-    void include(double x, double y, double z);
+    void include(const mbgl::vec3& vertex);
     AABB intersect(const AABB& aabb) const;
 };
 
 struct Frumstum {
     void update(const mbgl::TransformState& state, const std::vector<mbgl::OverscaledTileID>& tileIDs);
-    void renderGroundProjection(const mbgl::mat4& lightViewProjmatrix);
+    void renderAreaProjection(const mbgl::mat4& lightProjMatrix);
     inline const AABB& getFrustum() const { return frustumAABB; }
     
 private:
     AABB tileAABB;
     AABB groundAABB;
     AABB frustumAABB;
-    
-public:
-    std::array<mbgl::vec3,4> worldSpaceGround;
-    std::array<mbgl::vec3,4> worldSpaceClipedGround;
+
+    std::array<mbgl::vec3,4> lightViewSpaceGround;
 };
 
 Frumstum& sunlight();

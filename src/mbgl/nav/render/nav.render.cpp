@@ -166,11 +166,11 @@ void renderDeferred(const mbgl::PaintParameters& parameters,
         
         {
             Viewport::Set({x, 20, size});
-            quad::renderRedChannel(shadowBuffer, .8);
             
-            mbgl::mat4 matrix;
-            parameters.state.getSunlightProjMatrix(matrix);
-            shadow::frustum::ortho::sunlight().renderGroundProjection(matrix);
+            const auto& projMatrix = parameters.state.getSunlightViewToClipMatrix();
+            shadow::frustum::ortho::sunlight().renderAreaProjection(projMatrix);
+            
+            quad::renderRedChannel(shadowBuffer, .8);
         }
         
         {
