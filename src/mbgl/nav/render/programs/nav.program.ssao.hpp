@@ -32,6 +32,7 @@ uniform sampler2D u_position;
 uniform sampler2D u_normal;
 uniform sampler2D u_albedo;
 uniform sampler2D u_noise;
+uniform sampler2D u_emissive;
 
 #define SAMPLE_SIZE 8
 uniform vec3 u_smaple_kernels[SAMPLE_SIZE];

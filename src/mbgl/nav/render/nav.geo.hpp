@@ -17,7 +17,7 @@ void setCurrentProgram();
 
 using GBuffer = std::array<GLuint, 3>;
 GBuffer renderGeoAndShadow(uint32_t width, uint32_t height,
-                           GLuint shadow, GLuint shadowDepth,
+                           GLuint renderBuffer, GLuint shadowDepth,
                            std::function<void()> renderDelegate);
 
 }

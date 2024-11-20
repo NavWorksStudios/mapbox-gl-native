@@ -122,7 +122,7 @@ void bindFbo(GLuint buffer) {
 }
 
 void render(uint32_t width, uint32_t height, float zoom, const Mat4& projMatrix,
-            GLuint renderBuffer, GLuint haloBuffer, const std::array<GLuint, 3>& gbuffer) {
+            GLuint renderBuffer, GLuint emissiveBuffer, const std::array<GLuint, 3>& gbuffer) {
     initResource(width, height);
     
     gl::Value<BindFramebuffer> bindFramebuffer;
@@ -192,6 +192,11 @@ void render(uint32_t width, uint32_t height, float zoom, const Mat4& projMatrix,
             glBindTexture(GL_TEXTURE_2D, sample::noise::texture);
             static programs::UniformLocation u3(program, "u_noise");
             glUniform1i(u3, 3);
+            
+            glActiveTexture(GL_TEXTURE4);
+            glBindTexture(GL_TEXTURE_2D, emissiveBuffer);
+            static programs::UniformLocation u4(program, "u_emissive");
+            glUniform1i(u4, 4);
         }
 
         quad::render(program);

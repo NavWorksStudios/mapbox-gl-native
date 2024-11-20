@@ -1,5 +1,5 @@
 //
-//  nav.halo.hpp
+//  nav.emissive.hpp
 //
 //  Created by BernieZhao on 2024/11/9.
 //
@@ -11,7 +11,7 @@
 
 namespace nav {
 namespace render {
-namespace halo {
+namespace emissive {
 
 GLuint render(uint32_t width, uint32_t height, std::function<void()> renderDelegate);
 

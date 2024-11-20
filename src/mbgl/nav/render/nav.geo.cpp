@@ -88,7 +88,7 @@ void setCurrentProgram() {
 }
 
 GBuffer renderGeoAndShadow(uint32_t width, uint32_t height,
-                           GLuint shadow, GLuint shadowDepth,
+                           GLuint renderBuffer, GLuint shadowDepth,
                            std::function<void()> renderDelegate) {
     initResource(width, height);
 
@@ -100,7 +100,7 @@ GBuffer renderGeoAndShadow(uint32_t width, uint32_t height,
     gl::Value<DepthMask> depthMask;
     
     {
-        geo::bindFbo(shadow);
+        geo::bindFbo(renderBuffer);
 
         Viewport::Set({ 0, 0, { width, height } });
         ClearColor::Set({ 0, 0, 0, 0 });

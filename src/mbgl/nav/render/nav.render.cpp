@@ -11,7 +11,7 @@
 #include "mbgl/nav/render/mat4.h"
 #include "mbgl/nav/render/nav.shadow.hpp"
 #include "mbgl/nav/render/nav.shadow.frustum.hpp"
-#include "mbgl/nav/render/nav.halo.hpp"
+#include "mbgl/nav/render/nav.emissive.hpp"
 #include "mbgl/nav/render/nav.geo.hpp"
 #include "mbgl/nav/render/nav.ssao.hpp"
 #include "mbgl/nav/render/nav.quad.hpp"
@@ -71,9 +71,9 @@ GLuint get() {
 }
 
 void renderDeferred(const mbgl::PaintParameters& parameters,
-                    std::function<void()> shadowRenderDelegate,
-                    std::function<void()> haloRenderDelegate,
-                    std::function<void()> geoRenderDelegate) {
+                    std::function<void()> renderShadowDelegate,
+                    std::function<void()> renderEmissiveDelegate,
+                    std::function<void()> renderGeoDelegate) {
     const float zoom = parameters.state.getZoom();
     if (zoom < 15.) return;
     
@@ -85,17 +85,17 @@ void renderDeferred(const mbgl::PaintParameters& parameters,
     const auto renderBuffer = renderbuffer::get();
     
     // 1
-    const auto shadowBuffer = shadow::render(w, h, shadowRenderDelegate);
+    const auto shadowBuffer = shadow::render(w, h, renderShadowDelegate);
     
     // 2
-    const auto haloBuffer = halo::render(w, h, haloRenderDelegate);
+    const auto emissiveBuffer = emissive::render(w, h, renderEmissiveDelegate);
 
     // 3
-    const auto gbuffer = geo::renderGeoAndShadow(w, h, renderBuffer, shadowBuffer, geoRenderDelegate);
+    const auto gbuffer = geo::renderGeoAndShadow(w, h, renderBuffer, shadowBuffer, renderGeoDelegate);
     
     // 4
     const auto& projMatrix = convertMatrix4(parameters.state.getViewToClipMatrix());
-    ssao::render(w, h, zoom, projMatrix, renderBuffer, haloBuffer, gbuffer);
+    ssao::render(w, h, zoom, projMatrix, renderBuffer, emissiveBuffer, gbuffer);
     
     // 5
     bindFramebuffer.restore();
@@ -118,7 +118,7 @@ void renderDeferred(const mbgl::PaintParameters& parameters,
         
         {
             Viewport::Set({x += size.width + 20, 20, size});
-            quad::renderStandard(haloBuffer, .8);
+            quad::renderStandard(emissiveBuffer, .8);
         }
         
         {

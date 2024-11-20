@@ -335,8 +335,8 @@ set(all_files
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.glvalue.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.geo.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.geo.cpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.halo.hpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.halo.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.emissive.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.emissive.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.ssao.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.ssao.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.shadow.hpp

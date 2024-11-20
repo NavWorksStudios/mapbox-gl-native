@@ -1,10 +1,10 @@
 //
-//  nav.halo.cpp
+//  nav.emissive.cpp
 //
 //  Created by BernieZhao on 2024/11/9.
 //
 
-#include "mbgl/nav/render/nav.halo.hpp"
+#include "mbgl/nav/render/nav.emissive.hpp"
 #include "mbgl/nav/render/nav.glvalue.hpp"
 
 
@@ -13,7 +13,7 @@ namespace render {
 
 GLuint genTexture(GLint internalformat, GLsizei width, GLsizei height, GLenum format, GLenum type);
 
-namespace halo {
+namespace emissive {
 
 GLuint fbo = 0;
 GLuint buffer = 0;
@@ -67,7 +67,7 @@ GLuint render(uint32_t width, uint32_t height, std::function<void()> renderDeleg
     return buffer;
 }
 
-}   // end halo
+}   // end emissive
 }   // end render
 }   // end nav
 
