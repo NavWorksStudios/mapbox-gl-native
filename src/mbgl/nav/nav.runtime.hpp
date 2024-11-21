@@ -54,6 +54,7 @@ void release();
 void upload(mbgl::gfx::UploadPass& uploadPass);
 mbgl::gfx::Texture& get(const std::string& name);
 std::tuple<mbgl::Size, int32_t> logo();
+std::tuple<mbgl::Size, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t> skybox();
 }
 
 }

@@ -193,6 +193,14 @@ bool needUpload = true;
 int32_t logo_texture = 0;
 mbgl::Size logo_size;
 
+int32_t skybox_texture_right = 0;
+int32_t skybox_texture_left = 0;
+int32_t skybox_texture_top = 0;
+int32_t skybox_texture_bottom = 0;
+int32_t skybox_texture_front = 0;
+int32_t skybox_texture_back = 0;
+mbgl::Size skybox_size;
+
 void load(const std::string& path) {
     root = path;
 
@@ -230,6 +238,46 @@ void upload(mbgl::gfx::UploadPass& uploadPass) {
                                               GL_RGBA, GL_UNSIGNED_BYTE, (const GLvoid*) image.data.get());
             logo_size = image.size;
         }
+        
+        {
+            auto path_right = root + "skybox/right.jpg";
+            auto data_right = std::move(mbgl::util::read_file(path_right));
+            mbgl::PremultipliedImage skybox_image_right = mbgl::decodeImage(data_right);
+            skybox_texture_right = render::genTexture(GL_RGBA, skybox_image_right.size.width, skybox_image_right.size.height,
+                                                      GL_RGBA, GL_UNSIGNED_BYTE, (const GLvoid*) skybox_image_right.data.get());
+            skybox_size = skybox_image_right.size;
+            
+            auto path_left = root + "skybox/left.jpg";
+            auto data_left = std::move(mbgl::util::read_file(path_left));
+            mbgl::PremultipliedImage skybox_image_left = mbgl::decodeImage(data_left);
+            skybox_texture_left = render::genTexture(GL_RGBA, skybox_image_left.size.width, skybox_image_left.size.height,
+                                                     GL_RGBA, GL_UNSIGNED_BYTE, (const GLvoid*) skybox_image_left.data.get());
+            
+            auto path_top = root + "skybox/top.jpg";
+            auto data_top = std::move(mbgl::util::read_file(path_top));
+            mbgl::PremultipliedImage skybox_image_top = mbgl::decodeImage(data_top);
+            skybox_texture_top = render::genTexture(GL_RGBA, skybox_image_top.size.width, skybox_image_top.size.height,
+                                                    GL_RGBA, GL_UNSIGNED_BYTE, (const GLvoid*) skybox_image_top.data.get());
+            
+            auto path_bottom = root + "skybox/bottom.jpg";
+            auto data_bottom = std::move(mbgl::util::read_file(path_bottom));
+            mbgl::PremultipliedImage skybox_image_bottom = mbgl::decodeImage(data_bottom);
+            skybox_texture_bottom = render::genTexture(GL_RGBA, skybox_image_bottom.size.width, skybox_image_bottom.size.height,
+                                                       GL_RGBA, GL_UNSIGNED_BYTE, (const GLvoid*) skybox_image_bottom.data.get());
+            
+            auto path_front = root + "skybox/front.jpg";
+            auto data_front = std::move(mbgl::util::read_file(path_front));
+            mbgl::PremultipliedImage skybox_image_front = mbgl::decodeImage(data_front);
+            skybox_texture_front = render::genTexture(GL_RGBA, skybox_image_front.size.width, skybox_image_front.size.height,
+                                                      GL_RGBA, GL_UNSIGNED_BYTE, (const GLvoid*) skybox_image_front.data.get());
+            
+            auto path_back = root + "skybox/back.jpg";
+            auto data_back = std::move(mbgl::util::read_file(path_back));
+            mbgl::PremultipliedImage skybox_image_back = mbgl::decodeImage(data_back);
+            skybox_texture_back = render::genTexture(GL_RGBA, skybox_image_back.size.width, skybox_image_back.size.height,
+                                                     GL_RGBA, GL_UNSIGNED_BYTE, (const GLvoid*) skybox_image_back.data.get());
+        }
+        
     }
 }
 
@@ -243,6 +291,13 @@ mbgl::gfx::Texture& get(const std::string& name) {
 
 std::tuple<mbgl::Size, int32_t> logo() {
     return { logo_size, logo_texture };
+}
+
+std::tuple<mbgl::Size, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t> skybox() {
+    return { skybox_size, 
+             skybox_texture_right, skybox_texture_left, skybox_texture_top,
+             skybox_texture_bottom, skybox_texture_front, skybox_texture_back
+    };
 }
 
 }

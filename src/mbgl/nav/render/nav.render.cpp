@@ -16,7 +16,7 @@
 #include "mbgl/nav/render/nav.ssao.hpp"
 #include "mbgl/nav/render/nav.quad.hpp"
 #include "mbgl/nav/render/nav.glvalue.hpp"
-
+#include "mbgl/nav/render/nav.skybox.hpp"
 
 namespace nav {
 
@@ -142,6 +142,14 @@ void renderLogo(const mbgl::PaintParameters& parameters) {
     const auto& size = std::get<0>(logo);
     Viewport::Set({ int(w - size.width), 0, size });
     quad::renderStandard(std::get<1>(logo));
+}
+
+void renderSkybox(const mbgl::PaintParameters& parameters) {
+//    mbgl::mat4 projMatrix;
+//    parameters.state.getProjMatrix(projMatrix);
+//    skybox::render(projMatrix);
+    
+    skybox::render(parameters.state.getViewToClipMatrix());
 }
 
 } // renderer

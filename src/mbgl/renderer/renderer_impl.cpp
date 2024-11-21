@@ -179,6 +179,11 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
         }
     }
     
+    // - NAV SKYBOX RENDERING PASS --------------------------------------------------------------------------------
+    {
+        nav::render::renderSkybox(parameters);
+    }
+    
     // - NAV DEFERRED RENDERING PASS --------------------------------------------------------------------------------
     {
         auto shadowRenderDelegate = [&parameters] () {

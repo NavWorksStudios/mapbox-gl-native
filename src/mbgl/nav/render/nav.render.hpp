@@ -22,6 +22,8 @@ void renderDeferred(const mbgl::PaintParameters& parameters,
 
 void renderLogo(const mbgl::PaintParameters& parameters);
 
+void renderSkybox(const mbgl::PaintParameters& parameters);
+
 }
 }
 

@@ -20,7 +20,7 @@
 
 #include <random>
 #include <array>
-
+#include <mutex>
 
 namespace nav {
 namespace render {

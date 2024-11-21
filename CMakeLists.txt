@@ -347,12 +347,15 @@ set(all_files
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.render.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.quad.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.quad.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.skybox.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/nav.skybox.cpp
 
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/programs/nav.program.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/programs/nav.program.ssao.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/programs/nav.program.quad.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/programs/nav.program.ground.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/programs/nav.program.frustum.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/nav/render/programs/nav.program.skybox.hpp
 
     ${PROJECT_SOURCE_DIR}/src/mbgl/programs/nav/deferred/fill_extrusion_shadow.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/programs/nav/deferred/fill_extrusion_geo.cpp
