@@ -152,39 +152,90 @@ template <HeightFormat H> float get(float zoom) {
 
 }
 
-void makeABetterFieldOfShadow(const mbgl::TransformState& state, std::array<mbgl::vec3, 4>& projection) {
-    // 查表操作，可以调整zp曲线
-    //       俯视                                       平视
-    //  z\p |.0 |.1 |.2 |.3 |.4 |.5 |.6 |.7 |.8 |.9 |1. |
-    // .0   |   |   |   |   |   |   |1. |   |   |   |.4 |
-    //                              /                   |
-    //                            /                     |
-    //                          /                       |
-    //                  left  /                         | right
-    //                      /                           |
-    //                    /                             |
-    //                  /                               |
-    // .1   |   |   |   |   |   |.5 |   |   |   |   |.05|
-    // 近
-    
-    const double zf = fmax(0., fmin(1., (state.getZoom() - 15.) / 4.)); // (0, 1) 15-20
-    const double pf = fmin(state.getPitch() / M_PI * 180. / 70., 1.); // (0, 1) 俯视, 平视
-    
-    const double p[2] = { .6 - .4 * zf, 1. };
-    const double r[2] = { 1. - .5 * zf, .4 - .35 * zf };
-    const double result = r[0] + fmax(pf - p[0], 0.) / (p[1] - p[0]) * (r[1] - r[0]);
-    
-    static auto shrink = [] (mbgl::vec3& near, mbgl::vec3& far, float shrink) {
-        far[0] = near[0] + (far[0] - near[0]) * shrink; // x
-        far[1] = near[1] + (far[1] - near[1]) * shrink; // y
-    };
 
-    enum { tl = 0, tr = 1, br = 2, bl = 3, };
-    shrink(projection[bl], projection[tl], result);
-    shrink(projection[br], projection[tr], result);
+namespace shadowfield {
+namespace optimize {
+
+void v1(const mbgl::TransformState& state, std::array<mbgl::vec3, 4>& projection) {
+    //      俯视                                        平视
+    //     \p|.0 |.1 |.2 |.3 |.4 |.5 |.6 |.7 |.8 |.9 |1. |
+    //  zoom\|___________________________________________|
+    //    .0 |1. |1. |1. |1. |1. |1. |1. |   |   |   |.4 |
+    //    .1 |1. |1. |1. |1. |1. |1. /-------------------|
+    //    .2 |1. |1. |1. |1. |1. |1./--------------------|
+    //    .3 |1. |1. |1. |1. |1. | /---------------------|
+    //    .4 |1. |1. |1. |1. |1. |/----------------------|
+    //    .5 |1. |1. |1. |1. |1. /-----------------------|
+    //    .6 |1. |1. |1. |1. |1./------------------------|
+    //    .7 |1. |1. |1. |1. | /-------------------------|
+    //    .8 |1. |1. |1. |1. |/--------------------------|
+    //    .9 |1. |1. |1. |1. /---------------------------|
+    //    1. |1. |1. |1. |1. |   |   |   |   |   |   |.05|
+    //       |-------------------------------------------|
     
-//    nav::log::i("sunlight", "zoom(%lf) pitch(%lf) | z(%lf) p(%lf) r(%lf)\n", state.getZoom(), state.getPitch(), zf, pf, result);
+    // normalize
+    const double zoom = mbgl::util::clamp((state.getZoom() - 15.) / 5., 0., 1.); // (0, 1) 15-20
+    const double pitch = mbgl::util::clamp(state.getPitch() / M_PI * 180. / 70., 0., 1.); // (0, 1) 俯视, 平视
+    
+    // 图左侧空白区，result=1，图右侧填充区，result=f(p,z)
+    // 如下数值与图例不一致
+    using PV = std::pair<float, float>;
+    const std::array<PV, 2> topPV = { PV({ .4, 1. }), PV({ 1., .4 }) };
+    const std::array<PV, 2> bottomPV = { PV({ .6, 1. }), PV({ 1., .1 }) };
+    
+    enum { l=0, r=1 };
+    
+    // 任意zoom下，p取值范围(min, max)
+    const double p[2] = {
+        topPV[l].first - (topPV[l].first - bottomPV[l].first) * zoom,
+        topPV[r].first - (topPV[r].first - bottomPV[r].first) * zoom, };
+    
+    // 任意zoom下，r取值范围(min, max)
+    const double v[2] = {
+        topPV[l].second - (topPV[l].second - bottomPV[l].second) * zoom,
+        topPV[r].second - (topPV[r].second - bottomPV[r].second) * zoom, };
+    
+    const double result = v[0] + fmax(pitch - p[0], 0.) / (p[1] - p[0]) * (v[1] - v[0]);
+    if (result < 1.) {
+        static auto shrink = [] (mbgl::vec3& near, mbgl::vec3& far, float shrink) {
+            far[0] = near[0] + (far[0] - near[0]) * shrink; // x
+            far[1] = near[1] + (far[1] - near[1]) * shrink; // y
+        };
+
+        enum { tl = 0, tr = 1, br = 2, bl = 3, };
+        shrink(projection[bl], projection[tl], result);
+        shrink(projection[br], projection[tr], result);
+    }
+    
+    nav::log::i("sunlight", "zoom(%lf) pitch(%lf) | z(%lf) p(%lf) r(%lf)\n", state.getZoom(), state.getPitch(), zoom, pitch, result);
 }
+
+void v2(const mbgl::TransformState& state, std::array<mbgl::vec3, 4>& projection) {
+    const mbgl::vec3 far = mbgl::vec3Scale(mbgl::vec3Add(projection[0], projection[1]), .5);
+    const mbgl::vec3 near = mbgl::vec3Scale(mbgl::vec3Add(projection[2], projection[3]), .5);
+    const double distance = mbgl::vec3Length(mbgl::vec3Sub(far, near));
+
+    const double max = fmax(3000. / pow(2, state.getZoom() - 15.), 3000.);
+    
+    const double result = fmin(max, distance) / distance;
+    if (result < 1.) {
+        static auto shrink = [] (mbgl::vec3& near, mbgl::vec3& far, float shrink) {
+            far[0] = near[0] + (far[0] - near[0]) * shrink; // x
+            far[1] = near[1] + (far[1] - near[1]) * shrink; // y
+        };
+        
+        enum { tl = 0, tr = 1, br = 2, bl = 3, };
+        shrink(projection[bl], projection[tl], result);
+        shrink(projection[br], projection[tr], result);
+    }
+}
+
+}
+}
+
+
+
+
 
 void Frumstum::update(const mbgl::TransformState& state, const std::vector<mbgl::OverscaledTileID>& tileIDs) {
     if (tileIDs.size() == 0) return;
@@ -265,7 +316,7 @@ void Frumstum::update(const mbgl::TransformState& state, const std::vector<mbgl:
             getIntersect(ground, { points[near_bl], points[far_bl] }),
         };
 
-        makeABetterFieldOfShadow(state, projection);
+        shadowfield::optimize::v2(state, projection);
         
         // 计算最小外接
         const double h = maxheight::get<IN_PIXEL>(state.getZoom());
