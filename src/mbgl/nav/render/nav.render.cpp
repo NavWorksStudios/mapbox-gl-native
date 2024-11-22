@@ -44,7 +44,7 @@ GLuint genTexture(GLint internalformat, GLsizei width, GLsizei height, GLenum fo
     return genTexture(internalformat, width, height, format, type, nullptr);
 }
 
-bool _showDebugWindow = true;
+bool _showDebugWindow = false;
 
 void switchDebugWindow() {
     _showDebugWindow = !_showDebugWindow;
@@ -61,7 +61,7 @@ static GLuint buffer = 0;
 GLuint get() {
     if (!buffer) {
         glDeleteTextures(1, &buffer);
-        buffer = genTexture(GL_RED, width(), height(), GL_RED, GL_FLOAT);
+        buffer = genTexture(GL_RGBA, width(), height(), GL_RGBA, GL_FLOAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     }
@@ -80,12 +80,13 @@ void renderDeferred(const mbgl::PaintParameters& parameters,
     gl::Value<Viewport> viewPort;
     gl::Value<BindFramebuffer> bindFramebuffer;
     
+    // 0
     const int w = renderbuffer::width();
     const int h = renderbuffer::height();
     const auto renderBuffer = renderbuffer::get();
     
     // 1
-    const auto shadowBuffer = shadow::render(w, h, renderShadowDelegate);
+    const auto shadowBuffer = shadow::render(renderShadowDelegate);
     
     // 2
     const auto emissiveBuffer = emissive::render(w, h, renderEmissiveDelegate);
@@ -107,7 +108,7 @@ void renderDeferred(const mbgl::PaintParameters& parameters,
         int x = 20;
         const mbgl::Size size = { uint32_t(w / 8.), uint32_t(h / 8.) };
         
-        {
+        { // depth
             Viewport::Set({x, 20, size});
             
             const auto& projMatrix = parameters.state.getSunlightViewToClipMatrix();
@@ -116,19 +117,24 @@ void renderDeferred(const mbgl::PaintParameters& parameters,
             quad::renderRedChannel(shadowBuffer, .8);
         }
         
-        {
+        { // emissive
             Viewport::Set({x += size.width + 20, 20, size});
-            quad::renderStandard(emissiveBuffer, .8);
+            quad::renderStandard(emissiveBuffer, .8, {1, 1, 1, .8});
         }
         
-        {
+        { // geo position
+            Viewport::Set({x += size.width + 20, 20, size});
+            quad::renderStandard(gbuffer[0], .8);
+        }
+        
+        { // geo normal
             Viewport::Set({x += size.width + 20, 20, size});
             quad::renderStandard(gbuffer[1], .8);
         }
         
-        {
+        { // deferred render buffer
             Viewport::Set({x += size.width + 20, 20, size});
-            quad::renderRedChannel(renderBuffer, .8);
+            quad::renderStandard(renderBuffer, .8, {1, 1, 1, .8});
         }
     }
 }

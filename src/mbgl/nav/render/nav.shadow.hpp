@@ -16,7 +16,7 @@ namespace shadow {
 
 const int width = 4096 * 1.;
 const int height = 4096 * 1.;
-GLuint render(uint32_t width, uint32_t height, std::function<void()> renderDelegate);
+GLuint render(std::function<void()> renderDelegate);
 
 namespace ground {
 void render(const mbgl::mat4& mvp, const mbgl::mat4& mv, const mbgl::mat4& normal, const mbgl::mat4& lightmvp);

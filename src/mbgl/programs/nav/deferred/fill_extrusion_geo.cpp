@@ -181,7 +181,7 @@ struct ShaderSource<FillExtrusionGeoProgram> {
 
             // 消除平行于光线的面的阴影闪动。越平行于光线越淡。
             if (shadow > 0. && normal.z < 0.001) { // 刨除地面
-                lightDir.z = 0.; // 换到平面
+                lightDir.z = 0.; // 变换到二维平面空间
                 lightDir = normalize(lightDir);
                 float diff2D = dot(normal, lightDir); // 平面夹角
                 shadow *= abs(diff2D);
@@ -201,7 +201,7 @@ struct ShaderSource<FillExtrusionGeoProgram> {
             gl_FragData[2].rgb = vec3(0.95);
     
             // shadow
-            gl_FragData[3].r = ShadowCalculation(v_lightspace_pos) * .6;
+            gl_FragData[3] = vec4(0., 0.08, 0.09, ShadowCalculation(v_lightspace_pos) * .8);
         }
             
     )"; }

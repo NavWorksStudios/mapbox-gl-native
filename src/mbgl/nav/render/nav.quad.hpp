@@ -8,13 +8,14 @@
 #pragma once
 
 #include <gl_headers.hpp>
+#include <mbgl/util/color.hpp>
 
 namespace nav {
 namespace render {
 namespace quad {
 
 void render(GLint program);
-void renderStandard(GLint buffer, float opacity=1.);
+void renderStandard(GLint buffer, float opacity=1., mbgl::Color bgColor={0,0,0,0});
 void renderRedChannel(GLint buffer, float opacity=1.);
 void renderBlur(GLint buffer, uint32_t width, uint32_t height);
 

@@ -87,10 +87,23 @@ void main() {
 
     vec3 fragPos = vec3(u_model_matrix * pos);
 
+#if 0
+    const float Material_ambient = .4; // 环境光
+    const float Material_diffuse = .2; // 漫反射
+    const float Material_specular = 2.; // 镜面反射
+    const float Material_shininess = 1.; // 镜面反射率
+    const vec3 Light_base = vec3(.88, .9, .92);
+    const vec3 Light_specular = vec3(.98, .88, .78);
+    const float Building_alpha = .5;
+#else
     const float Material_ambient = .6; // 环境光
     const float Material_diffuse = .2; // 漫反射
     const float Material_specular = 2.; // 镜面反射
     const float Material_shininess = 1.; // 镜面反射率
+    const vec3 Light_base = vec3(.97, .97, .94);
+    const vec3 Light_specular = vec3(.92, .97, .97);
+    const float Building_alpha = .8;
+#endif
 
     // Ambient Lighting
     const float ambient = Material_ambient;
@@ -106,11 +119,11 @@ void main() {
     float specular = pow(max(dot(viewDir, reflectDir), 0.), Material_shininess) * Material_specular;
     specular = min(specular, 1.);
 
-    vec3 baselight = vec3(.97, .97, .94) * (ambient + diffuse) * (1. - specular);
-    vec3 specularlight = vec3(.92, .97, .97) * specular;
+    vec3 baselight = Light_base * (ambient + diffuse) * (1. - specular);
+    vec3 specularlight = Light_specular * specular;
 
     v_color = vec4(baselight + specularlight, 1.) * u_opacity;
-    v_color.a *= .8;
+    v_color.a *= Building_alpha;
 }
     
 )"; }

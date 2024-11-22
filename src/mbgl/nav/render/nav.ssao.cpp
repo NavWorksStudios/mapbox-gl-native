@@ -155,7 +155,7 @@ void render(uint32_t width, uint32_t height, float zoom, const Mat4& projMatrix,
             });
             
             const float radius = .1;
-            const float bias = .0001;
+            const float bias = .001;
             for (int i=0; i<sample::kernel::SIZE; i++) {
                 const float scale = pow(2., i);
                 const Vec3 v = sample::kernel::random[i].scale(radius * scale);

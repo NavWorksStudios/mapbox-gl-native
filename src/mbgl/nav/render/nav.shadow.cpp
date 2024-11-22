@@ -59,7 +59,7 @@ void initResource(int width, int height) {
     }
 }
 
-GLuint render(uint32_t width, uint32_t height, std::function<void()> renderDelegate) {
+GLuint render(std::function<void()> renderDelegate) {
     initResource(shadow::width, shadow::height);
     
     gl::Value<CullFace> cullFace;

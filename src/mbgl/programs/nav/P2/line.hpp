@@ -57,9 +57,9 @@ void main() {
     lowp float alpha = clamp(min(dist - (v_width2.t - blur2), v_width2.s - dist) / blur2, 0.0, 1.0);
 
     const float smooth = 2.; // 中心向边缘扩散平滑度
-    const float width = 2.; // 越大越细
+    const float width = 3.; // 越大越细
     float tc = min(pow(dist / v_width2.s * width, smooth), 1.); // 根据距离中心距离，计算颜色
-    gl_FragColor = color * (alpha * opacity) * tc + v_traffic_color * (1.2 - tc);
+    gl_FragColor = (color * tc + v_traffic_color * (1.2 - tc)) * alpha * opacity;
 
 #ifdef OVERDRAW_INSPECTOR
     gl_FragColor=vec4(1.0);

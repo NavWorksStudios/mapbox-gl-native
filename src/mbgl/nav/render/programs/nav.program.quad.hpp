@@ -22,12 +22,14 @@ void main() {
 static const char* standardFragmentShader() { return R"(
 
 uniform float u_opacity;
+uniform vec4 u_bg_color;
 uniform sampler2D u_buffer;
 varying vec2 TexCoords;
 
 void main() {
     gl_FragColor = texture2D(u_buffer, TexCoords);
-    gl_FragColor.a *= u_opacity;
+    gl_FragColor += u_bg_color * (1. - gl_FragColor.a);
+    gl_FragColor *= u_opacity;
 }
 
 )"; }
@@ -53,19 +55,17 @@ uniform sampler2D u_buffer;
 uniform vec2 u_offset;
 varying vec2 TexCoords;
 
-float kawaseBlur(vec2 uv) {    
-    float color = texture2D(u_buffer, uv).r;
-    color += texture2D(u_buffer, uv + vec2(+u_offset.x, +u_offset.y)).r;
-    color += texture2D(u_buffer, uv + vec2(+u_offset.x, -u_offset.y)).r;
-    color += texture2D(u_buffer, uv + vec2(-u_offset.x, +u_offset.y)).r;
-    color += texture2D(u_buffer, uv + vec2(-u_offset.x, -u_offset.y)).r;
+vec4 kawaseBlur(vec2 uv) {    
+    vec4 color = texture2D(u_buffer, uv);
+    color += texture2D(u_buffer, uv + vec2(+u_offset.x, +u_offset.y));
+    color += texture2D(u_buffer, uv + vec2(+u_offset.x, -u_offset.y));
+    color += texture2D(u_buffer, uv + vec2(-u_offset.x, +u_offset.y));
+    color += texture2D(u_buffer, uv + vec2(-u_offset.x, -u_offset.y));
     return color / 5.;
 }
 
 void main() {
-    vec3 color = vec3(0.2, 0.28, 0.29);
-    float alpha = kawaseBlur(TexCoords);
-    gl_FragColor = vec4(color, alpha);
+    gl_FragColor = kawaseBlur(TexCoords);
 }
 
 )"; }

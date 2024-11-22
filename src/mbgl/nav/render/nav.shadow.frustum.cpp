@@ -153,9 +153,6 @@ template <HeightFormat H> float get(float zoom) {
 }
 
 void makeABetterFieldOfShadow(const mbgl::TransformState& state, std::array<mbgl::vec3, 4>& projection) {
-    const double zf = fmax(0., fmin(1., (state.getZoom() - 15.) / 4.)); // (0, 1) 15-20
-    const double pf = fmin(state.getPitch() / M_PI * 180. / 70., 1.); // (0, 1) 俯视, 平视
-    
     // 查表操作，可以调整zp曲线
     //       俯视                                       平视
     //  z\p |.0 |.1 |.2 |.3 |.4 |.5 |.6 |.7 |.8 |.9 |1. |
@@ -167,8 +164,11 @@ void makeABetterFieldOfShadow(const mbgl::TransformState& state, std::array<mbgl
     //                      /                           |
     //                    /                             |
     //                  /                               |
-    // .1   |   |   |.5 |   |   |   |   |   |   |   |.05|
+    // .1   |   |   |   |   |   |.5 |   |   |   |   |.05|
     // 近
+    
+    const double zf = fmax(0., fmin(1., (state.getZoom() - 15.) / 4.)); // (0, 1) 15-20
+    const double pf = fmin(state.getPitch() / M_PI * 180. / 70., 1.); // (0, 1) 俯视, 平视
     
     const double p[2] = { .6 - .4 * zf, 1. };
     const double r[2] = { 1. - .5 * zf, .4 - .35 * zf };

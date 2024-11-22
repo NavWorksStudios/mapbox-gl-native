@@ -30,7 +30,7 @@ void initResource(int width, int height) {
         
         // color buffer
         glDeleteTextures(1, &buffer);
-        buffer = genTexture(GL_RGB16F, width, height, GL_RGB, GL_FLOAT);
+        buffer = genTexture(GL_RGBA, width, height, GL_RGBA, GL_FLOAT);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, buffer, 0);
         glDrawBuffer(GL_COLOR_ATTACHMENT0);
         
@@ -46,19 +46,18 @@ void initResource(int width, int height) {
 }
 
 GLuint render(uint32_t width, uint32_t height, std::function<void()> renderDelegate) {
-    uint32_t w = width * .7;
-    uint32_t h = height * .7;
-    
-    initResource(w, h);
+    initResource(width, height);
     
     gl::Value<BindFramebuffer> bindFramebuffer;
     gl::Value<Viewport> viewport;
     gl::Value<DepthMask> depthMask;
+    gl::Value<ClearColor> clearColor;
     
     {
         BindFramebuffer::Set(fbo);
-        Viewport::Set({ 0, 0, { w, h } });
+        Viewport::Set({ 0, 0, { width, height } });
         DepthMask::Set(DepthMaskType::ReadWrite);
+        ClearColor::Set({0, 0, 0, 0});
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         renderDelegate();

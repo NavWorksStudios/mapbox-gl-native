@@ -39,18 +39,20 @@ uniform vec3 u_smaple_kernels[SAMPLE_SIZE];
 uniform float u_sample_radius[SAMPLE_SIZE];
 uniform float u_depth_bias[SAMPLE_SIZE];
 
-const float MAGNITUDE = 1.8; // 强度
-const float CONTRAST = 1.8; // 对比度
+const float MAGNITUDE = 1.5; // 强度
+const float CONTRAST = 1.5; // 对比度
 
 const float NEAR_DEPTH = 0.;
 const float FAR_DEPTH = -400.;
 
 void main() {
 
-    float occlusion = 0.0;
+    float occlusion = 0.;
+//    vec4 emissive = vec4(0.);
 
     vec3 kernelPos = texture2D(u_position, TexCoords).xyz;
     vec3 albedo = texture2D(u_albedo, TexCoords).xyz;
+
     if (kernelPos.z > FAR_DEPTH && albedo.r > 0.) {
 
         // 动态采样数，近密远疏，可以大幅降低开销
@@ -75,7 +77,7 @@ void main() {
             vec3 samplePos = kernelPos + TBN * u_smaple_kernels[i]; // from tangent to view-space 从切线空间转化到视图空间
 
             // project sample position (to sample texture) (to get position on screen/texture) 投影smple点到深度纹理坐标，获取在纹理的位置
-            vec4 depth_uv = u_projection * vec4(samplePos, 1.0); // from view to clip-space 使用projection将其转化到裁剪空间
+            vec4 depth_uv = u_projection * vec4(samplePos, 1.0); // from view to clip-space 视图空间到裁剪空间
             depth_uv.xy /= depth_uv.w; // perspective divide
             depth_uv.xy = depth_uv.xy * 0.5 + 0.5; // transform to range 0.0 - 1.0
             
@@ -88,15 +90,19 @@ void main() {
             if (dz > u_depth_bias[i] / depth_factor) {
                 occlusion += smoothstep(0.0, 1.0, u_sample_radius[i] / dz);
             }
+
+//            emissive += texture2D(u_emissive, depth_uv.xy);
         }
 
         occlusion = pow(occlusion, MAGNITUDE);
-        occlusion = occlusion / float(sample_count);
+        occlusion /= float(sample_count);
 //        occlusion = CONTRAST * (occlusion - 0.5) + 0.5;
 
+//        emissive /= float(sample_count);
     }
 
-    gl_FragColor.r = occlusion * .6;
+    gl_FragColor = vec4(0., 0.08, 0.09, occlusion * .8);
+//    gl_FragColor = gl_FragColor + emissive * .5;
 }
 
 )"; }
