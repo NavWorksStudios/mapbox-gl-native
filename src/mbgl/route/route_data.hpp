@@ -20,7 +20,7 @@ const int16_t eRoadCondition_MostCongested = 3;
 
 struct link {
     
-    std::vector<const mbgl::LatLng> points;
+    std::vector<mbgl::LatLng> points;
     
     struct traffic {
         int16_t percent;

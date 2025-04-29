@@ -28,8 +28,13 @@ namespace display {
 
 namespace logic {
 
+#if 0
 int _width = 1920;
 int _height = 1080;
+#else
+int _width = 1280;
+int _height = 720;
+#endif
 
 int width() {
     return _width;

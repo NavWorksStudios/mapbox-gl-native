@@ -371,8 +371,13 @@ void GLFWView::onKey(int key, int action, int mods) {
             addLineAnnotations({40.712245, -74.014147});
             break;
         case GLFW_KEY_A: {
-            mbgl::AnimationOptions animationOptions(mbgl::Seconds(4));
-            map->flyTo(nav::place::next(), animationOptions);
+            map->flyTo(nav::place::next(), { mbgl::Seconds(12) });
+        } break;
+        case GLFW_KEY_DOWN: {
+            auto option = map->getCameraOptions();
+            option.bearing = option.bearing.value() + 180.;
+            option.pitch = option.pitch.value() + 10.;
+            map->flyTo(option, { mbgl::Seconds(20) });
         } break;
         case GLFW_KEY_R: {
             nav::runtime::setViewMode(nav::runtime::ViewMode::Spotlight);
