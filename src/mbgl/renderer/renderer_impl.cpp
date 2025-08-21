@@ -15,6 +15,7 @@
 #include <mbgl/util/string.hpp>
 #include <mbgl/util/logging.hpp>
 
+#include "mbgl/nav/nav.theme.hpp"
 #include "mbgl/nav/render/nav.render.hpp"
 #include "mbgl/nav/render/nav.geo.hpp"
 
@@ -200,7 +201,8 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
             RenderFillExtrusionLayer::renderGeoBuffer(parameters);
         };
 
-        nav::render::renderDeferred(parameters, shadowRenderDelegate, emissiveRenderDelegate, geoRenderDelegate);
+        if (nav::theme::getShaderIndex() == 2)
+            nav::render::renderDeferred(parameters, shadowRenderDelegate, emissiveRenderDelegate, geoRenderDelegate);
     }
     
     // - ANNOTATION PASS --------------------------------------------------------------------------

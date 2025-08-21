@@ -75,117 +75,16 @@ vec2 get_pattern_pos(const vec2 pixel_coord_upper,const vec2 pixel_coord_lower,c
 
 )"; }
 
-static const char* navVertex(const char* ) { return R"(
-
-uniform mat4 u_matrix;
-uniform mat4 u_model_matrix;
-uniform mat4 u_model_matrix_p20;
-uniform lowp float u_base;
-
-uniform lowp vec4 u_palette_color;
-uniform lowp float u_palette_lightness;
-
-uniform vec2 u_texsize;
-uniform float u_textype;
-
-uniform sampler2D u_image;
-uniform sampler2D u_image0;
-uniform sampler2D u_image1;
-        
-attribute vec2 a_pos;
-
-varying vec3 v_world_pos;
-varying vec2 v_uv;
-
-#ifndef HAS_UNIFORM_u_color
-    uniform lowp float u_color_t;
-    attribute vec4 a_color;
-    varying vec4 color;
-#else
-    uniform vec4 u_color;
-#endif
-
-#ifndef HAS_UNIFORM_u_opacity
-    uniform lowp float u_opacity_t;
-    attribute lowp vec2 a_opacity;
-    varying lowp float opacity;
-#else
-    uniform lowp float u_opacity;
-#endif
-
-#ifndef HAS_UNIFORM_u_gapwidth
-    uniform lowp float u_gapwidth_t;
-    attribute mediump vec2 a_gapwidth;
-#else
-    uniform mediump float u_gapwidth;
-#endif
-
-#ifndef HAS_UNIFORM_u_offset
-    uniform lowp float u_offset_t;
-    attribute lowp vec2 a_offset;
-#else
-    uniform lowp float u_offset;
-#endif
-
-#ifndef HAS_UNIFORM_u_width
-    uniform lowp float u_width_t;
-    attribute mediump vec2 a_width;
-#else
-    uniform mediump float u_width;
-#endif
-        
-void main() {
-#ifndef HAS_UNIFORM_u_color
-    color=unpack_mix_color(a_color,u_color_t);
-#else
-    highp vec4 color=u_color;
-#endif
-
-#ifndef HAS_UNIFORM_u_opacity
-    opacity=unpack_mix_vec2(a_opacity,u_opacity_t);
-#else
-    lowp float opacity=u_opacity;
-#endif
-
-#ifndef HAS_UNIFORM_u_gapwidth
-    mediump float gapwidth=unpack_mix_vec2(a_gapwidth,u_gapwidth_t);
-#else
-    mediump float gapwidth=u_gapwidth;
-#endif
-
-#ifndef HAS_UNIFORM_u_offset
-    lowp float offset=unpack_mix_vec2(a_offset,u_offset_t);
-#else
-    lowp float offset=u_offset;
-#endif
-
-#ifndef HAS_UNIFORM_u_width
-    mediump float width=unpack_mix_vec2(a_width,u_width_t);
-#else
-    mediump float width=u_width;
-#endif
-    
-    vec4 pos = vec4(a_pos, u_base, 1.);
-    gl_Position = u_matrix * pos;
-
-    v_world_pos = vec3(u_model_matrix * pos);
-
-    const float scaleFactor = 1. / 1.;
-    v_uv = vec2(u_model_matrix_p20 * pos);
-    v_uv = fract(v_uv / 102400.) * 102400.;
-    v_uv /= u_texsize * scaleFactor;
-
-#ifndef HAS_UNIFORM_u_color
-    // 灰阶色变换主题色
-    if (u_palette_lightness > 0.) {
-        lowp float lightness = color.r / u_palette_lightness;
-        color = vec4(u_palette_color.rgb * lightness, color.a);
+static const char* navVertex(const char* ) {
+    switch (nav::theme::getShaderIndex()) {
+        case 1:
+            return nav::p1::navVertex(nullptr);
+        case 2:
+            return nav::p2::navVertex(nullptr);
+        default:
+            return "";
     }
-#endif
-
 }
-
-)"; }
     
 static const char* navFragment(const char* , size_t ) { return R"(
 

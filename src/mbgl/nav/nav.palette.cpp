@@ -141,7 +141,7 @@ bool demo() {
     if (!theme::needsAutoUpdate()) return false;
 
     static int counter = 0;
-    if (counter++ > 30) {
+    if (counter++ > 300) {
         counter = 0;
 
         static float h = 0;
@@ -156,7 +156,7 @@ bool demo() {
 
         Hsla color(50, .5, .5);
         color.h = fmod(h += 9., 360.);
-        color.s = .5 + .3 * wave(s += .05, 0, 1);
+        color.s = .3 + .5 * wave(s += .05, 0, 1);
         color.l = .3 + .5 * wave(l += .1, 0, 1);
         themeBaseColor.smoothTo(color);
     }

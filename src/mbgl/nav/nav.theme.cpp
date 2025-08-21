@@ -85,13 +85,35 @@ const Config COLORFUL = {
     1,
 };
 
+const Config BLACK_GOLD = {
+    "BlackGold 黑金",
+    "https://console.mapbox.com/studio/styles/navworks/clzdv9emu00f301r27uym15w9/edit/#7.03/31.635/120.897",
+    "mapbox://styles/navworks/clzdv9emu00f301r27uym15w9",
+    
+    Update::AsNeed,
+    BuildReflection::Disabled,
+    
+    [] (const std::string& uri, Hsla color) -> std::tuple<Hsla,bool> {
+        if (uri.find("building-extrusion") != std::string::npos) {
+        }
+        
+        return std::make_tuple(color, false);
+    },
+    
+    [] (const nav::stringid&) {
+        return false;
+    },
+    
+    1,
+};
+
 const Config PURENESS = {
     "Pureness 纯白",
     "https://studio.mapbox.com/styles/navworks/clzqn4giv00a801pi06quhgz7/edit/#7.03/31.635/120.897",
     "mapbox://styles/navworks/clzqn4giv00a801pi06quhgz7",
     
     Update::AsNeed,
-    BuildReflection::Disabled,
+    BuildReflection::Enabled,
     
     [] (const std::string& uri, Hsla color) -> std::tuple<Hsla,bool> {
         if (uri.find("building-extrusion") != std::string::npos) {
@@ -129,9 +151,11 @@ const Config ROUTE_TEST = {
     1,
 };
 
-//const Config& THEME = COLORFUL;
-const Config& THEME = PURENESS;
-//const Config& THEME = ROUTE_TEST;
+const Config& THEME =
+//COLORFUL;
+BLACK_GOLD;
+//PURENESS;
+//ROUTE_TEST;
 
 const std::string& style() {
     return THEME.styleUrl;
